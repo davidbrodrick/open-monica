@@ -1,0 +1,20 @@
+/**
+ * Class: KeyKeeper
+ * Description: The class that keeps changing the keys
+ * @author Le Cuong Nguyen
+ **/
+package atnf.atoms.mon;
+
+import java.util.*
+
+class KeyKeeper extends TimerTask
+{
+   public KeyKeeper()
+   {
+      Timer timer = new Timer(this);
+   }
+
+   public void run()
+   {
+   }
+}
