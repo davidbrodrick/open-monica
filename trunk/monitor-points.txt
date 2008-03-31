@@ -21,10 +21,4 @@ M misc.monitor_sys.NumJavaClnts          "Number of Java clients connected"   "N
 M misc.monitor_sys.NumASCIIClnts         "Number of ASCII clients connected"  "NumAClients"      ""   Monitor T Listen-"$1.hidden.monitor_sys.alldata"   NV-"NumClntsA"        null   -          5000000
 M misc.monitor_sys.TimeUTC               "Current Time (UTC)"                 "UTC"              ""   site    T Listen-"Monitor.hidden.monitor_sys.alldata"   NV-"TimeUTC"     null   -          5000000
 
-M network.connectivity                   "Network Connectivity"          ""                 ""   modem      T Strings-"pingcheck://""192.168.1.1"            -                     StringMatch-"true""true"  CHANGE-  5000000
-M network.connectivity                   "Network Connectivity"          ""                 ""   wireless   T Strings-"pingcheck://""192.168.1.250"            -                     StringMatch-"true""true"  CHANGE-  5000000
 M network.connectivity                   "Network Connectivity"          ""                 ""   OzF        T Strings-"pingcheck://""ozforecast.com.au"  -                     StringMatch-"true""true"  CHANGE-  5000000
-M network.connectivity                   "Network Connectivity"          ""                 ""   flash      T Strings-"pingcheck://""flash"              -                     StringMatch-"true""true"  CHANGE-  5000000
-M network.connectivity                   "Network Connectivity"          ""                 ""   laptop     T Strings-"pingcheck://""192.168.1.4"        -                     StringMatch-"true""true"  CHANGE-  5000000
-
-M network.connectivity                   "Network Connectivity"          ""                 ""   site       T LimitCheck-"5000000"""1""OK""FAIL""OzF.network.connectivity""modem.network.connectivity""flash.network.connectivity""laptop.network.connectivity""wireless.network.connectivity"           -        StringMatch-"true""OK"  CHANGE-  5000000
