@@ -1,0 +1,3 @@
+Main-Class: atnf.atoms.mon.gui.MonFrame
+Class-Path: bcprov-jdk13-119.jar websphinx.jar jfreechart-0.9.16.jar jcommon-0.9.1.jar 
+ 
