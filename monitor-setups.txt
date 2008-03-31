@@ -1,0 +1,1 @@
+{atnf.atoms.mon.gui.MonFrame`misc.monitor_sys`3`numpanels`1`setup0`{atnf.atoms.mon.gui.monpanel.ATPointTable\'temp\'2\'sources\'Monitor\'points\'misc.monitor_sys.NumJavaClnts:misc.monitor_sys.NumASCIIClnts:-:misc.monitor_sys.MemoryUsed\'}`title`Monitor System Information`}
