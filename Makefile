@@ -4,6 +4,8 @@
 CLIENT_JAR=monica-client.jar
 SERVER_JAR=monica-server.jar
 
+CLASSPATH=".:caj-1.1.3.jar:jcommon-0.9.1.jar:jfreechart-0.9.16.jar:jca-2.3.1.jar:jep-2.24.jar:jsch-0.1.37.jar"
+
 CLIENT_FILES =atnf/atoms/mon/*.class \
               atnf/atoms/mon/client/*.class \
               atnf/atoms/mon/util/*.class \
@@ -13,7 +15,7 @@ CLIENT_FILES =atnf/atoms/mon/*.class \
               atnf/atoms/mon/gui/monpanel/*.gif \
               atnf/atoms/time/*.class \
               atnf/atoms/util/StaticOnly.class \
-              atnf/atoms/util/*Angle*.class \
+              atnf/atoms/util/Angle.class \
               atnf/atoms/util/Log*.class \
               atnf/atoms/util/Named*.class \
               atnf/atoms/util/Enum*.class \
@@ -28,7 +30,7 @@ all: compile
 #involves a great deal of repeated compilation and second we supress some
 #of the warning messages.
 compile:
-	find . -iname "*.java" -exec javac {} \; 2>&1 | grep -v Xlint | grep -v unchecke
+	find . -iname "*.java" -exec javac -nowarn -classpath ${CLASSPATH} {} \;
         
 client:
 	jar cmf manifest.txt ${CLIENT_JAR} ${CLIENT_FILES}

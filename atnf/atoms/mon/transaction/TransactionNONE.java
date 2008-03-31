@@ -1,0 +1,25 @@
+/**
+ * Class: TransactionNONE
+ * Description: Provides communication with the loopback
+ * @author Le Cuong Nguyen
+ **/
+
+package atnf.atoms.mon.transaction;
+
+import java.util.*;
+import atnf.atoms.mon.PointInteraction;
+
+public class TransactionNONE
+extends Transaction
+{
+  protected static String itsArgs[] = new String[]{"Transaction - Loopback",
+  "NONE"};
+
+  public TransactionNONE(PointInteraction parent, String specifics)
+  {
+    super(parent, specifics);
+    setChannel("NONE");
+    specifics = specifics.replace('\"','\0').trim();
+    itsName = specifics;
+  }
+}
