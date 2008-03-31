@@ -1,0 +1,8 @@
+atnf.atoms.mon.datasource.DataSourceMonitorSystem "misc.monitor_sys.datasources.","Monitor.hidden.monitor_sys.DataSourceStatus","Monitor.hidden.monitor_sys.DataSource_NP","Monitor.hidden.monitor_sys.DataSource_NT"
+atnf.atoms.mon.datasource.DataSourcePingCheck pingcheck://modem
+atnf.atoms.mon.datasource.DataSourcePingCheck pingcheck://wireless
+atnf.atoms.mon.datasource.DataSourcePingCheck pingcheck://OzF
+atnf.atoms.mon.datasource.DataSourcePingCheck pingcheck://flash
+atnf.atoms.mon.datasource.DataSourcePingCheck pingcheck://laptop
+atnf.atoms.mon.datasource.DataSourceNUTUPS nutups://grunter:3493
+atnf.atoms.mon.datasource.DataSourceWX200 wx200://flash:9753:weather

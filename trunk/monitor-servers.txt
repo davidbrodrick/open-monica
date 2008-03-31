@@ -1,0 +1,24 @@
+#This file defines which servers should be offered as options when
+#the client is started.
+#
+#Each line may be a comment, blank, specify the default server or define
+#a new server. The format for defining servers is:
+#name\tmonitor.server\tsecure.gateway
+#
+#Where:
+#name: Symbolic name of the server/site/instrument.
+#monitor.server: FQDN of the actual machine where the server is running.
+#secure.gateway: SSH gateway to tunnel the connection through if the
+#                server can't be contacted directly. Optional field.
+#
+#Fields must be TAB delimited as spaces in the name field are legal.
+#
+#A default server can be defined using the syntax:
+#default\tnumber
+#
+#Where number specifies which of the server definitions to use as the default.
+#The first server definition is number 1 (not 0).
+default	0
+
+David's Place	fringes.org
+Localhost	localhost
