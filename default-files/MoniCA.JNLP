@@ -4,19 +4,22 @@
   spec="1.0+"
   codebase="http://fringes.org/monica/"
   href="MoniCA.JNLP">
+
   <information>
     <title>MoniCA</title>
-    <vendor>Australia Telescope National Facility</vendor>
-    <description>Graphical Monitor Client ATNF Telescopes</description>
-    <description kind="short">Graphical Monitor Client for ATNF Telescopes</description>
+    <vendor>Open-MoniCA Project</vendor>
+    <description>Graphical Monitor System Client</description>
+    <description kind="short">Graphical Monitor System Client</description>
     <shortcut online="false">
       <desktop/>
-      <menu submenu="ATOMS"/>
+      <menu submenu="MoniCA"/>
     </shortcut>
   </information>
+
   <security>
       <all-permissions/>
   </security>
+
   <resources>
     <j2se version="1.3+"/>
     <jar href="monica-client.jar"/>
