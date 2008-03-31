@@ -3,7 +3,7 @@
 <jnlp
   spec="1.0+"
   codebase="http://fringes.org/monica/"
-  href="MoniCA.JNLP">
+  href="OpenMoniCA.JNLP">
 
   <information>
     <title>MoniCA</title>
