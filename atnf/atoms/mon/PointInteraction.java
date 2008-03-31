@@ -10,8 +10,7 @@ package atnf.atoms.mon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
-import java.io.LineNumberReader;
-import java.io.FileReader;
+import java.io.*;
 import atnf.atoms.util.*;
 import atnf.atoms.time.*;
 import atnf.atoms.mon.translation.*;
@@ -292,14 +291,29 @@ implements ActionListener, NamedObject, Comparable
    public static ArrayList
    parseFile(String fname)
    {
+     try {
+       return parseFile(new FileReader(fname));
+     } catch (Exception e) {
+       System.err.println("PointInteraction:parseFile(): " + e.getClass());
+       e.printStackTrace();
+       return null;
+     }
+   }
+   
+   /**
+    * Parse a point definitions file and return all the points defined.
+    */
+   public static ArrayList
+   parseFile(Reader pointsfile)
+   {
      ArrayList result = new ArrayList();
-     String[] lines = MonitorUtils.parseFile(fname);
+     String[] lines = MonitorUtils.parseFile(pointsfile);
      if (lines != null) {
        for (int i = 0; i < lines.length; i++) {
 	 ArrayList al = parseLine(lines[i]);
 	 if (al!=null) result.addAll(al);
 	 else {
-             System.err.println("PARSE ERROR: " + fname + "["
+             System.err.println("PARSE ERROR: " + pointsfile + "["
                                 + i + "]: " + lines[i]);
 	 }
        }

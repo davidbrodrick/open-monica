@@ -11,14 +11,12 @@ package atnf.atoms.mon.datasource;
 import javax.swing.Timer;
 import java.util.*;
 import java.awt.event.ActionListener;
-import atnf.atoms.time.*;
-import java.io.IOException;
-import java.io.LineNumberReader;
-import java.io.FileReader;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.awt.event.ActionEvent;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
+import atnf.atoms.time.*;
 
 /**
  * DataSource is the base class for objects which bring new information
@@ -300,10 +298,10 @@ implements Runnable
     * @param fileName The file to parse for DataSource declarations. */
    public static
    void
-   init(String fileName)
+   init(Reader sourcefile)
    {
      try {
-       String[] lines = MonitorUtils.parseFile(fileName);
+       String[] lines = MonitorUtils.parseFile(sourcefile);
        if (lines != null)
 	 for (int i = 0; i < lines.length; i++) {
 	   try {
