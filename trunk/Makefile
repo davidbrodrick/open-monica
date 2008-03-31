@@ -15,7 +15,7 @@ CLIENT_FILES =atnf/atoms/mon/*.class \
               atnf/atoms/mon/gui/monpanel/*.gif \
               atnf/atoms/time/*.class \
               atnf/atoms/util/StaticOnly.class \
-              atnf/atoms/util/Angle.class \
+              atnf/atoms/util/*Angle*.class \
               atnf/atoms/util/Log*.class \
               atnf/atoms/util/Named*.class \
               atnf/atoms/util/Enum*.class \
@@ -30,7 +30,7 @@ all: compile
 #involves a great deal of repeated compilation and second we supress some
 #of the warning messages.
 compile:
-	find . -iname "*.java" -exec javac -nowarn -classpath ${CLASSPATH} {} \;
+	find . -iname "*.java" -exec javac -source 1.4 -target 1.4 -nowarn -classpath ${CLASSPATH} {} \;
         
 client:
 	jar cmf manifest.txt ${CLIENT_JAR} ${CLIENT_FILES}
