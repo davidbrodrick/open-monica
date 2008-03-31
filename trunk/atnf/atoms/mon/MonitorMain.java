@@ -8,6 +8,7 @@
 package atnf.atoms.mon;
 
 import java.util.*;
+import java.io.*;
 import java.awt.event.ActionListener;
 import java.lang.reflect.*;
 import java.net.URL;
@@ -37,20 +38,20 @@ MonitorMain
     } catch (Exception e) {e.printStackTrace();}
 
     //Initialise all the DataSources
-    URL datasourcefile = MonitorMain.class.getClassLoader().getResource("monitor-sources.txt");
+    InputStream datasourcefile = MonitorMain.class.getClassLoader().getResourceAsStream("monitor-sources.txt");
     if (datasourcefile==null) {
       System.err.println("ERROR: Failed to find monitor-sources.txt configuration file");
       System.exit(1);
     }
-    DataSource.init(datasourcefile.getFile());
+    DataSource.init(new InputStreamReader(datasourcefile));
 
     //Create all the points
-    URL pointsfile = MonitorMain.class.getClassLoader().getResource("monitor-points.txt");
+    InputStream pointsfile = MonitorMain.class.getClassLoader().getResourceAsStream("monitor-points.txt");
     if (pointsfile==null) {
       System.err.println("ERROR: Failed to find monitor-points.txt configuration file");
       System.exit(1);
     }
-    ArrayList points = PointInteraction.parseFile(pointsfile.getFile());
+    ArrayList points = PointInteraction.parseFile(new InputStreamReader(pointsfile));
     for (int i=0; i<points.size(); i++) {
       if (points.get(i) instanceof PointMonitor) {
 	//Tell the point which archiver to use - for now there's only one
@@ -62,12 +63,12 @@ MonitorMain
     new KeyKeeper();
 
     //Recover all the SavedSetups from the file
-    URL setupfile = MonitorMain.class.getClassLoader().getResource("monitor-setups.txt");
+    InputStream setupfile = MonitorMain.class.getClassLoader().getResourceAsStream("monitor-setups.txt");
     if (setupfile==null) {
       System.err.println("WARNING: Failed to find monitor-setups.txt configuration file");
     } else {
       try {
-	Vector setups = SavedSetup.parseFile(setupfile.getFile());
+	Vector setups = SavedSetup.parseFile(new InputStreamReader(setupfile));
 	System.err.println("Recovered " + setups.size() + " SavedSetups from " + setupfile);
 	for (int i=0; i<setups.size(); i++) MonitorMap.addSetup((SavedSetup)setups.get(i));
       } catch (Exception e) {

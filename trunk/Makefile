@@ -14,27 +14,38 @@ CLIENT_FILES =atnf/atoms/mon/*.class \
               atnf/atoms/mon/gui/monpanel/*.class \
               atnf/atoms/mon/gui/monpanel/*.gif \
               atnf/atoms/time/*.class \
-              atnf/atoms/util/StaticOnly.class \
-              atnf/atoms/util/*Angle*.class \
-              atnf/atoms/util/Log*.class \
-              atnf/atoms/util/Named*.class \
-              atnf/atoms/util/Enum*.class \
-              atnf/atoms/util/Ex*.class \
-              atnf/atoms/util/Immutable.class \
+              atnf/atoms/util/*.class \
               monitor-preloads.txt \
               monitor-servers.txt
 
+SERVER_FILES =atnf/atoms/mon/*.class \
+              atnf/atoms/mon/util/*.class \
+              atnf/atoms/mon/limit/*.class \
+              atnf/atoms/mon/transaction/*.class \
+              atnf/atoms/mon/translation/*.class \
+              atnf/atoms/mon/datasource/*.class \
+              atnf/atoms/mon/archiver/*.class \
+              atnf/atoms/mon/archivepolicy/*.class \
+              atnf/atoms/time/*.class \
+              atnf/atoms/util/*.class \
+              monitor-points.txt \
+              monitor-sources.txt \
+              monitor-config.txt \
+              monitor-setups.txt
+
 all: compile
 
-#The compile is really sad.. first we just compile every java file, which
-#involves a great deal of repeated compilation and second we supress some
-#of the warning messages.
+#The compile is sad.. we just compile every java file, which involves a great 
+#deal of repeated compilation for some classes.
 compile:
 	find . -iname "*.java" -exec javac -source 1.4 -target 1.4 -nowarn -classpath ${CLASSPATH} {} \;
         
 client:
-	jar cmf manifest.txt ${CLIENT_JAR} ${CLIENT_FILES}
+	jar cmf manifest-client.txt ${CLIENT_JAR} ${CLIENT_FILES}
 	jarsigner -keystore demo-keys ${CLIENT_JAR} monica
+
+server:
+	jar cmf manifest-server.txt ${SERVER_JAR} ${SERVER_FILES}
 
 clean:
 	rm -f ${CLIENT_JAR} ${SERVER_JAR}

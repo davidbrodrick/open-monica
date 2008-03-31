@@ -24,12 +24,12 @@ public class MonitorConfig
 
    public static void init()
    {
-     URL configfilename = MonitorConfig.class.getClassLoader().getResource("monitor-config.txt");
-     if (configfilename==null) {
+     InputStream configfile = MonitorConfig.class.getClassLoader().getResourceAsStream("monitor-config.txt");
+     if (configfile==null) {
        System.err.println("ERROR: Could not find monitor-config.txt configuration file");
        System.exit(1);
      }
-     String[] lines = MonitorUtils.parseFile(configfilename.getFile());
+     String[] lines = MonitorUtils.parseFile(new InputStreamReader(configfile));
      if (lines != null)
      for (int i = 0; i < lines.length; i++) {
        int firstSpace = lines[i].indexOf(' ');

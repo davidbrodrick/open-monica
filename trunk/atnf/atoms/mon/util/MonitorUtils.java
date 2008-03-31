@@ -269,6 +269,7 @@ public abstract class MonitorUtils
 	}
      } catch (Exception e) {
        System.err.println("MonitorUtils.parseFile: " + e.getClass());
+       e.printStackTrace();
        return null;
      }
      return toStringArray(result.toArray());
@@ -281,6 +282,7 @@ public abstract class MonitorUtils
          return parseFile(fr);
       } catch (Exception e) {
         System.err.println("MonitorUtils.parseFile(" + filename + "): " + e.getClass());
+        e.printStackTrace();
       }
       return null;
    }

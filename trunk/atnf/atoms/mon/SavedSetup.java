@@ -9,7 +9,7 @@
 package atnf.atoms.mon;
 
 import java.util.*;
-import java.io.Serializable;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import atnf.atoms.mon.util.MonitorUtils;
@@ -36,6 +36,9 @@ public class SavedSetup
 extends HashMap
 implements NamedObject, Comparable
 {
+  /** Serialized version id. */
+  static final long serialVersionUID = -4564836140257941860L;
+
   /** Class that this setup information belongs to. */
   String itsClass = null;
 
@@ -341,17 +344,29 @@ implements NamedObject, Comparable
 
 
   /** Recover the SavedSetups stored in the file.
-   * @param filename The name of the file containing the SavedSetups.
+   * @param setupfilename The name of the file containing the SavedSetups.
    * @return Vector containing the setups, possibly empty. */
   public static
   Vector
-  parseFile(String filename)
+  parseFile(String setupfilename)
+  throws Exception
+  {
+    return parseFile(new FileReader(setupfilename));
+  }
+
+
+  /** Recover the SavedSetups stored in the file.
+   * @param setupfile The file containing the SavedSetups.
+   * @return Vector containing the setups, possibly empty. */
+  public static
+  Vector
+  parseFile(Reader setupfile)
   throws Exception
   {
     Vector res = new Vector();
 
     //Pre-process the file, exit if empty
-    String[] lines = MonitorUtils.parseFile(filename);
+    String[] lines = MonitorUtils.parseFile(setupfile);
     if (lines==null) return res;
 
     //Try to parse the lines one at a time
