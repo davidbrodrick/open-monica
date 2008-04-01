@@ -104,7 +104,7 @@ extends DataSource
       itsWriter = new PrintStream(itsSocket.getOutputStream());
       itsReader = new BufferedReader(new InputStreamReader(
                                          itsSocket.getInputStream()));
-      //System.err.println("Connected to " + itsHostName + ":" + itsPort);
+      System.err.println("Connected to " + itsHostName + ":" + itsPort);
       //MonitorMap.logger.information("Connected to " + itsHostName + ":" + itsPort);
       itsNumTransactions=0;
     } catch (Exception e) {

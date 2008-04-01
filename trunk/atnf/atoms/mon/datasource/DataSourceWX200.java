@@ -294,7 +294,8 @@ extends DataSourceASCIISocket
             
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          System.err.println("DataSourceWX200:DataReader.run (" + itsHostName 
+                             + ":" + itsPort + "): " + e.getClass());
           try { disconnect(); } catch (Exception f) { }
         }
       }
