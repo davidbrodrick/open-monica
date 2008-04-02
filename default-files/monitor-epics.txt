@@ -1,0 +1,8 @@
+#This file contains the list of PV's we want to monitor with MoniCA, and
+#the MoniCA monitor point name that each PV should be mapped to. Each line
+#consists of <PV> <monitorpoint> with exactly one space between them. eg:
+#
+#NET:coull-cj:ifInOctets_li coull-cj.test.network.ifInOctets_li
+#
+#Blank lines and comment lines (beginning with #) are allowed.
+
