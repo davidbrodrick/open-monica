@@ -5,6 +5,7 @@ atnf.atoms.mon.gui.monpanel.ATTimeSeries
 atnf.atoms.mon.gui.monpanel.ATPointTable
 atnf.atoms.mon.gui.monpanel.HistoryTable
 atnf.atoms.mon.gui.monpanel.ATXYPlot
+atnf.atoms.mon.gui.monpanel.Watchdog
 atnf.atoms.mon.gui.monpanel.HTMLComment
 atnf.atoms.mon.gui.monpanel.Lightning
 

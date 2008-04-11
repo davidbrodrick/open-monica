@@ -9,26 +9,26 @@
 package atnf.atoms.mon.gui.monpanel;
 
 import atnf.atoms.mon.*;
+import atnf.atoms.mon.limit.*;
 import atnf.atoms.mon.gui.*;
 import atnf.atoms.mon.client.*;
 import atnf.atoms.time.*;
 
-import java.util.Vector;
-import java.util.StringTokenizer;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.PrintStream;
-
+import java.io.*;
+import javax.sound.sampled.*;
 
 public class Watchdog
 extends MonPanel
+implements PointListener, ActionListener
 {
   static {
-    MonPanel.registerMonPanel("Watchdog/Alarm", Watchdog.class);
+    MonPanel.registerMonPanel("Watchdog", Watchdog.class);
   }
-
 
   ///////////////////////// NESTED CLASS ///////////////////////////////
   /** Nested class to provide GUI controls for configuring the watchdog */
@@ -41,14 +41,30 @@ extends MonPanel
 
     /** Main panel for our setup components. */
     private JPanel itsMainPanel = new JPanel();
+    
+    /** Check box for whether unavailable data is an alarm condition. */
+    private JCheckBox itsStaleBad = new JCheckBox("Unavailable data is an alarm condition.");
+    
+    /** Spinner for selecting inertia. */
+    private JSpinner itsInertia = new JSpinner();
 
     /** Construct the setup editor for the specified panel. */
     public WatchdogSetupPanel(Watchdog panel, JFrame frame)
     {
       super(panel, frame);
 
-      itsPointSelector.setPreferredSize(new Dimension(340, 150));
       itsMainPanel.setLayout(new BoxLayout(itsMainPanel, BoxLayout.Y_AXIS));
+      
+      JPanel temppan = new JPanel();
+      temppan.setLayout(new BoxLayout(temppan, BoxLayout.X_AXIS));
+      temppan.add(itsStaleBad);
+      itsInertia.setValue(new Integer(3));
+      itsInertia.setMaximumSize(new Dimension(45, 25));
+      temppan.add(new JLabel("Updates before alarm is raised:"));
+      temppan.add(itsInertia);
+      itsMainPanel.add(temppan);
+
+      itsPointSelector.setPreferredSize(new Dimension(340, 150));
       itsMainPanel.add(itsPointSelector);
 
       add(new JScrollPane(itsMainPanel), BorderLayout.CENTER);
@@ -74,24 +90,29 @@ extends MonPanel
       Vector points = itsPointSelector.getSelections();
       String p = "";
       if (points.size()>0) {
-	p += points.get(0);
-	//Then add rest of point names with a delimiter
-	for (int i=1; i<points.size(); i++)
-	  p += ":" + points.get(i);
+        p += points.get(0);
+        //Then add rest of point names with a delimiter
+        for (int i=1; i<points.size(); i++)
+          p += ":" + points.get(i);
       }
       ss.put("points", p);
 
-      //Make a parsable string from the list of source names
-/*      Vector sources = itsSourceChooser.getSelections();
-      String s = "";
-      if (sources.size()>0) {
-	s += sources.get(0);
-	//Then add rest of point names with a delimiter
-	for (int i=1; i<sources.size(); i++)
-	  s += ":" + sources.get(i);
+      if (itsStaleBad.isSelected()) {
+        ss.put("stale", "true");
+      } else {
+        ss.put("stale", "false");
       }
-      ss.put("sources", s);*/
 
+      ss.put("inertia", itsInertia.getValue().toString());	
+      if (((Integer)itsInertia.getValue()).intValue()<=0) {
+        JOptionPane.showMessageDialog(this,
+             "The number of out-of-range update\n" +
+             "cycles before an alarm is raised must\n" +
+             "be greater than zero!\n",
+             "Bad Value for Parameter",
+             JOptionPane.WARNING_MESSAGE);
+             return null;
+      }
       return ss;
     }
 
@@ -103,79 +124,468 @@ extends MonPanel
     {
       itsInitialSetup = setup;
       if (setup==null) {
-	System.err.println("WatchdogSetupPanel:showSetup: Setup is NULL");
-	return;
+        System.err.println("WatchdogSetupPanel:showSetup: Setup is NULL");
+        return;
       }
       if (!setup.getClassName().equals("atnf.atoms.mon.gui.monpanel.Watchdog")) {
-	System.err.println("WatchdogSetupPanel:showSetup: Setup is for wrong class");
-	return;
+        System.err.println("WatchdogSetupPanel:showSetup: Setup is for wrong class");
+        return;
       }
 
-/*      String p = (String)setup.get("points");
+      String p = (String)setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
       Vector points = new Vector(stp.countTokens());
-      while (stp.hasMoreTokens())
-	points.add(stp.nextToken());
+      while (stp.hasMoreTokens()) {
+        points.add(stp.nextToken());
+      }
+      itsPointSelector.setSelections(points);
+      
+      String i=(String)setup.get("inertia");
+      if (i!=null) {
+        itsInertia.setValue(new Integer(i));
+      }
 
-      itsPointSelector.setSelections(points);*/
+      String s=(String)setup.get("inertia");
+      if (s!=null) {
+        if (s.equals("true")) itsStaleBad.setSelected(true);
+        else itsStaleBad.setSelected(false);
+      }
     }
   }
   /////////////////////// END NESTED CLASS /////////////////////////////
 
+  ///////////////////////// NESTED CLASS ///////////////////////////////
+  /** Nested class to render the tables. */
+  public class WatchdogTableModel
+  extends AbstractTableModel
+  implements TableCellRenderer
+  {
+    /** Names of all PointInteractions to be displayed in the table. */
+    protected Vector itsPoints = new Vector();
+    
+    /** Hash mapping of the current values for each point. */
+    protected HashMap itsValues = new HashMap();
+  
+    /** The table this model is associated with. */
+    protected JTable itsTable = null;
+  
+    /** Constructor. */
+    public
+    WatchdogTableModel()
+    {
+      super();      
+    }
 
-  /** The Table to display on the panel. */
-  JTable itsTable = null;
+    /** Set the table this model is associated with. */
+    public
+    void
+    setTable(JTable table)
+    {
+      itsTable = table;
+    }
 
-  /** The TableModel used for rendering monitor data. */
-  PointTableModel itsModel = new PointTableModel();
+    /** Set the column sizes. */
+    public
+    void
+    setSizes()
+    {
+      TableColumn column = itsTable.getColumnModel().getColumn(0);
+      column.setPreferredWidth(85);
+      column.setMaxWidth(120);
+      column.setMinWidth(60);
+      column = itsTable.getColumnModel().getColumn(1);
+      column.setPreferredWidth(250);
+      column.setMinWidth(150);
+      column = itsTable.getColumnModel().getColumn(2);
+      column.setPreferredWidth(60);
+      column.setMinWidth(40);
+    }
 
-  /** Scrolling panel used to contain the table. */
-  JScrollPane itsScroll = null;
+    /** Set the list of monitor points to display in this table. */
+    public
+    void
+    setPoints(Vector points)
+    {
+      itsPoints=points;
+      fireTableStructureChanged();
+    }
 
+    /** Get the list of monitor points currently displayed in this table. */
+    public
+    Vector
+    getPoints()
+    {
+      return itsPoints;
+    }
+
+    /** Add the given point to the table. */
+    public
+    void
+    addPoint(String point)
+    {
+      synchronized (itsPoints) {
+        itsPoints.add(point);
+      }
+      fireTableStructureChanged();
+    }
+
+    /** Add the given point to the table with the current value. */
+    public
+    void
+    addPoint(String point, PointData value)
+    {
+      synchronized (itsPoints) {
+        itsPoints.add(point);
+        itsValues.put(point, value);
+      }
+      fireTableStructureChanged();
+    }
+
+    /** Remove the given point from the table. */
+    public
+    void
+    removePoint(String point)
+    {
+      boolean wasupdated=false;
+      synchronized (itsPoints) {
+        int i=itsPoints.indexOf(point);
+        if (i!=-1) {
+          itsPoints.remove(point);
+          wasupdated=true;
+        }
+      }
+      if (wasupdated) fireTableStructureChanged();
+    }
+
+    /** Remove the given point from the table and return its name. */
+    public
+    String
+    removePoint(int point)
+    {
+      String res=null;
+      synchronized (itsPoints) {
+        if (point<0 && point>=itsPoints.size()) {
+          return null;
+        }
+        res = (String)itsPoints.get(point);
+        itsPoints.remove(point);
+      }
+      fireTableStructureChanged();
+      return res;
+    }
+
+    /** Update the value for a given point. */
+    public
+    void
+    updateValue(String point, PointData value)
+    {
+      synchronized (itsPoints) {
+        itsValues.put(point, value);
+        //If we care about this point than fire an event
+        int ourindex=itsPoints.indexOf(point);
+        if (ourindex!=-1) {
+          fireTableCellUpdated(ourindex, 0);
+        }
+      }
+    }  
+    
+    /** Update table structure and set column widths. */
+    public
+    void
+    fireTableStructureChanged()
+    {
+      super.fireTableStructureChanged();
+      if (itsTable!=null) setSizes();
+    }
+    
+    /** Return the number of rows in the table. */
+    public
+    int
+    getRowCount()
+    {
+      synchronized (itsPoints) {
+        if (itsPoints==null) return 0;
+        else return itsPoints.size();
+      }
+    }
+
+    /** Return the number of columns in the table. */
+    public
+    int
+    getColumnCount()
+    {
+      return 3;
+    }
+   
+    /** Return the title for the specified column. */
+    public
+    String
+    getColumnName(int column)
+    {
+      String res = null;
+      if (column==0) res = "Value";
+      else if (column==1) res = "Point";
+      else if (column==2) res = "Source";
+      return res;
+    }
+
+    public
+    Object
+    getValueAt(int row, int column)
+    {
+      Object res = null;
+      synchronized (itsPoints) {
+        String pointname = (String)itsPoints.get(row);
+        PointMonitor pm = DataMaintainer.getPointFromMap(pointname);
+        if (column==0) {
+          PointData pd=(PointData)itsValues.get(pointname);
+          if (pd==null) {
+            res="?";
+          } else {
+            res=pd.getData();
+          }
+        } else if (column==1) {
+          res=pm.getLongDesc();
+        } else {
+          res=pm.getSource();
+        }
+      }
+      return res;
+    }  
+    
+    /** Get a GUI component for each cell - allows value highlightning. */
+    public
+    Component
+    getTableCellRendererComponent(JTable table, Object value,
+				boolean isSelected, boolean hasFocus,	int row, int column)
+    {
+      Component res = null;
+      synchronized (itsPoints) {
+        if (value==null) return null;
+      
+        String pointname = (String)itsPoints.get(row);
+        PointData pd = (PointData)itsValues.get(pointname);
+        PointMonitor pm = DataMaintainer.getPointFromMap(pointname);
+        PointLimit limits = pm.getLimits();
+        if (pd==null || limits==null || limits.checkLimits(pd)) {
+          res=new JLabel(value.toString());
+        } else {
+          res=new JLabel(value.toString());
+          if (res instanceof JComponent) ((JComponent)res).setOpaque(true);
+          res.setForeground(Color.red);
+          res.setBackground(Color.yellow);
+        }
+      
+        //Make sure the highlight of the other columns matches the value's
+        if (column==0) {
+          fireTableCellUpdated(row, 1);
+          fireTableCellUpdated(row, 2);
+        }
+      }      
+      return res;
+    }
+    
+    /** Return true if we're currently displaying points in the alarm state. */
+    public
+    boolean
+    hasAlarms()
+    {
+      synchronized (itsPoints) {
+        for (int i=0; i<itsPoints.size(); i++) {
+          String pointname=(String)itsPoints.get(i);
+          PointData pd = (PointData)itsValues.get(pointname);
+          PointMonitor pm = DataMaintainer.getPointFromMap(pointname);
+          PointLimit limits = pm.getLimits();
+          if (pd==null || !limits.checkLimits(pd)) {
+            return true;
+          }
+        }
+        return false;
+      }
+    }
+  }
+  /////////////////////// END NESTED CLASS /////////////////////////////
+  
+  ///////////////////////// NESTED CLASS ///////////////////////////////
+  public class
+  AudioWarning
+  extends Thread
+  {
+    public void	run()
+    {
+      RelTime sleep=RelTime.factory(10000000);
+      while (!itsRemoved) {
+        if (itsActiveModel.hasAlarms()) {
+          playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
+        }
+        try { sleep.sleep(); } catch (Exception e) { }
+      }
+    }
+  }
+  /////////////////////// END NESTED CLASS /////////////////////////////
+  
+  /** The Table of current alarms. */
+  JTable itsActiveTable = null;
+
+  /** The TableModel used for current alarms. */
+  WatchdogTableModel itsActiveModel = new WatchdogTableModel();
+
+   /** The Table of silenced alarms. */
+  JTable itsSilencedTable = null; 
+
+  /** The TableModel used for current alarms. */
+  WatchdogTableModel itsSilencedModel = new WatchdogTableModel();
+
+  /** All the points which are being monitored. */
+  Vector itsPoints = new Vector();
+  
+  /** A textual label for the number of points we are monitoring. */
+  JLabel itsSizeLabel = new JLabel("");
+
+  /** How many updates must be in alarm state before we raise an alarm. */
+  int itsInertia = 3;
+  
+  /** For recording how many updates have been in alarm state for each point. */
+  HashMap itsAlarmCounts = new HashMap();
+  
+  /** True if unavailable data is considered an okay condition. */
+  boolean itsStaleOK = true;
+
+  /** Set to true when the watchdog has been removed. */
+  boolean itsRemoved = false;
 
   /** C'tor. */
   public
   Watchdog()
   {
-    setLayout(new java.awt.BorderLayout());
-    itsTable = new JTable(itsModel);
-    itsTable.setDefaultRenderer(Object.class, itsModel);
-    //Disable tooltips to prevent constant rerendering on mouse-over
-    ToolTipManager.sharedInstance().unregisterComponent(itsTable);
-    ToolTipManager.sharedInstance().unregisterComponent(itsTable.getTableHeader());
-
-    //final JTable temptable = itsTable;
-    itsTable.addMouseListener(new MouseAdapter()
+    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    itsActiveTable = new JTable(itsActiveModel);
+    itsActiveTable.setDefaultRenderer(Object.class, itsActiveModel);
+    itsActiveModel.setTable(itsActiveTable);
+    itsActiveModel.setSizes();
+    itsActiveTable.addMouseListener(new MouseAdapter()
     {
       public void mouseClicked(MouseEvent e)
       {
-	if (e.getClickCount() == 2) {
-	  Point p = e.getPoint();
-	  int row = itsTable.rowAtPoint(p);
-          int column = itsTable.columnAtPoint(p); // This is the view column!
-          System.err.println("POINT: " + itsModel.getPoint(row, column));
-	  System.err.println("DOUBLE-CLICKED: "
-			     +itsModel.getPoint(row, column).getLongName()
-			     +" (" + itsModel.getPoint(row, column).getSource() + ")");
-	}
+        if (e.getClickCount() == 2) {
+          Point p = e.getPoint();
+          int row = itsActiveTable.rowAtPoint(p);
+          String movepoint = itsActiveModel.removePoint(row);
+          if (movepoint!=null) {
+            itsSilencedModel.addPoint(movepoint);
+          }
+        }
       }
     });
+    
+    itsSilencedTable = new JTable(itsSilencedModel);
+    itsSilencedTable.setDefaultRenderer(Object.class, itsSilencedModel);
+    itsSilencedModel.setTable(itsSilencedTable);
+    itsSilencedModel.setSizes();
+    itsSilencedTable.addMouseListener(new MouseAdapter()
+    {
+      public void mouseClicked(MouseEvent e)
+      {
+        if (e.getClickCount() == 2) {
+          Point p = e.getPoint();
+          int row = itsSilencedTable.rowAtPoint(p);
+          String movepoint = itsSilencedModel.removePoint(row);
+          if (movepoint!=null) {
+            itsActiveModel.addPoint(movepoint);
+          }
+        }
+      }
+    });
+    
+    JPanel temppan = new JPanel();
+    temppan.setLayout(new BorderLayout());
+    temppan.setPreferredSize(new Dimension(650, 22));
+    JLabel templabel = new JLabel("Active Alarms:");
+    templabel.setMaximumSize(new Dimension(200, 22));
+    temppan.add(templabel, BorderLayout.WEST);
+    JButton tempbut = new JButton("Silence All Current Alarms");
+    tempbut.setActionCommand("silence");
+    tempbut.addActionListener(this);
+    tempbut.setMaximumSize(new Dimension(400, 22));
+    temppan.add(tempbut, BorderLayout.EAST);
+    temppan.setMaximumSize(new Dimension(2000, 23));
+    add(temppan);
+    
+    JScrollPane tempscroll = new JScrollPane(itsActiveTable);
+    tempscroll.setPreferredSize(new Dimension(650, 220));
+    tempscroll.setBackground(Color.lightGray);
+    add(tempscroll);
+    
+    temppan = new JPanel();
+    temppan.setLayout(new BorderLayout());
+    temppan.setPreferredSize(new Dimension(650, 22));
+    templabel = new JLabel("Silenced Alarms:");
+    templabel.setMaximumSize(new Dimension(200, 22));
+    temppan.add(templabel, BorderLayout.WEST);
+    tempbut = new JButton("Reactivate Silenced Alarms");
+    tempbut.setActionCommand("reactivate");
+    tempbut.addActionListener(this);
+    tempbut.setMaximumSize(new Dimension(400, 22));
+    temppan.add(tempbut, BorderLayout.EAST);
+    temppan.setMaximumSize(new Dimension(2000, 23));
+    add(temppan);
+    
+    tempscroll = new JScrollPane(itsSilencedTable);
+    tempscroll.setPreferredSize(new Dimension(650, 220));
+    tempscroll.setBackground(Color.lightGray);
+    add(tempscroll);
 
-    itsScroll = new JScrollPane(itsTable);
-    itsScroll.setBackground(Color.lightGray);
-    add(itsScroll);
+    temppan = new JPanel();
+    temppan.setLayout(new BoxLayout(temppan, BoxLayout.X_AXIS));
+    itsSizeLabel.setText("This watchdog is monitoring " + itsPoints.size() + " points");
+    temppan.add(itsSizeLabel, BorderLayout.CENTER);
+    add(temppan);
+    
+    temppan = new JPanel();
+    temppan.setLayout(new BoxLayout(temppan, BoxLayout.X_AXIS));
+    templabel = new JLabel("Use double-click to silence/reactivate individual alarms");
+    temppan.add(templabel, BorderLayout.CENTER);
+    add(temppan);    
+    
+    AudioWarning audiothread = new AudioWarning();
+    audiothread.start();
   }
 
+  /** For action events. */
+  public
+  void
+  actionPerformed(ActionEvent e) { 
+    if (e.getActionCommand().equals("silence")) {
+      //Need to silence all currently active alarms
+      Vector current = itsActiveModel.getPoints();
+      while (current.size()>0) {
+        String thispoint = (String)current.get(0);
+        itsActiveModel.removePoint(thispoint);
+        itsSilencedModel.addPoint(thispoint);
+      }
+    } else if (e.getActionCommand().equals("reactivate")) {
+      //Need to stop silencing all currently silenced alarms
+      Vector weresilenced = itsSilencedModel.getPoints();
+      itsSilencedModel.setPoints(new Vector());
+      for (int i=0; i<weresilenced.size(); i++) {
+        String thispoint=(String)weresilenced.get(i);
+        itsActiveModel.addPoint(thispoint);
+      }
+    }
+  }
 
   /** Clear any current setup. */
   public 
   void
   blankSetup()
   {
-    Vector p = new Vector();
-    Vector s = new Vector();
-    itsModel.set(p, s);
-    itsModel.setSizes(itsTable, itsScroll);
+    for (int i=0; i<itsPoints.size(); i++) {
+      DataMaintainer.unsubscribe((String)itsPoints.get(i), this);
+    }
+    itsPoints=new Vector();
+    itsActiveModel.setPoints(new Vector());
+    itsSilencedModel.setPoints(new Vector());
+    itsAlarmCounts = new HashMap();  
   }
 
 
@@ -190,43 +600,50 @@ extends MonPanel
   boolean
   loadSetup(final SavedSetup setup)
   {
+    //Clear the old setup
+    blankSetup();
+    
     try {
       //check if the setup is suitable for our class
       if (!setup.checkClass(this)) {
-	System.err.println("WatchDog:loadSetup: setup not for "
-			   + this.getClass().getName());
-	return false;
+         System.err.println("WatchDog:loadSetup: setup not for "
+                            + this.getClass().getName());
+         return false;
       }
 
-      ///BUT WHAT DO THESE DO IF THERE ARE NO TOKENS?
+      //Get the list of points to be monitored
       String p = (String)setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
-      Vector points = new Vector(stp.countTokens());
       while (stp.hasMoreTokens())
-	points.add(stp.nextToken());
+        itsPoints.add(stp.nextToken());
+      DataMaintainer.subscribe(itsPoints, this);
+      itsSizeLabel.setText("This watchdog is monitoring " + itsPoints.size() + " points");
+      
+      //Get the inertia value
+      String i = (String)setup.get("inertia");
+      if (i!=null) {
+        itsInertia=Integer.parseInt(i);
+      }
 
-/*      String s = (String)setup.get("sources");
-      StringTokenizer sts = new StringTokenizer(s, ":");
-      Vector sources = new Vector(sts.countTokens());
-      while (sts.hasMoreTokens())
-	sources.add(sts.nextToken());
-*/
-      //Configure our table to use the new setup
-//      itsModel.set(points, sources);
-//      itsModel.setSizes(itsTable, itsScroll);
+      //See whether unavailable data is to be treated as an alarm condition
+      String s = (String)setup.get("stale");
+      if (s!=null) {
+        if (s.equals("false")) itsStaleOK=true;
+        else itsStaleOK=false;
+      }
     } catch (final Exception e) {
       e.printStackTrace();
       if (itsFrame!=null) {
-	JOptionPane.showMessageDialog(itsFrame,
-				      "The setup called \"" + setup.getName() + "\"\n" +
-				      "for class \"" + setup.getClassName() + "\"\n" +
-				      "could not be parsed.\n\n" +
-				      "The type of exception was:\n\"" +
-				      e.getClass().getName() + "\"\n\n",
-				      "Error Loading Setup",
-				      JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(itsFrame,
+           "The setup called \"" + setup.getName() + "\"\n" +
+           "for class \"" + setup.getClassName() + "\"\n" +
+           "could not be parsed.\n\n" +
+           "The type of exception was:\n\"" +
+           e.getClass().getName() + "\"\n\n",
+           "Error Loading Setup",
+           JOptionPane.WARNING_MESSAGE);
       } else {
-	System.err.println("WatchDog:loadData: " + e.getClass().getName());
+        System.err.println("WatchDog:loadData: " + e.getClass().getName());
       }
       blankSetup();
       return false;
@@ -250,30 +667,86 @@ extends MonPanel
     ss.setName("temp");
 
     //Make a parsable string from the list of point names
-    Vector points  = itsModel.getPoints();
     String p = "";
-    if (points.size()>0) {
-      p += points.get(0);
+    if (itsPoints.size()>0) {
+      p += itsPoints.get(0);
       //Then add rest of point names with a delimiter
-      for (int i=1; i<points.size(); i++)
-	p += ":" + points.get(i);
+      for (int i=1; i<itsPoints.size(); i++)
+        p += ":" + itsPoints.get(i);
     }
     ss.put("points", p);
 
-    //Make a parsable string from the list of source names
-/*    Vector sources = itsModel.getSources();
-    String s = "";
-    if (sources.size()>0) {
-      s += sources.get(0);
-      //Then add rest of point names with a delimiter
-      for (int i=1; i<sources.size(); i++)
-	s += ":" + sources.get(i);
+    if (itsStaleOK) {
+      ss.put("stale", "false");
+    } else {
+      ss.put("stale", "true");
     }
-    ss.put("sources", s);
-*/
+    
+    ss.put("inertia", ""+itsInertia);
+
     return ss;
   }
 
+  /** Called whenever a new value is available for one of our points. */
+  public
+  void
+  onPointEvent(Object source, PointEvent evt)
+  {
+    if (!evt.isRaw()) {
+      PointData newval = evt.getPointData();
+      if (newval!=null) {
+        String fullname = newval.getSource() + "." + newval.getName();
+        PointMonitor pm = DataMaintainer.getPointFromMap(fullname);
+        long age = (new AbsTime()).getValue() - newval.getTimestamp().getValue();
+        long period = pm.getPeriod();
+        PointLimit limits = pm.getLimits();
+        if (newval.isValid() && (period==0 || age<5*period)) {
+          if (limits!=null) {
+            //Get alarm counter for this point
+            Integer icount = (Integer)itsAlarmCounts.get(fullname);
+            int count=0;
+            if (icount!=null) count=icount.intValue();
+            //Check if current update is in alarm state
+            if (limits.checkLimits(newval)) {
+              //Value is currently okay
+              if (count>0) count--;
+              if (count==0) {
+                //Was in alarm state but now okay, remove from table
+                itsActiveModel.removePoint(fullname);
+              }
+            } else {
+              //Value is in alarm state
+              if (count<=itsInertia) count++;
+              if (count==itsInertia) {
+                //Ensure alarm is triggered if point is not ignored
+                if (itsActiveModel.getPoints().indexOf(fullname)==-1 &&
+                    itsSilencedModel.getPoints().indexOf(fullname)==-1) {
+                  itsActiveModel.addPoint(fullname, newval);
+                }
+              }
+            }
+            itsAlarmCounts.put(fullname, new Integer(count));
+          } else {
+            //Has current data and can't be in alarm state so remove any alarm
+            //which may have been set if data was previously stale
+            itsActiveModel.removePoint(fullname);
+          }
+        } else {
+          //Point is invalid or data is stale
+          if (!itsStaleOK) {
+            //Ensure alarm is triggered if point is not ignored
+            if (itsActiveModel.getPoints().indexOf(fullname)==-1 &&
+                itsSilencedModel.getPoints().indexOf(fullname)==-1) {
+              itsActiveModel.addPoint(fullname, newval);
+            }
+          }
+        }
+        //Give the new value to our tables
+        itsActiveModel.updateValue(fullname, newval);
+        itsSilencedModel.updateValue(fullname, newval);
+      }
+    }
+  }
 
   /** Free all resources so that this MonPanel can disappear. */
   public
@@ -281,9 +754,9 @@ extends MonPanel
   vaporise()
   {
     //Force the table model to unsubscribe from all points
-    itsModel.set(null, null);
+    //itsModel.set(null, null);
+    itsRemoved=true;
   }
-
 
   /** Get a panel with the controls required to configure this MonPanel.
    * @return GUI controls to configure this MonPanel. */
@@ -311,6 +784,24 @@ extends MonPanel
     p.println();
   }
 
+  /** Play an audio sample on the sound card. */
+  private
+  boolean
+  playAudio(String resname)
+  {
+    try {
+      InputStream in = Watchdog.class.getClassLoader().getResourceAsStream(resname);
+      AudioInputStream soundIn = AudioSystem.getAudioInputStream(in);
+      DataLine.Info info = new DataLine.Info(Clip.class, soundIn.getFormat());
+      Clip clip = (Clip)AudioSystem.getLine(info);
+      clip.open(soundIn);
+      clip.start();
+    } catch (Exception e) {
+      System.err.println("Watchdog.playAudio: " + e.getClass());
+      return false;
+    }
+    return true;
+  }
 
   public String getLabel() { return null; }
 
@@ -322,16 +813,16 @@ extends MonPanel
 /*    SavedSetup seemon = new SavedSetup("temp",
 				       "atnf.atoms.mon.gui.monpanel.ATPointTable",
 				       "true:3:site.seemon.Lock1:site.seemon.Lock2:site.seemon.Lock3:1:seemon");
-
-    ATPointTable pt = new ATPointTable();
-    pt.loadSetup(seemon);
+*/
+    Watchdog wd = new Watchdog();
+    //wd.loadSetup(seemon);
 //    frame.getContentPane().add(pt);
-    frame.setContentPane(pt);
+    frame.setContentPane(wd);
 
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.pack();
     frame.setVisible(true);
-*/
+
 /*    try {
       RelTime sleepy = RelTime.factory(15000000l);
       sleepy.sleep();

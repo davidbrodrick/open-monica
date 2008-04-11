@@ -43,20 +43,20 @@ extends MonPanel
     implements ActionListener
     {
       public RowSelector() {
-	super("Select Rows");
-	JButton tempbut = new JButton("Space");
-	tempbut.setActionCommand("Blank-Row");
+        super("Select Rows");
+        JButton tempbut = new JButton("Space");
+        tempbut.setActionCommand("Blank-Row");
         tempbut.addActionListener(this);
-	addButton(tempbut);
+        addButton(tempbut);
       }
 
       public void actionPerformed(ActionEvent e) {
-	super.actionPerformed(e);
-	if (e.getActionCommand().equals("Blank-Row")) {
-	  Vector sel = getSelections();
-	  sel.add("-");
+        super.actionPerformed(e);
+        if (e.getActionCommand().equals("Blank-Row")) {
+          Vector sel = getSelections();
+          sel.add("-");
           setSelections(sel);
-	}
+        }
       }
     }
     /** Widget to allow selection of the point names to display. */
@@ -102,10 +102,10 @@ extends MonPanel
       Vector points = itsPointSelector.getSelections();
       String p = "";
       if (points.size()>0) {
-	p += points.get(0);
-	//Then add rest of point names with a delimiter
-	for (int i=1; i<points.size(); i++)
-	  p += ":" + points.get(i);
+        p += points.get(0);
+        //Then add rest of point names with a delimiter
+        for (int i=1; i<points.size(); i++)
+          p += ":" + points.get(i);
       }
       ss.put("points", p);
 
@@ -113,10 +113,10 @@ extends MonPanel
       Vector sources = itsSourceChooser.getSelections();
       String s = "";
       if (sources.size()>0) {
-	s += sources.get(0);
-	//Then add rest of point names with a delimiter
-	for (int i=1; i<sources.size(); i++)
-	  s += ":" + sources.get(i);
+        s += sources.get(0);
+        //Then add rest of point names with a delimiter
+        for (int i=1; i<sources.size(); i++)
+          s += ":" + sources.get(i);
       }
       ss.put("sources", s);
 
@@ -131,25 +131,25 @@ extends MonPanel
     {
       itsInitialSetup = setup;
       if (setup==null) {
-	System.err.println("ATPointTableSetupPanel:showSetup: Setup is NULL");
-	return;
+        System.err.println("ATPointTableSetupPanel:showSetup: Setup is NULL");
+        return;
       }
       if (!setup.getClassName().equals("atnf.atoms.mon.gui.monpanel.ATPointTable")) {
-	System.err.println("ATPointTableSetupPanel:showSetup: Setup is for wrong class");
-	return;
+        System.err.println("ATPointTableSetupPanel:showSetup: Setup is for wrong class");
+        return;
       }
 
       String p = (String)setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
       Vector points = new Vector(stp.countTokens());
       while (stp.hasMoreTokens())
-	points.add(stp.nextToken());
+        points.add(stp.nextToken());
 
       String s = (String)setup.get("sources");
       StringTokenizer sts = new StringTokenizer(s, ":");
       Vector sources = new Vector(sts.countTokens());
       while (sts.hasMoreTokens())
-	sources.add(sts.nextToken());
+        sources.add(sts.nextToken());
 
       itsPointSelector.setSelections(points);
       itsSourceChooser.setSelections(sources);
@@ -184,15 +184,15 @@ extends MonPanel
     {
       public void mouseClicked(MouseEvent e)
       {
-	if (e.getClickCount() == 2) {
-	  Point p = e.getPoint();
-	  int row = itsTable.rowAtPoint(p);
+        if (e.getClickCount() == 2) {
+          Point p = e.getPoint();
+          int row = itsTable.rowAtPoint(p);
           int column = itsTable.columnAtPoint(p); // This is the view column!
           System.err.println("POINT: " + itsModel.getPoint(row, column));
-	  System.err.println("DOUBLE-CLICKED: "
-			     +itsModel.getPoint(row, column).getLongName()
-			     +" (" + itsModel.getPoint(row, column).getSource() + ")");
-	}
+          System.err.println("DOUBLE-CLICKED: "
+               +itsModel.getPoint(row, column).getLongName()
+               +" (" + itsModel.getPoint(row, column).getSource() + ")");
+        }
       }
     });
 
@@ -228,9 +228,9 @@ extends MonPanel
     try {
       //check if the setup is suitable for our class
       if (!setup.checkClass(this)) {
-	System.err.println("ATPointTable:loadSetup: setup not for "
-			   + this.getClass().getName());
-	return false;
+        System.err.println("ATPointTable:loadSetup: setup not for "
+                            + this.getClass().getName());
+        return false;
       }
 
       //the copy of the setup held by the frame is now incorrect
@@ -241,29 +241,29 @@ extends MonPanel
       StringTokenizer stp = new StringTokenizer(p, ":");
       Vector points = new Vector(stp.countTokens());
       while (stp.hasMoreTokens())
-	points.add(stp.nextToken());
+        points.add(stp.nextToken());
 
       String s = (String)setup.get("sources");
       StringTokenizer sts = new StringTokenizer(s, ":");
       Vector sources = new Vector(sts.countTokens());
       while (sts.hasMoreTokens())
-	sources.add(sts.nextToken());
+        sources.add(sts.nextToken());
 
       //Configure our table to use the new setup
       itsModel.set(points, sources);
       itsModel.setSizes(itsTable, itsScroll);
     } catch (final Exception e) {
       if (itsFrame!=null) {
-	JOptionPane.showMessageDialog(itsFrame,
-				      "The setup called \"" + setup.getName() + "\"\n" +
-				      "for class \"" + setup.getClassName() + "\"\n" +
-				      "could not be parsed.\n\n" +
-				      "The type of exception was:\n\"" +
-				      e.getClass().getName() + "\"\n\n",
-				      "Error Loading Setup",
-				      JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(itsFrame,
+              "The setup called \"" + setup.getName() + "\"\n" +
+              "for class \"" + setup.getClassName() + "\"\n" +
+              "could not be parsed.\n\n" +
+              "The type of exception was:\n\"" +
+              e.getClass().getName() + "\"\n\n",
+              "Error Loading Setup",
+              JOptionPane.WARNING_MESSAGE);
       } else {
-	System.err.println("ATPointTable:loadData: " + e.getClass().getName());
+        System.err.println("ATPointTable:loadData: " + e.getClass().getName());
       }
       blankSetup();
       return false;
@@ -293,7 +293,7 @@ extends MonPanel
       p += points.get(0);
       //Then add rest of point names with a delimiter
       for (int i=1; i<points.size(); i++)
-	p += ":" + points.get(i);
+        p += ":" + points.get(i);
     }
     ss.put("points", p);
 
@@ -304,7 +304,7 @@ extends MonPanel
       s += sources.get(0);
       //Then add rest of point names with a delimiter
       for (int i=1; i<sources.size(); i++)
-	s += ":" + sources.get(i);
+        s += ":" + sources.get(i);
     }
     ss.put("sources", s);
 

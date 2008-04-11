@@ -98,74 +98,74 @@ implements ActionListener, Runnable
 
 
       public AxisSetup() {
-	super();
-	setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-	setBorder(BorderFactory.createLineBorder(Color.red));
+        super();
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setBorder(BorderFactory.createLineBorder(Color.red));
 
-	ButtonGroup tempgroup = new ButtonGroup();
-	tempgroup.add(itsAutoScale);
+        ButtonGroup tempgroup = new ButtonGroup();
+        tempgroup.add(itsAutoScale);
         tempgroup.add(itsSpecifyScale);
-	tempgroup = new ButtonGroup();
-	tempgroup.add(itsDrawLines);
-	tempgroup.add(itsDrawDots);
+        tempgroup = new ButtonGroup();
+        tempgroup.add(itsDrawLines);
+        tempgroup.add(itsDrawDots);
         tempgroup.add(itsDrawSymbols);
 
-	itsPoints.setToolTipText("Select point to be graphed");
-	itsPoints.setPreferredSize(new Dimension(180,180));
-	add(itsPoints);
+        itsPoints.setToolTipText("Select point to be graphed");
+        itsPoints.setPreferredSize(new Dimension(180,180));
+        add(itsPoints);
 
-	JPanel temppanel = new JPanel();
-	JLabel templabel = new JLabel("Axis Label:");
-	templabel.setForeground(Color.black);
+        JPanel temppanel = new JPanel();
+        JLabel templabel = new JLabel("Axis Label:");
+        templabel.setForeground(Color.black);
         templabel.setToolTipText("Enter label for value axis");
-	temppanel.add(templabel);
-	itsAxisLabel.setToolTipText("Enter label for value axis");
+        temppanel.add(templabel);
+        itsAxisLabel.setToolTipText("Enter label for value axis");
         temppanel.add(itsAxisLabel);
-	add(temppanel);
-
-	temppanel = new JPanel();
-	itsAutoScale.setToolTipText("Automatically scale the axis");
-	itsAutoScale.addActionListener(this);
-	itsAutoScale.setActionCommand("Auto-Scale");
-        itsAutoScale.doClick();
-	temppanel.add(itsAutoScale);
-	itsAutoZero.setToolTipText("Always include zero level in scale");
-        itsAutoZero.setSelected(false);
-	temppanel.add(itsAutoZero);
-	add(temppanel);
-
-	temppanel = new JPanel();
-	itsSpecifyScale.setToolTipText("Manually specify max and min range for the axis");
-	itsSpecifyScale.addActionListener(this);
-        itsSpecifyScale.setActionCommand("Specify-Scale");
-	temppanel.add(itsSpecifyScale);
-	templabel = new JLabel("Min:");
-	templabel.setForeground(Color.black);
-        templabel.setToolTipText("Specify minimum value for the value axis");
-	temppanel.add(templabel);
-	itsScaleMin.setToolTipText("Specify minimum value for the value axis");
-	temppanel.add(itsScaleMin);
-	templabel = new JLabel("Max:");
-	templabel.setForeground(Color.black);
-        templabel.setToolTipText("Specify maximum value for the value axis");
-	temppanel.add(templabel);
-	itsScaleMax.setToolTipText("Specify maximum value for the value axis");
-	temppanel.add(itsScaleMax);
-	add(temppanel);
+        add(temppanel);
 
         temppanel = new JPanel();
-	templabel = new JLabel("Plot As:");
-	templabel.setForeground(Color.black);
+        itsAutoScale.setToolTipText("Automatically scale the axis");
+        itsAutoScale.addActionListener(this);
+        itsAutoScale.setActionCommand("Auto-Scale");
+        itsAutoScale.doClick();
+        temppanel.add(itsAutoScale);
+        itsAutoZero.setToolTipText("Always include zero level in scale");
+        itsAutoZero.setSelected(false);
+        temppanel.add(itsAutoZero);
+        add(temppanel);
+
+        temppanel = new JPanel();
+        itsSpecifyScale.setToolTipText("Manually specify max and min range for the axis");
+        itsSpecifyScale.addActionListener(this);
+        itsSpecifyScale.setActionCommand("Specify-Scale");
+        temppanel.add(itsSpecifyScale);
+        templabel = new JLabel("Min:");
+        templabel.setForeground(Color.black);
+        templabel.setToolTipText("Specify minimum value for the value axis");
+        temppanel.add(templabel);
+        itsScaleMin.setToolTipText("Specify minimum value for the value axis");
+        temppanel.add(itsScaleMin);
+        templabel = new JLabel("Max:");
+        templabel.setForeground(Color.black);
+        templabel.setToolTipText("Specify maximum value for the value axis");
+        temppanel.add(templabel);
+        itsScaleMax.setToolTipText("Specify maximum value for the value axis");
+        temppanel.add(itsScaleMax);
+        add(temppanel);
+
+        temppanel = new JPanel();
+        templabel = new JLabel("Plot As:");
+        templabel.setForeground(Color.black);
         templabel.setToolTipText("Select data renderer");
-	temppanel.add(templabel);
-	itsDrawLines.setToolTipText("Draw lines between data points");
+        temppanel.add(templabel);
+        itsDrawLines.setToolTipText("Draw lines between data points");
         itsDrawLines.setSelected(true);
-	temppanel.add(itsDrawLines);
-	itsDiscontinuousLines.setSelected(true);
-	itsDiscontinuousLines.setToolTipText("Allow breaks in the line where data is missing");
+        temppanel.add(itsDrawLines);
+        itsDiscontinuousLines.setSelected(true);
+        itsDiscontinuousLines.setToolTipText("Allow breaks in the line where data is missing");
         temppanel.add(itsDiscontinuousLines);
         itsDrawDots.setToolTipText("Draw a dot for each data point");
-	temppanel.add(itsDrawDots);
+        temppanel.add(itsDrawDots);
         itsDrawSymbols.setToolTipText("Draw an unfilled shape for each data point");
         temppanel.add(itsDrawSymbols);
         add(temppanel);
@@ -175,20 +175,20 @@ implements ActionListener, Runnable
       void
       actionPerformed(ActionEvent e)
       {
-	String cmd = e.getActionCommand();
-	if (cmd.equals("Auto-Scale")) {
-	  itsScaleMin.setEnabled(false);
-	  itsScaleMax.setEnabled(false);
-	  itsScaleMin.setBackground(Color.lightGray);
-	  itsScaleMax.setBackground(Color.lightGray);
+        String cmd = e.getActionCommand();
+        if (cmd.equals("Auto-Scale")) {
+          itsScaleMin.setEnabled(false);
+          itsScaleMax.setEnabled(false);
+          itsScaleMin.setBackground(Color.lightGray);
+          itsScaleMax.setBackground(Color.lightGray);
           itsAutoZero.setEnabled(true);
-	} else if (cmd.equals("Specify-Scale")) {
-	  itsScaleMin.setEnabled(true);
-	  itsScaleMax.setEnabled(true);
-	  itsScaleMin.setBackground(Color.white);
-	  itsScaleMax.setBackground(Color.white);
+        } else if (cmd.equals("Specify-Scale")) {
+          itsScaleMin.setEnabled(true);
+          itsScaleMax.setEnabled(true);
+          itsScaleMin.setBackground(Color.white);
+          itsScaleMax.setBackground(Color.white);
           itsAutoZero.setEnabled(false);
-	} 
+        } 
       }
 
 
@@ -588,24 +588,24 @@ implements ActionListener, Runnable
       double numtime = Double.parseDouble(itsPeriod.getText());
       String units = (String)itsPeriodUnits.getSelectedItem();
       if (units.equals("Minutes")) {
-	numtime *= 60000000l;
+        numtime *= 60000000l;
       } else if (units.equals("Hours")) {
-	numtime *= 60*60000000l;
+        numtime *= 60*60000000l;
       } else if (units.equals("Days")) {
-	numtime *= 24*60*60000000l;
+        numtime *= 24*60*60000000l;
       }
       setup.put("period", ""+(long)numtime);
 
       if (itsDynamic.isSelected()) {
-	setup.put("mode", "dynamic");
+        setup.put("mode", "dynamic");
       } else if (itsStatic.isSelected()) {
         setup.put("mode", "static");
-	String startstr = itsStart.getText();
-	Date date = null;
-	try {
-	  date = itsFormatter.parse(startstr);
-	} catch (Exception e) { date=null; }
-	if (date==null) {
+        String startstr = itsStart.getText();
+        Date date = null;
+        try {
+          date = itsFormatter.parse(startstr);
+        } catch (Exception e) { date=null; }
+        if (date==null) {
 	  JOptionPane.showMessageDialog(this,
 					"The Graph Start Time you entered\n" +
 					"could not be parsed. The time must\n" +
