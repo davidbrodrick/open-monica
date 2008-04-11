@@ -124,13 +124,13 @@ implements PointListener, TableCellRenderer
     //First unsubscribe from the old points, if any
     if (itsPoints!=null && itsPoints.size()>0) {
       for (int i=0; i<itsPoints.size(); i++) {
-	String pname = (String)itsPoints.get(i);
-	if (pname==null || pname.equals("")) continue; //Blank row
-	for (int j=0; j<itsSources.size(); j++) {
-	  DataMaintainer.unsubscribe(pname,
+        String pname = (String)itsPoints.get(i);
+        if (pname==null || pname.equals("")) continue; //Blank row
+        for (int j=0; j<itsSources.size(); j++) {
+          DataMaintainer.unsubscribe(pname,
 				     (String)itsSources.get(j),
 				     this);
-	}
+        }
       }
     }
 
@@ -144,34 +144,34 @@ implements PointListener, TableCellRenderer
       //Rather than hang the GUI, use a thread to do the work
       final PointTableModel themodel = this;
       Thread realWork = new Thread() {
-	public void run() {
-	  //Build vector containing all point names
-	  ///This is pretty dumb since not all sources will have all points
-	  Vector pnames = new Vector();
-	  for (int i=0; i<itsPoints.size(); i++) {
-	    String pname = (String)itsPoints.get(i);
-	    if (pname==null || pname.equals("")) continue; //Blank row
-	    for (int j=0; j<itsSources.size(); j++) {
-	      pnames.add((String)itsSources.get(j) + "." + pname);
-	    }
-	  }
+        public void run() {
+          //Build vector containing all point names
+          ///This is pretty dumb since not all sources will have all points
+          Vector pnames = new Vector();
+          for (int i=0; i<itsPoints.size(); i++) {
+            String pname = (String)itsPoints.get(i);
+            if (pname==null || pname.equals("")) continue; //Blank row
+            for (int j=0; j<itsSources.size(); j++) {
+              pnames.add((String)itsSources.get(j) + "." + pname);
+            }
+          }
 
-	  //Subscribe to each of the points
-	  DataMaintainer.subscribe(pnames, themodel);
+          //Subscribe to each of the points
+          DataMaintainer.subscribe(pnames, themodel);
 
-	  //We've finished the slow network I/O, tell GUI to update
-	  Runnable tellSwing = new Runnable() {
-	    public void run() {
-	      //fireTableStructureChanged();
-	      //Make table redraw the rows so they get the point names, etc.
-	      //fireTableRowsUpdated(0,itsPoints.size()-1);
+          //We've finished the slow network I/O, tell GUI to update
+          Runnable tellSwing = new Runnable() {
+            public void run() {
+              //fireTableStructureChanged();
+              //Make table redraw the rows so they get the point names, etc.
+              //fireTableRowsUpdated(0,itsPoints.size()-1);
               fireTableDataChanged();
-	    }
-	  };
-	  try {
-	    SwingUtilities.invokeLater(tellSwing);
-	  } catch (Exception e) {e.printStackTrace();}
-	}
+            }
+          };
+          try {
+            SwingUtilities.invokeLater(tellSwing);
+          } catch (Exception e) {e.printStackTrace();}
+        }
       };
       realWork.start();
     }
@@ -196,11 +196,11 @@ implements PointListener, TableCellRenderer
       //Set background colour for unused area - need to access the 'parent'
       Component parent = table.getParent();
       if (parent!=null) {
-	parent.setBackground(Color.lightGray);
-	if (parent instanceof JComponent) {
+        parent.setBackground(Color.lightGray);
+        if (parent instanceof JComponent) {
           //possibly turned off elsewhere
-	  ((JComponent)parent).setOpaque(true);
-	}
+          ((JComponent)parent).setOpaque(true);
+        }
       }
 
       TableColumn column = table.getColumnModel().getColumn(getColumnCount()-1);
@@ -278,8 +278,7 @@ implements PointListener, TableCellRenderer
   getPoint(int row, int column)
   {
     PointMonitor res = null;
-    if (row>=0 && row<getRowCount() &&
-	column>0 && column<getColumnCount()-1) {
+    if (row>=0 && row<getRowCount() && column>0 && column<getColumnCount()-1) {
       String pname = (String)itsPoints.get(row);
       if (pname!=null && !pname.equals("")) {
         res = DataMaintainer.getPointFromMap(pname, (String)
@@ -301,8 +300,8 @@ implements PointListener, TableCellRenderer
     for (int s=0; s<itsSources.size(); s++) {
       String thiss = (String)itsSources.get(s);
       if (thiss!=null && thiss.equals(source)) {
-	res = s+1;
-	break;
+        res = s+1;
+        break;
       }
     }
     return res;
@@ -379,39 +378,39 @@ implements PointListener, TableCellRenderer
       //Point name was requested
       PointMonitor pm = getPointForRow(row);
       if (pm!=null) {
-	if (itsUseShortNames) {
-	  res = pm.getShortDesc();
-	} else {
-	  res = pm.getLongDesc();
-	}
-	if (res==null || res.equals("")) {
-	  //No useful name is defined, so substitute the points name
-	  res = pm.getName();
-	}
+        if (itsUseShortNames) {
+          res = pm.getShortDesc();
+        } else {
+          res = pm.getLongDesc();
+        }
+        if (res==null || res.equals("")) {
+          //No useful name is defined, so substitute the points name
+          res = pm.getName();
+        }
       }
     } else if (column==getColumnCount()-1) {
       //Units were requested
       res = "";
       PointMonitor pm = getPointForRow(row);
       if (pm!=null && pm.getUnits()!=null) {
-	res = new JLabel(pm.getUnits());
+        res = new JLabel(pm.getUnits());
       }
     } else {
       PointMonitor pm = getPointForRow(row);
       PointData pd = DataMaintainer.getBuffer(source + "." + pname);
       if (pd!=null && pm!=null) {
-	long age = (new AbsTime()).getValue() - pd.getTimestamp().getValue();
+        long age = (new AbsTime()).getValue() - pd.getTimestamp().getValue();
         long period = pm.getPeriod();
-	if (pd.isValid() && (period==0 || age<5*period)) {
-	  res = pd.getData();
-	} else {
-	  res = new JLabel("?", SwingConstants.CENTER);
-	  ((JLabel)res).setToolTipText("Current Value Not Available");
-	  ((JLabel)res).setForeground(Color.lightGray);
-	  ((JLabel)res).setBackground(Color.white);
-	}
+        if (pd.isValid() && (period==0 || age<5*period)) {
+          res = pd.getData();
+        } else {
+          res = new JLabel("?", SwingConstants.CENTER);
+          ((JLabel)res).setToolTipText("Current Value Not Available");
+          ((JLabel)res).setForeground(Color.lightGray);
+          ((JLabel)res).setBackground(Color.white);
+        }
       } else {
-	res = null;//new JLabel("No Data");
+        res = null;//new JLabel("No Data");
       }
     }
     return res;
@@ -427,7 +426,7 @@ implements PointListener, TableCellRenderer
     if (column==0) {
       PointMonitor pm = getPointForRow(row);
       if (pm!=null) {
-	res = pm.getName();
+        res = pm.getName();
       }
     } else if (column == getColumnCount()-1) {
       PointMonitor pm = getPointForRow(row);
@@ -437,12 +436,12 @@ implements PointListener, TableCellRenderer
     } else {
       PointMonitor pm = getPoint(row, column);
       if (pm!=null) {
-	String desc = pm.getLongDesc();
-	if (desc==null || desc.equals("")) {
-	  //No useful name is defined, so substitute the points name
-	  desc = pm.getName();
-	}
-	res = desc + " for \"" + pm.getSource() + "\"";
+        String desc = pm.getLongDesc();
+        if (desc==null || desc.equals("")) {
+          //No useful name is defined, so substitute the points name
+          desc = pm.getName();
+        }
+        res = desc + " for \"" + pm.getSource() + "\"";
       }
     }
     return res;
@@ -458,8 +457,8 @@ implements PointListener, TableCellRenderer
     if (!evt.isRaw()) {
       PointData newval = evt.getPointData();
       if (newval!=null) {
-	int row = getRowForPoint(newval.getName());
-	int col = getColumnForSource(newval.getSource());
+        int row = getRowForPoint(newval.getName());
+        int col = getColumnForSource(newval.getSource());
         if (row>=0 && col>=0) fireTableCellUpdated(row, col);
       }
     }
@@ -476,8 +475,9 @@ implements PointListener, TableCellRenderer
     Component res = null;
     if (value==null) return null;
 
-    if (value instanceof Component) res = (Component)value;
-    else {
+    if (value instanceof Component) {
+      res = (Component)value;
+    } else {
       //System.err.println("Creating new Component!");
       res = new JLabel(value.toString());
     }
@@ -489,24 +489,24 @@ implements PointListener, TableCellRenderer
       PointData pd = DataMaintainer.getBuffer(pm.getSource() + "." +
 					      pm.getName());
       if (pd!=null) {
-	long age = (new AbsTime()).getValue() - pd.getTimestamp().getValue();
-	long period = pm.getPeriod();
-	if (period!=0 && age>2*period && age<5*period) {
-	  //The point is old, so alter the foreground color
+        long age = (new AbsTime()).getValue() - pd.getTimestamp().getValue();
+        long period = pm.getPeriod();
+        if (period!=0 && age>2*period && age<5*period) {
+          //The point is old, so alter the foreground color
           res.setForeground(Color.lightGray);
-	}
+        }
 
-	PointLimit limits = pm.getLimits();
-	if (limits!=null) {
-	  if (pd.isValid() && (period==0 || age<5*period) && !limits.checkLimits(pd)) {
-	    //Don't highlight the point if it has expired
-	    //Point is outside of limits, so highlight this cell
-	    if (age<3*period) res.setForeground(Color.red);
-	    else res.setForeground(Color.orange);
-	    if (res instanceof JComponent) ((JComponent)res).setOpaque(true);
-	    res.setBackground(Color.yellow);
-	  }
-	}
+        PointLimit limits = pm.getLimits();
+        if (limits!=null) {
+          if (pd.isValid() && (period==0 || age<5*period) && !limits.checkLimits(pd)) {
+            //Don't highlight the point if it has expired
+            //Point is outside of limits, so highlight this cell
+            if (age<3*period) res.setForeground(Color.red);
+            else res.setForeground(Color.orange);
+            if (res instanceof JComponent) ((JComponent)res).setOpaque(true);
+            res.setBackground(Color.yellow);
+          }
+        }
       }
     }
 

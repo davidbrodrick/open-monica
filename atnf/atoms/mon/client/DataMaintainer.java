@@ -37,7 +37,7 @@ implements Runnable, PointListener
    {
      if (evt!=null && !evt.isRaw()) {
        if (evt.getPointData() != null) {
-	 itsBuffer.put(evt.getPointData().getSource() + "." +  evt.getPointData().getName(), evt.getPointData());
+         itsBuffer.put(evt.getPointData().getSource() + "." +  evt.getPointData().getName(), evt.getPointData());
        }
        // Schedule again
        addPointMonitor((PointMonitor)source);
@@ -53,14 +53,14 @@ implements Runnable, PointListener
    {
      long nextExec = pm.getNextEpoch();
       synchronized(itsPoints) {
-	 for (int i = 0; i < itsPoints.size(); i++)
-	    if (((PointMonitor)itsPoints.get(i)).getNextEpoch() >= nextExec) {
-	       itsPoints.add(i, pm);
-	       itsPoints.notifyAll();
-	       return;
-	    }
-	 itsPoints.add(pm);
-	 itsPoints.notifyAll();
+        for (int i = 0; i < itsPoints.size(); i++)
+          if (((PointMonitor)itsPoints.get(i)).getNextEpoch() >= nextExec) {
+            itsPoints.add(i, pm);
+            itsPoints.notifyAll();
+            return;
+          }
+          itsPoints.add(pm);
+          itsPoints.notifyAll();
       }
    }
 
@@ -211,6 +211,12 @@ implements Runnable, PointListener
    public static FakeMonitor getPointFromMap(String pointname, String source)
    {
       return (FakeMonitor)(itsNames.get(source + "." + pointname));
+   }
+
+   /** For convenience, but it isn't the proper way of making a FakePoint */
+   public static FakeMonitor getPointFromMap(String fullname)
+   {
+      return (FakeMonitor)(itsNames.get(fullname));
    }
    
    public static PointData getBuffer(String point)

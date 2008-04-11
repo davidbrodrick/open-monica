@@ -13,6 +13,7 @@ CLIENT_FILES =atnf/atoms/mon/*.class \
               atnf/atoms/mon/gui/*.class \
               atnf/atoms/mon/gui/monpanel/*.class \
               atnf/atoms/mon/gui/monpanel/*.gif \
+              atnf/atoms/mon/gui/monpanel/*.wav \
               atnf/atoms/time/*.class \
               atnf/atoms/util/*.class \
               monitor-preloads.txt \
