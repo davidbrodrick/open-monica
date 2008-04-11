@@ -789,13 +789,20 @@ implements PointListener, ActionListener
   boolean
   playAudio(String resname)
   {
+    RelTime sleep=RelTime.factory(1000000);
     try {
       InputStream in = Watchdog.class.getClassLoader().getResourceAsStream(resname);
       AudioInputStream soundIn = AudioSystem.getAudioInputStream(in);
       DataLine.Info info = new DataLine.Info(Clip.class, soundIn.getFormat());
       Clip clip = (Clip)AudioSystem.getLine(info);
       clip.open(soundIn);
+      sleep.sleep(); //Clips start of clip without this
       clip.start();
+      //Wait until clip is finished then release the sound card 
+      while (clip.isActive()) Thread.yield();
+      clip.drain();
+      sleep.sleep(); //Clips end of clip without this
+      clip.close();
     } catch (Exception e) {
       System.err.println("Watchdog.playAudio: " + e.getClass());
       return false;
