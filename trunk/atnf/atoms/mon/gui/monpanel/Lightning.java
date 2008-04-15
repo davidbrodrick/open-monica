@@ -41,6 +41,7 @@ import org.jfree.data.*;
 
 
 /**
+ * GUI display panel for Viasala lightning detector.
  *
  * @author David Brodrick
  * @version $Id: Lightning.java,v 1.7 2008/02/12 03:01:37 bro764 Exp $
@@ -83,7 +84,7 @@ implements ActionListener, Runnable
     private SimpleDateFormat itsFormatter
                                  = new SimpleDateFormat ("yyyy/MM/dd HH:mm");
     /** Options for map selection. */
-    private String[] itsMaps = {"Towns", "Satellite", "None"};
+    private String[] itsMaps = {"None"};
     /** Actual file names corresponding to the maps. */
     private String[] itsRealMaps = null;
     /** Combo box for map selection. */
@@ -217,23 +218,23 @@ implements ActionListener, Runnable
       super.actionPerformed(e);
       String cmd = e.getActionCommand();
       if (cmd.equals("showlatest")) {
-	itsFrameDelay.setEnabled(false);
-	itsLoopPause.setEnabled(false);
-	itsStart.setEnabled(false);
-	itsEnd.setEnabled(false);
+        itsFrameDelay.setEnabled(false);
+        itsLoopPause.setEnabled(false);
+        itsStart.setEnabled(false);
+        itsEnd.setEnabled(false);
         itsLoopSpan.setEnabled(false);
       } else if (cmd.equals("showloop")) {
-	itsFrameDelay.setEnabled(true);
-	itsLoopPause.setEnabled(true);
-	itsStart.setEnabled(false);
-	itsEnd.setEnabled(false);
+        itsFrameDelay.setEnabled(true);
+        itsLoopPause.setEnabled(true);
+        itsStart.setEnabled(false);
+        itsEnd.setEnabled(false);
         itsLoopSpan.setEnabled(true);
       } else if (cmd.equals("archiveloop")) {
-	itsFrameDelay.setEnabled(true);
-	itsLoopPause.setEnabled(true);
-	itsStart.setEnabled(true);
-	itsEnd.setEnabled(true);
-	itsLoopSpan.setEnabled(false);
+        itsFrameDelay.setEnabled(true);
+        itsLoopPause.setEnabled(true);
+        itsStart.setEnabled(true);
+        itsEnd.setEnabled(true);
+        itsLoopSpan.setEnabled(false);
       }
     }
 
@@ -253,94 +254,94 @@ implements ActionListener, Runnable
       setup.put("map", itsRealMaps[itsMapSelection.getSelectedIndex()]);
 
       if (itsShowLatest.isSelected()) {
-	//Not looping, just showing the latest frame
+        //Not looping, just showing the latest frame
         setup.put("mode", "latest");
       } else {
-	if (itsShowLoop.isSelected()) {
-	  setup.put("mode", "realtimeloop");
-	  int loopspan=60;
-	  try {
-	    loopspan = Integer.parseInt(itsLoopSpan.getText());
-	    if (loopspan<5 || loopspan>3600) throw new Exception();
-	  } catch (Exception e) {
-	    JOptionPane.showMessageDialog(this,
-					  "The entry for Loop Span couldn't\n"+
-					  "be parsed, I expect an integer number\n"+
-					  "between 5 and 3600 minutes.",
-					  "Bad Loop Span Setting",
-					  JOptionPane.WARNING_MESSAGE);
-	    return null;
-	  }
+        if (itsShowLoop.isSelected()) {
+          setup.put("mode", "realtimeloop");
+          int loopspan=60;
+          try {
+            loopspan = Integer.parseInt(itsLoopSpan.getText());
+            if (loopspan<5 || loopspan>3600) throw new Exception();
+          } catch (Exception e) {
+             JOptionPane.showMessageDialog(this,
+                "The entry for Loop Span couldn't\n"+
+                "be parsed, I expect an integer number\n"+
+                "between 5 and 3600 minutes.",
+                "Bad Loop Span Setting",
+                JOptionPane.WARNING_MESSAGE);
+             return null;
+          }
           setup.put("loopspan", itsLoopSpan.getText());
-	} else {
-	  setup.put("mode", "archiveloop");
+        } else {
+          setup.put("mode", "archiveloop");
           //Parse the archive loop start time
-	  String startstr = itsStart.getText();
-	  Date date = null;
-	  try {
-	    date = itsFormatter.parse(startstr);
-	  } catch (Exception e) { date=null; }
-	  if (date==null) {
-	    JOptionPane.showMessageDialog(this,
-					  "The Archive Loop Start Time you entered\n" +
-					  "could not be parsed. The time must\n" +
-					  "be in \"yyyy/MM/dd HH:mm\" format, eg:\n" +
-					  "\"" + itsFormatter.format(new Date()) + "\"\n",
-					  "Bad Start Time",
-					  JOptionPane.WARNING_MESSAGE);
-	    return null;
-	  }
-	  AbsTime start = AbsTime.factory(date);
-	  setup.put("loopstart", ""+start.getValue());
+          String startstr = itsStart.getText();
+          Date date = null;
+          try {
+            date = itsFormatter.parse(startstr);
+          } catch (Exception e) { date=null; }
+          if (date==null) {
+            JOptionPane.showMessageDialog(this,
+              "The Archive Loop Start Time you entered\n" +
+              "could not be parsed. The time must\n" +
+              "be in \"yyyy/MM/dd HH:mm\" format, eg:\n" +
+              "\"" + itsFormatter.format(new Date()) + "\"\n",
+              "Bad Start Time",
+              JOptionPane.WARNING_MESSAGE);
+            return null;
+          } 
+          AbsTime start = AbsTime.factory(date);
+          setup.put("loopstart", ""+start.getValue());
           //Next parse the archive loop end time
-	  startstr = itsEnd.getText();
-	  date = null;
-	  try {
-	    date = itsFormatter.parse(startstr);
-	  } catch (Exception e) { date=null; }
-	  if (date==null) {
-	    JOptionPane.showMessageDialog(this,
-					  "The Archive Loop End Time you entered\n" +
-					  "could not be parsed. The time must\n" +
-					  "be in \"yyyy/MM/dd HH:mm\" format, eg:\n" +
-					  "\"" + itsFormatter.format(new Date()) + "\"\n",
-					  "Bad Start Time",
-					  JOptionPane.WARNING_MESSAGE);
-	    return null;
-	  }
-	  start = AbsTime.factory(date);
-	  setup.put("loopend", ""+start.getValue());
-	}
-	//One of the loop mode, store loop settings
-	int framedelay=200;
-	try {
-	  framedelay = Integer.parseInt(itsFrameDelay.getText());
+          startstr = itsEnd.getText();
+          date = null;
+          try {
+            date = itsFormatter.parse(startstr);
+          } catch (Exception e) { date=null; }
+          if (date==null) {
+            JOptionPane.showMessageDialog(this,
+              "The Archive Loop End Time you entered\n" +
+              "could not be parsed. The time must\n" +
+              "be in \"yyyy/MM/dd HH:mm\" format, eg:\n" +
+              "\"" + itsFormatter.format(new Date()) + "\"\n",
+              "Bad Start Time",
+              JOptionPane.WARNING_MESSAGE);
+            return null;
+          }
+          start = AbsTime.factory(date);
+          setup.put("loopend", ""+start.getValue());
+        }
+        //One of the loop mode, store loop settings
+        int framedelay=200;
+        try {
+          framedelay = Integer.parseInt(itsFrameDelay.getText());
           if (framedelay<0 || framedelay>10000) throw new Exception();
-	} catch (Exception e) {
-	  JOptionPane.showMessageDialog(this,
-					"The entry for Frame Delay couldn't\n"+
-					"be parsed, I expect an integer number\n"+
-                                        "between 0 and 10000 milliseconds.",
-					"Bad Frame Delay Setting",
-					JOptionPane.WARNING_MESSAGE);
-	  return null;
-	}
-	setup.put("framedelay", ""+framedelay);
+        } catch (Exception e) {
+          JOptionPane.showMessageDialog(this,
+            "The entry for Frame Delay couldn't\n"+
+            "be parsed, I expect an integer number\n"+
+            "between 0 and 10000 milliseconds.",
+            "Bad Frame Delay Setting",
+            JOptionPane.WARNING_MESSAGE);
+          return null;
+        }
+        setup.put("framedelay", ""+framedelay);
 
-	int looppause=1500;
-	try {
-	  looppause  = Integer.parseInt(itsLoopPause.getText());
-	  if (looppause<0 || looppause>10000) throw new Exception();
-	} catch (Exception e) {
-	  JOptionPane.showMessageDialog(this,
-					"The entry for Loop Pause couldn't\n"+
-					"be parsed, I expect an integer number\n"+
-                                        "between 0 and 10000 milliseconds.",
-					"Bad Loop Pause Setting",
-					JOptionPane.WARNING_MESSAGE);
-	  return null;
-	}
-	setup.put("looppause", ""+looppause);
+        int looppause=1500;
+        try {
+          looppause  = Integer.parseInt(itsLoopPause.getText());
+          if (looppause<0 || looppause>10000) throw new Exception();
+        } catch (Exception e) {
+          JOptionPane.showMessageDialog(this,
+            "The entry for Loop Pause couldn't\n"+
+            "be parsed, I expect an integer number\n"+
+            "between 0 and 10000 milliseconds.",
+            "Bad Loop Pause Setting",
+            JOptionPane.WARNING_MESSAGE);
+          return null;
+        }
+        setup.put("looppause", ""+looppause);
       }
 
       //Should we show an overlay of the different map segments?
@@ -365,53 +366,53 @@ implements ActionListener, Runnable
     showSetup(SavedSetup setup)
     {
       try {
-	String temp = (String)setup.get("mode");
-	if (temp==null || temp.equals("latest")) {
+        String temp = (String)setup.get("mode");
+        if (temp==null || temp.equals("latest")) {
           itsShowLatest.doClick();
-	} else {
-	  if (temp.equals("realtimeloop")) {
-	    itsShowLoop.doClick();
-	    itsLoopSpan.setText((String)setup.get("loopspan"));
-	  } else {
-	    itsArchiveLoop.doClick();
+        } else {
+          if (temp.equals("realtimeloop")) {
+            itsShowLoop.doClick();
+            itsLoopSpan.setText((String)setup.get("loopspan"));
+          } else {
+            itsArchiveLoop.doClick();
             temp = (String)setup.get("loopstart");
-	    long start = Long.parseLong(temp);
-	    AbsTime atemp = AbsTime.factory(start);
-	    Date dtemp = atemp.getAsDate();
-	    itsStart.setText(itsFormatter.format(dtemp));
+            long start = Long.parseLong(temp);
+            AbsTime atemp = AbsTime.factory(start);
+            Date dtemp = atemp.getAsDate();
+            itsStart.setText(itsFormatter.format(dtemp));
             temp = (String)setup.get("loopend");
-	    long end = Long.parseLong(temp);
-	    atemp = AbsTime.factory(end);
-	    dtemp = atemp.getAsDate();
-	    itsEnd.setText(itsFormatter.format(dtemp));
-	  }
-	  itsFrameDelay.setText((String)setup.get("framedelay"));
-	  itsLoopPause.setText((String)setup.get("looppause"));
-	}
-	temp = (String)setup.get("overlay");
-	if (temp==null || temp.equals("true")) itsOverlay.setSelected(true);
-	else itsOverlay.setSelected(false);
+            long end = Long.parseLong(temp);
+            atemp = AbsTime.factory(end);
+            dtemp = atemp.getAsDate();
+            itsEnd.setText(itsFormatter.format(dtemp));
+          }
+          itsFrameDelay.setText((String)setup.get("framedelay"));
+          itsLoopPause.setText((String)setup.get("looppause"));
+        }
+        temp = (String)setup.get("overlay");
+        if (temp==null || temp.equals("true")) itsOverlay.setSelected(true);
+        else itsOverlay.setSelected(false);
 
-	temp = (String)setup.get("legend");
-	if (temp==null || temp.equals("true")) itsLegend.setSelected(true);
-	else itsLegend.setSelected(false);
+        temp = (String)setup.get("legend");
+        if (temp==null || temp.equals("true")) itsLegend.setSelected(true);
+        else itsLegend.setSelected(false);
 
-	temp = (String)setup.get("totals");
-	if (temp==null || temp.equals("true")) itsShowTotals.setSelected(true);
-	else itsShowTotals.setSelected(false);
+        temp = (String)setup.get("totals");
+        if (temp==null || temp.equals("true")) itsShowTotals.setSelected(true);
+        else itsShowTotals.setSelected(false);
 
-	temp = (String)setup.get("map");
-	if (temp==null) itsMapSelection.setSelectedIndex(0);
-	else {
-	  for (int i=0; i<itsRealMaps.length; i++) {
-	    if (itsRealMaps[i].equals(temp)) {
-	      itsMapSelection.setSelectedIndex(i);
+        temp = (String)setup.get("map");
+        if (temp==null) itsMapSelection.setSelectedIndex(0);
+        else {
+          for (int i=0; i<itsRealMaps.length; i++) {
+            if (itsRealMaps[i].equals(temp)) {
+              itsMapSelection.setSelectedIndex(i);
               break;
-	    }
-	  }
-	}
+            }
+          }
+        }
       } catch (Exception e) {
-	System.err.println("LightningSetupPanel:showSetup: " + e.getMessage());
+        System.err.println("LightningSetupPanel:showSetup: " + e.getMessage());
       }
     }
   }
@@ -526,121 +527,123 @@ implements ActionListener, Runnable
 
     while (itsKeepRunning) {
       synchronized (this) {
-	if (itsShowLatest) {
-	  if (itsJustInitialised) {
-	    itsBackgroundMap = null;
+        if (itsShowLatest) {
+          if (itsJustInitialised) {
+            itsBackgroundMap = null;
             itsJustInitialised = false;
-	  }
-	  itsLoopPhase = 0;
+          }
+          itsLoopPhase = 0;
 
-	  itsStrikeData  = new int[1][];
-	  itsStrikeTimes = new AbsTime[1];
-	  int[] newdata = new int[20];
-	  AbsTime newtime = getLatest(newdata);
-	  itsStrikeTimes[0] = newtime;
+          itsStrikeData  = new int[1][];
+          itsStrikeTimes = new AbsTime[1];
+          int[] newdata = new int[20];
+          AbsTime newtime = getLatest(newdata);
+          itsStrikeTimes[0] = newtime;
           itsStrikeData[0] = newdata;
 
-	  timer.stop();
-	  if (newtime!=null) {
-	    //Schedule for just after next expected update
-	    long currentage = (new AbsTime()).getValue() - newtime.getValue();
-	    long timetogo = 61000000 - currentage;
-	    timer = new Timer((int)(timetogo/1000), this);
-	    System.err.println("Lightning: " + timetogo/1000000 + " seconds until next update");
+          timer.stop();
+          if (newtime!=null) {
+            //Schedule for just after next expected update
+            long currentage = (new AbsTime()).getValue() - newtime.getValue();
+            long timetogo = 61000000 - currentage;
+            timer = new Timer((int)(timetogo/1000), this);
+            System.err.println("Lightning: " + timetogo/1000000 + " seconds until next update");
           } else {
-	    //We don't know when the next update will happen, keep trying
-	    timer = new Timer(30000, this);
-	  }
+            //We don't know when the next update will happen, keep trying
+            timer = new Timer(30000, this);
+          }
           //timer.stop();
-	  timer.setRepeats(true);
-	  timer.start();
-	} else {
-	  if (itsJustInitialised) {
-	    itsBackgroundMap = null;
-	    itsJustInitialised = false;
-	    if (itsShowLoop) {
-	      //Real-time loop, so load up the recent data
-	      itsLoopEnd   = new AbsTime();
-	      itsLoopStart = AbsTime.factory(itsLoopEnd.getValue()-itsLoopSpan.getValue());
-	    }
-	    getArchive(itsLoopStart, itsLoopEnd);
-	    itsLoopPhase = itsStrikeData.length-1;
-	    if (timer!=null) timer.stop();
-	    timer = new Timer(itsFrameDelay, this);
-	    timer.setRepeats(true);
-	    timer.start();
-	  }
-	  itsLoopPhase--;
-	  if (itsLoopPhase==0) {
-	    if (timer!=null) timer.stop();
-	    timer = new Timer(itsLoopPause, this);
-	    timer.setRepeats(false);
-	    timer.start();
-	  } else {
-	    if (itsLoopPhase<0) {
-	      if (itsShowLoop) {
-		//We're running in real-time loop mode, since a loop has
-		//just completed, now is a good time to discard any old
-		//data and collect updated data if required
-		AbsTime now = new AbsTime();
-		while (itsStrikeData.length>0 &&
-		       now.getValue()-itsStrikeTimes[itsStrikeData.length-1].getValue()>itsLoopSpan.getValue()) {
-		  //System.err.println("Purging oldest lightning data");
-		  int[][] newdata = new int[itsStrikeData.length-1][];
-		  AbsTime[] newtimes = new AbsTime[itsStrikeData.length-1];
-		  for (int i=0; i<itsStrikeData.length-1; i++) {
-		    newdata[i] = itsStrikeData[i];
-		    newtimes[i] = itsStrikeTimes[i];
-		  }
-		  itsStrikeData = newdata;
-		  itsStrikeTimes = newtimes;
-		}
+          timer.setRepeats(true);
+          timer.start();
+        } else {
+          if (itsJustInitialised) {
+            itsBackgroundMap = null;
+            itsJustInitialised = false;
+            if (itsShowLoop) {
+              //Real-time loop, so load up the recent data
+              itsLoopEnd   = new AbsTime();
+              itsLoopStart = AbsTime.factory(itsLoopEnd.getValue()-itsLoopSpan.getValue());
+            }
+            getArchive(itsLoopStart, itsLoopEnd);
+            itsLoopPhase = itsStrikeData.length-1;
+            if (timer!=null) timer.stop();
+            timer = new Timer(itsFrameDelay, this);
+            timer.setRepeats(true);
+            timer.start();
+          }
+          itsLoopPhase--;
+          if (itsLoopPhase==0) {
+            if (timer!=null) timer.stop();
+            timer = new Timer(itsLoopPause, this);
+            timer.setRepeats(false);
+            timer.start();
+          } else {
+            if (itsLoopPhase<0) {
+              if (itsShowLoop) {
+                //We're running in real-time loop mode, since a loop has
+                //just completed, now is a good time to discard any old
+                //data and collect updated data if required
+                AbsTime now = new AbsTime();
+                while (itsStrikeData.length>0 &&
+                       now.getValue()-itsStrikeTimes[itsStrikeData.length-1].getValue()>itsLoopSpan.getValue()) 
+                {
+                  //System.err.println("Purging oldest lightning data");
+                  int[][] newdata = new int[itsStrikeData.length-1][];
+                  AbsTime[] newtimes = new AbsTime[itsStrikeData.length-1];
+                  for (int i=0; i<itsStrikeData.length-1; i++) {
+                    newdata[i] = itsStrikeData[i];
+                    newtimes[i] = itsStrikeTimes[i];
+                  }
+                  itsStrikeData = newdata;
+                  itsStrikeTimes = newtimes;
+                }
 
-		if ((itsLastTried==null || now.getValue()-itsLastTried.getValue()>6000000) &&
-		    (itsStrikeTimes.length==0 || now.getValue()-itsStrikeTimes[0].getValue()>62000000)) {
-		  //System.err.println("Requesting latest data from server");
-		  int[] newdata = new int[20];
-		  AbsTime newtime = getLatest(newdata);
-		  if (newtime!=null) {
-		    int[][] replacedata = new int[itsStrikeData.length+1][];
-		    AbsTime[] replacetimes = new AbsTime[itsStrikeData.length+1];
-		    for (int i=0; i<itsStrikeData.length; i++) {
-		      replacedata[i+1] = itsStrikeData[i];
-		      replacetimes[i+1] = itsStrikeTimes[i];
-		    }
-		    replacedata[0]  = newdata;
-		    replacetimes[0] = newtime;
-		    itsStrikeData = replacedata;
-		    itsStrikeTimes = replacetimes;
-		  }
-		}
-	      }
+                if ((itsLastTried==null || now.getValue()-itsLastTried.getValue()>6000000) &&
+                    (itsStrikeTimes.length==0 || now.getValue()-itsStrikeTimes[0].getValue()>62000000)) 
+                {
+                  //System.err.println("Requesting latest data from server");
+                  int[] newdata = new int[20];
+                  AbsTime newtime = getLatest(newdata);
+                  if (newtime!=null) {
+                    int[][] replacedata = new int[itsStrikeData.length+1][];
+                    AbsTime[] replacetimes = new AbsTime[itsStrikeData.length+1];
+                    for (int i=0; i<itsStrikeData.length; i++) {
+                      replacedata[i+1] = itsStrikeData[i];
+                      replacetimes[i+1] = itsStrikeTimes[i];
+                    }
+                    replacedata[0]  = newdata;
+                    replacetimes[0] = newtime;
+                    itsStrikeData = replacedata;
+                    itsStrikeTimes = replacetimes;
+                  }
+                }
+              }
 
-	      itsLoopPhase = itsStrikeData.length-1;
-	      if (timer!=null) timer.stop();
-	      timer = new Timer(itsFrameDelay, this);
-	      timer.setRepeats(true);
-	      timer.start();
-	    }
-	  }
-	}
+              itsLoopPhase = itsStrikeData.length-1;
+              if (timer!=null) timer.stop();
+              timer = new Timer(itsFrameDelay, this);
+              timer.setRepeats(true);
+              timer.start();
+            }
+          }
+        }
       }
 
       //Redraw our display using new image - also done by event thread
       Runnable ud2 = new Runnable() {
-	public void run() {
-	  //realthis.removeAll();
-	  realthis.repaint();
-	}
+        public void run() {
+          //realthis.removeAll();
+          realthis.repaint();
+        }
       };
       try {
-	SwingUtilities.invokeLater(ud2);
+        SwingUtilities.invokeLater(ud2);
       } catch (Exception e) {e.printStackTrace();}
 
 
       //Wait here for a while
       synchronized (this) {
-	try { wait(); } catch (Exception e) { e.printStackTrace(); }
+        try { wait(); } catch (Exception e) { e.printStackTrace(); }
       }
     }
 
@@ -662,60 +665,59 @@ implements ActionListener, Runnable
       int minsize = (w>h)?h:w;
 
       if (itsRawBackground!=null) {
-	if (w!=itsOldWidth || h!=itsOldHeight || itsBackgroundMap==null) {
-	  //We've been resized
-	  itsOldWidth = w;
-	  itsOldHeight = h;
-	  itsBackgroundMap = itsRawBackground.getScaledInstance(minsize, minsize, 0);
-	}
-	//Draw our background image to the display
-	g.drawImage(itsBackgroundMap, 0, 0, this);
+        if (w!=itsOldWidth || h!=itsOldHeight || itsBackgroundMap==null) {
+          //We've been resized
+          itsOldWidth = w;
+          itsOldHeight = h;
+          itsBackgroundMap = itsRawBackground.getScaledInstance(minsize, minsize, 0);
+        }
+        //Draw our background image to the display
+        g.drawImage(itsBackgroundMap, 0, 0, this);
       }
 
       //Render the actual strike data
       if (itsStrikeData!=null && itsStrikeData.length>itsLoopPhase &&
-	  itsStrikeTimes!=null && itsStrikeTimes.length>itsLoopPhase &&
-	  itsLoopPhase>=0 && itsStrikeData.length==itsStrikeTimes.length &&
-	  itsStrikeData[itsLoopPhase]!=null && itsStrikeTimes[itsLoopPhase]!=null) {
-	drawOverhead(itsStrikeData[itsLoopPhase][0], minsize, g);
-	for (int i=0; i<8; i++) {
-	  drawOuterOctant(i, itsStrikeData[itsLoopPhase][i+1], minsize, g);
-	  drawInnerOctant(i, itsStrikeData[itsLoopPhase][i+9], minsize, g);
-	}
+          itsStrikeTimes!=null && itsStrikeTimes.length>itsLoopPhase &&
+          itsLoopPhase>=0 && itsStrikeData.length==itsStrikeTimes.length &&
+          itsStrikeData[itsLoopPhase]!=null && itsStrikeTimes[itsLoopPhase]!=null) 
+      {
+        drawOverhead(itsStrikeData[itsLoopPhase][0], minsize, g);
+        for (int i=0; i<8; i++) {
+          drawOuterOctant(i, itsStrikeData[itsLoopPhase][i+1], minsize, g);
+          drawInnerOctant(i, itsStrikeData[itsLoopPhase][i+9], minsize, g);
+        }
 
-	g.setColor(Color.black);
-	if (itsShowTotals) {
-	  g.fillRect(0, 0, 107, 48);
-	  g.setColor(Color.white);
-	  g.drawString("" + itsStrikeData[itsLoopPhase][17] + " strikes total",
-		       4, 29);
-	  g.drawString("" + itsStrikeData[itsLoopPhase][18] + " cloud strikes",
-		       4, 45);
-	} else {
-	  g.fillRect(0, 0, 107, 16);
-	  g.setColor(Color.white);
-	}
-	String tstring = itsStrikeTimes[itsLoopPhase].toString(AbsTime.Format.UTC_STRING);
-	tstring = tstring.substring(5,tstring.lastIndexOf(":")) + " UT";
+        g.setColor(Color.black);
+        if (itsShowTotals) {
+          g.fillRect(0, 0, 107, 48);
+          g.setColor(Color.white);
+          g.drawString("" + itsStrikeData[itsLoopPhase][17] + " strikes total", 4, 29);
+          g.drawString("" + itsStrikeData[itsLoopPhase][18] + " cloud strikes", 4, 45);
+        } else {
+          g.fillRect(0, 0, 107, 16);
+          g.setColor(Color.white);
+        }
+        String tstring = itsStrikeTimes[itsLoopPhase].toString(AbsTime.Format.UTC_STRING);
+        tstring = tstring.substring(5,tstring.lastIndexOf(":")) + " UT";
         tstring = tstring.replace('-', '/');
-	g.drawString(tstring, 4, 13);
-	if (itsOverlay) drawSections(minsize, g);
-	if (itsLegend)  drawLegend(minsize, g);
-	g.setColor(Color.red);
-	//Check the uptime
-	if (itsStrikeData[itsLoopPhase][19]<15) {
-	  g.drawString("DETECTOR WAS POWER CYCLED", 10, minsize-40);
-	  g.drawString("DATA ACCUMULATION INCOMPLETE", 10, minsize-20);
-	  g.drawString("DETECTOR WAS POWER CYCLED", minsize-240, 20);
-	  g.drawString("DATA ACCUMULATION INCOMPLETE", minsize-240, 40);
-	}
-	g.setColor(Color.white);
+        g.drawString(tstring, 4, 13);
+        if (itsOverlay) drawSections(minsize, g);
+        if (itsLegend)  drawLegend(minsize, g);
+        g.setColor(Color.red);
+        //Check the uptime
+        if (itsStrikeData[itsLoopPhase][19]<15) {
+          g.drawString("DETECTOR WAS POWER CYCLED", 10, minsize-40);
+          g.drawString("DATA ACCUMULATION INCOMPLETE", 10, minsize-20);
+          g.drawString("DETECTOR WAS POWER CYCLED", minsize-240, 20);
+          g.drawString("DATA ACCUMULATION INCOMPLETE", minsize-240, 40);
+        }
+        g.setColor(Color.white);
       } else {
-	if (itsOverlay) drawSections(minsize, g);
-	if (itsLegend)  drawLegend(minsize, g);
-	g.fillRect(0, 0, 75, 16);
-	g.setColor(Color.white);
-	g.drawString("NO DATA!!!", 4, 13);
+        if (itsOverlay) drawSections(minsize, g);
+        if (itsLegend)  drawLegend(minsize, g);
+        g.fillRect(0, 0, 75, 16);
+        g.setColor(Color.white);
+        g.drawString("NO DATA!!!", 4, 13);
       }
     }
   }
@@ -937,23 +939,23 @@ implements ActionListener, Runnable
       if (pd==null) return null;
       Number n = null;
       if (pd.getData() instanceof Number) {
-	n = (Number)pd.getData();
+        n = (Number)pd.getData();
       } else if (pd.getData() instanceof RelTime) {
-	n = new Integer((int)(((RelTime)pd.getData()).getValue()/60000000));
+        n = new Integer((int)(((RelTime)pd.getData()).getValue()/60000000));
       }
       if (n==null) return null;
       strikes[i] = n.intValue();
       if (tstamp==null) {
-	tstamp=pd.getTimestamp();
-	if (itsStrikeTimes!=null && itsStrikeTimes.length>0 &&
+        tstamp=pd.getTimestamp();
+        if (itsStrikeTimes!=null && itsStrikeTimes.length>0 &&
             itsStrikeTimes[0]!=null &&
-	    tstamp.getValue()==itsStrikeTimes[0].getValue()) {
-	  //Oi! this is the same data you gave us last time!
+            tstamp.getValue()==itsStrikeTimes[0].getValue()) 
+        {
+          //Oi! this is the same data you gave us last time!
           return null;
-	}
+        }
       }
     }
-
     return tstamp;
   }
 
@@ -973,39 +975,40 @@ implements ActionListener, Runnable
       boolean first = true;
       //We retrieve each monitor points archival data in turn
       for (int i=0; i<20; i++) {
-	Vector thisdata = itsServer.getPointData((String)itsPointNames.get(i),
-						 itsLoopStart, itsLoopEnd);
-	if (i==19 && (thisdata==null || thisdata.size()<itsStrikeData[0].length)) {
-	  //No uptime info was available, assume it is >15 minutes
-	  for (int j=0; j<itsStrikeData.length; j++) {
+        Vector thisdata = itsServer.getPointData((String)itsPointNames.get(i),
+                                                 itsLoopStart, itsLoopEnd);
+        if (i==19 && (thisdata==null || thisdata.size()<itsStrikeData[0].length)) 
+        {
+          //No uptime info was available, assume it is >15 minutes
+          for (int j=0; j<itsStrikeData.length; j++) {
             itsStrikeData[j][19] = 16+5*j;
-	  }
-	} else {
-	  if (first) {
-	    first = false;
-	    itsStrikeData = new int[thisdata.size()][];
-	    for (int j=0; j<thisdata.size(); j++)
-	      itsStrikeData[j] = new int[20];
-	    itsStrikeTimes = new AbsTime[thisdata.size()];
-	    for (int j=0; j<thisdata.size(); j++) {
-	      AbsTime thistime = ((PointData)(thisdata.get(j))).getTimestamp();
-	      if (thistime==null) throw new Exception();
-	      itsStrikeTimes[thisdata.size()-j-1] = thistime;
-	    }
-	  }
+          }
+        } else {
+          if (first) {
+            first = false;
+            itsStrikeData = new int[thisdata.size()][];
+            for (int j=0; j<thisdata.size(); j++)
+              itsStrikeData[j] = new int[20];
+            itsStrikeTimes = new AbsTime[thisdata.size()];
+            for (int j=0; j<thisdata.size(); j++) {
+              AbsTime thistime = ((PointData)(thisdata.get(j))).getTimestamp();
+              if (thistime==null) throw new Exception();
+              itsStrikeTimes[thisdata.size()-j-1] = thistime;
+            }
+          }
 
-	  for (int j=0; j<thisdata.size(); j++) {
-	    Number n = null;
-	    if (((PointData)(thisdata.get(j))).getData() instanceof Number) {
-	      n = (Number)((PointData)(thisdata.get(j))).getData();
-	    } else if (((PointData)(thisdata.get(j))).getData() instanceof RelTime) {
-	      n = new Integer((int)(((RelTime)((PointData)(thisdata.get(j))).getData()).getValue()/60000000));
-	    }
+          for (int j=0; j<thisdata.size(); j++) {
+            Number n = null;
+            if (((PointData)(thisdata.get(j))).getData() instanceof Number) {
+              n = (Number)((PointData)(thisdata.get(j))).getData();
+            } else if (((PointData)(thisdata.get(j))).getData() instanceof RelTime) {
+              n = new Integer((int)(((RelTime)((PointData)(thisdata.get(j))).getData()).getValue()/60000000));
+            }
 
-	    if (n==null) throw new Exception();
-	    itsStrikeData[thisdata.size()-j-1][i] = n.intValue();
-	  }
-	}
+            if (n==null) throw new Exception();
+            itsStrikeData[thisdata.size()-j-1][i] = n.intValue();
+          }
+        }
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -1037,73 +1040,73 @@ implements ActionListener, Runnable
   {
     synchronized (this) {
       try {
-	//check if the setup is suitable for our class
-	if (!setup.checkClass(this)) {
-	  System.err.println("Lightning:loadSetup: setup not for "
-			     + this.getClass().getName());
-	  return false;
-	}
+        //check if the setup is suitable for our class
+        if (!setup.checkClass(this)) {
+          System.err.println("Lightning:loadSetup: setup not for "
+                             + this.getClass().getName());
+          return false;
+        }
         //the copy of the setup held by the frame is now incorrect
         if (itsFrame instanceof MonFrame) ((MonFrame)itsFrame).itsSetup=null;
 
-	String mapname = (String)setup.get("map");
+/*	String mapname = (String)setup.get("map");
 	if (mapname==null || mapname.equals("") || mapname.equals("none")) {
 	  itsRawBackground = null;
 	} else {
 	  String imagename = "atnf/atoms/mon/gui/monpanel/" + mapname;
 	  URL url = this.getClass().getClassLoader().getResource(imagename);
 	  itsRawBackground = Toolkit.getDefaultToolkit().getImage(url);
-	}
+	}*/
 
-	String temp = (String)setup.get("legend");
-	if (temp==null || temp.equals("true")) itsLegend = true;
-	else itsLegend = false;
+        String temp = (String)setup.get("legend");
+        if (temp==null || temp.equals("true")) itsLegend = true;
+        else itsLegend = false;
 
-	temp = (String)setup.get("overlay");
-	if (temp==null || temp.equals("true")) itsOverlay = true;
-	else itsOverlay = false;
+        temp = (String)setup.get("overlay");
+        if (temp==null || temp.equals("true")) itsOverlay = true;
+        else itsOverlay = false;
 
-	temp = (String)setup.get("totals");
-	if (temp==null || temp.equals("true")) itsShowTotals = true;
-	else itsShowTotals = false;
+        temp = (String)setup.get("totals");
+        if (temp==null || temp.equals("true")) itsShowTotals = true;
+        else itsShowTotals = false;
 
 
-	temp = (String)setup.get("mode");
-	if (temp.equals("latest")) {
-	  itsShowLatest = true;
-	  itsShowLoop = false;
-	  itsArchiveLoop = false;
-	} else {
-	  if (temp.equals("realtimeloop")) {
-	    itsShowLoop = true;
-	    itsArchiveLoop = false;
-	    itsShowLatest = false;
-	    int nummins = Integer.parseInt((String)setup.get("loopspan"));
-	    itsLoopSpan = RelTime.factory(nummins*60000000l);
-	  } else if (temp.equals("archiveloop")) {
-	    itsArchiveLoop = true;
-	    itsShowLoop = false;
-	    itsShowLatest = false;
-	    itsLoopStart = AbsTime.factory(Long.parseLong((String)setup.get("loopstart")));
-	    itsLoopEnd   = AbsTime.factory(Long.parseLong((String)setup.get("loopend")));
-	  }
-	  //Get the other loop parameters
-	  temp = (String)setup.get("framedelay");
-	  itsFrameDelay = Integer.parseInt(temp);
-	  temp = (String)setup.get("looppause");
-	  itsLoopPause = Integer.parseInt(temp);
-	}
+        temp = (String)setup.get("mode");
+        if (temp.equals("latest")) {
+          itsShowLatest = true;
+          itsShowLoop = false;
+          itsArchiveLoop = false;
+        } else {
+          if (temp.equals("realtimeloop")) {
+            itsShowLoop = true;
+            itsArchiveLoop = false;
+            itsShowLatest = false;
+            int nummins = Integer.parseInt((String)setup.get("loopspan"));
+            itsLoopSpan = RelTime.factory(nummins*60000000l);
+          } else if (temp.equals("archiveloop")) {
+            itsArchiveLoop = true;
+            itsShowLoop = false;
+            itsShowLatest = false;
+            itsLoopStart = AbsTime.factory(Long.parseLong((String)setup.get("loopstart")));
+            itsLoopEnd   = AbsTime.factory(Long.parseLong((String)setup.get("loopend")));
+          }
+          //Get the other loop parameters
+          temp = (String)setup.get("framedelay");
+          itsFrameDelay = Integer.parseInt(temp);
+          temp = (String)setup.get("looppause");
+          itsLoopPause = Integer.parseInt(temp);
+        }
 
-	itsSetup = setup;
-	itsJustInitialised = true;
-	//Make thread up so it can use new settings
-	synchronized (this) { this.notifyAll(); }
+        itsSetup = setup;
+        itsJustInitialised = true;
+        //Make thread up so it can use new settings
+        synchronized (this) { this.notifyAll(); }
       } catch (Exception e) {
-	System.err.println("Lightning:loadSetup: " + e.getClass().getName()
-			   + " " + e.getMessage());
-	e.printStackTrace();
-	blankSetup();
-	return false;
+        System.err.println("Lightning:loadSetup: " + e.getClass().getName()
+                           + " " + e.getMessage());
+        e.printStackTrace();
+        blankSetup();
+        return false;
       }
     }
     return true;
