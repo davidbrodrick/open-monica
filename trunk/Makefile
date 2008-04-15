@@ -43,7 +43,8 @@ compile:
         
 client:
 	jar cmf manifest-client.txt ${CLIENT_JAR} ${CLIENT_FILES}
-	jarsigner -keystore demo-keys ${CLIENT_JAR} monica
+	echo monica | jarsigner -keystore demo-keys ${CLIENT_JAR} monica
+	@echo
 
 server:
 	jar cmf manifest-server.txt ${SERVER_JAR} ${SERVER_FILES}

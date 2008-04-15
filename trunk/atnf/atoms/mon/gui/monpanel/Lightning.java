@@ -798,6 +798,16 @@ implements ActionListener, Runnable
       int endy   = size/2 + (int)(radius56km*Math.sin(a));
       g.drawLine(startx, starty, endx, endy);
     }
+    //Draw the distance markers
+    double c=Math.cos(Math.PI*-67.5/180.0);
+    double s=Math.sin(Math.PI*-67.5/180.0);
+    g.fillRect((int)(size/2+radius9km*c)-8, (int)(size/2+radius9km*s)-6,31,15);
+    g.fillRect((int)(size/2+radius20km*c)-8, (int)(size/2+radius20km*s)-6,38,15);
+    g.fillRect((int)(size/2+radius56km*c)-8, (int)(size/2+radius56km*s)-6,38,15);
+    g.setColor(Color.white);
+    g.drawString("9km", (int)(size/2+radius9km*c)-6, (int)(size/2+radius9km*s)+6);
+    g.drawString("20km", (int)(size/2+radius20km*c)-6, (int)(size/2+radius20km*s)+6);
+    g.drawString("56km", (int)(size/2+radius56km*c)-6, (int)(size/2+radius56km*s)+6);
   }
 
 
