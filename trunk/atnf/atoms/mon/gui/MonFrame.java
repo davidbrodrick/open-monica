@@ -54,44 +54,43 @@ implements ActionListener
     {
       String action = e.getActionCommand();
       if (action.equals("New Blank Window")) {
-	new MonFrame();
+        new MonFrame();
       } else if (action.equals("recoverArrangement")) {
-	final JFileChooser fc = new JFileChooser();
-	int returnVal = fc.showOpenDialog((MonFrame)itsWindows.get(0));
-	if (returnVal==JFileChooser.APPROVE_OPTION) {
-	  try {
-	    File file = fc.getSelectedFile();
-	    if (!recoverArrangement(file.getAbsoluteFile().toString()))
-	      throw new Exception("Unable to properly load the file");
-	  } catch (Exception f) {
-	    //No Joy..
-	    f.printStackTrace();
-	    JOptionPane.showMessageDialog((MonFrame)itsWindows.get(0),
-					  "There was an error:\n" +
-					  f.getMessage() + "\n",
-					  "Error Loading File",
-					  JOptionPane.WARNING_MESSAGE);
-	  }
-	}
+        final JFileChooser fc = new JFileChooser();
+        int returnVal = fc.showOpenDialog((MonFrame)itsWindows.get(0));
+        if (returnVal==JFileChooser.APPROVE_OPTION) {
+          try {
+            File file = fc.getSelectedFile();
+            if (!recoverArrangement(file.getAbsoluteFile().toString()))
+              throw new Exception("Unable to properly load the file");
+          } catch (Exception f) {
+            //No Joy..
+            f.printStackTrace();
+            JOptionPane.showMessageDialog((MonFrame)itsWindows.get(0),
+              "There was an error:\n" +
+              f.getMessage() + "\n",
+              "Error Loading File",
+              JOptionPane.WARNING_MESSAGE);
+          }
+        }
       } else if (action.equals("saveArrangement")) {
-	final JFileChooser fc = new JFileChooser();
-	int returnVal = fc.showSaveDialog((MonFrame)itsWindows.get(0));
-	if (returnVal==JFileChooser.APPROVE_OPTION) {
-	  try {
-	    File file = fc.getSelectedFile();
-	    if (!saveArrangement(file.getAbsoluteFile().toString()))
-	      throw new Exception("Unable to properly save the file");
-	  } catch (Exception f) {
-	    //No Joy..
-	    f.printStackTrace();
-	    JOptionPane.showMessageDialog((MonFrame)itsWindows.get(0),
-					  "There was an error:\n" +
-					  f.getMessage() + "\n",
-					  "Error Saving File",
-					  JOptionPane.WARNING_MESSAGE);
-	  }
-	}
-
+        final JFileChooser fc = new JFileChooser();
+        int returnVal = fc.showSaveDialog((MonFrame)itsWindows.get(0));
+        if (returnVal==JFileChooser.APPROVE_OPTION) {
+          try {
+            File file = fc.getSelectedFile();
+            if (!saveArrangement(file.getAbsoluteFile().toString()))
+              throw new Exception("Unable to properly save the file");
+          } catch (Exception f) {
+            //No Joy..
+            f.printStackTrace();
+            JOptionPane.showMessageDialog((MonFrame)itsWindows.get(0),
+              "There was an error:\n" +
+              f.getMessage() + "\n",
+              "Error Saving File",
+              JOptionPane.WARNING_MESSAGE);
+          }
+        }
       } else if (action.equals("Quit")) {
         System.exit(0);
       } else if (action.startsWith("Close:")) {
@@ -207,7 +206,7 @@ implements ActionListener
       //Get the index for the frame to be removed
       int loc = itsWindows.indexOf(frame);
       if (loc==-1) {
-	System.err.println("MonFrame:WindowManager: FRAME NOT FOUND!");
+        System.err.println("MonFrame:WindowManager: FRAME NOT FOUND!");
         return;
       }
       //Remove frame and menu from containers
@@ -226,7 +225,7 @@ implements ActionListener
     {
       //Simply update the menu for each current window
       for (int i=0; i<itsWindows.size(); i++) {
-	rebuildMenu((JMenu)itsMenus.get(i), (MonFrame)itsWindows.get(i));
+        rebuildMenu((JMenu)itsMenus.get(i), (MonFrame)itsWindows.get(i));
       }
     }
 
@@ -239,60 +238,57 @@ implements ActionListener
     rebuildMenu(JMenu menu, MonFrame frame)
     {
       synchronized (menu) {
-	//Remove all exiting menu entries
-	menu.removeAll();
-	JMenuItem temp;
-	JMenu tempmenu;
+        //Remove all exiting menu entries
+        menu.removeAll();
+        JMenuItem temp;
+        JMenu tempmenu;
 
-	//Add some fields to add/remove Windows
-	temp = new JMenuItem("Empty");
-	temp.setActionCommand("New Blank Window");
-	temp.addActionListener(this);
-	temp.setAccelerator(KeyStroke.getKeyStroke(
-	                    KeyEvent.VK_N, ActionEvent.CTRL_MASK));
-	temp.setMnemonic(KeyEvent.VK_N);
-	tempmenu = new JMenu("New Window");
-	tempmenu.add(temp);
-	tempmenu.addSeparator();
-	MonClientUtil.getSetupMenu(MonFrame.class.getName(), this, tempmenu);
-	menu.add(tempmenu);
-	menu.addSeparator();
-	temp = new JMenuItem("Load Arrangement");
-	temp.setActionCommand("recoverArrangement");
-	temp.setToolTipText("Load a saved arrangement of windows");
-	temp.addActionListener(this);
-	menu.add(temp);
-	temp = new JMenuItem("Save Arrangement");
-	temp.setActionCommand("saveArrangement");
+        //Add some fields to add/remove Windows
+        temp = new JMenuItem("Empty");
+        temp.setActionCommand("New Blank Window");
+        temp.addActionListener(this);
+        temp.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
+        temp.setMnemonic(KeyEvent.VK_N);
+        tempmenu = new JMenu("New Window");
+        tempmenu.add(temp);
+        tempmenu.addSeparator();
+        MonClientUtil.getSetupMenu(MonFrame.class.getName(), this, tempmenu);
+        menu.add(tempmenu);
+        menu.addSeparator();
+        temp = new JMenuItem("Load Arrangement");
+        temp.setActionCommand("recoverArrangement");
+        temp.setToolTipText("Load a saved arrangement of windows");
+        temp.addActionListener(this);
+        menu.add(temp);
+        temp = new JMenuItem("Save Arrangement");
+        temp.setActionCommand("saveArrangement");
         temp.setToolTipText("Save the current window arrangement");
-	temp.addActionListener(this);
-	menu.add(temp);
-	menu.addSeparator();
-	temp = new JMenuItem("Close");
-	temp.setAccelerator(KeyStroke.getKeyStroke(
-	                    KeyEvent.VK_C, ActionEvent.CTRL_MASK));
-	temp.setMnemonic(KeyEvent.VK_C);
-	temp.setActionCommand("Close:" + frame.getNumber());
         temp.addActionListener(this);
-	menu.add(temp);
-	temp = new JMenuItem("Quit");
-	temp.setAccelerator(KeyStroke.getKeyStroke(
-	                    KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
-	temp.setMnemonic(KeyEvent.VK_Q);
-	temp.setActionCommand("Quit");
+        menu.add(temp);
+        menu.addSeparator();
+        temp = new JMenuItem("Close");
+        temp.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
+        temp.setMnemonic(KeyEvent.VK_C);
+        temp.setActionCommand("Close:" + frame.getNumber());
         temp.addActionListener(this);
-	menu.add(temp);
+        menu.add(temp);
+        temp = new JMenuItem("Quit");
+        temp.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
+        temp.setMnemonic(KeyEvent.VK_Q);
+        temp.setActionCommand("Quit");
+        temp.addActionListener(this);
+        menu.add(temp);
         menu.addSeparator();
 
-	//Add in all current windows, disable our own
-	for (int i=0; i<itsWindows.size(); i++) {
+        //Add in all current windows, disable our own
+        for (int i=0; i<itsWindows.size(); i++) {
           MonFrame tempframe = (MonFrame)itsWindows.get(i);
-	  temp = new JMenuItem(tempframe.getTitle());
-	  temp.setActionCommand("Raise:" + tempframe.getNumber());
-	  temp.addActionListener(this);
+          temp = new JMenuItem(tempframe.getTitle());
+          temp.setActionCommand("Raise:" + tempframe.getNumber());
+          temp.addActionListener(this);
           if (tempframe==frame) temp.setEnabled(false);
-	  menu.add(temp);
-	}
+          menu.add(temp);
+        }
       }
     }
   };
@@ -420,11 +416,11 @@ implements ActionListener
     final MonFrame thisframe = this;
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-	thisframe.removeAllPanels();
-	thisframe.setVisible(false);
-	theirWindowManager.remove(thisframe);
+        thisframe.removeAllPanels();
+        thisframe.setVisible(false);
+        theirWindowManager.remove(thisframe);
         //If there are no windows left, we can close the app!
-	if (theirWindowManager.numWindows()==0) System.exit(0);
+        if (theirWindowManager.numWindows()==0) System.exit(0);
       }
     });
 
@@ -485,39 +481,39 @@ implements ActionListener
       final JFileChooser fc = new JFileChooser();
       int returnVal = fc.showSaveDialog(this);
       if (returnVal==JFileChooser.APPROVE_OPTION) {
-	try {
-	  File file = fc.getSelectedFile();
-	  dumpPNG(file.getAbsoluteFile().toString());
-	} catch (Exception f) {
+        try {
+          File file = fc.getSelectedFile();
+          dumpPNG(file.getAbsoluteFile().toString());
+        } catch (Exception f) {
           //No Joy..
-	  f.printStackTrace();
-	  JOptionPane.showMessageDialog(this,
-					"There was an error:\n" +
-                                        f.getMessage() + "\n",
-					"Export Error",
-					JOptionPane.WARNING_MESSAGE);
-	}
+          f.printStackTrace();
+          JOptionPane.showMessageDialog(this,
+            "There was an error:\n" +
+            f.getMessage() + "\n",
+            "Export Error",
+            JOptionPane.WARNING_MESSAGE);
+        }
       }
     } else if (action.equals("Export")) {
       final JFileChooser fc = new JFileChooser();
       int returnVal = fc.showSaveDialog(this);
       if (returnVal==JFileChooser.APPROVE_OPTION) {
-	try {
-	  File file = fc.getSelectedFile();
-	  FileOutputStream fout = new FileOutputStream(file);
-	  PrintStream pout = new PrintStream(fout);
-	  for (int i=0; i<itsPanels.size(); i++) {
-            ((MonPanel)itsPanels.get(i)).export(pout);
-	  }
-	} catch (Exception f) {
-          //No Joy..
-	  f.printStackTrace();
-	  JOptionPane.showMessageDialog(this,
-					"There was an error:\n" +
-                                        f.getMessage() + "\n",
+      try {
+        File file = fc.getSelectedFile();
+        FileOutputStream fout = new FileOutputStream(file);
+        PrintStream pout = new PrintStream(fout);
+        for (int i=0; i<itsPanels.size(); i++) {
+          ((MonPanel)itsPanels.get(i)).export(pout);
+        }
+      } catch (Exception f) {
+        //No Joy..
+        f.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+          "There was an error:\n" +
+          f.getMessage() + "\n",
 					"Export Error",
-					JOptionPane.WARNING_MESSAGE);
-	}
+          JOptionPane.WARNING_MESSAGE);
+        }
       }
     } else if (action.equals("Help")) {
       new HelpFrame();
@@ -528,7 +524,7 @@ implements ActionListener
       if (reqsetup!=null) loadSetup(reqsetup);
       else {
         //Setup couldn't be found
-	JOptionPane.showMessageDialog(this,
+        JOptionPane.showMessageDialog(this,
 				      "Curiously, the setup called:\n" +
 				      "\"" + action + "\"\n" +
 				      "for class:\n" +
@@ -676,13 +672,13 @@ implements ActionListener
       tempMenu.setEnabled(true);
       tempMenu.setToolTipText("Remove panels from the current display");
       for (int i=0; i<itsPanels.size(); i++) {
-	MonPanel monp = (MonPanel)itsPanels.get(i);
-	String desc = MonPanel.getName(monp.getClass());
-	JMenuItem tempMenu2 = new JMenuItem(desc);
-	tempMenu2.setActionCommand("RemovePanel " + i);
-	tempMenu2.addActionListener(this);
+        MonPanel monp = (MonPanel)itsPanels.get(i);
+        String desc = MonPanel.getName(monp.getClass());
+        JMenuItem tempMenu2 = new JMenuItem(desc);
+        tempMenu2.setActionCommand("RemovePanel " + i);
+        tempMenu2.addActionListener(this);
         tempMenu2.setToolTipText("Remove a " + desc + " from the display");
-	tempMenu.add(tempMenu2);
+        tempMenu.add(tempMenu2);
       }
     } else {
       tempMenu.setEnabled(false);
@@ -701,10 +697,10 @@ implements ActionListener
       tempMenu.setToolTipText("Add extra panels to the current display");
 
       for (int i=0; i<paneltypes.length; i++) {
-	JMenuItem tempMenu2 = new JMenuItem(paneltypes[i]);
-	tempMenu2.setActionCommand("AddPanel " + i);
-	tempMenu2.addActionListener(this);
-	tempMenu2.setToolTipText("Add an empty " + paneltypes[i]);
+        JMenuItem tempMenu2 = new JMenuItem(paneltypes[i]);
+        tempMenu2.setActionCommand("AddPanel " + i);
+        tempMenu2.addActionListener(this);
+        tempMenu2.setToolTipText("Add an empty " + paneltypes[i]);
         tempMenu.add(tempMenu2);
       }
     }
@@ -963,39 +959,39 @@ implements ActionListener
       BufferedReader f = new BufferedReader(new FileReader(filename));
 
       while (f.ready()) {
-	String line = f.readLine();
-	if (line.startsWith("#")) continue;
-	StringTokenizer st = new StringTokenizer(line);
+        String line = f.readLine();
+        if (line.startsWith("#")) continue;
+        StringTokenizer st = new StringTokenizer(line);
         //Get the requested setup from the database
-	SavedSetup setup = MonClientUtil.getSetup("atnf.atoms.mon.gui.MonFrame",
-						  st.nextToken());
-	//Parse the desired geometry
-	int w = Integer.parseInt(st.nextToken());
-	int h = Integer.parseInt(st.nextToken());
-	int x = Integer.parseInt(st.nextToken());
-	int y = Integer.parseInt(st.nextToken());
-	//Make It So!
-	if (setup!=null) {
-	  MonFrame frame = new MonFrame();
-	  frame.loadSetup(setup);
-	  frame.setBounds(x, y, w, h);
-	  frame.validate();
-	} else {
+        SavedSetup setup = MonClientUtil.getSetup("atnf.atoms.mon.gui.MonFrame",
+                                                  st.nextToken());
+        //Parse the desired geometry
+        int w = Integer.parseInt(st.nextToken());
+        int h = Integer.parseInt(st.nextToken());
+        int x = Integer.parseInt(st.nextToken());
+        int y = Integer.parseInt(st.nextToken());
+        //Make It So!
+        if (setup!=null) {
+          MonFrame frame = new MonFrame();
+          frame.loadSetup(setup);
+          frame.setBounds(x, y, w, h);
+          frame.validate();
+        } else {
           return false;
-	}
+        }
       }
 
       //Close the windows that were already open
       for (int i=0; i<numalreadyopen; i++) {
-	MonFrame frame = (MonFrame)theirWindowManager.itsWindows.get(0);
-	theirWindowManager.actionPerformed(new ActionEvent(theirWindowManager,
-							   0,"Close:" + frame.getNumber()));
-	System.err.println("###REMOVED");
+        MonFrame frame = (MonFrame)theirWindowManager.itsWindows.get(0);
+        theirWindowManager.actionPerformed(new ActionEvent(theirWindowManager,
+                                           0,"Close:" + frame.getNumber()));
+        System.err.println("###REMOVED");
       }
     } catch (Exception e) {
       System.err.println("ERROR: Couldn't load saved arrangement \""
 			 + filename + "\"");
-      e.printStackTrace();
+      //e.printStackTrace();
       return false;
     }
     return true;
@@ -1011,10 +1007,10 @@ implements ActionListener
       FileWriter fw = new FileWriter(filename, false);
       PrintWriter p = new PrintWriter(fw);
       for (int i=0; i<WindowManager.itsWindows.size(); i++) {
-	MonFrame frame = (MonFrame)WindowManager.itsWindows.get(i);
-	p.print(frame.getSetup().getName() + "\t");
-	Rectangle r = frame.getBounds();
-	p.println(r.width + " " + r.height + " " + r.x + " " + r.y);
+        MonFrame frame = (MonFrame)WindowManager.itsWindows.get(i);
+        p.print(frame.getSetup().getName() + "\t");
+        Rectangle r = frame.getBounds();
+        p.println(r.width + " " + r.height + " " + r.x + " " + r.y);
       }
       fw.flush();
       fw.close();
@@ -1049,84 +1045,96 @@ implements ActionListener
 
     if (argv.length>0) {
       for (int i=0; i<argv.length; i++) {
-	if (argv[i].equals("-h")||argv[i].equals("--help")) {
+        if (argv[i].equals("-h")||argv[i].equals("--help")) {
           usage();
-	} else if (argv[i].equals("-d")||argv[i].equals("--dump")) {
-	  if (i>0) {
-	    System.err.print("ERROR: \"" + argv[i] + "\" must be the first argument");
-	    System.exit(1);
-	  }
-	  autodump=true;
-	  if (argv.length==i+1) {
-	    System.err.print("ERROR: You must specify an interval in " +
-			       "seconds for autodump mode! ");
-	    System.err.println("eg, " + argv[i] + " 60");
-	    System.exit(1);
-	  }
-	  try {
-	    autodumpperiod = 1000*Integer.parseInt(argv[i+1]);
-	  } catch (Exception e) {
-	    System.err.println("ERROR: You must specify an interval in " +
-			       "seconds for autodump mode!");
-	    System.err.println("\teg, " + argv[i] + " 60");
-	    System.exit(1);
-	  }
-	  autodump = true;
+        } else if (argv[i].equals("-d")||argv[i].equals("--dump")) {
+          if (i>0) {
+            System.err.print("ERROR: \"" + argv[i] + "\" must be the first argument");
+            System.exit(1);
+          }
+          autodump=true;
+          if (argv.length==i+1) {
+            System.err.print("ERROR: You must specify an interval in " +
+                             "seconds for autodump mode! ");
+            System.err.println("eg, " + argv[i] + " 60");
+            System.exit(1);
+          }
+          try {
+            autodumpperiod = 1000*Integer.parseInt(argv[i+1]);
+          } catch (Exception e) {
+            System.err.println("ERROR: You must specify an interval in " +
+                               "seconds for autodump mode!");
+            System.err.println("\teg, " + argv[i] + " 60");
+            System.exit(1);
+          }
+          autodump = true;
           i++;
         } else if (argv[i].equals("-o")) {
           //Output directory for autodumping
-	  if (argv.length==i+1) {
-	    System.err.print("ERROR: You must specify the target directory after"
-			     + " the \"" + argv[i] + "\" argument");
-	    System.exit(1);
-	  }
-	  outputdir = argv[i+1];
+          if (argv.length==i+1) {
+            System.err.print("ERROR: You must specify the target directory after"
+                             + " the \"" + argv[i] + "\" argument");
+            System.exit(1);
+          }
+          outputdir = argv[i+1];
           if (!outputdir.endsWith("/")) outputdir = outputdir + "/";
           i++;
         } else if (argv[i].equals("-f")||argv[i].equals("--file")) {
-	  if (argv.length==i+1) {
-	    System.err.print("ERROR: You must specify the file name after"
-			     + " the \"" + argv[i] + "\" argument");
-	    System.exit(1);
-	  }
-	  if (!recoverArrangement(argv[i+1])) {
-	    System.err.println("ERROR: The arrangement file \"" + argv[i+1]
-			       + "\" wasn't successfully loaded.");
+          if (argv.length==i+1) {
+            System.err.print("ERROR: You must specify the file name after"
+                             + " the \"" + argv[i] + "\" argument");
             System.exit(1);
-	  }
+          }
+          if (!recoverArrangement(argv[i+1])) {
+            System.err.println("ERROR: The arrangement file \"" + argv[i+1]
+                               + "\" wasn't successfully loaded.");
+            System.exit(1);
+          }
           numframes++;
           i++;
-	} else {
-	  //Interpret argument as an extra MonFrame with specified page
-	  MonFrame frame = new MonFrame();
-	  SavedSetup def = MonClientUtil.getSetup("atnf.atoms.mon.gui.MonFrame",
-						  argv[i]);
-	  if (def!=null) {
-	    frame.loadSetup(def);
+        } else {
+          //Interpret argument as an extra MonFrame with specified page
+          MonFrame frame = new MonFrame();
+          SavedSetup def = MonClientUtil.getSetup("atnf.atoms.mon.gui.MonFrame",
+                                                  argv[i]);
+          if (def!=null) {
+            frame.loadSetup(def);
             frame.pack();
-	    numframes++;
-	  } else {
-	    System.err.println("\nERROR: You asked me to display setup \"" + argv[i]
-			       + "\" but it doesn't exist!");
-	    usage();
-	  }
-	}
+            numframes++;
+          } else {
+            System.err.println("\nERROR: You asked me to display setup \"" + argv[i]
+                               + "\" but it doesn't exist!");
+            usage();
+          }
+        }
       }
     }
     if (numframes==0) {
-      //Create an empty frame
-      MonFrame frame = new MonFrame();
-      //If there is a "default" page, then display it
-      SavedSetup def = MonClientUtil.getSetup("atnf.atoms.mon.gui.MonFrame",
-					      "default");
-      if (def!=null) frame.loadSetup(def);
+      //Check to see if the user has a default arrangement file in their
+      //home directory. Load it if they do.
+      String osname = System.getProperty("os.name").toLowerCase();
+      String monfile = null;
+      if (osname.indexOf("win")!=-1) {
+        monfile = "\\Application Data\\MoniCA\\default-arrangement-" + MonClientUtil.getServerName() + ".txt";
+      } else {
+        monfile = "/.MoniCA/default-arrangement-" + MonClientUtil.getServerName() + ".txt";
+      }
+      monfile = System.getProperty("user.home") + monfile;
+      if (!recoverArrangement(monfile)) {
+        //Create an empty frame
+        MonFrame frame = new MonFrame();
+        //If there is a "default" page, then display it
+        SavedSetup def = MonClientUtil.getSetup("atnf.atoms.mon.gui.MonFrame",
+				                                        "default");
+        if (def!=null) frame.loadSetup(def);
+      }
     } else {
       //Apply the "autodump" settings
       if (autodumpperiod!=60000) {
-	for (int i=0; i<theirWindowManager.numWindows(); i++) {
+        for (int i=0; i<theirWindowManager.numWindows(); i++) {
           MonFrame framei = theirWindowManager.getWindow(i);
-	  framei.setAutodump(autodumpperiod, outputdir + framei.getSetup().getName() + ".png");
-	}
+          framei.setAutodump(autodumpperiod, outputdir + framei.getSetup().getName() + ".png");
+        }
       }
     }
   }

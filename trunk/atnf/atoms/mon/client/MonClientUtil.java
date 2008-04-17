@@ -27,11 +27,8 @@ import atnf.atoms.util.*;
  *
  * <P>One of the things it does it control what server the client will
  * connect to. This is normally done by presenting the user with a dialog
- * box. If the program is in headless mode (ie, <tt>-Djava.awt.headless=true</tt>)
- * then it will automatically select the site that the client's IP address
- * corresponds to. This behaviour can be modified (in headed or headless mode)
- * by specifying the server name as a property called "server", eg <tt>
- * -Dserver=monhost-nar.atnf.csiro.au</tt>.
+ * box, however the server name can also be specified as a property called 
+ * "server", eg <tt>-Dserver=monhost-nar.atnf.csiro.au</tt>.
  *
  * @author David Brodrick
  * @version $Id: MonClientUtil.java,v 1.9 2008/03/18 00:52:10 bro764 Exp bro764 $
@@ -44,6 +41,9 @@ public class MonClientUtil
 
   /** Network connection to the monitor server. */
   private static MonitorClientCustom theirServer;
+  
+  /** Short descriptive name of the user-selected server. */
+  private static String theirServerName;
 
   /** Records if we have downloaded the list of available SavedSetups
    * from the network server. Normally this will be done at class load time
@@ -65,9 +65,9 @@ public class MonClientUtil
       host = targethost;
     } else {
       if (headless.equals("true")) {
-	//We can only run in headless mode if a server was specified
-	System.err.println("MonClientUtil: ERROR: Headless mode requested but no server specified!");
-	System.exit(1);
+        //We can only run in headless mode if a server was specified
+        System.err.println("MonClientUtil: ERROR: Headless mode requested but no server specified!");
+        System.exit(1);
       }
 
       Vector serverlist=new Vector();
@@ -138,6 +138,7 @@ public class MonClientUtil
       chosenserver = chooser.getSite();
       host=(String)chosenserver.get(1);
       System.err.println("User selected server " + host);
+      theirServerName = (String)chosenserver.get(0);
     }
 
     try {
@@ -159,33 +160,38 @@ public class MonClientUtil
                                   (String)chosenserver.get(2),
                                   8050, 8050);
 
-	    System.out.print("MonClientUtil: Connecting to \"localhost\"");
-	    theirServer = new MonitorClientCustom("localhost");
-	    System.out.println("\tOK");
-	    theirSetups = new Hashtable();
-	    addServerSetups(); //Get all SavedSetups from server
-	    addLocalSetups();  //Also load any which have been saved locally
+            System.out.print("MonClientUtil: Connecting to \"localhost\"");
+            theirServer = new MonitorClientCustom("localhost");
+            System.out.println("\tOK");
+            theirSetups = new Hashtable();
+            addServerSetups(); //Get all SavedSetups from server
+            addLocalSetups();  //Also load any which have been saved locally
 
             connected=true;
-	  } catch (Exception f) {
+          } catch (Exception f) {}
+        }
 
-	  }
-	}
-
-	if (!connected) {
-	  JOptionPane.showMessageDialog(MonFrame.theirWindowManager.getWindow(0),
-					"ERROR CONTACTING SERVER\n\n" +
-					"Server: " + host + "\n" +
-					"Error: \"" + e.getMessage() + "\"\n\n" +
-					"The application will now exit.",
-					"Error Contacting Server",
-					JOptionPane.WARNING_MESSAGE);
-	  System.exit(1);
-	}
+        if (!connected) {
+          JOptionPane.showMessageDialog(MonFrame.theirWindowManager.getWindow(0),
+            "ERROR CONTACTING SERVER\n\n" +
+            "Server: " + host + "\n" +
+            "Error: \"" + e.getMessage() + "\"\n\n" +
+            "The application will now exit.",
+            "Error Contacting Server",
+            JOptionPane.WARNING_MESSAGE);
+          System.exit(1);
+        }
       }
     }
   }
 
+  /** Get the short name of the server. */
+  public static synchronized
+  String
+  getServerName()
+  {
+    return theirServerName;
+  }
 
   /** Get a reference to the network connection to the server. */
   public static synchronized
@@ -236,14 +242,14 @@ public class MonClientUtil
       SavedSetup[] setups = theirServer.getAllSetups();
       theirHasGotServerSetups = true;
       if (setups!=null && setups.length>0) {
-	System.err.println("MonClientUtil:addServerSetups: Loaded "
-			   + setups.length + " setups from server");
-	//Convert to Vector form
-	Vector v = new Vector(setups.length);
-	for (int i=0; i<setups.length; i++) v.add(setups[i]);
-	mergeSetups(v);
+        System.err.println("MonClientUtil:addServerSetups: Loaded "
+                           + setups.length + " setups from server");
+        //Convert to Vector form
+        Vector v = new Vector(setups.length);
+        for (int i=0; i<setups.length; i++) v.add(setups[i]);
+        mergeSetups(v);
       } else {
-	System.err.println("MonClientUtil:addServerSetups: None available");
+        System.err.println("MonClientUtil:addServerSetups: None available");
       }
     }
   }
@@ -298,17 +304,17 @@ public class MonClientUtil
     for (int i=0; i<setups.size(); i++) {
       SavedSetup thissetup = (SavedSetup)setups.get(i);
       if (thissetup==null) {
-	System.err.println("MonClientUtil:mergeSetups: Warning NULL setup");
-	continue;
+        System.err.println("MonClientUtil:mergeSetups: Warning NULL setup");
+        continue;
       }
       if (thissetup.getName()==null) {
-	System.err.println("MonClientUtil:mergeSetups: Warning NULL name");
-	continue;
+        System.err.println("MonClientUtil:mergeSetups: Warning NULL name");
+        continue;
       }
 
       if (theirSetups.get(thissetup.getClassName())==null) {
-	//First setup to be added for that class
-	theirSetups.put(thissetup.getClassName(), new Hashtable());
+        //First setup to be added for that class
+        theirSetups.put(thissetup.getClassName(), new Hashtable());
       }
 
       //Add this setup to the vector for the appropriate class
@@ -497,133 +503,6 @@ public class MonClientUtil
   }
 
 
-
-
-  /** Sort the names of the available sources. This is to ensure that the
-   * user always gets the same set of sources in the same order.
-   * @param sources Container of source names to be sorted.
-   * @return Vector containing source names in sorted order. */
-/*  public static
-  Vector
-  sortSources(Vector sources)
-  {
-    Vector res = new Vector();
-    //Simple sort since we expect size to always be "small"
-    for (int i=0; i<sources.size(); i++) {
-      String thissource = (String)sources.get(i);
-      int j = 0;
-      for (; j<res.size(); j++) {
-	String comp = (String)res.get(j);
-        if (comp.compareToIgnoreCase(thissource)>0) break;
-      }
-      res.insertElementAt(thissource, j);
-    }
-    return res;
-  }
-*/
-
-  /** Return the sources of data for the specified point name. This uses
-   * locally cached information if it is available and asks the network
-   * server otherwise.
-   * @param name Name of the point to get the sources for.
-   * @return Vector containing the names of the sources. If no sources are
-   *         available for the point a non-null Vector with size zero will
-   *         be returned. */
-/*  public static
-  Vector
-  getPointSources(String name)
-  {
-    return null;
-  }
-*/
-
-  /** Return all data sources for the points named in the PointPage. The
-   * result is a Vector containing the String names of all unique sources.
-   * If there are no sources for the given page then a Vector will still
-   * be returned but it's size will be zero.
-   * @param pname Name of the PointPage to list the sources for.
-   * @return Vector containing the source names. */
-/*  public static
-  Vector
-  getAvailableSources(String pname)
-  {
-    //Do a lookup to get the page with the given name
-    PointPage page = getPage(pname);
-    return getAvailableSources(page);
-  }
-*/
-
-  /** Return all data sources for the points named in the PointPage. The
-   * result is a Vector containing the String names of all unique sources.
-   * If there are no sources for the given page then a Vector will still
-   * be returned but it's size will be zero.
-   * @param pname The PointPage to list the sources for.
-   * @return Vector containing the source names. */
-/*  public static
-  Vector
-  getAvailableSources(PointPage page)
-  {
-    Vector res = new Vector();
-    if (page==null || page.size()==0) return res; //Pathological cases
-
-    for (int p=0; p<page.size(); p++) {
-      if (page.get(p)==null) continue; //Empty name = empty row
-      String pname = (String)page.get(p);
-      if (pname.equals("")) continue;    //Empty name = empty row
-
-      //Get the available sources for this point
-      String[] s = getServer().getSources(pname);
-      if (s==null || s.length==0) continue; //No sources found
-
-      //Add any new sources to our result
-      for (int i=0; i<s.length; i++) {
-        if (!res.contains(s[i])) res.add(s[i]);
-      }
-    }
-
-    return sortSources(res);
-  }
-*/
-
-  /** Attach a checklist of available sources to the specified Menu. This
-   * works out all of the sources that are available for the given PointPage
-   * and then builds a menu containing a check box for each source. If the
-   * <i>selected</i> argument is not <code>null</code> it will be used to
-   * specify which sources should initially be in a selected state. If the
-   * <i>selected</i> argument is <code>null</code> then all sources will
-   * initially be selected. The nominated ItemListener will receive events
-   * whenever the user changes the source selection. 
-   * @param page The PointPage to get available sources for.
-   * @param selected Collection of Strings naming currently selected sources.
-   * @param menu The JMenu to attach the new menu to.
-   * @param listener Listener to receive events when selection changes. */
-/*  public static
-  void
-  setSourcesMenu(PointPage page, Collection selected,
-		 JMenu menu, ItemListener listener)
-  {
-    //Remove the old contents of the menu
-    menu.removeAll();
-
-    //Get the available sources
-    Vector avail = getAvailableSources(page);
-
-    for (int i=0; i<avail.size(); i++) {
-      JMenuItem thissource = null;
-      if (selected==null || selected.contains(avail.get(i))) {
-	//This source is currently selected
-        thissource = new JCheckBoxMenuItem((String)avail.get(i), true);
-      } else {
-	//This source is currently deselected
-	thissource = new JCheckBoxMenuItem((String)avail.get(i), false);
-      }
-      thissource.addItemListener(listener);
-      menu.add(thissource);
-    }
-  }
-*/
-
-
   /**
    * Prompt the user to choose a site, and return the hostname.
    */
@@ -652,23 +531,23 @@ public class MonClientUtil
 
       for (int i=0; i<itsServers.size(); i++) {
         Vector thisserver=(Vector)itsServers.get(i);
-	JButton tempbutton = new JButton((String)thisserver.get(0));
-	tempbutton.addActionListener(this);
-	tempbutton.setActionCommand(""+i);
-	tempbutton.setMinimumSize(new Dimension(240, 28));
-	tempbutton.setPreferredSize(new Dimension(240, 28));
-	tempbutton.setMaximumSize(new Dimension(240, 28));
-	temppanel.add(tempbutton);
+        JButton tempbutton = new JButton((String)thisserver.get(0));
+        tempbutton.addActionListener(this);
+        tempbutton.setActionCommand(""+i);
+        tempbutton.setMinimumSize(new Dimension(240, 28));
+        tempbutton.setPreferredSize(new Dimension(240, 28));
+        tempbutton.setMaximumSize(new Dimension(240, 28));
+        temppanel.add(tempbutton);
       }
 
       if (itsDefault!=null) {
-	itsCounter = new JLabel("Default \"" + itsDefault.get(0) + "\" in " +
-				itsTimeout, JLabel.CENTER);
-	itsCounter.setForeground(Color.red);
-	itsCounter.setMinimumSize(new Dimension(240, 28));
-	itsCounter.setPreferredSize(new Dimension(240, 28));
-	itsCounter.setMaximumSize(new Dimension(240, 28));
-	temppanel.add(itsCounter);
+        itsCounter = new JLabel("Default \"" + itsDefault.get(0) + "\" in " +
+                                itsTimeout, JLabel.CENTER);
+        itsCounter.setForeground(Color.red);
+        itsCounter.setMinimumSize(new Dimension(240, 28));
+        itsCounter.setPreferredSize(new Dimension(240, 28));
+        itsCounter.setMaximumSize(new Dimension(240, 28));
+        temppanel.add(itsCounter);
       }
 
       getContentPane().add(temppanel);
@@ -677,56 +556,56 @@ public class MonClientUtil
       //Do this on the AWT threads time to avoid deadlocks
       final SiteChooser realthis = this;
       final Runnable choosenow = new Runnable() {
-	public void run() {
-	  realthis.pack();
-	  if (itsDefault!=null) {
-	    realthis.setSize(new Dimension(240, 74+28*itsServers.size()));
-	  } else {
+        public void run() {
+          realthis.pack();
+          if (itsDefault!=null) {
+            realthis.setSize(new Dimension(240, 74+28*itsServers.size()));
+          } else {
             realthis.setSize(new Dimension(240, 46+28*itsServers.size()));
-	  }
-	  realthis.validateTree();
-	  realthis.setVisible(true);
-	  if (itsDefault!=null) {
-	    MonitorTimer timer = new MonitorTimer(1000, realthis, true);
-	    timer.start();
-	  }
-	}
+          }
+          realthis.validateTree();
+          realthis.setVisible(true);
+          if (itsDefault!=null) {
+            MonitorTimer timer = new MonitorTimer(1000, realthis, true);
+            timer.start();
+          }
+        }
       };
       try {
-	SwingUtilities.invokeAndWait(choosenow);
+        SwingUtilities.invokeAndWait(choosenow);
       } catch (Exception e) {e.printStackTrace();}
     }
 
     public void actionPerformed(ActionEvent e) {
       if (e.getActionCommand().equals("timer")) {
-	//timer update
-	itsTimeout--;
-	if (itsTimeout==0) {
-	  itsServer = itsDefault;
-	  setVisible(false);
-	  synchronized (this) {
-	    notifyAll();
-	  }
-	  ((MonitorTimer)e.getSource()).stop();
-	} else {
-	  itsCounter.setText("Default \"" + itsDefault.get(0) + "\" in " +
-			     itsTimeout);
-	}
+        //timer update
+        itsTimeout--;
+        if (itsTimeout==0) {
+          itsServer = itsDefault;
+          setVisible(false);
+          synchronized (this) {
+            notifyAll();
+          }
+          ((MonitorTimer)e.getSource()).stop();
+        } else {
+          itsCounter.setText("Default \"" + itsDefault.get(0) + "\" in " +
+                             itsTimeout);
+        }
       } else {
-	//user server selection
-	itsServer = (Vector)itsServers.get(Integer.parseInt(e.getActionCommand()));
-	setVisible(false);
-	synchronized (this) {
-	  notifyAll();
-	}
+        //user server selection
+        itsServer = (Vector)itsServers.get(Integer.parseInt(e.getActionCommand()));
+        setVisible(false);
+        synchronized (this) {
+          notifyAll();
+        }
       }
     }
 
     public Vector getSite() {
       try {
-	synchronized (this) {
-	  wait();
-	}
+        synchronized (this) {
+          wait();
+        }
       } catch (Exception e) {}
       return itsServer;
     }
@@ -756,46 +635,46 @@ public class MonClientUtil
       StringTokenizer tok = new StringTokenizer(name, ".");
       String currentName = null;
       while (tok.hasMoreTokens()) {
-	 String myTok = tok.nextToken();
-	 currentName = (currentName == null) ? myTok : currentName + "." + myTok;
-	 boolean createNew = true;
-	 for (int j = 0; j < tempNode.getChildCount(); j++) {
-	    DefaultMutableTreeNode childNode = (DefaultMutableTreeNode)tempNode.getChildAt(j);
-	    if (childNode.toString().equals(myTok)) {
-	       tempNode = childNode;
-	       createNew = false;
-	       break;
-	    }
-	 }
-	 if (createNew) {
-	    DefaultMutableTreeNode aNode = new DefaultMutableTreeNode(myTok);
-	    itsTreeMap.put(currentName, aNode);
-	    //Let's give some consideration to where in the tree we place the new node.
-	    //We want any nodes with children to be listed first, in alphabetical order.
-	    //Then come nodes with no children, in alphabetical order.
-	    if (tok.hasMoreTokens()) {
-	      //This node is not a leaf node
-	      if (myTok.toLowerCase().equals("favourites")) {
-		tempNode.insert(aNode, 0);
-	      } else {
-		int targeti;
-		for (targeti=0; targeti<tempNode.getChildCount(); targeti++) {
-		  TreeNode bNode = tempNode.getChildAt(targeti);
-		  if (bNode.isLeaf() || (bNode.toString().compareToIgnoreCase(myTok)>0 && !bNode.toString().equals("favourites"))) break;
-		}
-		tempNode.insert(aNode, targeti);
-	      }
-	    } else {
-	      //This node is a leaf node
-	      int targeti;
-	      for (targeti=0; targeti<tempNode.getChildCount(); targeti++) {
-		TreeNode bNode = tempNode.getChildAt(targeti);
-		if (bNode.isLeaf() && bNode.toString().compareToIgnoreCase(myTok)>0) break;
-	      }
-	      tempNode.insert(aNode, targeti);
-	    }
-	    tempNode = aNode;
-	 }
+        String myTok = tok.nextToken();
+        currentName = (currentName == null) ? myTok : currentName + "." + myTok;
+        boolean createNew = true;
+        for (int j = 0; j < tempNode.getChildCount(); j++) {
+          DefaultMutableTreeNode childNode = (DefaultMutableTreeNode)tempNode.getChildAt(j);
+          if (childNode.toString().equals(myTok)) {
+            tempNode = childNode;
+            createNew = false;
+            break;
+          }
+        }
+        if (createNew) {
+          DefaultMutableTreeNode aNode = new DefaultMutableTreeNode(myTok);
+          itsTreeMap.put(currentName, aNode);
+          //Let's give some consideration to where in the tree we place the new node.
+          //We want any nodes with children to be listed first, in alphabetical order.
+          //Then come nodes with no children, in alphabetical order.
+          if (tok.hasMoreTokens()) {
+            //This node is not a leaf node
+            if (myTok.toLowerCase().equals("favourites")) {
+              tempNode.insert(aNode, 0);
+            } else {
+              int targeti;
+              for (targeti=0; targeti<tempNode.getChildCount(); targeti++) {
+                TreeNode bNode = tempNode.getChildAt(targeti);
+                if (bNode.isLeaf() || (bNode.toString().compareToIgnoreCase(myTok)>0 && !bNode.toString().equals("favourites"))) break;
+              }
+              tempNode.insert(aNode, targeti);
+            }
+          } else {
+            //This node is a leaf node
+            int targeti;
+            for (targeti=0; targeti<tempNode.getChildCount(); targeti++) {
+              TreeNode bNode = tempNode.getChildAt(targeti);
+              if (bNode.isLeaf() && bNode.toString().compareToIgnoreCase(myTok)>0) break;
+            }
+            tempNode.insert(aNode, targeti);
+          }
+          tempNode = aNode;
+        }
       }
    }
 
@@ -816,12 +695,5 @@ public class MonClientUtil
        //menu.addSeparator();
      }
    }
-  }
-
-  static final
-  void
-  main(String[] argv)
-  {
-    
   }
 }
