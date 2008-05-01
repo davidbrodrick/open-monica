@@ -272,8 +272,8 @@ public class DataSourceWH1081
             float pres_temp=Float.parseFloat(line.substring(20,line.length()).trim());
             Float pres=new Float(pres_temp+itsPresOffset);
         
-            if (wind_gust>itsWindMax) itsWindMax=wind_gust;
-            itsWindSum+=wind_avg;
+            if (wind_gust.floatValue()>itsWindMax) itsWindMax=wind_gust.floatValue();
+            itsWindSum+=wind_avg.floatValue();
             itsDirSum+=wdir+360;
             itsWindCount++;    
 
