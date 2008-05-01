@@ -41,6 +41,8 @@ MonitorClientCustom
   protected boolean itsConnecting = false;
   /** Socket connection to the server. */
   protected Socket itsSocket = null;
+  /** Socket timeout in milliseconds. */
+  protected int itsTimeout = 15000;
   /** Input stream used for reading data from the server. */
   protected ObjectInputStream itsIn = null;
   /** Output stream used for sending requests/data to the server. */
@@ -90,29 +92,14 @@ MonitorClientCustom
     try {
       itsSocket = new Socket();
       itsSocket.bind(null);
-      itsSocket.connect(new InetSocketAddress(itsServer, itsPort), 2000);
-      itsSocket.setSoTimeout(15000); //timeout, in milliseconds
+      itsSocket.connect(new InetSocketAddress(itsServer, itsPort), 5000);
+      itsSocket.setSoTimeout(itsTimeout); //timeout, in milliseconds
       itsConnected = true;
       itsOut = new ObjectOutputStream(itsSocket.getOutputStream());
       itsOut.flush();
       itsIn = new ObjectInputStream(itsSocket.getInputStream());
-    /*
-     itsGout = new GZIPOutputStream(itsSocket.getOutputStream());
-     itsOut = new ObjectOutputStream(itsGout);
-     itsOut.flush();
-     itsGout.finish();
-     itsGin = new GZIPInputStream(itsSocket.getInputStream());
-     itsIn = new ObjectInputStream(itsGin);
-     */
-    /*
-     itsCos = new CompressedOutputStream(itsSocket.getOutputStream());
-     itsOut = new ObjectOutputStream(itsCos);
-     itsOut.flush();
-     itsCis = new CompressedInputStream(itsSocket.getInputStream());
-     itsIn = new ObjectInputStream(itsCis);
-     */
       System.err.println("MonitorClientCustom: connected to "
-			 + itsServer + ":" + itsPort);
+                         + itsServer + ":" + itsPort);
     } catch (Exception e) {
       itsSocket = null;
       itsIn     = null;
@@ -139,6 +126,24 @@ MonitorClientCustom
     itsOut    = null;
     itsConnected  = false;
     itsConnecting = false;
+  }
+
+
+  /** Set the socket timeout, in milliseconds. */
+  public synchronized
+  void
+  setTimeout(int timeout)
+  {
+    itsTimeout=timeout;
+    if (itsConnected) {
+      try {
+        itsSocket.setSoTimeout(itsTimeout);
+      } catch (Exception e) {
+        try {
+          disconnect();
+        } catch (Exception f) { }
+      }
+    }
   }
 
 
@@ -195,8 +200,8 @@ MonitorClientCustom
     try {
       //If we're not connected, try to connect
       if (!itsConnected) {
-	if (itsConnecting) return null; //Really, we'd like to wait
-	try { connect(); } catch (Exception j) {return null;}
+        if (itsConnecting) return null; //Really, we'd like to wait
+        try { connect(); } catch (Exception j) {return null;}
       }
 
       itsOut.writeObject(req);
@@ -752,8 +757,8 @@ MonitorClientCustom
     try {
       MCC = new MonitorClientCustom(args[0]);
       if (!MCC.connect()) {
-	System.err.println("ERROR: Couldn't connect to " + args[0]);
-	System.exit(1);
+        System.err.println("ERROR: Couldn't connect to " + args[0]);
+        System.exit(1);
       }
     } catch (Exception e) {
       System.err.println("ERROR: Couldn't connect: " + e.getMessage());

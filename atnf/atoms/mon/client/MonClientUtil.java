@@ -183,6 +183,7 @@ public class MonClientUtil
         }
       }
     }
+    theirServer.setTimeout(30000);
   }
 
   /** Get the short name of the server. */
