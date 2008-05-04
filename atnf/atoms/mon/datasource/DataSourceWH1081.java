@@ -220,6 +220,10 @@ public class DataSourceWH1081
             Float in_humid=new Float(line.substring(20,line.length()).trim());
             line = stdInput.readLine();
             Float out_humid=new Float(line.substring(20,line.length()).trim());
+            if (out_humid.floatValue()>100) {
+              System.err.println("DataSourceWH1081: Invalid data..");
+              throw new Exception("Outside humidity out of range");
+            }
             line = stdInput.readLine();
             Float in_temp=new Float(line.substring(20,line.length()).trim());
             line = stdInput.readLine();
@@ -227,7 +231,7 @@ public class DataSourceWH1081
             //Check for invalid values
             if (out_temp.floatValue()>3000) {
               System.err.println("DataSourceWH1081: Invalid data..");
-              throw new Exception(s);
+              throw new Exception("Outside temperature out of range");
             }
             line = stdInput.readLine();
             Float wind_avg=new Float(Float.parseFloat(line.substring(20,line.length()).trim())*3.6);
