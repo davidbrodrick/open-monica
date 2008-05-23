@@ -498,7 +498,7 @@ implements PointListener, TableCellRenderer
 
         PointLimit limits = pm.getLimits();
         if (limits!=null) {
-          if (pd.isValid() && (period==0 || age<5*period) && !limits.checkLimits(pd)) {
+          if (pd.isValid() && !limits.checkLimits(pd)) {
             //Don't highlight the point if it has expired
             //Point is outside of limits, so highlight this cell
             if (age<3*period) res.setForeground(Color.red);
@@ -515,13 +515,6 @@ implements PointListener, TableCellRenderer
 //    if (hasFocus && column>0 && column<getColumnCount()-1) {
 //      res.setForeground(Color.black);
 //    }
-
-    //This is how to colour a cell's background
-/*    if (row==1 && column==1) {
-      //Need this <1.4 because component has been set to not opaque
-      if (res instanceof JComponent) ((JComponent)res).setOpaque(true);
-      res.setBackground(Color.yellow);
-    }*/
 
     if (res instanceof JComponent && ((JComponent)res).getToolTipText()==null) {
       ((JComponent)res).setToolTipText(getToolTip(row, column));
