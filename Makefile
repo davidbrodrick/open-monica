@@ -31,6 +31,7 @@ SERVER_FILES =atnf/atoms/mon/*.class \
               atnf/atoms/util/*.class \
               monitor-points.txt \
               monitor-sources.txt \
+              monitor-epics.txt \
               monitor-config.txt \
               monitor-setups.txt
 

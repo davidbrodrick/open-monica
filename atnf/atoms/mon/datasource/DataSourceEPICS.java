@@ -42,12 +42,13 @@ extends DataSource
 
   public DataSourceEPICS(String nameOfSource)
   {
-    super(nameOfSource.substring(0,nameOfSource.lastIndexOf(":")));
+    super(nameOfSource);
     
     //Try to read the list of points to monitor
-    String mapfile = nameOfSource.substring(nameOfSource.lastIndexOf(":")+1, nameOfSource.length());
+    InputStream mapfile = DataSourceEPICS.class.getClassLoader().getResourceAsStream("monitor-epics.txt");
+    System.err.println("DataSourceEPICS: Point map is " + mapfile);
     try {
-      BufferedReader reader = new BufferedReader(new FileReader(mapfile));
+      BufferedReader reader = new BufferedReader(new InputStreamReader(mapfile));
       while (reader.ready()) {
         String thisline=reader.readLine();
         if (thisline.length()==0 || thisline.startsWith("#")) {
@@ -125,6 +126,7 @@ extends DataSource
       String thispv = (String)allpvs.next();
       if (itsChannelMap.get(thispv)!=null) continue;
       try {
+        //System.err.println("DataSourceEPICS: Connecting channel for " + thispv);
         //Create the Channel to connect to the PV.
         Channel thischan=itsContext.createChannel(thispv);
         //Keep this association
@@ -206,11 +208,11 @@ extends DataSource
             else if (dbr.getType()==DBRType.DOUBLE) 
               newval=new Double(((double[])rawval)[i]);
             else if (dbr.getType()==DBRType.STRING) 
-              newval=new Double(((String[])rawval)[i]);
+              newval=((String[])rawval)[i];
             else
               MonitorMap.logger.warning("DataSourceEPICS: " + itsPV + ": Unhandled DBR type: " + dbr.getType());
 
-            System.out.println(itsPV + "\t" + newval);
+            //System.out.println(itsPV + "\t" + newval);
 
             //Fire new data as an event on our monitor point
             PointData pd=new PointData(itsName, itsSource, newval);
@@ -234,6 +236,6 @@ extends DataSource
   void
   main(String[] argv)
   {
-    DataSourceEPICS epics = new DataSourceEPICS("epics://site:/ATOMS/var/ca/monitor-epics.txt");
+    DataSourceEPICS epics = new DataSourceEPICS("epics://site");
   }
 }
