@@ -401,7 +401,7 @@ implements PointListener, TableCellRenderer
       if (pd!=null && pm!=null) {
         long age = (new AbsTime()).getValue() - pd.getTimestamp().getValue();
         long period = pm.getPeriod();
-        if (pd.isValid() && (period==0 || age<5*period)) {
+        if (pd.isValid()) {
           res = pd.getData();
         } else {
           res = new JLabel("?", SwingConstants.CENTER);
@@ -491,7 +491,7 @@ implements PointListener, TableCellRenderer
       if (pd!=null) {
         long age = (new AbsTime()).getValue() - pd.getTimestamp().getValue();
         long period = pm.getPeriod();
-        if (period!=0 && age>2*period && age<5*period) {
+        if (period!=0 && age>2*period) {
           //The point is old, so alter the foreground color
           res.setForeground(Color.lightGray);
         }
