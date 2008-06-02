@@ -22,6 +22,10 @@ The monitor point object also holds references to a number of other objects whic
 
 == Transactions ==
 
+Subclasses of `Transaction` contain fields which can be used by a particular Data Source subclass in order to obtain an updated value for the monitor point. For instance if a Data Source needs to write a specific command to the device in order to obtain a new value for this particular monitor point, then the arguments for that command could be stored in the monitor points Transaction object.
+
+Some Data Sources need very specific combinations of arguments, so they have specific Transaction subclasses which are only used by that Data Source. Other Data Sources may need no specific information in order to update a specific monitor point, or may only need a generic argument such as a string.
+
 == Translations ==
 
 == Value Checking ==
