@@ -2,7 +2,7 @@
 
 = Introduction =
 
-This page gives a very high level introduction to the different classes/packages in MoniCA to assist new developers get a quick feel for the basic architecture of the software. As MoniCA is client/server software these are examined separately.
+This page gives a very high level introduction to the different classes/packages in MoniCA to assist new developers get a quick feel for the basic architecture of the software. As MoniCA is client/server software these components are examined separately.
 
 = Server =
 
@@ -36,7 +36,11 @@ Some Data Sources need very specific combinations of arguments, so they have spe
 
 One or more `Translation` subclasses can be used to process the raw value returned by the Data Source into a meaningful real-world value. It is a useful mechanism for dumb Data Sources which just return the raw numerical value of a hardware register. However it can also be very useful for many other purposes, such as calculating moving averages of a value, combining different values in sophisticated ways, etc.
 
+*mention Enum*
+
 == Value Checking ==
+
+A monitor point can have an associated `PointLimit` subclass which determines whether the current value is okay, or in an alarm state. There is essentially no limits on the logic that the check may use. Common examples include checking whether a numeric value is inside a specified range, or checking the values of a string against a known set.
 
 == Archiving ==
 
