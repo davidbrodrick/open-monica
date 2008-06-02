@@ -1,0 +1,37 @@
+#summary High-level Introduction To MoniCA Code
+
+= Introduction =
+
+This page gives a very high level introduction to the different classes/packages in MoniCA to assist new developers get a quick feel for the basic architecture of the software. As MoniCA is client/server software these are examined separately.
+
+= Server =
+
+The server is the software which maintains a database of all the current values available to the system and makes data available to client programs. The server can also perform archiving of monitor point values and make these archival values available to the client on request.
+
+== Data Sources ==
+
+A Data Source (instance of a `DataSource` sub-class) is usually responsible for collecting all of the raw data from one network destination/process. For instance you may have one Data Source which talks to your UPS and a different Data Source which communicates with your weather station. Each of these Data Sources may update values for several monitor points which correspond to different parameters available from the UPS or weather station.
+
+Data Sources may be given instantiation-time arguments using one of the server's config files, for instance to tell it the network address of which UPS you wish to monitor. In this fashion, you may monitor many instances of one kind of device without needing to make any software changes to the Data Source.
+
+== Monitor Points ==
+
+Monitor points (`PointMonitor` instances) encapsulate all of the meta-data for a single parameter that the system is monitoring. This includes information such as the descriptive name of the monitor point, units, source name (eg the network address of which particular UPS this datum comes from), etc.
+
+The monitor point object also holds references to a number of other objects which may be specific to this point, such as objects to tell the Data Source how to update the value for this point, or to tell the system under what conditions this point's values should be archived.
+
+== Transactions ==
+
+== Translations ==
+
+== Value Checking ==
+
+== Archiving ==
+
+== Configuration ==
+
+= Client =
+
+== Main Frame ==
+
+== Mon Panels ==
