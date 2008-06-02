@@ -10,13 +10,17 @@ The server is the software which maintains a database of all the current values 
 
 == Data Sources ==
 
-A Data Source (instance of a `DataSource` sub-class) is usually responsible for collecting all of the raw data from one network destination/process. For instance you may have one Data Source which talks to your UPS and a different Data Source which communicates with your weather station. Each of these Data Sources may update values for several monitor points which correspond to different parameters available from the UPS or weather station.
+A Data Source (instance of a `DataSource` sub-class) is usually responsible for collecting all of the raw data from one remote device/process. For instance you may have one Data Source which talks to your UPS and a different Data Source which communicates with your weather station. Each of these Data Sources may update values for several monitor points which correspond to different parameters available from the UPS or weather station.
+
+Data Sources can use at least two basic philosophies:
+  * *Pulled:* The Data Source communicates with the remote device and updates a monitor point whenever MoniCA's internal scheduler determines that the point is due for an update.
+  * *Pushed:* The remote device sends (unsolicited) updates to the Data Source so the Data Source only needs to parse the data and fire the new values off as updates to the relevant monitor points.
 
 Data Sources may be given instantiation-time arguments using one of the server's config files, for instance to tell it the network address of which UPS you wish to monitor. In this fashion, you may monitor many instances of one kind of device without needing to make any software changes to the Data Source.
 
 == Monitor Points ==
 
-Monitor points (`PointMonitor` instances) encapsulate all of the meta-data for a single parameter that the system is monitoring. This includes information such as the descriptive name of the monitor point, units, source name (eg the network address of which particular UPS this datum comes from), etc.
+Monitor points (`PointMonitor` instances) encapsulate all of the meta-data for a single parameter that the system is monitoring. This includes information such as the descriptive name of the monitor point, units, source name (eg the network address of which particular UPS this datum comes from), desired update interval, etc.
 
 The monitor point object also holds references to a number of other objects which may be specific to this point, such as objects to tell the Data Source how to update the value for this point, or to tell the system under what conditions this point's values should be archived.
 
@@ -26,7 +30,11 @@ Subclasses of `Transaction` contain fields which can be used by a particular Dat
 
 Some Data Sources need very specific combinations of arguments, so they have specific Transaction subclasses which are only used by that Data Source. Other Data Sources may need no specific information in order to update a specific monitor point, or may only need a generic argument such as a string.
 
+`TransactionListen` allows monitor points to receive updates whenever other specific points are updated, and is a useful tool in agregating points to create new information or higher-level constructs.
+
 == Translations ==
+
+One or more `Translation` subclasses can be used to process the raw value returned by the Data Source into a meaningful real-world value. It is a useful mechanism for dumb Data Sources which just return the raw numerical value of a hardware register. However it can also be very useful for many other purposes, such as calculating moving averages of a value, combining different values in sophisticated ways, etc.
 
 == Value Checking ==
 
