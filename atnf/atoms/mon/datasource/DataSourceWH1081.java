@@ -15,8 +15,7 @@ import atnf.atoms.mon.*;
 /**
  * WH1081 el-cheapo weather station driver.
  *
- * <P>Parses the output of wwsr, so the user must have rw access to the usb 
- * device:
+ * <P>Parses the output of wwsr, so wwsr should be installed SUID:
  * http://www.pendec.dk/weatherstation.htm
  *
  * @author David Brodrick
