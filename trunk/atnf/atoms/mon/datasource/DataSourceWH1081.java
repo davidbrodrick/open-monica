@@ -18,6 +18,8 @@ import atnf.atoms.mon.*;
  * <P>Parses the output of wwsr, so wwsr should be installed SUID:
  * http://www.pendec.dk/weatherstation.htm
  *
+ * <P>Uses the <i>timeout</i> program when invoking wwsr.
+ *
  * @author David Brodrick
  * @version $Id: $
  **/
@@ -199,7 +201,7 @@ public class DataSourceWH1081
       int lastresetdate=-1;
       while (true) {
         try {
-          Process p = Runtime.getRuntime().exec("wwsr -a");
+          Process p = Runtime.getRuntime().exec("timeout 10 wwsr -a");
             
           BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
           BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
