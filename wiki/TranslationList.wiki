@@ -38,6 +38,6 @@ Please maintain lists in lexigraphic order.
 == Weather Specific ==
 || *Class* || *Description* || *Arguments* ||
 || !DewPoint || Calculate dew point in degrees Celcius from water vapour pressure. || *WVP:* The water vapour pressure in kiloPascals. ||
-|| !PrecipitableWater || Estimate the precipitable water from surface temperature and relative humidity. || *Temp:* Name of the point which contains temperature in degrees Celcius. *Humidity:* Name of the point which contains relative humidity as a percentage. ||
+|| !PrecipitableWater || Estimate the precipitable water from surface temperature and relative humidity. || *Temperature:* Name of the point which contains temperature in degrees Celcius. *Humidity:* Name of the point which contains relative humidity as a percentage. ||
 || !SpecificHumidity || Calculate specific humidity, in grams of water vapour per kilogram of air, from water vapour pressure in kPa and surface pressure in hPa. || *WVP:* Name of the point which contains water vapour pressure. *Pressure:* Name of the point which contains pressure. ||
 || !VapourPressure || Calculate water vapour pressure in kPa from temperature and relative humidity. || *Temperature:* Name of the point which contains temperature in degrees Celcius. *Humidity:* Name of the point which contains the relative humidity as a percentage.||
