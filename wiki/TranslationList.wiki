@@ -1,0 +1,43 @@
+#summary List of Translation classes and what they do.
+
+= Introduction =
+
+This page provides a description of each `Translation` class currently provided by the MoniCA code base. Translation objects are associated with monitor points and can be used to convert raw input data into a higher-level or more meaningful form. A brief background is available on the IntroServerCode page.
+
+= Translations =
+Please maintain lists in lexigraphic order.
+
+== Abstract Base Classes ==
+
+|| *Class* || *Description* || *Arguments* ||
+|| !DualListen || Buffer the values of two other monitor points. Subclasses may combine these in arbitrary ways to create the desired output. Must be used together with `TransactionListen`. || *Point1* Name of listened-to point 1. *Point2* Name of listened-to point 2. ||
+|| Synch || Subclass of !DualListen which only processes when the input data has identical timestamps. This is only appropriate for points which are monitored synchronously. || *Point1* Name of listened-to point 1. *Point2* Name of listened-to point 2. ||
+
+== General Purpose ==
+|| *Class* || *Description* || *Arguments* ||
+|| Add16 || Add a constant offset to a 16-bit integer, wrapping at 0 and 65535. || *Offset* The number to add. ||
+|| Array || Return a single entry from an array input. || *Index* The array index to be selected. ||
+|| !BitShift || Mask a bit field and then rotate to the right. || *Mask* The value to AND the input with. *Shift* The number of bits to right shift. ||
+|| !BoolMap || Map a boolean input to one of two string outputs. || *True* String to output when the input is true. *False* String to output when the input is false. ||
+|| Delta || Calculate the difference between successive input values. || ||
+|| Difference || !DualListen implementation which returns the difference between the two values being monitored. || *Point1* Name of listened-to point 1. *Point2* Name of listened-to point 2. ||
+|| EQ || Apply an arbitrary equation to numerical input. _Need to investigate [http://www.singularsys.com/jep/ JEP] licensing, might have to remove_. || *Equation* Use X to represent the input number. ||
+|| !EnumMap || || ||
+|| !LimitCheck || || ||
+|| !LinearCombo || || ||
+|| Mean || || ||
+|| NV || || ||
+|| None || || ||
+|| !NumDecimals || || ||
+|| Polynomial || Apply an arbitrary order polynomial to the input. || *Order* First argument is the order of the polynomial. *Offset* Value of the 0th order term. *Terms* One additional argument for every term in the polynomial. ||
+|| Ratio || !DualListen implementation which produces the ratio of two other points.|| *Numerator* Name of the point to be used as numerator. *Divisor* Name of point to be used as the divisor. ||
+|| !StringMap || || ||
+|| !StringToNumber || || ||
+|| Variance || || ||
+
+== Weather Specific ==
+|| *Class* || *Description* || *Arguments* ||
+|| !DewPoint || || ||
+|| !PrecipitableWater || || ||
+|| !SpecificHumidity || || ||
+|| !VapourPressure || || ||
