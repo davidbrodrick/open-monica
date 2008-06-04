@@ -37,7 +37,7 @@ After the data source has collected a new value for the monitor point, we may wi
 
 `Translation` subclasses can be used to perform these processing steps on new values. Each monitor point can have any number of translations organised as a chain, such that the output of one translation is used as input to the next. This way complex behaviour can be achieved at configuration-time rather than requiring new code. 
 
-There are few limitations on what operations translations can perform, for instance some may perform statistical analyses on a history of N inputs. Others may aggregate the values from several monitor points to produce new kinds of data.
+There are few limitations on what operations translations can perform, for instance some may perform statistical analyses on a history of N inputs. Others may aggregate the values from several monitor points to produce new kinds of data. A description of all translations is [TranslationList available].
 
 == Value Checking ==
 
