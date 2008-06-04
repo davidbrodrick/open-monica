@@ -21,23 +21,23 @@ Please maintain lists in lexigraphic order.
 || !BoolMap || Map a boolean input to one of two string outputs. || *True:* String to output when the input is true. *False:* String to output when the input is false. ||
 || Delta || Calculate the difference between successive input values. || ||
 || Difference || !DualListen implementation which returns the difference between the two values being monitored. || *Point1:* Name of listened-to point 1. *Point2:* Name of listened-to point 2. ||
-|| EQ || Apply an arbitrary equation to numerical input. _Need to investigate [http://www.singularsys.com/jep/ JEP] licensing, might have to remove_. || *Equation:* Use X to represent the input number. ||
-|| !EnumMap || || ||
-|| !LimitCheck || || ||
-|| !LinearCombo || || ||
-|| Mean || || ||
+|| EQ || Apply an arbitrary equation to numerical input. Uses [http://www.singularsys.com/jep/ JEP] for expression parsing. || *Equation:* Use X to represent the input number. ||
+|| !EnumMap || Map numbers into strings. || *Maps:* As many number to string mappings as required, each having the format `number:string`. *Default:* Any argument without a `:` is treated as the default string to be used when no explicit map exists for the input. ||
+|| !LimitCheck || Output depends on whether other monitor points are in an alarm state. Used together with `TransactionListen`. || *Okay:* String to output when all points are within limits. *Fail:* String to output when one or more points are in an alarm state. *Points:* All further arguments are the names of points to be checked. ||
+|| !LinearCombo || Produces a linear combination of the listened-to points. Used together with `TransactionListen`. || Any number of points can be combined, every point requires the following two arguments, *Coefficient:* The coefficient of this point in the linear combination. *Point:* Name of the point which uses that coefficient. ||
+|| Mean || Calculate a moving average of the input value. || *Buffer:* The averaging period, in seconds, eg, to average one minute worth os samples use `60`. *Timestamp:* A boolean which controls how we timestamp the output data, if `F` then we use the current time, if `T` then we use a timestamp from the middle of the buffer span. *Output:* An optional argument which specifies how often to produce output, in seconds. The default is to produce a new output every time we get a new input. ||
 || NV || Retrieve one named element from a HashMap or NameValueList input object. || *Name:* The key for the value we wish to extract. ||
-|| None || Just returns the argument. || ||
+|| None || Just returns the input argument. || ||
 || !NumDecimals || Limit the number of decimals in a floating point number. || *Decimals:* The maximum number of non-zero digits after the decimal place. ||
 || Polynomial || Apply an arbitrary order polynomial to the input. || *Order:* First argument is the order of the polynomial. *Offset:* Value of the 0th order term. *Coefficients:* Include one additional coefficient argument for every term in the polynomial. ||
-|| Ratio || !DualListen implementation which produces the ratio of two other points.|| *:Numerator* Name of the point to be used as numerator. *Divisor:* Name of point to be used as the divisor. ||
+|| Ratio || !DualListen implementation which produces the ratio of two other points.|| *Numerator:* Name of the point to be used as numerator. *Divisor:* Name of point to be used as the divisor. ||
 || !StringMap || Map input strings to corresponding output strings. || *Mappings:* Any number of string mappings in the format `input1:output1`||
 || !StringToNumber || Map the string representation of a number to an actual numeric class type. || *Type:* The type of output to be produced, Float, Double, or Integer. *Radix:* A radix may be used for integers. If it is omitted base 10 is assumed. ||
-|| Variance || || ||
+|| Variance || Calculate the variance of the input over a specified time range. || *Buffer:* The interval in seconds over which to calculate the variance of the input. ||
 
 == Weather Specific ==
 || *Class* || *Description* || *Arguments* ||
-|| !DewPoint || || ||
-|| !PrecipitableWater || || ||
-|| !SpecificHumidity || || ||
-|| !VapourPressure || || ||
+|| !DewPoint || Calculate dew point in degrees Celcius from water vapour pressure. || *WVP:* The water vapour pressure in kiloPascals. ||
+|| !PrecipitableWater || Estimate the precipitable water from surface temperature and relative humidity. || *Temp:* Name of the point which contains temperature in degrees Celcius. *Humidity:* Name of the point which contains relative humidity as a percentage. ||
+|| !SpecificHumidity || Calculate specific humidity, in grams of water vapour per kilogram of air, from water vapour pressure in kPa and surface pressure in hPa. || *WVP:* Name of the point which contains water vapour pressure. *Pressure:* Name of the point which contains pressure. ||
+|| !VapourPressure || Calculate water vapour pressure in kPa from temperature and relative humidity. || *Temperature:* Name of the point which contains temperature in degrees Celcius. *Humidity:* Name of the point which contains the relative humidity as a percentage.||
