@@ -35,15 +35,19 @@ When a monitor point is scheduled to be updated, it is handed to the appropriate
 
 === Translations ===
 
-One or more `Translation` subclasses can be used to process the raw value returned by the Data Source into a meaningful real-world value. It is a useful mechanism for dumb Data Sources which just return the raw numerical value of a hardware register. However it can also be very useful for many other purposes, such as calculating moving averages of a value, combining different values in sophisticated ways, etc.
+After the data source has collected a new value for the monitor point, we may wish to process it into a more meaninful form. For instace we might convert a raw number obtained from an ADC into a floating point voltage, or extract a single bit from an integer, or map an integer to a descriptive string, etc.
 
-*mention Enum*
+`Translation` subclasses can be used to perform these processing steps on new values. Each monitor point can have any number of translations organised as a chain, such that the output of one translation is used as input to the next. This way complex behaviour can be achieved at configuration-time rather than requiring new code. 
+
+There are few limitations on what operations translations can perform, for instance some may perform statistical analyses on a history of N inputs. Others may aggregate the values from several monitor points to produce new kinds of data.
 
 === Value Checking ===
 
-A monitor point can have an associated `PointLimit` subclass which determines whether the current value is okay, or in an alarm state. There is essentially no limits on the logic that the check may use. Common examples include checking whether a numeric value is inside a specified range, or checking the values of a string against a known set.
+A monitor point can have an associated `PointLimit` object which determines whether the current value is okay, or in an alarm state. Essentially any logic may be used by a `PointLimit` subclass, common examples include checking whether a numeric value is inside a specified range, or checking a string value against a known set of alarm strings.
 
 === Archiving ===
+
+Monitor points may have one or more `ArchivePolicy` objects which tell the `Archiver` whether the current value of a monitor point should be archived to disk or not. Common examples include archiving every Nth update, or archiving only when the value changes, however more sophisticated logic could be used such as checking the values of other monitor points to determine whether to archive this point or not.
 
 == Configuration ==
 
