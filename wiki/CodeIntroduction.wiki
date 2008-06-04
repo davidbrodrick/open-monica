@@ -2,13 +2,9 @@
 
 = Introduction =
 
-This page gives a very high level introduction to the different classes/packages in MoniCA to assist new developers get a quick feel for the basic architecture of the software. As MoniCA is client/server software these components are examined separately.
+This page gives a brief introduction to some of the different classes/packages used by the MoniCA server. It is intended to assist new developers to get a feel for the basic architecture of the server.
 
-= Server =
-
-The server maintains the database of all the current values available to the system and makes the data available to client programs. The server can also perform archiving of monitor point values and makes archival values available to clients on request.
-
-== Data Sources ==
+= Data Sources =
 
 A data source (instance of a `DataSource` sub-class) is usually responsible for collecting data from one remote device/process. For instance you may have one data source which talks to your UPS and a different data source which communicates with your weather station. Each data source may update values for multiple monitor points corresponding to different parameters available from the UPS or weather station (for example).
 
@@ -18,13 +14,13 @@ Data sources can use at least two basic philosophies:
 
 Data sources may accept instantiation-time arguments defined in the `monitor-sources.txt` config file, for instance to tell it the network address of which UPS you wish to monitor. In this fashion, you may monitor many instances of one kind of device without needing to make any software changes to the data source.
 
-== Monitor Points ==
+= Monitor Points =
 
 Monitor points (`PointMonitor` instances) encapsulate all of the meta-data for a single parameter that the system is monitoring. This includes information such as the description of the monitor point, units, source name (eg the network address of which particular UPS this datum comes from), update interval, etc. Monitor points are defined in the `monitor-points.txt` config file or may be dynamically created by data sources (eg, after the data source automatically discovers what data is available from the device).
 
 The monitor point object has fields for other objects related to this point, such as to tell the system under what conditions this point's values should be archived, or how to translate the raw value read from hardware into a meaningful value. Some of these classes are explored below.
 
-=== Transactions ===
+== Transactions ==
 
 When a monitor point is scheduled to be updated, it is handed to the appropriate data source so that a new value can be obtained. The point's `Transaction` field has two roles to play in this process:
 
@@ -33,7 +29,9 @@ When a monitor point is scheduled to be updated, it is handed to the appropriate
 
 `TransactionListen` allows monitor points to receive updates whenever other specific points are updated, and is a useful tool in agregating points to create new information or higher-level constructs.
 
-=== Translations ===
+Monitor points which are associated with data sources that parse data that is pushed from the device often have no transaction because the data source may maintain an internal list of points to update whenever the device pushes new data.
+
+== Translations ==
 
 After the data source has collected a new value for the monitor point, we may wish to process it into a more meaninful form. For instace we might convert a raw number obtained from an ADC into a floating point voltage, or extract a single bit from an integer, or map an integer to a descriptive string, etc.
 
@@ -41,18 +39,24 @@ After the data source has collected a new value for the monitor point, we may wi
 
 There are few limitations on what operations translations can perform, for instance some may perform statistical analyses on a history of N inputs. Others may aggregate the values from several monitor points to produce new kinds of data.
 
-=== Value Checking ===
+== Value Checking ==
 
 A monitor point can have an associated `PointLimit` object which determines whether the current value is okay, or in an alarm state. Essentially any logic may be used by a `PointLimit` subclass, common examples include checking whether a numeric value is inside a specified range, or checking a string value against a known set of alarm strings.
 
-=== Archiving ===
+== Archiving ==
 
 Monitor points may have one or more `ArchivePolicy` objects which tell the `Archiver` whether the current value of a monitor point should be archived to disk or not. Common examples include archiving every Nth update, or archiving only when the value changes, however more sophisticated logic could be used such as checking the values of other monitor points to determine whether to archive this point or not.
 
-== Configuration ==
+= Configuration =
 
-= Client =
+The server is configured using a number of text files which define things like which data sources to instantiate and what monitor points to create. A brief description of the different config files used by the server is given below:
 
-== Main Frame ==
+  * *monitor-config.txt:* Defines a number of fundamental server settings, such as what directory to archive data to, what ports to listen on for client connections, etc.
 
-== Mon Panels ==
+  * *monitor-sources.txt:* This defines which data sources should be instantiated and any arguments that are required for each one, for instance which IP address or port number to connect to.
+
+  * *monitor-points.txt:* The list of monitor point definitions. Each line defines one point (or identical points from different sources), including appropriate subclasses and arguments for the different monitor point fields discussed above.
+
+  * *monitor-setups.txt:* Contains information describing predefined GUI pages that is provided to clients when they connect to our server.
+
+  * *monitor-epics.txt:* If you are interfacing to an [http://www.aps.anl.gov/epics/ EPICS] system then this file defines which records to monitor and what MoniCA monitor points they correspond to.
