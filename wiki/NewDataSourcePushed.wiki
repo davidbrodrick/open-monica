@@ -115,7 +115,11 @@ public class DataReader extends Thread
 The constructor is straightforward. It only needs to parse the arguments (the network address of the blottometer and names of the two monitor points that we need to update) and start the thread that receives incoming data.
 
 {{{
-public DataSourceBlottometer(String args) {
+public DataSourceBlottometer(String arg) {
+  String[] args = arg.split(",");
+  itsHostName = args[0];
+  itsNumBeersPointName = args[1];
+  itsLowBeerPointName = args[2];
 
   DataReader mythread = new DataReader();
   mythread.run();
@@ -124,8 +128,32 @@ public DataSourceBlottometer(String args) {
 
 = Configuration Settings =
 
-Now that our data source has been written, we only need to make the appropriate changes to the server's configuration files and the beer.. ah, data.. will start to flow freely.
+Now that our data source has been written, we only need to make the appropriate changes to the server's configuration files and the beer.. err, data.. will start to flow freely.
 
 == monitor-sources.txt ==
 
+Let's assume the following parameters:
+  * The network address of the device is `fridge`.
+  * We choose the monitor point names for the two data to be:
+    # `fridge.drinks.NumBeers` for the number of beers remaining.
+    # `fridge.drinks.LowBeer` for the low beer alarm monitor point.
+
+Then to make the server instantiate our data source we just need to add the following line to our `monitor-sources.txt` file:
+
+`atnf.atoms.mon.datasource.DataSourceBlottometer fridge,fridge.drinks.NumBeers,fridge.drinks.LowBeer`
+
 == monitor-points.txt ==
+
+The final thing is to define our two new monitor points in `monitor-points.txt`. 
+
+  * These points are updated by the data source when new data is available (as to opposed points which need to be internally scheduled for updates), we can leave the Transaction field blank.
+
+  * The data is at a high level we do not need to perform any translation on the raw data, so the Translation fields are left blank.
+
+  * For the sake of the excercise we won't worry about defining alarm conditions. Although the low beer alarm is an obvious candidate!
+
+  * We will select an archive policy such that the monitor points are archived whenever their values change.
+
+{{{
+M fridge.drinks.NumBeers "Number of beers remaining" "" "" fridge T - - - CHANGE- 60000000
+M fridge.drinks.LowBeer  "Low beer alarm"            "" "" fridge T - - - CHANGE- 60000000
