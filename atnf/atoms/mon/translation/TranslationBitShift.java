@@ -14,7 +14,7 @@ import atnf.atoms.mon.*;
 /**
  * This class can extract specific bits from a binary word. The first
  * <i>init</i> argument is an integer value to bitwise AND with the raw
- * value. The second argument is the number of bits to left shift the
+ * value. The second argument is the number of bits to right shift the
  * data after performing the AND.
  *
  * <P>Note this class can only perform the translation when the raw data
