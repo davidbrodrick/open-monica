@@ -140,7 +140,9 @@ Let's assume the following parameters:
 
 Then to make the server instantiate our data source we just need to add the following line to our `monitor-sources.txt` file:
 
-`atnf.atoms.mon.datasource.DataSourceBlottometer fridge,fridge.drinks.NumBeers,fridge.drinks.LowBeer`
+{{{
+atnf.atoms.mon.datasource.DataSourceBlottometer fridge,fridge.drinks.NumBeers,fridge.drinks.LowBeer
+}}}
 
 == monitor-points.txt ==
 
