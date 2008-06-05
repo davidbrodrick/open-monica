@@ -1,4 +1,4 @@
-#summary How to write a client that talks to the servers ASCII interface.
+#summary How to talk to the server's ASCII interface.
 
 = Introduction =
 
