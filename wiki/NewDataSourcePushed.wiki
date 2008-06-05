@@ -1,0 +1,21 @@
+#summary Writing a new DataSource when the device pushes data to us.
+
+= Introduction =
+
+Data sources bring new data into the MoniCA system (see the IntroServerCode for a brief introduction on the server). You have limitless flexibility regarding how your data source works internally, however experience has shown that it is often useful to use a different approach for devices that send unsolicited updates to us as opposed to devices where data in response to a request that we issue.
+
+This document runs through an example of talking to a device which sends unsolicited messages.
+
+= Blottometer-2000 =
+
+The data source we implement here talks to a `Blottometer-2000` beer fridge monitor. These devices have a TCP interface on port 2000, which issues unsolicited ASCII status summaries at random times every few minutes. The messages have the format, "`NUM ALARM\n`", where:
+  * NUM is an integer representing the number of beer bottles remaining.
+  * ALARM is a boolean which reads `TRUE` when the beer supply is running low.
+
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
