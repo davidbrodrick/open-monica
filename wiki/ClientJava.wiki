@@ -1,0 +1,34 @@
+#summary How to write your own Java client.
+
+= Introduction =
+
+This is a brief introduction about using MoniCA classes to access the monitor server from your own Java application. If you wish to access the monitor data from any other language you are probably best off looking at the [ClientASCII ASCII interface], which describes how to access the data using only a TCP socket and some ASCII commands.
+
+=Sample Application=
+
+In the atnf.atoms.mon.apps package is a file (!TestApp.java) that demonstrates a few ways to communicate with the monitor server. Specifically this program demonstrates:
+
+  * Archive requests - How to access historical data by asking the monitor server to retrieve data from the archive.
+  * Real-time data acquisition - An easy way to keep up to date with the latest monitor point values as they become available.
+
+To run this program you should just need to follow these steps:
+
+  # Download and build the MoniCA code as per normal.
+  # Ensure the atnf.atoms.mon.apps package is in your `CLASSPATH`.
+  # Run the application: java atnf.atoms.mon.apps.TestApp
+
+The program will display a dialog box asking which monitor server to connect to. Once you select a server it will perform an archive request and print a bunch of information to the screen, each line contains the name of the monitor point being displayed, a timestamp and a value. The program will then subscribe to real-time updates and will print values to the screen as they become available. You will need to use ^c to stop the program.
+
+=Essential Classes=
+
+One of the most fundamental classes is `PointData`. This contains the timestamp and value for each monitor point update, as well as the name of the monitor point that the data belongs to. `PointData` objects are used to store data in both real-time and archival requests.
+
+An important class for clients who wish to obtain real-time updates is `DataMaintainer`. This class figures out the right time to query the server for the latest values for each monitor point of interest and delivers the updates values to your own classes. In order to receive the updated values you need to implement the interface `PointListener`. The `onPointEvent(..)` method will be called each time a new value is available for any of the monitor points of interest. To specify which monitor points you wish to listen to, simply put all of the monitor point names into a `Vector` and call the `DataMaintainer.subscribe(..)` method.
+
+The client side class that provides access to the full functionality of the monitor server is called `MonitorClientCustom`. You could create your own instance of this class but you can also obtain an instance by calling `MonClientUtil.getServer()`. I won't describe all of the functionality of this class here (the javadocs are quite good), suffice to say that the sample program uses this class to perform its archive request.
+
+=Specifying the Server=
+
+By default the MonClientUtil class will present the user with a dialog box which allows them to select which server/site to connect to. If your program runs in headless mode (`-Djava.awt.headless=true`) then the dialog box will not be displayed and the software will automatically connect to the "local" site (based on the IP address of the client computer).
+
+You can override this default behaviour and specify the target server, in headed or headless modes, by specifying the property server when you invoke the JVM. For instance `-Dserver=monhost-mop.atnf.csiro.au`. 
