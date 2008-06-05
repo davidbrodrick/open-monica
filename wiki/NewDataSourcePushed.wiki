@@ -2,20 +2,130 @@
 
 = Introduction =
 
-Data sources bring new data into the MoniCA system (see the IntroServerCode for a brief introduction on the server). You have limitless flexibility regarding how your data source works internally, however experience has shown that it is often useful to use a different approach for devices that send unsolicited updates to us as opposed to devices where data in response to a request that we issue.
+Data sources bring new data into the MoniCA system (see the IntroServerCode for a brief introduction on the server architecture). You have limitless flexibility regarding how your data source works internally, however experience has shown that it is often useful to use a different approach for devices that send unsolicited updates as opposed request/response devices.
 
-This document runs through an example of talking to a device which sends unsolicited messages.
+This document runs through an example of talking to a device which sends unsolicited messages. Such data sources will often run an internal thread and have an empty `getData` method.
 
 = Blottometer-2000 =
 
-The data source we implement here talks to a `Blottometer-2000` beer fridge monitor. These devices have a TCP interface on port 2000, which issues unsolicited ASCII status summaries at random times every few minutes. The messages have the format, "`NUM ALARM\n`", where:
+The data source we implement here talks to a `Blottometer-2000` beer fridge monitor. These devices have a TCP interface on port 2000, which issues unsolicited ASCII status summaries at 'random' times every few minutes. Each message has the format, "`NUM ALARM\n`", where:
   * NUM is an integer representing the number of beer bottles remaining.
-  * ALARM is a boolean which reads `TRUE` when the beer supply is running low.
+  * ALARM is a boolean which reads `TRUE` when the beer supply is running low, FALSE otherwise.
 
+= !DataSourceBlottometer =
 
-= Details =
+The MoniCA code base includes some abstract classes which could be useful starting points for this data source however for the purpose of the excercise we will implement `DataSourceBlottometer` as a direct subclass of the `DataSource` base class.
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+== Connect/Disconnect ==
+
+Each data source can overload methods which are called to connect/disconnect from the remote end point. Since we wish to read ASCII, one line at a time, we could implement these methods as follows (ignoring error handling).
+
+{{{
+/** Make a new connection to the Blottometer. */
+public boolean connect()
+{
+  itsSocket = new Socket(itsHostname, itsPort);
+  itsSocket.setSoTimeout(300000); //5 minute timeout
+  itsConnected = true;
+  itsReader = new BufferedReader(new InputStreamReader( itsSocket.getInputStream()));
+  //Zero the counter for 'number of monitor points we've updated'
+  itsNumTransactions=0;
+  return itsConnected;
+}
+
+/** Close the socket, unless it is already closed. */
+public void disconnect()
+{
+  if (itsSocket!=null) itsSocket.close();
+  itsSocket = null;
+  itsReader = null;
+  itsConnected = false;
+}
+}}}
+
+== getData ==
+
+The `DataSource.getData()` method is called whenever MoniCA's internal update scheduler determines our monitor points are due for updating. Since the Blottometer has no mechanism for us to request an update, this method is redundant. This is the core difference in strategy between data sources which poll for updates vs data sources like ours which parse data that is pushed from the device.
+
+Because it is not relevant, we can define an empty implementation of getData.
+{{{
+/** Dummy getData method. */
+protected void getData(Object[] points)
+{
+}
+}}}
+
+== Internal Thread ==
+
+Since the Blottometer may send a new status message at any time, we create a thread to handle incoming data. This thread does the following:
+
+  # Reconnect the TCP socket to the device, if required
+  # Monitor the socket for incoming data.
+  # Parse the incoming data into appropriate Java objects.
+  # Fire events to update the relevant monitor points.
+
+{{{
+public class DataReader extends Thread
+{
+  public void run()
+  {
+    while (true) {
+      try {
+        if (!itsConnected) {
+          if (!connect()) {
+            //We couldn't connect so sleep for a few seconds
+            try { RelTime.factory(5000000l).sleep() } catch (Exception f) { }
+            continue;
+          }
+        }
+
+        //Read a line of data from the blottometer
+        String newline = itsReader.readLine();
+        String[] rawvalues = newline.split();
+        //Parse the data into objects
+        Integer numbeers = new Integer(rawvalues[0]);
+        Boolean lowbeer = new Boolean(false);
+        if (rawvalues.equals("TRUE"))
+          //The low beer alarm is active
+          lowbeer = new Boolean(true);
+
+        //We've parsed the data, now fire the updates to our monitor points
+        PointMonitor pm = MonitorMap.getPointMonitor(itsNumBeerPointName);
+        PointData pd = new PointData(itsNumBeerPointName, numbeers);
+        pm.firePointEvent(new PointEvent(this, pd, true));
+
+        pm = MonitorMap.getPointMonitor(itsLowBeerPointName);
+        PointData pd = new PointData(itsLowBeerPointName, lowbeer);
+        pm.firePointEvent(new PointEvent(this, pd, true));
+
+      } catch (Exception e) {
+        //There was a problem - disconnect and sleep for a few seconds
+        try { 
+          disconnect();
+          RelTime.factory(5000000l).sleep();
+        } catch (Exception f) { }
+      }
+    }
+  }
+}
+}}}
+
+== Constructor ==
+
+The constructor is straightforward. It only needs to parse the arguments (the network address of the blottometer and names of the two monitor points that we need to update) and start the thread that receives incoming data.
+
+{{{
+public DataSourceBlottometer(String args) {
+
+  DataReader mythread = new DataReader();
+  mythread.run();
+}
+}}}
+
+= Configuration Settings =
+
+Now that our data source has been written, we only need to make the appropriate changes to the server's configuration files and the beer.. ah, data.. will start to flow freely.
+
+== monitor-sources.txt ==
+
+== monitor-points.txt ==
