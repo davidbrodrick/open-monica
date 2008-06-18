@@ -2,8 +2,6 @@
 <!-- JNLP File for MoniCA Application -->
 <jnlp
   spec="1.0+"
-  codebase="http://fringes.org/monica/"
-  href="OpenMoniCA.JNLP">
 
   <information>
     <title>MoniCA</title>
