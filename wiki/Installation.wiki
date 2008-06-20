@@ -1,0 +1,44 @@
+#summary How to install MoniCA.
+
+= Introduction =
+
+This document describes how to install and operate MoniCA. 
+
+= Downloading =
+
+The latest development version of MoniCA can be downloaded directly from the google code repository using subversion.
+
+{{{
+svn checkout http://open-monica.googlecode.com/svn/trunk/ open-monica-read-only
+}}}
+
+This will create a directory called `open-monica-read-only` which will contain the entire source code tree.
+
+= Configuring =
+
+The server uses a number of configuration files. Some of these are described on the [ServerIntro] wiki page. Default configuration files are stored in the `default-files/` subdirectory, so you will want to copy those into the top level directory.
+
+{{{
+cd open-monica-read-only/
+cp default-files/* .
+}}}
+
+At this point you may wish to add an extra line to the `monitor-servers.txt` configuration file containing the name and IP address of the machine you plane to run the MoniCA server on. This will ensure that your server is available as an option when the client program starts.
+
+= Building =
+
+Assuming you already have the Java Development Kit installed, compiling the software and then generating the client and server jar files should only be a matter of executing the following commands:
+
+{{{
+make
+make client
+make server
+}}}
+
+You should now be able to test that your server runs. With the default configuration files the server only monitors some internal statistics (eg. memory usage and the number of client programs currently connected).
+
+{{{
+java -jar monica-server.jar
+}}}
+
+= Client =
