@@ -50,11 +50,11 @@ import atnf.atoms.mon.*;
 public abstract class DataSourceASCIISocket
 extends DataSource
 {
-  /** The socket used for communicating with the ATDC. */
+  /** The socket used for communicating with the remote service. */
   protected Socket itsSocket = null;
-  /** The PrintStream for writing text to the ATDC. */
-  protected PrintStream itsWriter = null;
-  /** InputStream for reading responses from the ATDC. */
+  /** The output stream for writing text to the remote service. */
+  protected BufferedWriter itsWriter = null;
+  /** The input stream for reading responses from the remote service. */
   protected BufferedReader itsReader = null;
 
   /** The port to connect to the remote end-point. */
@@ -84,9 +84,9 @@ extends DataSource
       try {
         itsSocket.setSoTimeout(itsTimeout);
       } catch (Exception e) {
-	try {
-	  disconnect();
-	} catch (Exception f) {}
+        try {
+          disconnect();
+        } catch (Exception f) {}
       }
     }
   }
@@ -101,7 +101,8 @@ extends DataSource
       itsSocket = new Socket(itsHostName, itsPort);
       itsSocket.setSoTimeout(itsTimeout);
       itsConnected = true;
-      itsWriter = new PrintStream(itsSocket.getOutputStream());
+      itsWriter = new BufferedWriter(new OutputStreamWriter(
+                                         itsSocket.getOutputStream()));
       itsReader = new BufferedReader(new InputStreamReader(
                                          itsSocket.getInputStream()));
       System.err.println("Connected to " + itsHostName + ":" + itsPort);
