@@ -57,7 +57,7 @@ extends DataSourceASCIISocket
       }
     
       Vector upsnames=new Vector();
-      itsWriter.println("LIST UPS");
+      itsWriter.write("LIST UPS\n");
       String line=itsReader.readLine();
       if (!line.equals("BEGIN LIST UPS")) {
         System.err.println("DataSourceNUTUPS:discoverUPS: parse error listing UPSs");
@@ -85,7 +85,7 @@ extends DataSourceASCIISocket
       for (int i=0; i<upsnames.size(); i++) {
         Vector upsvars=new Vector();
         String thisname=(String)upsnames.get(i);
-        itsWriter.println("LIST VAR " + thisname);
+        itsWriter.write("LIST VAR " + thisname + "\n");
         line=itsReader.readLine();
         if (!line.equals("BEGIN LIST VAR " + thisname)) {
           System.err.println("DataSourceNUTUPS:discoverUPS: parse error listing VARs for " + thisname);
@@ -117,7 +117,7 @@ extends DataSourceASCIISocket
         //We got the list of this UPSs variables, now get info about each one
         for (int j=0; j<upsvars.size(); j++) {
           String thisvar=(String)upsvars.get(j);
-          itsWriter.println("GET DESC " + thisname + " " + thisvar);
+          itsWriter.write("GET DESC " + thisname + " " + thisvar + "\n");
           line=itsReader.readLine();
           if (!line.startsWith("DESC " + thisname + " " + thisvar)) {
             System.err.println("DataSourceNUTUPS:discoverUPS: expected DESC: " + line);
@@ -171,7 +171,7 @@ extends DataSourceASCIISocket
     while (itsReader.ready()) {
       itsReader.readLine();
     }
-    itsWriter.println("GET VAR " + ts.getString(0) + " " + ts.getString(1));
+    itsWriter.write("GET VAR " + ts.getString(0) + " " + ts.getString(1) + "\n");
     String line = itsReader.readLine();
     if (!line.startsWith("VAR " + ts.getString(0) + " ")) {
       System.err.println("DataSourceNUTUPS:discoverUPS: expected value");//, got: " + line);
