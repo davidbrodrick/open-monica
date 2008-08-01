@@ -42,3 +42,16 @@ java -jar monica-server.jar
 }}}
 
 = Client =
+
+You should now be able to run the client and connect to your own server:
+
+{{{
+java -jar monica-client.jar
+}}}
+
+The default `monitor-servers.txt` file may contain other public servers to which you can connect to explore the features of the MoniCA client. A simple way to become familiar with the essential features of the client is to:
+
+  * Connect to a server.
+  * Select a predefined page setup from the `Navigator` menu.
+  * Click on the tabs which appear, eg these may be called `'Point Table'` or `'Time Series'` depending on which page setup you selected.
+  * Customise the monitor information being displayed by using the controls and clicking `OK`.
