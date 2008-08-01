@@ -1,0 +1,21 @@
+#summary Obtaining data from a new device.
+
+_This page is lame and needs a lot more fleshing out and better examples_
+
+= Introduction =
+
+Data sources bring new data into the MoniCA system (see the IntroServerCode for a brief introduction to the MoniCA architecture). This document discusses a few of the key ideas and outlines some strategies applicable to common monitoring tasks.
+
+Many data sources will communicate with the device that provides data via a socket, however data sources may execute system programs, read from files, or do whatever else is required for them to obtain the relevant data.
+
+The 'standard' data source model is that MoniCA's scheduler determines when monitor points need to be updated based on the update interval specified in the monitor point definition and the epoch that the points were last updated. When an update is required, the monitor point is handed to the `getData` method of the relevant data source which then obtains a new value and fires a `PointEvent` to notify the system that the value has been updated.
+
+In some cases the 'standard' model may not be appropriate for the device being monitored. For instance, devices which send unsolicited updates may be better served by ignoring the internal scheduler completely and having a thread that listens for new updates and then fires off `PointEvent`s when new data becomes available.
+
+= Updating monitor points. =
+
+{{{
+PointMonitor pm = MonitorMap.getPointMonitor(itsPointName);
+PointData pd = new PointData(itsPointName, newvalue);
+pm.firePointEvent(new PointEvent(this, pd, true));
+}}}
