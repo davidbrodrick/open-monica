@@ -1,30 +1,12 @@
 # Where to save archived data
 LogDir /tmp
-#LogDir testdir
 
 # Type of archiver to use
 Archiver ASCII
-# Command that archiver must run
-ArchiverArg bzip2 -f $1
-# Alternative command - not used
-ArchiverArg1 mv $1 $1.bak
 # Max size of file before the archiver will compress
 ArchiveSize 7340032
 # Max amount of time (in secs) before the archiver will start a new file
 ArchiveMaxAge 604800
-
-# Command to decompress compressed archived data
-DeArchiverArg bunzip2 $1
-# Extension that the decompression command will append to the decompressed file
-DeArchiverExt out
-# Maximum number of DataSourceCollector threads - I think
-MinAliveThread 32
-# Extension that the archiver will put on archived file
-CompressExt bz2
-# Alternative - Not used
-CompressExt1 bak
-# When changes are made to the points, save them here
-PointSaveFile newPoints.txt
 
 # Authentication
 NISGroup atomsprg
