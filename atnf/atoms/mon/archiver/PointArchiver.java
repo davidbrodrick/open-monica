@@ -20,6 +20,11 @@ import atnf.atoms.time.AbsTime;
  * save and retrieve data to disk. This base-class defines basic
  * functionality relevant to all the archiving techniques. The sub-classes
  * define the methods which actually save and retrieve the data in some
+ * format.
+ *
+ * <i>This class is currently geared towards Archivers which write data
+ * to files. It should be made more abstract so that Archivers which write
+ * to databases, etc, can all be neatly accomodated.</i>
  *
  * @author Le Cuong Nguyen
  * @author David Brodrick
@@ -33,21 +38,23 @@ extends Thread
    boolean itsRunning = true;
    String itsArg = null;
 
-   /** Base directory for the data archive. Derived from the property
-    * <tt>LogDir</tt>. */
+   /** Base directory for the data archive.
+    * Derived from the property <tt>LogDir</tt>. */
    public static final String SAVEPATH = MonitorConfig.getProperty("LogDir");
    /** OS-dependant file separation character. */
    protected static final char FSEP = System.getProperty("file.separator").charAt(0);
-   /** Maximum size for an archive file. Derived from the property
-    * <tt>ArchiveSize</tt>. */
+   /** Maximum size for an archive file.
+    * Derived from the property <tt>ArchiveSize</tt>. */
    protected static final int MAXLENGTH = Integer.parseInt(MonitorConfig.getProperty("ArchiveSize"));
-   /** Max time-span for an archive data file. Derived from the property
-    * <tt>ArchiveMaxAge</tt> */
+   /** Max time-span for an archive data file.
+    * Derived from the property <tt>ArchiveMaxAge</tt> */
    protected static final int MAXAGE = 1000 * Integer.parseInt(MonitorConfig.getProperty("ArchiveMaxAge"));
+   /** Max number of records to be returned in response to a single archive request.
+    * Derived from the property <tt>ArchiveMaxRecords</tt> */
+   protected static final int MAXNUMRECORDS = Integer.parseInt(MonitorConfig.getProperty("ArchiveMaxRecords", "86400"));
    /** Enable extra debugging (<tt>true</tt>) or not (<tt>false</tt>).
     * The value for this is derived from the property <tt>Debug</tt>. */
    protected static boolean itsDebug = false;
-
 
    /** */
    public PointArchiver(String arg)
@@ -100,36 +107,35 @@ extends Thread
      while (true) {
        Enumeration keys = itsBuffer.keys();
        while (keys.hasMoreElements()) {
-	 Vector bData = null;
-	 PointMonitor pm = null;
-	 synchronized(itsBuffer) {
-	   pm = (PointMonitor)keys.nextElement();
-	   if (pm == null) continue;
-	   if (itsBuffer.get(pm) == null) continue;
-	   bData = new Vector((Vector)itsBuffer.remove(pm));
+         Vector bData = null;
+         PointMonitor pm = null;
+         synchronized(itsBuffer) {
+           pm = (PointMonitor)keys.nextElement();
+           if (pm == null) continue;
+           if (itsBuffer.get(pm) == null) continue;
+           bData = new Vector((Vector)itsBuffer.remove(pm));
            if (bData.size() < 1) {
              //Sleep even if no data to archive, otherwise uses all CPU
-	     try {
-	       sleeptime.sleep();
+             try {
+               sleeptime.sleep();
              } catch (Exception e) {
-	       MonitorMap.logger.error("MoniCA Server: PointArchiver.run1: " + e.getMessage());
-	     }
-	     continue;
-	   }
-	 }
-	 saveNow(pm, bData);
-	 try {
-	   sleeptime.sleep();
-	 } catch (Exception e) {
-	   MonitorMap.logger.error("MoniCA Server: PointArchiver.run2: " + e.getMessage());
-	 }
+               MonitorMap.logger.error("MoniCA Server: PointArchiver.run1: " + e.getMessage());
+             }
+             continue;
+           }
+         }
+         saveNow(pm, bData);
+         try {
+           sleeptime.sleep();
+         } catch (Exception e) {
+           MonitorMap.logger.error("MoniCA Server: PointArchiver.run2: " + e.getMessage());
+         }
        }
        try {
-	 sleeptime.sleep();
+         sleeptime.sleep();
        } catch (Exception e) {
-	 MonitorMap.logger.error("MoniCA Server: PointArchiver.run3: " + e.getMessage());
+         MonitorMap.logger.error("MoniCA Server: PointArchiver.run3: " + e.getMessage());
        }
-
      }
    }
 
@@ -155,7 +161,7 @@ extends Thread
      synchronized(itsBuffer) {
        //Ensure this point has a storage buffer allocated
        if (!(itsBuffer.get(pm) instanceof Vector)) {
-	 itsBuffer.put(pm, new Vector());
+         itsBuffer.put(pm, new Vector());
        }
        //Add the new data to our storage buffer
        Vector myVec = (Vector)itsBuffer.get(pm);
@@ -175,7 +181,7 @@ extends Thread
      synchronized(itsBuffer) {
        //Ensure this point has a storage buffer allocated
        if (!(itsBuffer.get(pm) instanceof Vector)) {
-	 itsBuffer.put(pm, new Vector());
+         itsBuffer.put(pm, new Vector());
        }
        //Add the new data to our storage buffer
        Vector myVec = (Vector)itsBuffer.get(pm);
@@ -229,18 +235,18 @@ extends Thread
    getDateTime(String parseDate)
    {
       try {
-	int i = 0;
+        int i = 0;
         //YYYYMMDD-HHMM format
-	int year  = Integer.parseInt(parseDate.substring(i,i+=4));
-	int month = Integer.parseInt(parseDate.substring(i, i+=2)) - 1;
-	int day   = Integer.parseInt(parseDate.substring(i, i+=2));
-	i++;
-	int hour  = Integer.parseInt(parseDate.substring(i, i+=2));
-	int minute = Integer.parseInt(parseDate.substring(i, i+=2));
-	GregorianCalendar pope = new GregorianCalendar(year, month, day,
+        int year  = Integer.parseInt(parseDate.substring(i,i+=4));
+        int month = Integer.parseInt(parseDate.substring(i, i+=2)) - 1;
+        int day   = Integer.parseInt(parseDate.substring(i, i+=2));
+        i++;
+        int hour  = Integer.parseInt(parseDate.substring(i, i+=2));
+        int minute = Integer.parseInt(parseDate.substring(i, i+=2));
+        GregorianCalendar pope = new GregorianCalendar(year, month, day,
                                                        hour, minute);
-	pope.setTimeZone(SimpleTimeZone.getTimeZone("GMT"));
-	return pope.getTime();
+        pope.setTimeZone(SimpleTimeZone.getTimeZone("GMT"));
+        return pope.getTime();
       } catch (Exception e) {return null;}
    }
 
