@@ -11,7 +11,6 @@ import java.io.*;
 import java.util.*;
 import java.math.*;
 import java.util.zip.*;
-//import java.lang.reflect.Array;
 import java.text.*;
 
 import atnf.atoms.mon.*;
@@ -60,8 +59,8 @@ extends PointArchiver
 
       //If there are no exisiting files, create a new empty one
       if (dirFiles==null || dirFiles.length<1) {
-	(new File(fileName)).createNewFile();
-	dirFiles = myDir.list();
+        (new File(fileName)).createNewFile();
+        dirFiles = myDir.list();
       }
 
       //Find the most recent file
@@ -71,59 +70,61 @@ extends PointArchiver
       int latest = -1;
       Date lastdate = null;
       for (int i=0; i<dirFiles.length; i++) {
-	Date thisdate = null;
+        Date thisdate = null;
         String thisfile = dirFiles[i];
-	if (isCompressed(thisfile)) {
+        if (isCompressed(thisfile)) {
           //cut the ".zip" off the end of the string
-	  thisfile = thisfile.substring(0, thisfile.length()-4);
-	}
-	thisdate = getDateTime(thisfile);
-	if (thisdate==null) {
-	  System.err.println("PointArchiverASCII:saveNow: Bad file name " +
-			     dirFiles[i] + " in directory " + path);
-	  continue;
-	}
-	if (latest==-1 || thisdate.after(lastdate)) {
-	  latest = i;
-	  lastdate = thisdate;
-	}
+          thisfile = thisfile.substring(0, thisfile.length()-4);
+        }
+        thisdate = getDateTime(thisfile);
+        if (thisdate==null) {
+          System.err.println("PointArchiverASCII:saveNow: Bad file name " +
+                              dirFiles[i] + " in directory " + path);
+          continue;
+        }
+        if (latest==-1 || thisdate.after(lastdate)) {
+          latest = i;
+          lastdate = thisdate;
+        }
       }
 
       fileName = path+FSEP+dirFiles[latest];
       //Enforce the age and size limits that apply to active files.
       //Also check to ensure the file hasn't been manually compressed
       if (lastdate.before(new Date(System.currentTimeMillis() - MAXAGE)) ||
-	  (new File(fileName)).length()>MAXLENGTH ||
-	  isCompressed(fileName)) {
-	//Compress old file since it's now an archival file
-	compress(fileName);
-	//Delete uncompressed version of the file - if we can
-	try {
-	  (new File(fileName)).delete();
-	} catch (Exception e) {
-	  //Unable to delete it. Remove .zip so we don't duplicate this data
-	  System.err.println("PointArchiverASCII:saveNow: Can't delete " +
-			     fileName + ": " + e.getMessage());
-	  (new File(fileName+".zip")).delete();
-	}
-	///Could also use this opportunity to compress any other old files
+          (new File(fileName)).length()>MAXLENGTH ||
+        isCompressed(fileName)) {
+        //Compress old file since it's now an archival file
+        compress(fileName);
+        //Delete uncompressed version of the file - if we can
+        try {
+          (new File(fileName)).delete();
+        } catch (Exception e) {
+          //Unable to delete it. Remove .zip so we don't duplicate this data
+          System.err.println("PointArchiverASCII:saveNow: Can't delete " +
+                             fileName + ": " + e.getMessage());
+          (new File(fileName+".zip")).delete();
+        }
+        
+        ///Could also use this opportunity to compress any other old files
+        ///which arent already compressed for whatever reason..
 
-	//Create a new file, now, and archive to it instead.
-	fileName = path+FSEP+getDateTimeNow();
-	(new File(fileName)).createNewFile();
+        //Create a new file, now, and archive to it instead.
+        fileName = path+FSEP+getDateTimeNow();
+        (new File(fileName)).createNewFile();
       }
 
       //Finally we've identified the right file. Write out each data record.
       FileWriter f = new FileWriter(fileName, true);
       PrintWriter outfile = new PrintWriter(new BufferedWriter(f));
       for (int i=0; i<data.size(); i++) {
-	try {
-	  PointData pd = (PointData)data.elementAt(i);
+        try {
+          PointData pd = (PointData)data.elementAt(i);
           outfile.println(getStringForPD(pd));
-	} catch (Exception e) {
-	  System.err.println("PointArchiverASCII:" + e.getMessage() + " (for " +
-			     ((PointData)data.elementAt(i)).getName() + ")");
-	}
+        } catch (Exception e) {
+          System.err.println("PointArchiverASCII:" + e.getMessage() + " (for " +
+          ((PointData)data.elementAt(i)).getName() + ")");
+        }
       }
       outfile.flush();
       f.flush();
@@ -146,7 +147,7 @@ extends PointArchiver
   extract(PointMonitor pm, AbsTime start, AbsTime end, int undersample)
   {
     AbsTime starttime = new AbsTime();
-    Vector res = new Vector();
+    Vector res = new Vector(1000,8000);
     //Get the archive directory for the given point
     String dir = getDir(pm);
 
@@ -156,6 +157,11 @@ extends PointArchiver
     //Try to load data from each of the files
     for (int j=0; j<files.size(); j++) {
       loadFile(res, pm, dir+FSEP+files.get(j), start, end);
+      if (res.size()>MAXNUMRECORDS) {
+        //Max size limit to prevent server bogging down
+        MonitorMap.logger.warning("MoniCA Server: Truncating archive request to " + res.size() + " records");
+        break;
+      }
     }
     AbsTime endtime = new AbsTime();
     RelTime diff = Time.diff(endtime, starttime);
@@ -380,32 +386,32 @@ extends PointArchiver
       AbsTime ftime = AbsTime.factory(((Long)key).longValue());
 
       if (ftime.isBefore(start)) {
-	//Haven't caught up to the start time yet
-	prevkey = key;
+        //Haven't caught up to the start time yet
+        prevkey = key;
       } else if (ftime.isAfter(end)) {
-	//This file not of interest, but prev might be
-	if (!hit) {
-	  //No files completely within the range
-	  //but the previous file may contain useful data
-	  if (prevkey!=null) {
-	    hit = true;
-	    res.add(map.get(prevkey)); //(if there was one)
-	  }
+        //This file not of interest, but prev might be
+        if (!hit) {
+          //No files completely within the range
+          //but the previous file may contain useful data
+          if (prevkey!=null) {
+            hit = true;
+            res.add(map.get(prevkey)); //(if there was one)
+          }
         }
-	//No point looking further into the future
-	break;
+        //No point looking further into the future
+        break;
 
       } else {
-	//We need this file it is within the range
-	if (!hit) {
-	  //This file's start time is in the range,
-	  //so the previous file may also contain useful data
-	  hit = true;
-	  if (prevkey!=null) {
-	    res.add(map.get(prevkey)); //(if there was one)
-	  }
-	}
-	res.add(map.get(key));
+        //We need this file it is within the range
+        if (!hit) {
+          //This file's start time is in the range,
+          //so the previous file may also contain useful data
+          hit = true;
+          if (prevkey!=null) {
+            res.add(map.get(prevkey)); //(if there was one)
+          }
+        }
+        res.add(map.get(key));
       }
     }
     if (!hit) {
@@ -511,10 +517,10 @@ extends PointArchiver
       char[] cbuf = new char[blen];
       int len;
       while ((len = compressed.read(bbuf)) > 0) {
-	for (int i=0; i<len; i++) {
+        for (int i=0; i<len; i++) {
           cbuf[i]=(char)bbuf[i];
-	}
-	uncompressed.write(cbuf, 0, len);
+        }
+        uncompressed.write(cbuf, 0, len);
       }
 
       compressed.close();
@@ -547,9 +553,9 @@ extends PointArchiver
       String shortname;
       int lastslash = filename.lastIndexOf(FSEP);
       if (lastslash!=-1) {
-	shortname = filename.substring(lastslash+1);
+        shortname = filename.substring(lastslash+1);
       } else {
-	shortname = filename;
+        shortname = filename;
       }
       compressed.putNextEntry(new ZipEntry(shortname));
 
@@ -557,7 +563,7 @@ extends PointArchiver
       byte[] buf = new byte[4096];
       int len;
       while ((len = uncompressed.read(buf)) > 0) {
-	compressed.write(buf, 0, len);
+        compressed.write(buf, 0, len);
       }
 
       compressed.close();

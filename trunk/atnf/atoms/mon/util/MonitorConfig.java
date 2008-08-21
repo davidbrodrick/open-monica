@@ -22,6 +22,7 @@ public class MonitorConfig
    private static HashMap itsData = new HashMap();
    private static boolean itsInit = false;
 
+   /** Read the config file and cache properties. */
    public static void init()
    {
      InputStream configfile = MonitorConfig.class.getClassLoader().getResourceAsStream("monitor-config.txt");
@@ -37,9 +38,19 @@ public class MonitorConfig
      }
    }
    
+   /** Return the string value of the named property. */
    public static String getProperty(String prop)
    {
       if (!itsInit) init();
       return (String)itsData.get(prop);
+   }
+   
+   /** Return value of the named property, or <i>null</i> if it wasn't found. */
+   public static String getProperty(String prop, String def)
+   {
+      if (!itsInit) init();
+      String res=(String)itsData.get(prop);
+      if (res==null) res=def;
+      return res;
    }
 }
