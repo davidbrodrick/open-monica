@@ -124,8 +124,6 @@ extends MonitorPolicy
 
      result.setStringEquiv(arg);
 
-     PointBuffer.add(result);
-
      return result;
    }
 

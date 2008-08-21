@@ -29,13 +29,31 @@ import atnf.atoms.time.*;
 public class PointArchiverASCII
 extends PointArchiver
 {
+  /** Directory for writing temporary files.
+   * <i>This shouldn't be hard-coded OS-specific!!</i> */
   static private File theirTempDir = new File("/tmp/mon-temp/");
+  
+  /** Base directory for the data archive.
+   * Derived from the property <tt>LogDir</tt>. */
+  public static final String SAVEPATH = MonitorConfig.getProperty("LogDir");
+  
+  /** OS-dependant file separation character. */
+  protected static final char FSEP = System.getProperty("file.separator").charAt(0);
+  
+  /** Maximum size for an archive file.
+   * Derived from the property <tt>ArchiveSize</tt>. */
+  protected static final int MAXLENGTH = Integer.parseInt(MonitorConfig.getProperty("ArchiveSize"));
+  
+  /** Max time-span for an archive data file.
+   * Derived from the property <tt>ArchiveMaxAge</tt> */
+  protected static final int MAXAGE = 1000 * Integer.parseInt(MonitorConfig.getProperty("ArchiveMaxAge"));
+
 
   /** Constructor. */
   public
-  PointArchiverASCII(String foo)
+  PointArchiverASCII()
   {
-    super(foo);
+    super();
     if (!theirTempDir.isDirectory()) theirTempDir.mkdirs();
   }
 
@@ -573,6 +591,78 @@ extends PointArchiver
     }
   }
 
+  /** Get the appropriate filename representation of the current time.
+   * @return Filename representation of the current time. */
+  public static
+  String
+  getDateTimeNow()
+  {
+    return getDateTime(new Date());
+  }
+
+
+  /** Get a filename representation of the given epoch.
+   * @param date Date to translate into a filename.
+   * @return Filename corresponding to the given Date. */
+  public static
+  String
+  getDateTime(Date date)
+  {
+     GregorianCalendar calendar = new GregorianCalendar();
+     calendar.setTime(date);
+     calendar.setTimeZone(SimpleTimeZone.getTimeZone("GMT"));
+     StringBuffer buf = new StringBuffer("");
+     //YYYYMMDD-HHMM format
+     buf.append(calendar.get(Calendar.YEAR));
+     if (calendar.get(Calendar.MONTH) < 9) buf.append("0");
+     buf.append(calendar.get(Calendar.MONTH)+1);
+     if (calendar.get(Calendar.DAY_OF_MONTH) < 10) buf.append("0");
+     buf.append(calendar.get(Calendar.DAY_OF_MONTH));
+     buf.append("-");
+     if (calendar.get(Calendar.HOUR_OF_DAY) < 10) buf.append("0");
+     buf.append(calendar.get(Calendar.HOUR_OF_DAY));
+     if (calendar.get(Calendar.MINUTE) < 10) buf.append("0");
+     buf.append(calendar.get(Calendar.MINUTE));
+     return buf.toString();
+  }
+
+
+  /** Get the epoch represented by the given file name.
+   * @param parseDate The filename to parse.
+   * @return Date represented by the given filename. */
+  public static
+  Date
+  getDateTime(String parseDate)
+  {
+    try {
+      int i = 0;
+      //YYYYMMDD-HHMM format
+      int year  = Integer.parseInt(parseDate.substring(i,i+=4));
+      int month = Integer.parseInt(parseDate.substring(i, i+=2)) - 1;
+      int day   = Integer.parseInt(parseDate.substring(i, i+=2));
+      i++;
+      int hour  = Integer.parseInt(parseDate.substring(i, i+=2));
+      int minute = Integer.parseInt(parseDate.substring(i, i+=2));
+      GregorianCalendar pope = new GregorianCalendar(year, month, day,
+                                                     hour, minute);
+      pope.setTimeZone(SimpleTimeZone.getTimeZone("GMT"));
+      return pope.getTime();
+    } catch (Exception e) {return null;}
+  }
+
+
+  /** Get the save directory for the given point.
+   * @param pm Point to get the archive directory for.
+   * @return Name of appropriate archive directory. */
+  public static
+  String
+  getDir(PointMonitor pm)
+  {
+    String tempname = pm.getName();
+    tempname = tempname.replace('.', FSEP);
+    return SAVEPATH + FSEP + tempname + FSEP + pm.getSource();
+  }
+
 
   public static final void main(String args[])
   {
@@ -582,7 +672,7 @@ extends PointArchiver
     }
 
     System.out.println("Will compress " + args[0]);
-    PointArchiverASCII paa = new PointArchiverASCII("foo");
+    PointArchiverASCII paa = new PointArchiverASCII();
     paa.compress(args[0]);
     paa.decompress(args[0]+".zip");
   }
