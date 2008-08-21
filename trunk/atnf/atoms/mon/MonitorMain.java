@@ -33,10 +33,12 @@ MonitorMain
     PointArchiver pa = null;
     try {
       Class archiverClass = Class.forName("atnf.atoms.mon.archiver.PointArchiver"+MonitorConfig.getProperty("Archiver"));
-      Constructor con = archiverClass.getConstructor(null);
-      pa = (PointArchiver)(con.newInstance(new Object[]{MonitorConfig.getProperty("ArchiverArg")}));
+      pa = (PointArchiver)(archiverClass.newInstance());
       MonitorMap.setPointArchiver(pa);
-    } catch (Exception e) {e.printStackTrace();}
+    } catch (Exception e) {
+      System.err.println("ERROR: While creating PointArchiver:");
+      e.printStackTrace();
+    }
 
     //Initialise all the DataSources
     InputStream datasourcefile = MonitorMain.class.getClassLoader().getResourceAsStream("monitor-sources.txt");
