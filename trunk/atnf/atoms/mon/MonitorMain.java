@@ -33,8 +33,9 @@ MonitorMain
     PointArchiver pa = null;
     try {
       Class archiverClass = Class.forName("atnf.atoms.mon.archiver.PointArchiver"+MonitorConfig.getProperty("Archiver"));
-      Constructor con = archiverClass.getConstructor(new Class[]{String.class});
+      Constructor con = archiverClass.getConstructor(null);
       pa = (PointArchiver)(con.newInstance(new Object[]{MonitorConfig.getProperty("ArchiverArg")}));
+      MonitorMap.setPointArchiver(pa);
     } catch (Exception e) {e.printStackTrace();}
 
     //Initialise all the DataSources
@@ -54,8 +55,8 @@ MonitorMain
     ArrayList points = PointInteraction.parseFile(new InputStreamReader(pointsfile));
     for (int i=0; i<points.size(); i++) {
       if (points.get(i) instanceof PointMonitor) {
-	//Tell the point which archiver to use - for now there's only one
-	((PointMonitor)points.get(i)).setArchiver(pa);
+        //Tell the point which archiver to use - for now there's only one
+        ((PointMonitor)points.get(i)).setArchiver(pa);
       }
     }
 
@@ -68,11 +69,11 @@ MonitorMain
       System.err.println("WARNING: Failed to find monitor-setups.txt configuration file");
     } else {
       try {
-	Vector setups = SavedSetup.parseFile(new InputStreamReader(setupfile));
-	System.err.println("Recovered " + setups.size() + " SavedSetups from " + setupfile);
-	for (int i=0; i<setups.size(); i++) MonitorMap.addSetup((SavedSetup)setups.get(i));
+        Vector setups = SavedSetup.parseFile(new InputStreamReader(setupfile));
+        System.err.println("Recovered " + setups.size() + " SavedSetups from " + setupfile);
+        for (int i=0; i<setups.size(); i++) MonitorMap.addSetup((SavedSetup)setups.get(i));
       } catch (Exception e) {
-	System.err.println("ERROR: Can't parse saved setup file: " + setupfile);
+        System.err.println("ERROR: Can't parse saved setup file: " + setupfile);
       }
     }
 

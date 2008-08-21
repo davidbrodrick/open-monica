@@ -26,14 +26,6 @@ public class PointBuffer
 {
   /** Stores Vectors of past data. Keyed by PointMonitors */
   protected static Hashtable bufferTable = new Hashtable();
-   
-  /** Stores the loaded Translation classes */
-  protected static HashSet itsTranslations = new HashSet();
-   
-  /** Stores the loaded Transaction classes */
-  protected static HashSet itsTransactions = new HashSet();
-
-  //protected PointBuffer() { }
 
 
   /** Allocate buffer storage space for the new monitor point. */
@@ -59,22 +51,22 @@ public class PointBuffer
   {
     if (data!=null && data.getData()!=null) {
       synchronized(bufferTable) {
-	Vector buf = (Vector)bufferTable.get(pm);
-	if (buf==null) {
-	  //New point, add it to the table
-	  newPoint(pm);
-	  buf = (Vector)bufferTable.get(pm);
-	} else {
-	  //Existing point, update sequence number
-	  data.setSequence(((PointData)buf.lastElement()).getSequence()+1);
-	}
+        Vector buf = (Vector)bufferTable.get(pm);
+        if (buf==null) {
+          //New point, add it to the table
+          newPoint(pm);
+          buf = (Vector)bufferTable.get(pm);
+        } else {
+          //Existing point, update sequence number
+          data.setSequence(((PointData)buf.lastElement()).getSequence()+1);
+        }
 
-	//Ensure the buffer hasn't grown too large
-	while (buf.size()>pm.getMaxBufferSize()) buf.remove(0);
+        //Ensure the buffer hasn't grown too large
+        while (buf.size()>pm.getMaxBufferSize()) buf.remove(0);
 
-	//Add the new data to the buffer
-	buf.add(data);
-	bufferTable.notifyAll();
+        //Add the new data to the buffer
+        buf.add(data);
+        bufferTable.notifyAll();
       }
     }
   }
@@ -101,7 +93,7 @@ public class PointBuffer
   public static
   PointData
   getPointData(String name,
-	       String source)
+               String source)
   {
     PointMonitor pm = MonitorMap.getPointMonitor(source+"."+name);
     return getPointData(pm);
@@ -154,7 +146,7 @@ public class PointBuffer
     }
 
     //OK, we need archived data as well
-    PointArchiver arc = MonitorMap.getPointArchiver(PointArchiver.name());
+    PointArchiver arc = MonitorMap.getPointArchiver();
     Vector arcdata = arc.extract(pm, start_time, end_time, 1);
     if (arcdata==null) arcdata = new Vector(); //Ensure not null
 
@@ -164,7 +156,7 @@ public class PointBuffer
       AbsTime buffer_start = ((PointData)bufdata.firstElement()).getTimestamp();
       while (arcdata.size()>0 &&
              ((PointData)arcdata.lastElement()).getTimestamp().isAfterOrEquals(buffer_start)) {
-	arcdata.remove(arcdata.lastElement());
+        arcdata.remove(arcdata.lastElement());
         cnt++;
       }
       //Add the buffer data to the archive data
@@ -180,17 +172,17 @@ public class PointBuffer
 
       int i=0;
       while (i<arcdata.size()&&nextsamp.isBeforeOrEquals(end_time)) {
-	//Find the next sample which needs to be kept
-	while (i<arcdata.size() &&
-	       ((PointData)arcdata.get(i)).getTimestamp().isBefore(nextsamp)) {
-	  i++;
-	}
-	//If we've exhausted the data then exit the loop
-	if (i>=arcdata.size()) break;
+        //Find the next sample which needs to be kept
+        while (i<arcdata.size() &&
+               ((PointData)arcdata.get(i)).getTimestamp().isBefore(nextsamp)) {
+          i++;
+        }
+        //If we've exhausted the data then exit the loop
+        if (i>=arcdata.size()) break;
 
-	//We need to keep this sample
-	newres.add(arcdata.get(i));
-	nextsamp = nextsamp.add(increment);
+        //We need to keep this sample
+        newres.add(arcdata.get(i));
+        nextsamp = nextsamp.add(increment);
         i++;
       }
       arcdata=newres;
@@ -356,44 +348,10 @@ public class PointBuffer
   {
     synchronized(bufferTable) {
       while (bufferTable.get(pm) == null) {
-	try {
-	  bufferTable.wait();
-	} catch (Exception e) {}
+        try {
+          bufferTable.wait();
+        } catch (Exception e) {}
       }
     }
-  }
-
-
-   /** The following have not been implemented yet. They should provide the
-    ability for a client to get all the policy classes from the server
-
-    OK, but why is it in this class??
-    **/
-  public static
-  void
-  add(Translation trans)
-  {
-    itsTranslations.add(trans.getClass());
-  }
-
-  public static
-  void
-  add(Transaction trans)
-  {
-    itsTransactions.add(trans.getClass());
-  }
-   
-  public static
-  Iterator
-  getTransaction()
-  {
-    return itsTransactions.iterator();
-  }
-
-  public static
-  Iterator
-  getTranslation()
-  {
-    return itsTranslations.iterator();
   }
 }

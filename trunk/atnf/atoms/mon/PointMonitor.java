@@ -250,7 +250,7 @@ extends PointInteraction
       //Monitor point may use multiple translations
       Translation[] translations = new Translation[translate.length];
       for (int i=0; i<translate.length; i++) {
-	translations[i] = Translation.factory(result, translate[i]);
+        translations[i] = Translation.factory(result, translate[i]);
       }
       result.setTranslations(translations);
       result.setTranslationString(translate);
@@ -277,19 +277,19 @@ extends PointInteraction
        PointData data = pe.getPointData();
        //Don't translate if there was nothing to translate
        if (data!=null) {
-	 for (int i=0; i<itsTranslations.length; i++) {
-	   try {
-	     //Apply the next translation
-	     data = itsTranslations[i].translate(data);
-	   } catch (Throwable e) {
-	     System.err.println("PointMonitor:firePointevent: Translation Error:"
-				+ e.getMessage());
-	     System.err.println("\tPOINT       = " + getSource() + "." + getName());
-	     System.err.println("\tTRANSLATION = " + itsTranslations[i].getClass());
-	   }
-	   //If null was returned then stop translation process
-	   if (data==null) break;
-	 }
+         for (int i=0; i<itsTranslations.length; i++) {
+           try {
+             //Apply the next translation
+             data = itsTranslations[i].translate(data);
+           } catch (Throwable e) {
+             System.err.println("PointMonitor:firePointevent: Translation Error:"
+                                + e.getMessage());
+             System.err.println("\tPOINT       = " + getSource() + "." + getName());
+             System.err.println("\tTRANSLATION = " + itsTranslations[i].getClass());
+           }
+           //If null was returned then stop translation process
+           if (data==null) break;
+         }
        }
        //Translation has been completed so prepare new event and fire
        pe = new PointEvent(this, data, false);
@@ -300,27 +300,33 @@ extends PointInteraction
        //Add the updated value to the archive + data buffer
        if (data!=null) PointBuffer.updateData(this, data);
        if (data.getData()!=null && itsArchiver!=null && itsEnabled) {
-	 //Archive data?
-	 for (int i = 0; i < itsArchive.length; i++)
-	   if (itsArchive[i].newData(data)) itsArchiver.saveToFile(this, data);
+         //Archive data?
+         for (int i=0; i<itsArchive.length; i++) {
+           if (itsArchive[i].newData(data)) {
+             itsArchiver.archiveData(this, data);
+             break;
+           }
+         }
        }
 
        //Schedule the next collection
        if (itsPeriod>0) {
-         if (itsFirstEpoch<1) itsFirstEpoch = data.getTimestamp().getValue();
-	 itsNextEpoch = data.getTimestamp().getValue() + itsPeriod;
+         if (itsFirstEpoch<1) {
+           itsFirstEpoch = data.getTimestamp().getValue();
+         }
+         itsNextEpoch = data.getTimestamp().getValue() + itsPeriod;
        }
 
        // Pass the event on to all listeners
        Object[] listeners = itsPLList.getListenerList();
        for (int i = 0; i < listeners.length; i +=2)
-	 if (listeners[i] == PointListener.class)
-	   ((PointListener)listeners[i+1]).onPointEvent(this, pe);
+         if (listeners[i] == PointListener.class)
+          ((PointListener)listeners[i+1]).onPointEvent(this, pe);
      } else {
        //Schedule the next collection
        if (itsPeriod>0) {
-	 itsFirstEpoch = 0;
-	 itsNextEpoch = (new AbsTime()).getValue() + itsPeriod;
+         itsFirstEpoch = 0;
+         itsNextEpoch = (new AbsTime()).getValue() + itsPeriod;
        }
      }
      itsCollecting = false;

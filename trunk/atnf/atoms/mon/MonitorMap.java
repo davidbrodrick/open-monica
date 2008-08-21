@@ -25,13 +25,17 @@ import java.math.BigInteger;
 
 public class MonitorMap
 {
+   /** Archiver used for archiving data to disk, database, etc. */
+   private static PointArchiver theirArchiver;
+
    private static TreeMap itsPointMap = new TreeMap();
+   
+   /** Map of all data sources known to the system. */
    private static TreeMap itsDataSourceMap = new TreeMap();
 
    /** Holds all known <i>'saved setups</i> for the clients to use. */
    private static TreeMap itsSetupMap = new TreeMap();
 
-   private static TreeMap itsMiscMap = new TreeMap();
    private static TreeMap itsPoints = new TreeMap();
 
    private static TreeMap itsSources = new TreeMap();
@@ -58,16 +62,16 @@ public class MonitorMap
      if (t!=null && !t.getChannel().equals("NONE")) {
        DataSource ds = getDataSource(t.getChannel() + pm.getSource());
        if (ds!=null) {
-	 ds.addPoint(pm);
-	 //System.err.println("MonitorMap:addPointMonitor: OK for "
-	 //       	    + pm + " (" + t.getChannel() + pm.getSource() + ")");
+         ds.addPoint(pm);
+         //System.err.println("MonitorMap:addPointMonitor: OK for "
+         //     	    + pm + " (" + t.getChannel() + pm.getSource() + ")");
        } else {
-	 System.err.println("MonitorMap:addPointMonitor: No DataSource for "
-			    + pm + " (" + t.getChannel() + pm.getSource() + ")");
+         System.err.println("MonitorMap:addPointMonitor: No DataSource for "
+                            + pm + " (" + t.getChannel() + pm.getSource() + ")");
        }
      }
      if (pm.getArchive()!=null) {
-       pm.setArchiver(getPointArchiver(PointArchiver.name()));
+       pm.setArchiver(theirArchiver);
      }
    }
    
@@ -89,9 +93,9 @@ public class MonitorMap
          itsPointMap.remove(hashes[i]);
       }
       if (itsSources.get(pm.getSource()) != null)
-	 ((TreeSet)itsSources.get(pm.getSource())).remove(pm.getLongName());
+        ((TreeSet)itsSources.get(pm.getSource())).remove(pm.getLongName());
       if (itsPoints.get(pm.getLongName()) != null)
-	 ((TreeSet)itsPoints.get(pm.getLongName())).remove(pm.getSource());
+        ((TreeSet)itsPoints.get(pm.getLongName())).remove(pm.getSource());
    }
    
    public static synchronized void addDataSource(DataSource source)
@@ -114,14 +118,15 @@ public class MonitorMap
       return MonitorUtils.toStringArray(itsDataSourceMap.keySet().toArray());
    }
 
-   public static synchronized void addPointArchiver(PointArchiver source)
+   /** Specify the archiver to be used for archiving all data. */
+   public static synchronized void setPointArchiver(PointArchiver archiver)
    {
-       itsMiscMap.put(source.name(), source);
+     theirArchiver = archiver;
    }
    
-   public static synchronized PointArchiver getPointArchiver(String name)
+   public static synchronized PointArchiver getPointArchiver()
    {
-      return (PointArchiver)itsMiscMap.get(name);
+      return theirArchiver;
    }
    
    
