@@ -45,28 +45,34 @@ extends Thread
    saveNow(PointMonitor pm, Vector data);
 
 
-   /** Abstract method to extract data from the archive.
-    * @param pm Point to extract data for.
-    * @param start Earliest time in the range of interest.
-    * @param end Most recent time in the range of interest.
-    * @param undersample Undersampling factor.
-    * @return Vector containing all data for the point over the time range. */
-   public abstract
-   Vector
-   extract(PointMonitor pm, AbsTime start, AbsTime end, int undersample);
-
-
    /** Extract data from the archive with no undersampling.
     * @param pm Point to extract data for.
     * @param start Earliest time in the range of interest.
     * @param end Most recent time in the range of interest.
     * @return Vector containing all data for the point over the time range. */
-   public
+   public abstract
    Vector
-   extract(PointMonitor pm, AbsTime start, AbsTime end)
-   {
-     return extract(pm, start, end, 0);
-   }
+   extract(PointMonitor pm, AbsTime start, AbsTime end);
+
+
+   /** Return the last update which preceeds the specified time.
+    * We interpret 'preceeds' to mean data_time<=req_time.
+    * @param pm Point to extract data for.
+    * @param ts Find data preceeding this timestamp.
+    * @return PointData for preceeding update or null if none found. */
+   public abstract
+   PointData
+   getPreceeding(PointMonitor pm, AbsTime ts);
+
+
+   /** Return the first update which follows the specified time.
+    * We interpret 'follows' to mean data_time>=req_time.
+    * @param pm Point to extract data for.
+    * @param ts Find data following this timestamp.
+    * @return PointData for following update or null if none found. */
+   public abstract
+   PointData
+   getFollowing(PointMonitor pm, AbsTime ts);
 
 
    /** Main loop for the archiving thread. */

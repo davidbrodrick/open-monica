@@ -131,9 +131,9 @@ public class PointBuffer
   public static
   Vector
   getPointData(PointMonitor pm,
-	       AbsTime start_time,
-	       AbsTime end_time,
-	       int maxsamples)
+               AbsTime start_time,
+               AbsTime end_time,
+               int maxsamples)
   {
     //Get data from the memory buffer first
     Vector bufdata = getPointDataBuffer(pm, start_time, end_time);
@@ -147,20 +147,47 @@ public class PointBuffer
 
     //OK, we need archived data as well
     PointArchiver arc = MonitorMap.getPointArchiver();
-    Vector arcdata = arc.extract(pm, start_time, end_time, 1);
-    if (arcdata==null) arcdata = new Vector(); //Ensure not null
-
-    //Remove any overlap data (data duplicated in archive and buffer)
-    int cnt = 0;
-    if (bufdata.size()>0) {
-      AbsTime buffer_start = ((PointData)bufdata.firstElement()).getTimestamp();
-      while (arcdata.size()>0 &&
-             ((PointData)arcdata.lastElement()).getTimestamp().isAfterOrEquals(buffer_start)) {
-        arcdata.remove(arcdata.lastElement());
-        cnt++;
+    Vector arcdata = arc.extract(pm, start_time, end_time);
+    if (arcdata==null) {
+      arcdata = new Vector(); //Ensure not null
+    }
+    
+    boolean mergebuffer=true;
+    if (arcdata.size()>0) {
+      //This is what goes on here:
+      //The archive may have a limit on the maximum number of points
+      //it can return to a single query, therefore the data that has
+      //just been retrieved may not be the entire collection within
+      //the time range we requested. If this is the case then we must
+      //not append the latest data from the memory buffer. However
+      //if the archive retrieval is complete, then we may need to append
+      //the updates still buffered in memory.
+      
+      //Check if the archive retrieval was complete by checking if the
+      //datum which follows the last record is also within our time
+      //range.
+      AbsTime lasttime = ((PointData)(arcdata.get(arcdata.size()-1))).getTimestamp();
+      PointData following = arc.getFollowing(pm, lasttime.add(RelTime.factory(1)));
+      if (following!=null && following.getTimestamp().isBeforeOrEquals(end_time)) {
+        //The following data should have been included, therefore we must have
+        //hit the limit. That means we don't wish to append data from the buffer
+        mergebuffer=false;
       }
-      //Add the buffer data to the archive data
-      arcdata.addAll(bufdata);
+    }
+
+    if (mergebuffer) {
+      //Remove any overlap data (data duplicated in archive and buffer)
+      int cnt = 0;
+      if (bufdata.size()>0) {
+        AbsTime buffer_start = ((PointData)bufdata.firstElement()).getTimestamp();
+        while (arcdata.size()>0 &&
+               ((PointData)arcdata.lastElement()).getTimestamp().isAfterOrEquals(buffer_start)) {
+          arcdata.remove(arcdata.lastElement());
+          cnt++;
+        }
+        //Add the buffer data to the archive data
+        arcdata.addAll(bufdata);
+      }
     }
 
     //If a maximum number of samples was specified then down-sample
@@ -210,9 +237,9 @@ public class PointBuffer
   public static
   Vector
   getPointData(String point,
-	       AbsTime start,
-	       AbsTime end,
-	       int sample_rate)
+               AbsTime start,
+               AbsTime end,
+               int sample_rate)
   {
     //Try to get the specified point and check if it was found
     PointMonitor pm = MonitorMap.getPointMonitor(point);
@@ -292,8 +319,8 @@ public class PointBuffer
   public static
   Vector
   getPointDataBuffer(PointMonitor pm,
-		     AbsTime start_time,
-		     AbsTime end_time)
+                     AbsTime start_time,
+                     AbsTime end_time)
   {
     synchronized(bufferTable) {
       Vector data = (Vector)bufferTable.get(pm);
