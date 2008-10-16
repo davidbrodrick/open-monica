@@ -274,7 +274,6 @@ MonitorClientCustom
     Vector res = new Vector();
     AbsTime thisstart = since;
     while (true) {
-      System.err.println("MonitorClientCustom:since1");
       MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart});
       PointData data = makeRequest(req);
       if (data==null || data.getData()==null) break;
@@ -302,7 +301,6 @@ MonitorClientCustom
     Vector res = new Vector();
     AbsTime thisstart = since;
     while (true) {      
-      System.err.println("MonitorClientCustom:since2");
       MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart, new AbsTime(), new Integer(maxsamples)});
       PointData data = makeRequest(req);
       if (data==null || data.getData()==null) break;
@@ -330,7 +328,6 @@ MonitorClientCustom
     Vector res=new Vector();
     AbsTime thisstart=start;
     while (true) {
-      System.err.println("MonitorClientCustom:between1 " + thisstart.toString() + " " + end.toString());
       MonRequest req=new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart, end});
       PointData data=makeRequest(req);
       if (data==null || data.getData()==null) break;
@@ -362,7 +359,6 @@ MonitorClientCustom
     Vector res=new Vector();
     AbsTime thisstart=start;
     while (true) {
-      System.err.println("MonitorClientCustom:between2");
       MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart, end, new Integer(sample_rate)});
       PointData data=makeRequest(req);
       if (data==null || data.getData()==null) break;
