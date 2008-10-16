@@ -15,7 +15,6 @@ import atnf.atoms.mon.translation.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
 import java.io.*;
-//import java.util.zip.*;
 import java.util.*;
 import java.math.BigInteger;
 
@@ -270,10 +269,21 @@ MonitorClientCustom
   Vector
   getPointDataSince(String point, AbsTime since)
   {
-    MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, since});
-    PointData data = makeRequest(req);
-    if (data==null || data.getData()==null) return null;
-    return (Vector)(MonitorUtils.decompress((byte[])(data.getData())));
+    //Server may have limit on number of points returned at once,
+    //therefore go into loop which makes consecutive requests.
+    Vector res = new Vector();
+    AbsTime thisstart = since;
+    while (true) {
+      System.err.println("MonitorClientCustom:since1");
+      MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart});
+      PointData data = makeRequest(req);
+      if (data==null || data.getData()==null) break;
+      Vector thisres=(Vector)(MonitorUtils.decompress((byte[])(data.getData())));
+      res.addAll(thisres);
+      thisstart=((PointData)(thisres.get(thisres.size()-1))).getTimestamp().add(RelTime.factory(1));
+    }
+    if (res.size()==0) res=null;
+    return res;
   }
 
   /** Return data collected since the specified time for the given point.
@@ -287,10 +297,21 @@ MonitorClientCustom
   Vector
   getPointDataSince(String point, AbsTime since, int maxsamples)
   {
-    MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, since, new AbsTime(), new Integer(maxsamples)});
-    PointData data = makeRequest(req);
-    if (data==null || data.getData()==null) return null;
-    return (Vector)(MonitorUtils.decompress((byte[])(data.getData())));
+    //Server may have limit on number of points returned at once,
+    //therefore go into loop which makes consecutive requests.
+    Vector res = new Vector();
+    AbsTime thisstart = since;
+    while (true) {      
+      System.err.println("MonitorClientCustom:since2");
+      MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart, new AbsTime(), new Integer(maxsamples)});
+      PointData data = makeRequest(req);
+      if (data==null || data.getData()==null) break;
+      Vector thisres=(Vector)(MonitorUtils.decompress((byte[])(data.getData())));
+      res.addAll(thisres);
+      thisstart=((PointData)(thisres.get(thisres.size()-1))).getTimestamp().add(RelTime.factory(1));
+    }
+    if (res.size()==0) res=null;
+    return res;
   }
 
 
@@ -304,27 +325,21 @@ MonitorClientCustom
   Vector
   getPointData(String point, AbsTime start, AbsTime end)
   {
-    MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, start, end});
-    PointData data = makeRequest(req);
-    if (data==null || data.getData()==null) return null;
-    return (Vector)(MonitorUtils.decompress((byte[])(data.getData())));
-  }
-
-
-  /** Return archived data for the given point.
-   * @param point Point to get data for. Expected format is
-   *                                     <tt>source.point.name</tt>
-   * @param start The oldest data to be retrieved.
-   * @param end Offset from start of most recent data to retrieve.
-   * @return Data from the archive between the specified times. */
-  public 
-  Vector
-  getPointData(String point, AbsTime start, RelTime end)
-  {
-    MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, start, end});
-    PointData data = makeRequest(req);
-    if (data==null || data.getData()==null) return null;
-    return (Vector)(MonitorUtils.decompress((byte[])(data.getData())));
+    //Server may have limit on number of points returned at once,
+    //therefore go into loop which makes consecutive requests.
+    Vector res=new Vector();
+    AbsTime thisstart=start;
+    while (true) {
+      System.err.println("MonitorClientCustom:between1 " + thisstart.toString() + " " + end.toString());
+      MonRequest req=new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart, end});
+      PointData data=makeRequest(req);
+      if (data==null || data.getData()==null) break;
+      Vector thisres=(Vector)(MonitorUtils.decompress((byte[])(data.getData())));
+      res.addAll(thisres);
+      thisstart=((PointData)(thisres.get(thisres.size()-1))).getTimestamp().add(RelTime.factory(1));
+    }
+    if (res.size()==0) res=null;
+    return res;
   }
 
 
@@ -342,10 +357,21 @@ MonitorClientCustom
   Vector
   getPointData(String point, AbsTime start, AbsTime end, int sample_rate)
   {
-    MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, start, end, new Integer(sample_rate)});
-    PointData data = makeRequest(req);
-    if (data==null || data.getData()==null) return null;
-    return (Vector)(MonitorUtils.decompress((byte[])(data.getData())));
+    //Server may have limit on number of points returned at once,
+    //therefore go into loop which makes consecutive requests.
+    Vector res=new Vector();
+    AbsTime thisstart=start;
+    while (true) {
+      System.err.println("MonitorClientCustom:between2");
+      MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart, end, new Integer(sample_rate)});
+      PointData data=makeRequest(req);
+      if (data==null || data.getData()==null) break;
+      Vector thisres=(Vector)(MonitorUtils.decompress((byte[])(data.getData())));
+      res.addAll(thisres);
+      thisstart=((PointData)(thisres.get(thisres.size()-1))).getTimestamp().add(RelTime.factory(1));
+    }
+    if (res.size()==0) res=null;
+    return res;
   }
 
 

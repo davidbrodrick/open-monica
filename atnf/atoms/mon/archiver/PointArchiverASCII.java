@@ -158,11 +158,10 @@ extends PointArchiver
    * @param pm Point to extract data for.
    * @param start Earliest time in the range of interest.
    * @param end Most recent time in the range of interest.
-   * @param undersample Undersampling factor.
    * @return Vector containing all data for the point over the time range. */
   public
   Vector
-  extract(PointMonitor pm, AbsTime start, AbsTime end, int undersample)
+  extract(PointMonitor pm, AbsTime start, AbsTime end)
   {
     AbsTime starttime = new AbsTime();
     Vector res = new Vector(1000,8000);
@@ -186,6 +185,78 @@ extends PointArchiver
     //System.err.println("Request for " + pm.getName() + " took "
     //                   + (diff.getValue()/1000) + " ms for "
     //                   + res.size() + " records");
+    return res;
+  }
+
+
+  /** Return the last update which preceeds the specified time.
+   * We interpret 'preceeds' to mean data_time<=req_time.
+   * @param pm Point to extract data for.
+   * @param ts Find data preceeding this timestamp.
+   * @return PointData for preceeding update or null if none found. */
+  public
+  PointData
+  getPreceeding(PointMonitor pm, AbsTime ts)
+  {
+    //Get the archive directory for the given point
+    String dir = getDir(pm);
+    //Get any the archive files relevant to the period of interest
+    Vector files = getFiles(dir, ts, ts);
+    
+    //Try to load data from each of the files
+    Vector tempbuf = new Vector(1000,8000);
+    for (int i=0; i<files.size(); i++) {
+      loadFile(tempbuf, pm, dir+FSEP+files.get(i), null, null);
+    }
+    
+    //Try to find the update which preceeds the argument timestamp
+    PointData res=null;
+    for (int i=1; i<tempbuf.size(); i++) {
+      PointData p1=(PointData)(tempbuf.get(i-1));
+      PointData p2=(PointData)(tempbuf.get(i));
+      if (p1.getTimestamp().isBeforeOrEquals(ts) && 
+          p2.getTimestamp().isAfter(ts)) {
+        //This is the datum we were searching for
+        res=p1;
+        break;
+      }
+    }
+    return res;
+  }
+
+
+  /** Return the first update which follows the specified time.
+   * We interpret 'follows' to mean data_time>=req_time.
+   * @param pm Point to extract data for.
+   * @param ts Find data following this timestamp.
+   * @return PointData for following update or null if none found. */
+  public
+  PointData
+  getFollowing(PointMonitor pm, AbsTime ts)
+  {
+    //Get the archive directory for the given point
+    String dir = getDir(pm);
+    //Get any the archive files relevant to the period of interest
+    Vector files = getFiles(dir, ts, ts);
+    
+    //Try to load data from each of the files
+    Vector tempbuf = new Vector(1000,8000);
+    for (int i=0; i<files.size(); i++) {
+      loadFile(tempbuf, pm, dir+FSEP+files.get(i), null, null);
+    }
+    
+    //Try to find the update which preceeds the argument timestamp
+    PointData res=null;
+    for (int i=1; i<tempbuf.size(); i++) {
+      PointData p1=(PointData)(tempbuf.get(i-1));
+      PointData p2=(PointData)(tempbuf.get(i));
+      if (p1.getTimestamp().isBefore(ts) && 
+          p2.getTimestamp().isAfterOrEquals(ts)) {
+        //This is the datum we were searching for
+        res=p2;
+        break;
+      }
+    }
     return res;
   }
 
@@ -447,12 +518,15 @@ extends PointArchiver
    * @param fname Full path to the file to load data from.
    * @param pm PointMonitor we are reconstructing data for.
    * @param pname Name of the monitor point we are loading.
-   * @param start The earliest time of interest.
-   * @param end The most recent time of interest. */
+   * @param start The earliest time of interest, null to ignore.
+   * @param end The most recent time of interest, null to ignore. */
   private
   void
-  loadFile(Vector res, PointMonitor pm, String fname,
-           AbsTime start, AbsTime end)
+  loadFile(Vector res, 
+           PointMonitor pm,
+           String fname,
+           AbsTime start,
+           AbsTime end)
   {
     try {
       //If the file's compressed we need to decompress it first
@@ -471,8 +545,8 @@ extends PointArchiver
         if (pd==null) continue;
         //Check if it's in the right time range
         AbsTime ts = pd.getTimestamp();
-        if (ts.isBefore(start)) continue; //Data's too early
-        if (ts.isAfter(end)) break; //No more useful data in this file
+        if (start!=null && ts.isBefore(start)) continue; //Data's too early
+        if (end!=null && ts.isAfter(end)) break; //No more useful data in this file
         res.add(pd);
         num++;
       }
