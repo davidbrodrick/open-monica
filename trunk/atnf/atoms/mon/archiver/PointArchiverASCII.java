@@ -201,7 +201,7 @@ extends PointArchiver
     //Get the archive directory for the given point
     String dir = getDir(pm);
     //Get any the archive files relevant to the period of interest
-    Vector files = getFiles(dir, ts, ts);
+    Vector files = getFiles(dir, ts.add(RelTime.factory(-60000000)), ts);
     
     //Try to load data from each of the files
     Vector tempbuf = new Vector(1000,8000);
@@ -237,7 +237,9 @@ extends PointArchiver
     //Get the archive directory for the given point
     String dir = getDir(pm);
     //Get any the archive files relevant to the period of interest
-    Vector files = getFiles(dir, ts, ts);
+    Vector files = getFiles(dir, ts, ts.add(RelTime.factory(60000000)));
+    
+    AbsTime.setTheirDefaultFormat(AbsTime.Format.UTC_STRING);
     
     //Try to load data from each of the files
     Vector tempbuf = new Vector(1000,8000);
