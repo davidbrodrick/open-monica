@@ -201,8 +201,11 @@ extends PointArchiver
     //Get the archive directory for the given point
     String dir = getDir(pm);
     //Get any the archive files relevant to the period of interest
-    Vector files = getFiles(dir, ts.add(RelTime.factory(-60000000)), ts);
-    
+    Vector files = getFiles(dir, ts, ts);
+    if (files==null || files.size()==0) return null;
+    //Ensure the preceeding file is also included
+    String preceeding = getPreceedingFile(dir, (String)files.get(0));
+    if (preceeding!=null) files.insertElementAt(preceeding, 0);
     //Try to load data from each of the files
     Vector tempbuf = new Vector(1000,8000);
     for (int i=0; i<files.size(); i++) {
@@ -237,9 +240,11 @@ extends PointArchiver
     //Get the archive directory for the given point
     String dir = getDir(pm);
     //Get any the archive files relevant to the period of interest
-    Vector files = getFiles(dir, ts, ts.add(RelTime.factory(60000000)));
-    
-    AbsTime.setTheirDefaultFormat(AbsTime.Format.UTC_STRING);
+    Vector files = getFiles(dir, ts, ts);
+    if (files==null || files.size()==0) return null;
+    //Ensure the following file is also included
+    String following=getFollowingFile(dir, (String)files.get(files.size()-1));
+    if (following!=null) files.add(following);
     
     //Try to load data from each of the files
     Vector tempbuf = new Vector(1000,8000);
@@ -515,6 +520,105 @@ extends PointArchiver
   }
 
 
+  /** Return the archive file which chronologically follows the argument file.
+   * @param dir Directory which relates to this monitor point.
+   * @param fname The argument file.
+   * @return Next chronological file name, or null if none exist. */
+  private
+  String
+  getFollowingFile(String dir, String fname)
+  {
+    //Get timestamp corresponding to argument file
+    AbsTime argdate = null;
+    if (isCompressed(fname)) {
+      //Remove the ".zip" from the file name so we can parse it
+      argdate = AbsTime.factory(getDateTime(fname.substring(0,fname.length()-4)));
+    } else {
+      argdate = AbsTime.factory(getDateTime(fname));
+    }
+    
+    //Get listing of all files in the archive dir for the given point
+    String[] files = (new File(dir)).list();
+    if (files==null || files.length==0) return null;
+
+    //Map the filenames to dates, and find target file
+    RelTime afterdiff = null;
+    String aftername = null;
+    for (int i=0; i<files.length; i++) {
+      Date date = null;
+      if (isCompressed(files[i])) {
+        //Remove the ".zip" from the file name so we can parse it
+        date = getDateTime(files[i].substring(0,files[i].length()-4));
+      } else {
+        date = getDateTime(files[i]);
+      }
+      if (date==null) {
+        System.err.println("PointArchiverASCII:getFollowingFile: Bad File Name " +
+                           files[i] + " in directory " + dir);
+        continue;
+      }
+      AbsTime thisdate = AbsTime.factory(date);
+      if (thisdate.isAfter(argdate)) {
+        RelTime thisdiff = Time.diff(thisdate, argdate);
+        if (afterdiff==null || thisdiff.getValue()<afterdiff.getValue()) {
+          afterdiff=thisdiff;
+          aftername=files[i];
+        }
+      }
+    }
+    return aftername;
+  }
+
+  /** Return the archive file which chronologically preceeds the argument file.
+   * @param dir Directory which relates to this monitor point.
+   * @param fname The argument file.
+   * @return Previous chronological file name, or null if none exist. */
+  private
+  String
+  getPreceedingFile(String dir, String fname)
+  {
+    //Get timestamp corresponding to argument file
+    AbsTime argdate = null;
+    if (isCompressed(fname)) {
+      //Remove the ".zip" from the file name so we can parse it
+      argdate = AbsTime.factory(getDateTime(fname.substring(0,fname.length()-4)));
+    } else {
+      argdate = AbsTime.factory(getDateTime(fname));
+    }
+    
+    //Get listing of all files in the archive dir for the given point
+    String[] files = (new File(dir)).list();
+    if (files==null || files.length==0) return null;
+
+    //Map the filenames to dates, and find target file
+    RelTime beforediff = null;
+    String beforename = null;
+    for (int i=0; i<files.length; i++) {
+      Date date = null;
+      if (isCompressed(files[i])) {
+        //Remove the ".zip" from the file name so we can parse it
+        date = getDateTime(files[i].substring(0,files[i].length()-4));
+      } else {
+        date = getDateTime(files[i]);
+      }
+      if (date==null) {
+        System.err.println("PointArchiverASCII:getPreceedingFile: Bad File Name " +
+                           files[i] + " in directory " + dir);
+        continue;
+      }
+      AbsTime thisdate = AbsTime.factory(date);
+      if (thisdate.isBefore(argdate)) {
+        RelTime thisdiff = Time.diff(argdate, thisdate);
+        if (beforediff==null || thisdiff.getValue()<beforediff.getValue()) {
+          beforediff=thisdiff;
+          beforename=files[i];
+        }
+      }
+    }
+    return beforename;
+  }
+
+
   /** Load data within the given time range from the file.
    * @param res Vector which holds the loaded data.
    * @param fname Full path to the file to load data from.
@@ -564,6 +668,7 @@ extends PointArchiver
     } catch (Exception e) {
       System.err.println("PointArchiverASCII:loadFile: " + fname + " "
 			 + e.getMessage());
+      e.printStackTrace();
     }
   }
 
@@ -742,15 +847,16 @@ extends PointArchiver
 
   public static final void main(String args[])
   {
-    if (args.length<1) {
+    PointArchiverASCII paa = new PointArchiverASCII();
+    paa.getPreceedingFile("/home/ozforeca/open-monica/archive/weather/in_temp/home/", "20080709-0954.zip");
+    /*if (args.length<1) {
       System.err.println("USAGE: Specify a file to be compressed");
       System.exit(1);
     }
 
     System.out.println("Will compress " + args[0]);
-    PointArchiverASCII paa = new PointArchiverASCII();
     paa.compress(args[0]);
-    paa.decompress(args[0]+".zip");
+    paa.decompress(args[0]+".zip");*/    
   }
 
 }
