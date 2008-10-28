@@ -130,10 +130,10 @@ extends DataSource
         //Create the Channel to connect to the PV.
         Channel thischan=itsContext.createChannel(thispv);
         //Keep this association
-	itsChannelMap.put(thispv, thischan);
+        itsChannelMap.put(thispv, thischan);
       } catch (Exception e) {
-	MonitorMap.logger.error("DataSourceEPICS: Connecting Channel " + thispv + ": " + e.getClass() + " " + e.getMessage());
-	itsChannelMap.put(thispv, null);
+        MonitorMap.logger.error("DataSourceEPICS: Connecting Channel " + thispv + ": " + e.getClass() + " " + e.getMessage());
+        itsChannelMap.put(thispv, null);
       }
     }
 
@@ -143,12 +143,12 @@ extends DataSource
 
       Iterator allchans = itsChannelMap.values().iterator();
       while (allchans.hasNext()) {
-	//Get the next Channel
-	Channel thischan = (Channel)allchans.next();
-	//Create instance to handle updates from this particular point
-	MonUpdater updater = new MonUpdater(thischan.getName());
-	//Subscribe to updates from this PV
-	thischan.addMonitor(Monitor.VALUE, updater);
+        //Get the next Channel
+        Channel thischan = (Channel)allchans.next();
+        //Create instance to handle updates from this particular point
+        MonUpdater updater = new MonUpdater(thischan.getName());
+        //Subscribe to updates from this PV
+        thischan.addMonitor(Monitor.VALUE, updater);
       }
 
       //Get the show on the road
@@ -209,8 +209,10 @@ extends DataSource
               newval=new Double(((double[])rawval)[i]);
             else if (dbr.getType()==DBRType.STRING) 
               newval=((String[])rawval)[i];
-            else
+            else {
+              System.err.println("DataSourceEPICS: " + itsPV + ": Unhandled DBR type: " + dbr.getType());
               MonitorMap.logger.warning("DataSourceEPICS: " + itsPV + ": Unhandled DBR type: " + dbr.getType());
+            }
 
             //System.out.println(itsPV + "\t" + newval);
 
@@ -225,7 +227,8 @@ extends DataSource
           MonitorMap.logger.warning("DataSourceEPICS: " + itsPV + ": " + ev.getStatus());
         }
       } catch (Exception e) {
-         MonitorMap.logger.warning("DataSourceEPICS: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
+        System.err.println("DataSourceEPICS: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
+        MonitorMap.logger.warning("DataSourceEPICS: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
       }
     }
   }

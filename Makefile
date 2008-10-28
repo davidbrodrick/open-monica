@@ -4,7 +4,7 @@
 CLIENT_JAR=monica-client.jar
 SERVER_JAR=monica-server.jar
 
-CLASSPATH=".:caj-1.1.3.jar:jcommon-0.9.1.jar:jfreechart-0.9.16.jar:jca-2.3.1.jar:jep-2.24.jar:jsch-0.1.37.jar"
+CLASSPATH=".:caj-1.1.5.jar:jcommon-0.9.1.jar:jfreechart-0.9.16.jar:jca-2.3.2.jar:jep-2.24.jar:jsch-0.1.37.jar"
 
 CLIENT_FILES =atnf/atoms/mon/*.class \
               atnf/atoms/mon/client/*.class \
