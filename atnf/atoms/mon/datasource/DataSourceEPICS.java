@@ -75,8 +75,10 @@ extends DataSource
       MonitorMap.logger.error("DataSourceEPICS: Constructor: " + e.getClass() + " " + e.getMessage());
     }
 
+    //Create thread to connect channels
     try {
-      connectChannels();
+      ChannelConnector connector = new ChannelConnector();
+      connector.start();
     } catch (Exception e) {
       MonitorMap.logger.error("DataSourceEPICS: Constructor: Connecting Channels: " + e.getClass() + " " + e.getMessage());
     }
@@ -114,49 +116,55 @@ extends DataSource
   }
   
   
-  /** Subscribe to the PV's we are interested in. */
-  protected
-  void
-  connectChannels()
-  throws Exception
-  {
-    Iterator allpvs = itsPVPointMap.keySet().iterator();
-    while (allpvs.hasNext()) {
-      //Get the name of the next PV
-      String thispv = (String)allpvs.next();
-      if (itsChannelMap.get(thispv)!=null) continue;
-      try {
-        //System.err.println("DataSourceEPICS: Connecting channel for " + thispv);
-        //Create the Channel to connect to the PV.
-        Channel thischan=itsContext.createChannel(thispv);
-        //Keep this association
-        itsChannelMap.put(thispv, thischan);
-      } catch (Exception e) {
-        MonitorMap.logger.error("DataSourceEPICS: Connecting Channel " + thispv + ": " + e.getClass() + " " + e.getMessage());
-        itsChannelMap.put(thispv, null);
+  /** Nested threaded class to connect Channels as the IOCs and monitor points become available. */
+  protected class ChannelConnector
+  extends Thread {
+    public void run() {
+      //Thread continues to run until all channels connected
+      while (itsPVPointMap.size()>itsChannelMap.size()) {
+        Iterator allpvs = itsPVPointMap.keySet().iterator();
+        while (allpvs.hasNext()) {
+          //Get the name of the next PV
+          String thispv = (String)allpvs.next();
+          //Don't try to connect if it's already connected
+          if (itsChannelMap.get(thispv)!=null) continue;
+          //Don't try connect if monitor point hasn't been instantiated yet
+          if (MonitorMap.getPointMonitor((String)itsPVPointMap.get(thispv))==null) continue;
+
+          try {
+            //Create the Channel to connect to the PV.
+            Channel thischan=itsContext.createChannel(thispv);
+            try {
+              itsContext.pendIO(5.0);
+            } catch (Exception e) {
+              //Failed to connect: IOC probably isn't running yet
+              System.err.println("DataSourceEPICS: Connecting Channel: " + thispv + e.getClass() + " " + e.getMessage());
+              thischan.destroy();
+              continue;
+            }
+        
+            //Create MonUpdater instance to handle updates from this particular point
+            MonUpdater updater = new MonUpdater(thischan);
+            //Subscribe to updates from this PV
+            thischan.addMonitor(Monitor.VALUE, updater);
+        
+            //Keep this association
+            itsChannelMap.put(thispv, thischan);
+          } catch (Exception e) {
+            System.err.println("DataSourceEPICS: Connecting Channel " + thispv + ": " + e.getClass() + " " + e.getMessage());
+            MonitorMap.logger.error("DataSourceEPICS: Connecting Channel " + thispv + ": " + e.getClass() + " " + e.getMessage());
+          }
+        }
+        
+        try {
+          //Sleep for a while before trying to connect remaining channels
+          RelTime sleepy=RelTime.factory(5000000);
+          sleepy.sleep();
+        } catch (Exception e) {}
       }
     }
-
-    try {
-      //Realise all the connections
-      itsContext.pendIO(5.0);
-
-      Iterator allchans = itsChannelMap.values().iterator();
-      while (allchans.hasNext()) {
-        //Get the next Channel
-        Channel thischan = (Channel)allchans.next();
-        //Create instance to handle updates from this particular point
-        MonUpdater updater = new MonUpdater(thischan.getName());
-        //Subscribe to updates from this PV
-        thischan.addMonitor(Monitor.VALUE, updater);
-      }
-
-      //Get the show on the road
-      itsContext.pendIO(5.0);
-    } catch (Exception e) {
-      MonitorMap.logger.error("DataSourceEPICS: Connecting Channels: " + e.getClass() + " " + e.getMessage());
-    }
-  }
+  };
+  
 
   /** Nested class which received Monitor events for a specific process variable. */
   protected class MonUpdater
@@ -170,16 +178,30 @@ extends DataSource
     String itsName = null;
     /** The monitor point instance itself. */
     PointMonitor itsMonitorPoint = null;
+    /** Channel which connects us to the point. */
+    Channel itsChannel = null;
      
     /** Create new instance to handle updates to the specified PV. */
     public 
-    MonUpdater(String pv)
+    MonUpdater(Channel chan)
     {
-      itsPV=pv;
+      itsChannel=chan;
+      itsPV=itsChannel.getName();
       String mpname=(String)itsPVPointMap.get(itsPV);
       int dot=mpname.indexOf(".");
       itsSource=mpname.substring(0,dot);
       itsName=mpname.substring(dot+1, mpname.length());
+      itsMonitorPoint=MonitorMap.getPointMonitor(itsSource+"."+itsName);
+      
+      //Try to perform a get on the channel
+      try {
+        DBR dbr=itsChannel.get();
+        if (dbr!=null) {
+          processDBR(dbr);
+        }
+      } catch (Exception e) {
+        System.err.println("DataSourceEPICS:MonUpdater: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
+      }
     }
     
     /** Call back for PV updates. */
@@ -188,51 +210,73 @@ extends DataSource
     monitorChanged(MonitorEvent ev)
     {
       try {
-        if (ev.getStatus() == CAStatus.NORMAL) {
-          DBR dbr=ev.getDBR();
-          int count=dbr.getCount();
-          Object rawval=dbr.getValue();
-          for (int i=0; i<count; i++) {
-            //Process each new value
-            Object newval=null;
-            //Have to switch on type, don't think there's any simpler way
-            //to get the individual data as an object type.
-            if (dbr.getType()==DBRType.INT) 
-              newval=new Integer(((int[])rawval)[i]);
-            else if (dbr.getType()==DBRType.BYTE) 
-              newval=new Integer(((byte[])rawval)[i]);
-            else if (dbr.getType()==DBRType.SHORT) 
-              newval=new Integer(((short[])rawval)[i]);
-            else if (dbr.getType()==DBRType.FLOAT) 
-              newval=new Float(((float[])rawval)[i]);
-            else if (dbr.getType()==DBRType.DOUBLE) 
-              newval=new Double(((double[])rawval)[i]);
-            else if (dbr.getType()==DBRType.STRING) 
-              newval=((String[])rawval)[i];
-            else {
-              System.err.println("DataSourceEPICS: " + itsPV + ": Unhandled DBR type: " + dbr.getType());
-              MonitorMap.logger.warning("DataSourceEPICS: " + itsPV + ": Unhandled DBR type: " + dbr.getType());
-            }
-
-            //System.out.println(itsPV + "\t" + newval);
-
-            //Fire new data as an event on our monitor point
-            PointData pd=new PointData(itsName, itsSource, newval);
-            if (itsMonitorPoint==null) {
-              itsMonitorPoint=MonitorMap.getPointMonitor(itsSource+"."+itsName);
-            }
-            itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
-          }
+        if (ev.getStatus()==CAStatus.NORMAL && ev.getDBR()!=null) {
+          processDBR(ev.getDBR());
         } else {
-          MonitorMap.logger.warning("DataSourceEPICS: " + itsPV + ": " + ev.getStatus());
+          //Fire null data to indicate the problem
+          PointData pd=new PointData(itsName, itsSource, null);
+          if (itsMonitorPoint==null) {
+            itsMonitorPoint=MonitorMap.getPointMonitor(itsSource+"."+itsName);
+          }
+          itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
         }
       } catch (Exception e) {
-        System.err.println("DataSourceEPICS: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
+        System.err.println("DataSourceEPICS:monitorChanged: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
         MonitorMap.logger.warning("DataSourceEPICS: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
       }
+    }    
+    
+    /** Process a new DBR. */
+    public
+    void
+    processDBR(DBR dbr)
+    {
+      try {
+        int count=dbr.getCount();
+        Object rawval=dbr.getValue();
+        
+        for (int i=0; i<count; i++) {
+          //Process each new value
+          Object newval=null;        
+          //Have to switch on type, don't think there's any simpler way
+          //to get the individual data as an object type.
+          if (dbr.getType()==DBRType.INT) {
+            newval=new Integer(((int[])rawval)[i]);
+          } else if (dbr.getType()==DBRType.BYTE) {
+            newval=new Integer(((byte[])rawval)[i]);
+          } else if (dbr.getType()==DBRType.SHORT) {
+            newval=new Integer(((short[])rawval)[i]);
+          } else if (dbr.getType()==DBRType.FLOAT) {
+            newval=new Float(((float[])rawval)[i]);
+          } else if (dbr.getType()==DBRType.DOUBLE) {
+            newval=new Double(((double[])rawval)[i]);
+          } else if (dbr.getType()==DBRType.STRING) {
+            newval=((String[])rawval)[i];
+          } else if (dbr.getType()==DBRType.ENUM) {
+            newval=new Integer(((short[])rawval)[i]);
+          } else {
+            System.err.println("DataSourceEPICS:processDBR: " + itsPV + ": Unhandled DBR type: " + dbr.getType());
+            MonitorMap.logger.warning("DataSourceEPICS: " + itsPV + ": Unhandled DBR type: " + dbr.getType());
+          }
+
+          //System.out.println(itsPV + "\t" + newval);
+
+          //Fire new data as an event on our monitor point
+          PointData pd=new PointData(itsName, itsSource, newval);
+          if (itsMonitorPoint==null) {
+            itsMonitorPoint=MonitorMap.getPointMonitor(itsSource+"."+itsName);
+          }
+          if (itsMonitorPoint!=null) {
+            itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
+          }
+        }
+      } catch (Exception e) {
+        System.err.println("DataSourceEPICS:processDBR: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
+        MonitorMap.logger.warning("DataSourceEPICS: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
+        e.printStackTrace();
+      }
     }
-  }
-  
+  };  
   
   /** Collect data and display to STDOUT. */
   public final static
