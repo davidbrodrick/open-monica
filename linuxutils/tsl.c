@@ -176,9 +176,6 @@ int main ( int argc, char *argv[] )
   time_t now;
   struct tm *tm;
   float datum[MAXSENSOR];
-  int gotdata;
-  
-  gotdata=0;
 
   /* reset sensor result array */
   for (i=0; i<MAXSENSOR; i++) {
@@ -187,15 +184,7 @@ int main ( int argc, char *argv[] )
   }
 
   /* allow user to specify alternate serial port as first argument */
-#ifdef TSL_CYGWIN
-  device = "COM1";		/* for CYGWIN build */
-#else
-#ifdef TSL_DJGPP
-  device = "1";			/* for DJGPP build */
-#else
   device = "/dev/ttyS0";	/* for UNIX build */
-#endif
-#endif
   if (argc > 1) {
     device = argv[1];
   }
@@ -205,7 +194,8 @@ int main ( int argc, char *argv[] )
   atexit(serial_halt);
 
   /* get one set of samples */
-  while (!gotdata) {
+  int counter=0;
+  while (counter<MAXSENSOR) {
     /* get a line of data from the sensor */
     p = serial_read(buffer, 128);
 
@@ -241,7 +231,7 @@ int main ( int argc, char *argv[] )
     if (*p != ' ') continue;
 
     /* check for verbose mode additional data, and skip it */
-    if (strlen(p) > 9) p += 11;
+ //   if (strlen(p) > 9) p += 11;
 
     /* read and decode the data */
     p++;
@@ -250,19 +240,19 @@ int main ( int argc, char *argv[] )
     /* we've seen this sensor, start a countdown */
     seen[number] = 5;
 
-    /* display the current samples */
-    for (i=0; i<MAXSENSOR; i++) {
-      if (seen[i]) {
-	printf("%.2f\t", datum[i]);
-	seen[i]--;
-      } else {
-	printf("X\t");
-      }
+    counter++;
+  }    
+  
+  /* display the current samples */
+  for (i=0; i<MAXSENSOR; i++) {
+    if (seen[i]) {
+      printf("%.2f\t", datum[i]);
+      seen[i]--;
+    } else {
+      printf("X\t");
     }
-
-    /* force display to new line */
-    printf("\n");
-    gotdata=1;
   }
+  printf("\n");
+
   return 0;
 }
