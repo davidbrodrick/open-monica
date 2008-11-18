@@ -95,20 +95,21 @@ public class DataSourceWH1081
   createMonitorPoints()
   {
     String[] nullarray={"-"};
+    String[] fifteenmins={"Mean-\"900\"\"F\"", "NumDecimals-\"1\""};
     String[] archivepolicy={"COUNTER-1"};
     String[] archivepolicychange={"CHANGE-"};
     //Inside temperature
     String[] pointnames={itsTreeBase+".in_temp"};
     PointMonitor mp = PointMonitor.factory(pointnames,
                       "Inside temperature", "", "C",
-                      itsSource, "-", nullarray, "-",
+                      itsSource, "-", fifteenmins, "-",
                       archivepolicy, "60000000", true);
     if (mp!=null) MonitorMap.addPointMonitor(mp);
     //Outside temperature
     String[] pointnames2={itsTreeBase+".out_temp"};
     mp = PointMonitor.factory(pointnames2,
                       "Outside temperature", "", "C",
-                      itsSource, "-", nullarray, "-",
+                      itsSource, "-", fifteenmins, "-",
                       archivepolicy, "60000000", true);
     if (mp!=null) MonitorMap.addPointMonitor(mp);
     //Inside humidity
