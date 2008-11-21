@@ -42,7 +42,7 @@ extends Transaction
     for (int i=3; i<tokens.length; i++) {
       String thisstring=tokens[i].trim();
       if (!thisstring.equals("")) {
-	itsStrings.add(thisstring);
+        itsStrings.add(thisstring);
       }
     }
   }
@@ -60,6 +60,13 @@ extends Transaction
   {
     return (String)itsStrings.get(i);
   }
+
+  /** Return the number of strings. */
+	public int
+	getNumStrings()
+	{
+	  return itsStrings.size();
+	}
 
   public static String[] getArgs()
   {

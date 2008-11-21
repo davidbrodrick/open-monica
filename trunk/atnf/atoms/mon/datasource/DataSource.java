@@ -45,15 +45,15 @@ implements Runnable
     long
     getTimeStamp(Object o) {
       if (o instanceof PointInteraction) {
-	return ((PointInteraction)o).getNextEpoch();
+        return ((PointInteraction)o).getNextEpoch();
       } else if (o instanceof AbsTime) {
         return ((AbsTime)o).getValue();
       } else if (o==null) {
-	return 0;
+        return 0;
       } else {
-	System.err.println("DataSource: TimeComp: compare: UNKNOWN TYPE ("
-			   + o.getClass() + ")");
-	return 0;
+         System.err.println("DataSource: TimeComp: compare: UNKNOWN TYPE ("
+                            + o.getClass() + ")");
+         return 0;
       }
     }
 
@@ -65,7 +65,7 @@ implements Runnable
       long val2 = getTimeStamp(o2);
 
       if (val1>val2)
-	return 1;
+        return 1;
       if (val1<val2)
         return -1;
       return 0;
