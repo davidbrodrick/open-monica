@@ -4,7 +4,7 @@
 CLIENT_JAR=monica-client.jar
 SERVER_JAR=monica-server.jar
 
-CLASSPATH=".:caj-1.1.5.jar:jcommon-0.9.1.jar:jfreechart-0.9.16.jar:jca-2.3.2.jar:jep-2.24.jar:jsch-0.1.37.jar"
+CLASSPATH=".:3rdParty/caj-1.1.5.jar:3rdParty/jcommon-0.9.1.jar:3rdParty/jfreechart-0.9.16.jar:3rdParty/jca-2.3.2.jar:3rdParty/jep-2.24.jar:3rdParty/jsch-0.1.37.jar"
 
 CLIENT_FILES =atnf/atoms/mon/*.class \
               atnf/atoms/mon/client/*.class \
@@ -37,8 +37,8 @@ SERVER_FILES =atnf/atoms/mon/*.class \
 
 all: compile
 
-#The compile is sad.. we just compile every java file, which involves a great 
-#deal of repeated compilation for some classes.
+#The build procedure is sad.. we just compile every java file, which involves a great 
+#deal of repeated compilation for some classes. Need to migrate to ant or the like.
 compile:
 	find . -iname "*.java" -exec javac -source 1.4 -target 1.4 -nowarn -classpath ${CLASSPATH} {} \;
         
