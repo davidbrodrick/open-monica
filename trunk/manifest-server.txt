@@ -1,2 +1,2 @@
 Main-Class: atnf.atoms.mon.MonitorMain
-Class-Path: caj-1.1.5.jar jca-2.3.2.jar jep-2.24.jar
+Class-Path: 3rdParty/caj-1.1.5.jar 3rdParty/jca-2.3.2.jar 3rdParty/jep-2.24.jar
