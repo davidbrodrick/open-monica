@@ -371,8 +371,8 @@ extends PointInteraction
       res.append(' ');
       if (itsNames.length > 1) {
          res.append('{');
-	 for (int i = 0; i < itsNames.length - 1; i++) res.append(itsNames[i]+",");
-	 res.append(itsNames[itsNames.length-1]+"}");
+         for (int i = 0; i < itsNames.length - 1; i++) res.append(itsNames[i]+",");
+         res.append(itsNames[itsNames.length-1]+"}");
       } else res.append(itsNames[0]);
       res.append(' ');
       res.append('"');
@@ -415,85 +415,6 @@ extends PointInteraction
       return res.toString();
    }
    
-   /** Allows a point to be changed after creation */
-   public void change(String new_init)
-   {
-      String[] toks = MonitorUtils.getTokens(new_init);
-      if (toks.length != 12) return;
-
-      String lastSTR = getStringEquiv();
-      
-      boolean controlF = (toks[0].equalsIgnoreCase("C")) ? true : false;
-      String[] pointNameArray = getTokens(toks[1]);
-      String pointLongDesc = toks[2];
-      String pointShortDesc = toks[3];
-      String pointUnits = toks[4];
-      String[] pointSourceArray = getTokens(toks[5]);
-      boolean pointEnabled = (toks[6].equalsIgnoreCase("T")) ? true : false;
-      String pointChannel = toks[7];
-      String[] pointTranslate = getTokens(toks[8]);
-      String pointLimits = toks[9];
-      String[] pointArchiveArray = getTokens(toks[10]);
-      String pointPeriod = toks[11];
-      
-      // OK, now lets check the point:
-      if (controlF || pointSourceArray.length != 1) return;
-      // Not allowed to change the names - well not yet anyway.
-      if (pointNameArray.length != itsNames.length) return;
-      for (int i = 0; i < pointNameArray.length; i++)
-         if (!pointNameArray[i].equals(itsNames[i])) return;
-
-      // OK, lets set the data
-      itsLongDesc = pointLongDesc;
-      itsShortDesc = pointShortDesc;
-      itsUnits = pointUnits;
-      
-      setEnabled(pointEnabled);
-      setPeriod(pointPeriod);
-      if (!itsTransaction.getStringEquiv().equals(pointChannel)) setTransaction(Transaction.factory(this, pointChannel));
-
-      //Check if the Translations have changed
-      boolean newtranslations = false;
-      if (pointTranslate.length != itsTranslations.length) {
-        newtranslations = true;
-      } else {
-	for (int i=0; i<itsTranslations.length; i++) {
-	  if (!itsTranslations[i].equals(pointTranslate[i])) {
-	    newtranslations = true;
-	    break;
-	  }
-	}
-      }
-      //If the Translations are different, then use new settings
-      if (newtranslations) {
-	Translation[] translations = new Translation[pointTranslate.length];
-	for (int i=0; i<pointTranslate.length; i++) {
-	  translations[i] = Translation.factory(this, pointTranslate[i]);
-	}
-	setTranslations(translations);
-        setTranslationString(pointTranslate);
-      }
-
-      if (!itsLimits.getStringEquiv().equals(pointTranslate)) setLimits(PointLimit.factory(pointLimits));
-      ArchivePolicy[] archives = new ArchivePolicy[pointArchiveArray.length];
-      for (int i = 0; i < archives.length; i++) archives[i] = ArchivePolicy.factory(pointArchiveArray[i]);
-      setArchive(archives);
-      
-      MonitorUtils.savePoint("Changed Point: "+lastSTR, getStringEquiv());
-   }
-   
-   /** Use at own risk! */
-   public void delete()
-   {
-      MonitorUtils.savePoint("Removed Point", getStringEquiv());
-      MonitorMap.removePointMonitor(this);
-      itsTransaction = null;
-      itsTranslations = null;
-      itsLimits = null;
-      itsArchive = null;
-      itsArchiver = null;
-      itsPLList = null;
-   }
 
    /** Get a basic string representation. */
    public
