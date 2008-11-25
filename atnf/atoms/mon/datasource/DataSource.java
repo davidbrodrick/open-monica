@@ -303,22 +303,25 @@ implements Runnable
      try {
        String[] lines = MonitorUtils.parseFile(sourcefile);
        if (lines != null)
-	 for (int i = 0; i < lines.length; i++) {
-	   try {
-	     StringTokenizer tok = new StringTokenizer(lines[i]);
-	     String className = tok.nextToken();
-	     String classArgs = tok.nextToken();
-	     Class datasource = Class.forName(className);
-	     Constructor con = datasource.getConstructor(new Class[]{String.class});
-	     con.newInstance(new Object[]{classArgs});
-	   } catch (Exception f) {
-	     f.printStackTrace();
-	     MonitorMap.logger.error("Cannot initialise datasource:");
-	   }
-	 }
+       {
+         for (int i = 0; i < lines.length; i++) {
+           try {
+             StringTokenizer tok = new StringTokenizer(lines[i]);
+             String className = tok.nextToken();
+             //Split the arguments into an array at each colon
+             String[] classArgs = tok.nextToken().split(":");
+             Class datasource = Class.forName(className);
+             Constructor con = datasource.getConstructor(new Class[]{String[].class});
+             con.newInstance(new Object[]{classArgs});
+           } catch (Exception f) {
+             f.printStackTrace();
+             MonitorMap.logger.error("DataSource: Cannot Initialise " + lines[i]);
+           }
+         }
+       }
      } catch (Exception e) {
        e.printStackTrace();
-       MonitorMap.logger.error("Cannot initialise datasources");
+       MonitorMap.logger.error("DataSource: Cannot initialise DataSources");
      }
    }
 

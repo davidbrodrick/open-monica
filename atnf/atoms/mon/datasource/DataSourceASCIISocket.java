@@ -64,15 +64,12 @@ extends DataSource
   /** Socket timeout period, in ms. */
   protected int itsTimeout = 5000;
 
-  public DataSourceASCIISocket(String nameOfSource)
+  /** Argument must include channel://host:port:timeout_ms */
+  public DataSourceASCIISocket(String[] args)
   {
-    //Only include protocol and hostname in "channel description"
-    super(nameOfSource.substring(0, nameOfSource.lastIndexOf(":")));
-    //Get the host name and port from the argument string
-    int firstColon=nameOfSource.indexOf(":");
-    int lastColon=nameOfSource.lastIndexOf(":");
-    itsHostName=nameOfSource.substring(firstColon+3, lastColon);
-    itsPort=Integer.parseInt(nameOfSource.substring(lastColon+1));
+    super(args[0]+":"+args[1]+":"+args[2]);
+    itsHostName=args[1];
+    itsPort=Integer.parseInt(args[2]);
   }
 
   /** Set the socket timeout to use (ms). */

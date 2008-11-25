@@ -26,14 +26,11 @@ import atnf.atoms.mon.transaction.TransactionStrings;
  * redirected from the serial port to a socket using something like sredird.
  *
  * <P>Sensor offsets can be removed by using a TranslationEQ to apply the
- * appropriate offset. DS1820B sensors can be used if you use the EQ to
- * divide the temperature by 8 (the output is shifted by 3 bits wrt to the
- * DS1820 sensors). I haven't tested what happens if the temp goes negative
- * with the B sensors yet.
+ * appropriate offset.
  *
- * <P>The constructor only requires <i>hostname:port</i> arguments. For
+ * <P>The constructor requires <i>hostname:port:timeout_ms</i> arguments. For
  * instance your monitor-sources.txt file might contain:<BR>
- * <tt>atnf.atoms.mon.datasource.DataSourceK145 K145://localhost:10000</tt>
+ * <tt>atnf.atoms.mon.datasource.DataSourceK145 K145://localhost:1234:10000</tt>
  *
  * @author David Brodrick
  * @version $Id: $
@@ -51,8 +48,8 @@ extends DataSourceASCIISocket
 	/** Times we last acquired data for each sensor. */
 	private AbsTime[] itsTimes = new AbsTime[theirNumSensors];
 
-  /** Constructor, expects host:port argument. */  
-  public DataSourceK145(String args)
+  /** Constructor, expects host:port:timeout argument. */  
+  public DataSourceK145(String[] args)
   {
     super(args);
 
@@ -61,7 +58,8 @@ extends DataSourceASCIISocket
     worker.start();
   }
 
-  /** Data is pushed, so this method is redundant in this class. */
+  /** Get the latest temperature reading for the sensor number specified in the
+   * monitor point's TransactionString. */
   public
   Object
   parseData(PointMonitor requestor)

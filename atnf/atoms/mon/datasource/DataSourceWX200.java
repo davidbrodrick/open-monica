@@ -13,6 +13,7 @@ import atnf.atoms.time.RelTime;
 import atnf.atoms.mon.*;
 
 /**
+ * Requires hostname:port:timeout_ms:tree_base arguments.
  *
  * @author David Brodrick
  * @version $Id: $
@@ -23,11 +24,11 @@ extends DataSourceASCIISocket
   /** Name hierarchy base location for our output monitor points */
   private String itsTreeBase="weather";
 
-  public DataSourceWX200(String nameOfSource)
+  public DataSourceWX200(String[] args)
   {
-    super(nameOfSource.substring(0,nameOfSource.lastIndexOf(":")));
+    super(args);
 
-    itsTreeBase=nameOfSource.substring(nameOfSource.lastIndexOf(":")+1, nameOfSource.length());
+    itsTreeBase=args[3];
     createMonitorPoints();
     
     //Set a longer socket timeout than the default

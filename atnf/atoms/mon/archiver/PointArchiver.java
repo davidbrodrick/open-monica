@@ -45,7 +45,7 @@ extends Thread
    saveNow(PointMonitor pm, Vector data);
 
 
-   /** Extract data from the archive with no undersampling.
+   /** Extract data from the archive.
     * @param pm Point to extract data for.
     * @param start Earliest time in the range of interest.
     * @param end Most recent time in the range of interest.

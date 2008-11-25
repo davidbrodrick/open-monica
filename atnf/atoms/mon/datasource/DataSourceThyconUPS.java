@@ -55,15 +55,15 @@ extends DataSource
   /** Constructor.
    * @param args
    */
-  public DataSourceThyconUPS(String args)
+  public DataSourceThyconUPS(String[] args)
   {
-    super(args);
+    super(args[0]+":"+args[1]);
 
-    itsHost = args.substring(args.lastIndexOf("/")+1);
+    itsHost = args[1];
   }
 
 
-  /** Establish a new network connection to the lighning detector. */
+  /** Establish a new network connection to the UPS. */
   public
   boolean
   connect()
