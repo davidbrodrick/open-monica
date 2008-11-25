@@ -213,6 +213,15 @@ extends DataSourceASCIISocket
   void
   main(String[] argv)
   {
-    DataSourceNUTUPS ups = new DataSourceNUTUPS("nutups://grunter:3493");
+    if (argv.length<1) {
+      System.err.println("USAGE: Needs hostname:port argument!");
+      System.exit(1);
+    }
+    String[] args=argv[0].split(":");
+    String[] fullargs=new String[3];
+    fullargs[0]="nutups";
+    fullargs[1]=args[0];
+    fullargs[2]=args[1];
+    DataSourceNUTUPS ups = new DataSourceNUTUPS(fullargs);
   }
 }

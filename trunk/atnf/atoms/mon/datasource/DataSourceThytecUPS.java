@@ -195,65 +195,67 @@ extends DataSourceASCIISocket
           }
         }
         try {
-	  //Read a line from the server
-	  String thisline="";
-	  while (true) {
-	    int thischar = itsReader.read();
-	    if (thischar==27) {
-	      String escape="";
-	      //System.out.println("escape");
-	      //Ignore escape sequences
-	      while (true) {
-		thischar=itsReader.read();
-		//System.out.println("{"+thischar + "\t"+(char)thischar+"}");
-		if (thischar>=65 && thischar<=90 || thischar>=97 && thischar<=122) {
-		  //thischar=itsReader.read();
-		  break;
-		}
+          //Read a line from the server
+          String thisline="";
+          while (true) {
+            int thischar = itsReader.read();
+            if (thischar==27) {
+              String escape="";
+              //System.out.println("escape");
+              //Ignore escape sequences
+              while (true) {
+                thischar=itsReader.read();
+                //System.out.println("{"+thischar + "\t"+(char)thischar+"}");
+                if (thischar>=65 && thischar<=90 || thischar>=97 && thischar<=122) {
+                  //thischar=itsReader.read();
+                  break;
+                }
                 escape=escape+(char)thischar;
-	      }
-	      //System.out.println(escape);
-	      //Detect when cursors goes back to home position
-	      if (escape.indexOf("[1;2")!=-1) {
-		//System.out.println("HOME");
-		if (!firstread) {
-		  thisline=thisline.trim();
-		  //System.out.println(thisline);
-		  String version=thisline.substring(0,3)+thisline.substring(32,36);
+              }
+              //System.out.println(escape);
+              //Detect when cursors goes back to home position
+              if (escape.indexOf("[1;2")!=-1) {
+                //System.out.println("HOME");
+                if (!firstread) {
+                  thisline=thisline.trim();
+                  //System.out.println(thisline);
+                  String version=thisline.substring(0,3)+thisline.substring(32,36);
                   HashMap newdata=null;
-		  if (version.equals("3/1V7.2")) {
-		    newdata=parse31V72(thisline);
-		  } else if (version.equals("3/3V3.3")) {
-		    newdata=parse33V33(thisline);
-		  } else {
-		    System.err.println("ThytecUPS: " + itsHostName + ": Unsupported UPS version " + version);
-		  }
-		  //If we got new data then fire it off
-		  if (newdata!=null) {
-		    if (itsMonitorPoint==null) {
-		      itsMonitorPoint=MonitorMap.getPointMonitor(itsMonitorPointName);
-		      if (itsMonitorPoint==null) {
-			MonitorMap.logger.error("MoniCA: ThytecUPS: No monitor point " + itsMonitorPointName);
-			System.err.println("#############MoniCA: ThytecUPS: No monitor point " + itsMonitorPointName);
-		      }
-		    }
+                  if (version.equals("3/1V7.2")) {
+                    newdata=parse31V72(thisline);
+                  } else if (version.equals("3/3V3.3")) {
+                    newdata=parse33V33(thisline);
+                  } else {
+                    System.err.println("ThytecUPS: " + itsHostName + ": Unsupported UPS version " + version);
+                  }
+                  //If we got new data then fire it off
+                  if (newdata!=null) {
+                    if (itsMonitorPoint==null) {
+                      itsMonitorPoint=MonitorMap.getPointMonitor(itsMonitorPointName);
+                      if (itsMonitorPoint==null) {
+                        MonitorMap.logger.error("MoniCA: ThytecUPS: No monitor point " + itsMonitorPointName);
+                        System.err.println("#############MoniCA: ThytecUPS: No monitor point " + itsMonitorPointName);
+                      }
+                    }
                     if (itsMonitorPoint!=null) {
-		      itsMonitorPoint.firePointEvent(new PointEvent(this,
-								    new PointData(itsMonitorPoint.getName(), itsMonitorPoint.getSource(), newdata), true));
-		    }
-		  }
-		} else {
-		  firstread=false;
-		}
-		break;
-	      }
+                      itsMonitorPoint.firePointEvent(new PointEvent(this,
+                             new PointData(itsMonitorPoint.getName(),
+                                           itsMonitorPoint.getSource(), newdata),
+                                           true));
+                    }
+                  }
+                } else {
+                  firstread=false;
+                }
+                break;
+              }
               continue;
-	    }
-	    if (thischar!=0) {
-	      //System.out.println(thischar + "\t"+(char)thischar);
-	      thisline=thisline+(char)thischar;
-	    }
-	  }
+            }
+            if (thischar!=0) {
+              //System.out.println(thischar + "\t"+(char)thischar);
+              thisline=thisline+(char)thischar;
+            }
+          }
         } catch (Exception e) {
           e.printStackTrace();
           try { disconnect(); } catch (Exception f) { }
@@ -261,35 +263,4 @@ extends DataSourceASCIISocket
       }
     }
   }
-
-  public final static
-   void
-   main(String[] argv)
-   {
-     if (argv.length<1) {
-       System.err.println("Missing argument: Needs IP of the UPS serial/ethernet converter");
-       System.exit(1);
-     }
-     DataSourceThytecUPS ups = new DataSourceThytecUPS("thytecups://" + argv[0] + ":foo");
-
-     try {
-       ups.connect();
-/*       while (true) {
-	 ups.parseResponse(ups.sendRequest(OUTCUR), new HashMap());
-	 RelTime sleep = RelTime.factory(5000000);
-	 try {
-           sleep.sleep();
-	 } catch (Exception j) { }
-       }*/
-//       HashMap res = ups.getNewData();
-//       System.err.println("HashMap=" + res);
-     } catch (Exception e) {
-       System.err.println(e.getMessage());
-       System.exit(1);
-     }
-//     System.exit(0);
-
-     while (true);
-   }
-
 }

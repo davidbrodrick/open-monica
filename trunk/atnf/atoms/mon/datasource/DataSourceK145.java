@@ -157,7 +157,15 @@ extends DataSourceASCIISocket
        System.err.println("Missing argument: Needs IP:port of the K145 server");
        System.exit(1);
      }
-     DataSourceK145 k145 = new DataSourceK145("K145://" + argv[0]);
+     //Add static arguments
+     String[] args=argv[0].split(":");
+     String[] fullargs=new String[3];
+     fullargs[0]="K145";
+     fullargs[1]=args[0];
+     fullargs[2]=args[1];
+     fullargs[3]="10000";
+     
+     DataSourceK145 k145 = new DataSourceK145(fullargs);
 
      try {
        k145.connect();

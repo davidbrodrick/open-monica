@@ -121,6 +121,10 @@ implements Runnable
      MonitorMap.addDataSource(this); //Remove this eventually
    }
    
+   public DataSource()
+   {
+   }
+   
 
    /** Start all DataSource collection threads. */
    public static

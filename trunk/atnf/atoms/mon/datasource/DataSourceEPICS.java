@@ -40,10 +40,8 @@ extends DataSource
   /** Mapping between PV names and Channels. */
   HashMap itsChannelMap = new HashMap();
 
-  public DataSourceEPICS(String[] args)
+  public DataSourceEPICS()
   {
-    super(args[0]);
-    
     //Try to read the list of points to monitor
     InputStream mapfile = DataSourceEPICS.class.getClassLoader().getResourceAsStream("monitor-epics.txt");
     System.err.println("DataSourceEPICS: Point map is " + mapfile);
@@ -283,6 +281,6 @@ extends DataSource
   void
   main(String[] argv)
   {
-    DataSourceEPICS epics = new DataSourceEPICS("epics://site");
+    DataSourceEPICS epics = new DataSourceEPICS();
   }
 }

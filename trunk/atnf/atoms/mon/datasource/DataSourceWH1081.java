@@ -62,9 +62,9 @@ public class DataSourceWH1081
   {
     itsSource=args[0];
     itsTreeBase=args[1];
-    itsWindRotation=args[2];
-    itsPresOffset=args[3];
-    itsRainScale=args[4];
+    itsWindRotation=Float.parseFloat(args[2]);
+    itsPresOffset=Float.parseFloat(args[3]);
+    itsRainScale=Float.parseFloat(args[4]);
     System.err.println(itsSource + "\t" + itsTreeBase + "\t" + itsWindRotation + "\t" + itsPresOffset);
     createMonitorPoints();
     
@@ -409,18 +409,4 @@ public class DataSourceWH1081
       }
     }
   }
-
-  public final static
-  void
-  main(String[] argv)
-  {
-     DataSourceWH1081 ups = new DataSourceWH1081("wh1081://site:weather:-45:30");
-
-     while (true) {
-       try {
-         RelTime.factory(5000000).sleep();
-       } catch (Exception e) {}
-     }
-  }
-
 }
