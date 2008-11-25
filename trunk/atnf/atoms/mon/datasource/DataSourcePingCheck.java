@@ -21,9 +21,9 @@ import java.net.*;
 class DataSourcePingCheck
 extends DataSource
 {
-  public DataSourcePingCheck(String nameOfSource)
+  public DataSourcePingCheck(String[] args)
   {
-    super(nameOfSource);
+    super(args[0]);
   }
 
 
@@ -41,11 +41,11 @@ extends DataSource
       String host = ((TransactionStrings)pm.getTransaction()).getString();
       boolean canping = false;
       try {
-	InetAddress address = InetAddress.getByName(host);
-	canping = address.isReachable(10000);
+        InetAddress address = InetAddress.getByName(host);
+        canping = address.isReachable(10000);
       }
       catch (UnknownHostException e) {
-	System.err.println("DataSourcePingCheck: Unknown host \"" + host + "\"");
+        System.err.println("DataSourcePingCheck: Unknown host \"" + host + "\"");
       }
       catch (IOException e) {
         System.err.println("DataSourcePingCheck: Timeout for host \"" + host + "\"");

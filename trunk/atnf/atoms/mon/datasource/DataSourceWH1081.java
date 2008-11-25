@@ -58,20 +58,13 @@ public class DataSourceWH1081
   /** Average wind speed over previous 15min. */
   protected float itsDirAvgL = 0.0f;
 
-  public DataSourceWH1081(String nameOfSource)
+  public DataSourceWH1081(String[] args)
   {
-//    super(nameOfSource.substring(0,nameOfSource.lastIndexOf(":")));
-    int col1 = nameOfSource.indexOf(":");
-    int col2 = nameOfSource.indexOf(":", col1+1);
-    int col3 = nameOfSource.indexOf(":", col2+1);
-    int col4 = nameOfSource.indexOf(":", col3+1);
-    int col5 = nameOfSource.indexOf(":", col4+1);
-        
-    itsSource=nameOfSource.substring(nameOfSource.lastIndexOf("/")+1, col2);
-    itsTreeBase=nameOfSource.substring(col2+1, col3);
-    itsWindRotation=Float.parseFloat(nameOfSource.substring(col3+1, col4));
-    itsPresOffset=Float.parseFloat(nameOfSource.substring(col4+1, col5));
-    itsRainScale=Float.parseFloat(nameOfSource.substring(col5+1, nameOfSource.length()));
+    itsSource=args[0];
+    itsTreeBase=args[1];
+    itsWindRotation=args[2];
+    itsPresOffset=args[3];
+    itsRainScale=args[4];
     System.err.println(itsSource + "\t" + itsTreeBase + "\t" + itsWindRotation + "\t" + itsPresOffset);
     createMonitorPoints();
     

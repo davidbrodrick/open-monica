@@ -40,9 +40,9 @@ extends DataSource
   /** Mapping between PV names and Channels. */
   HashMap itsChannelMap = new HashMap();
 
-  public DataSourceEPICS(String nameOfSource)
+  public DataSourceEPICS(String[] args)
   {
-    super(nameOfSource);
+    super(args[0]);
     
     //Try to read the list of points to monitor
     InputStream mapfile = DataSourceEPICS.class.getClassLoader().getResourceAsStream("monitor-epics.txt");

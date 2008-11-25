@@ -18,6 +18,9 @@ import atnf.atoms.mon.util.*;
 import atnf.atoms.mon.transaction.*;
 
 /**
+ * Discover and monitor UPSs from a NUT UPS monitor daemon.
+ *
+ * <BR>Constructor requires channel:hostname:port:timeout_ms arguments.
  *
  * @author David Brodrick
  * @version $Id: $
@@ -33,7 +36,7 @@ extends DataSourceASCIISocket
   /** Constructor.
    * @param args
    */
-  public DataSourceNUTUPS(String args)
+  public DataSourceNUTUPS(String[] args)
   {
     super(args);
     

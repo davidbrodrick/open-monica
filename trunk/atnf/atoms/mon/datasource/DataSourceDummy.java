@@ -20,9 +20,9 @@ import atnf.atoms.mon.*;
 class DataSourceDummy
 extends DataSource
 {
-  public DataSourceDummy(String nameOfSource)
+  public DataSourceDummy(String[] args)
   {
-    super(nameOfSource);
+    super(args);
   }
    
   protected

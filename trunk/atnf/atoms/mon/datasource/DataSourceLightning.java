@@ -43,9 +43,9 @@ extends DataSource
    /** Constructor.
     * @param args
     */
-   public DataSourceLightning(String args)
+   public DataSourceLightning(String[] args)
    {
-     super(args);
+     super(args[0]);
 
      itsHost = args.substring(args.lastIndexOf("/")+1);
    }

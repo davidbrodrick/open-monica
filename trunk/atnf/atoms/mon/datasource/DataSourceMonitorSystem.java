@@ -57,18 +57,16 @@ class DataSourceMonitorSystem extends DataSource
 
   /** Constructor */
   public
-  DataSourceMonitorSystem(String info)
+  DataSourceMonitorSystem(String[] tokens)
   {
     super("MONITORMonitor");
 
-    String[] tokens = MonitorUtils.getTokens(info);
-
     if (tokens==null) {
       System.err.println("DataSourceMonitorSystem: Got null Arguments: "
-			 + "Can't Monitor DataSources");
+                         + "Can't Monitor DataSources");
     } else if (tokens.length<4) {
-      System.err.println("DataSourceMonitorSystem: Got " + tokens.length +
-			 " Arguments: Can't Monitor DataSources");
+      System.err.println("DataSourceMonitorSystem: Got " + tokens.length
+                         + " Arguments: Can't Monitor DataSources");
     } else {
       //Get the two mandatory arguments
       itsPrefix = tokens[0];
@@ -77,18 +75,18 @@ class DataSourceMonitorSystem extends DataSource
       itsParentNT = tokens[3];
       //Read the mapping between channels and descriptions
       for (int i=4; i<tokens.length; i++) {
-	//Check for the :
-	int colonindex = tokens[i].indexOf(":");
-	if (colonindex==-1) {
-	  System.err.println("DataSourceMonitorSystem: Expected " +
-			     "<channel>:<description>");
-	  continue;
-	}
-	String channel = tokens[i].substring(0, colonindex);
-	String descrip = tokens[i].substring(colonindex+1);
-	//Save the mapping for later use
-	itsMappings.put(channel, descrip);
-	//System.err.println("###" + channel + " => " + descrip);
+        //Check for the :
+        int colonindex = tokens[i].indexOf(":");
+        if (colonindex==-1) {
+          System.err.println("DataSourceMonitorSystem: Expected " +
+                             "<channel>:<description>");
+          continue;
+        }
+        String channel = tokens[i].substring(0, colonindex);
+        String descrip = tokens[i].substring(colonindex+1);
+        //Save the mapping for later use
+        itsMappings.put(channel, descrip);
+        //System.err.println("###" + channel + " => " + descrip);
       }
     }
     MonitorMap.addDataSource(this);

@@ -43,11 +43,11 @@ extends DataSourceASCIISocket
   /** Monitor point we fire updates to */
   private PointMonitor itsMonitorPoint=null;
 
-  public DataSourceThytecUPS(String nameOfSource)
+  public DataSourceThytecUPS(String[] args)
   {
-    super(nameOfSource.substring(0,nameOfSource.lastIndexOf(":")));
+    super(args);
 
-    itsMonitorPointName=nameOfSource.substring(nameOfSource.lastIndexOf(":")+1, nameOfSource.length());
+    itsMonitorPointName=args[4];
 
     //Start the thread that reads the data as it comes in
     DataReader worker = new DataReader();
