@@ -7,20 +7,14 @@
 
 package atnf.atoms.mon.util;
 
-import atnf.atoms.util.*;
 import java.io.*;
-import java.math.*;
 import java.util.*;
-import java.lang.reflect.*;
 import atnf.atoms.mon.*;
-import javax.crypto.*;
-import javax.crypto.spec.*;
-import java.security.*;
-import java.security.spec.*;
 import java.util.zip.*;
 
 /**
  * Contains static methods that may be useful.
+ *
  * @author Le Cuong Nguyen
  */
 public abstract class MonitorUtils
@@ -51,12 +45,15 @@ public abstract class MonitorUtils
       StringTokenizer tok = new StringTokenizer(line, "\"");
       String[] res = new String[tok.countTokens()];
       for (int i = 0; tok.hasMoreTokens(); i++) res[i] = tok.nextToken();
+      System.err.println("tokToStringArray: " + line);
+      for (int i=0; i<res.length; i++)
+        System.err.println("\t" + res[i]);
       return res;
    }
    
 
-   /** breaks a line up into tokens, uses whitespaces and braces are token
-   markers */
+   /** Break a line into tokens, uses whitespaces and braces as token
+    * markers. */
    public static String[] getTokens(String line)
    {
       Vector res = new Vector();
