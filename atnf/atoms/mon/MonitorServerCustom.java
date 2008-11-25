@@ -16,7 +16,6 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 import java.util.zip.*;
-//import org.patrice_espie.stream.*;
 
 /**
  * Provides network access to the server using a custom encoding scheme based
@@ -96,27 +95,27 @@ implements Runnable
     if (req.Args.length==1) {
       if (req.Args[0] instanceof String) {
         //Latest data for a single point
-	return PointBuffer.getPointData((String)req.Args[0]);
+        return PointBuffer.getPointData((String)req.Args[0]);
       } else if (req.Args[0] instanceof Vector) {
-	//Latest data for a batch of points
-	Vector arg = (Vector)req.Args[0];
-	if (arg==null || arg.size()==0) return null;
-	Vector res = new Vector(arg.size());
+        //Latest data for a batch of points
+        Vector arg = (Vector)req.Args[0];
+        if (arg==null || arg.size()==0) return null;
+        Vector res = new Vector(arg.size());
         //Get the latest value for each
-	for (int i=0; i<arg.size(); i++) {
-	  try {
-	    String point = (String)arg.get(i);
-	    PointData val = PointBuffer.getPointData(point);
+        for (int i=0; i<arg.size(); i++) {
+          try {
+            String point = (String)arg.get(i);
+            PointData val = PointBuffer.getPointData(point);
             res.add(val);
-	  } catch (Exception e) {
-	    e.printStackTrace();
-	    res.add(null);
-	  }
-	}
-	return new PointData(res);
+          } catch (Exception e) {
+            e.printStackTrace();
+            res.add(null);
+          }
+        } 
+        return new PointData(res);
       } else {
-	System.err.println("MonitorServerCustom: Unexpected Argument...");
-	return null;
+        System.err.println("MonitorServerCustom: Unexpected Argument...");
+        return null;
       }
     }
 
@@ -126,28 +125,28 @@ implements Runnable
       AbsTime start_time = (AbsTime)req.Args[1];
 
       if (req.Args.length==2) {
-	//Client wants all data SINCE the given time
-	end_time = AbsTime.factory();
+        //Client wants all data SINCE the given time
+        end_time = AbsTime.factory();
       } else if (req.Args[2] instanceof RelTime) {
-	//3rd arg is a RelTime
-	if (!start_time.isASAP()) {
-	  end_time = start_time.add((RelTime)req.Args[2]);
-	} else {
-	  end_time = AbsTime.factory();
-	}
+        //3rd arg is a RelTime
+        if (!start_time.isASAP()) {
+          end_time = start_time.add((RelTime)req.Args[2]);
+        } else {
+          end_time = AbsTime.factory();
+        }
       } else {
         //3rd arg is another AbsTime
-	end_time = (AbsTime)req.Args[2];
+        end_time = (AbsTime)req.Args[2];
       }
 
       Vector res = null;
       if (req.Args.length==4 && req.Args[3] instanceof Integer) {
-	//A resampling interval has been specified
-	res = PointBuffer.getPointData((String)req.Args[0], start_time,
-     			       end_time, ((Integer)req.Args[3]).intValue());
+        //A resampling interval has been specified
+        res = PointBuffer.getPointData((String)req.Args[0], start_time,
+                          end_time, ((Integer)req.Args[3]).intValue());
       } else {
-	res = PointBuffer.getPointData((String)req.Args[0], start_time,
-				       end_time, 0);
+        res = PointBuffer.getPointData((String)req.Args[0], start_time,
+                                       end_time, 0);
       }
       //We got the requested data, now return it
       return new PointData(MonitorUtils.compress(res));
@@ -201,11 +200,11 @@ implements Runnable
       if (points==null || points.size()==0) return null;
       Vector res = new Vector(points.size());
       for (int i=0; i<points.size(); i++) {
-	if (points.get(i)!=null && points.get(i) instanceof String) {
-	  String[] sources = MonitorMap.getSources((String)points.get(i));
-	  if (sources==null || sources.length==0) res.add(null);
+        if (points.get(i)!=null && points.get(i) instanceof String) {
+          String[] sources = MonitorMap.getSources((String)points.get(i));
+          if (sources==null || sources.length==0) res.add(null);
           else res.add(sources);
-	} else res.add(null);
+        } else res.add(null);
       }
       return new PointData(res);
     } else {
@@ -236,16 +235,8 @@ implements Runnable
 				  + " added " + points.size()
 				  + " new points");
 
-    //Make the point/s
-    for (int i=0; i<points.size(); i++) {
-      if ((points.get(i) instanceof PointMonitor)) {
-        //Ensure the information gets saved to a file
-	MonitorUtils.savePoint("Added Point",
-	       ((PointMonitor)points.get(i)).getStringEquiv());
-	//Add the point to the system
-        MonitorMap.addPointMonitor((PointMonitor)points.get(i));
-      }
-    }
+    System.err.println("MonitorServerCustom:addPoint: UNIMPLEMENTED!!!");
+
     return new PointData(new Boolean(true));
   }
 
@@ -263,15 +254,13 @@ implements Runnable
 
       Vector res = new Vector(arg.size());
       for (int i=0; i< arg.size(); i++) {
-	PointMonitor pm = MonitorMap.getPointMonitor((String)arg.get(i));
-	if (pm==null) {
-	  //Wasn't found
-	  //System.err.println("MonitorServerCustom:getPoint: NO POINT \""
-	  //      	     + (String)arg.get(i) + "\"");
-	  res.add(null);
-	} else {
-	  res.add(pm.getStringEquiv());
-	}
+        PointMonitor pm = MonitorMap.getPointMonitor((String)arg.get(i));
+        if (pm==null) {
+          //Wasn't found
+          res.add(null);
+        } else {
+          res.add(pm.getStringEquiv());
+        }
       }
       return new PointData(res);
     } else if (req.Args[0] instanceof String) {
@@ -304,7 +293,7 @@ implements Runnable
     if (!atnf.atoms.mon.util.Authenticator.checkAll(username, password))
       return null;
 
-    MonitorMap.getPointMonitor((String)req.Args[0]).change((String)req.Args[1]);
+    System.err.println("MonitorClientCustom:setPoint: UNIMPLEMENTED!");
     return new PointData(new Boolean(true));
   }
 
@@ -334,23 +323,21 @@ implements Runnable
 
       Vector res = new Vector(arg.size());
       for (int i=0; i< arg.size(); i++) {
-	PointInteraction pm = MonitorMap.getPointInteraction((String)arg.get(i));
-	if (pm==null) {
-	  //Wasn't found
-	  res.add(null);
-	} else {
-	  res.add(pm.getTransactionString());
-	}
+        PointInteraction pm = MonitorMap.getPointInteraction((String)arg.get(i));
+        if (pm==null) {
+          //Wasn't found
+          res.add(null);
+        } else {
+          res.add(pm.getTransactionString());
+        }
       }
       return new PointData(res);
     } else if (req.Args[0] instanceof String) {
       //Single point was requested
       PointInteraction pm = MonitorMap.getPointInteraction((String)req.Args[0]);
       if (pm==null) {
-	//Wasn't found
-	//System.err.println("MonitorServerCustom:getPoint: NO POINT \""
-	//+ (String)req.Args[0] + "\"");
-	return null;
+        //Wasn't found
+        return null;
       }
       System.err.println("Got request for Transaction:");
       System.err.println("pm=" + pm);
@@ -380,20 +367,20 @@ implements Runnable
 
       Vector res = new Vector(arg.size());
       for (int i=0; i< arg.size(); i++) {
-	PointInteraction pm = MonitorMap.getPointInteraction((String)arg.get(i));
-	if (pm==null) {
-	  //Wasn't found
-	  res.add(null);
-	} else {
-	  res.add(pm.getTranslationString());
-	}
+        PointInteraction pm = MonitorMap.getPointInteraction((String)arg.get(i));
+        if (pm==null) {
+          //Wasn't found
+          res.add(null);
+        } else {
+          res.add(pm.getTranslationString());
+        }
       }
       return new PointData(res);
     } else if (req.Args[0] instanceof String) {
       //Single point was requested
       PointInteraction pm = MonitorMap.getPointInteraction((String)req.Args[0]);
       if (pm==null) {
-	return null;
+        return null;
       }
       return new PointData(pm.getTranslationString());
     } else {
