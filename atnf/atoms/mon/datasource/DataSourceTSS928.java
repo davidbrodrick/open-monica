@@ -18,105 +18,78 @@ import atnf.atoms.mon.util.*;
 import atnf.atoms.mon.transaction.*;
 
 /**
- * DataSource to retrieve and process lighning strike data. The output
- * of the lightning detector is available on the ethernet via a
- * serial/ethernet converter.
+ * DataSource to retrieve and process data from a Vaisala TSS928 lightning
+ * detector. This expects the unit is connected to a device or program which
+ * allows two directional communications over a socket.<BR>
+ *
+ * The constructor requires tss928:hostname:port:timeout_ms:rotation arguments.
+ * The rotation argument, in degrees, is optional and allows the unit to
+ * compensate for an incorrect orientation.
  *
  * @author David Brodrick
- * @version $Id: DataSourceLightning.java,v 1.10 2008/02/08 01:03:14 bro764 Exp $
  **/
-class DataSourceLightning
-extends DataSource
+class DataSourceTSS928
+extends DataSourceASCIISocket
 {
-  /** The socket connection to the serial/ethernet converter. */
-  private Socket itsSocket = null;
-  /** Network port to connect to. */
-  private int itsPort = 6000;
-  /** Name of remote host to connect to. */
-  private String itsHost = null;
-
-  /** InputStream for reading data. */
-  protected BufferedReader itsReader = null;
-  /** OutputStream for sending commands. */
-  protected PrintStream itsWriter = null;
-
+   /** Rotation correction for orientation of detector. */
+   private float itsRotation=0.0f;
+   
    /** Constructor.
     * @param args
     */
-   public DataSourceLightning(String[] args)
+   public DataSourceTSS928(String[] args)
    {
-     super(args[0]);
-
-     itsHost = args.substring(args.lastIndexOf("/")+1);
+     super(args);
+     
+     //Check for optional rotation argument
+     if (args.length==5) {
+       try {
+         itsRotation=Float.parseFloat(args[4]);
+       } catch (Exception e) {
+         System.err.println("DataSourceTSS928: Error parsing rotation argument!");
+       }
+     }
    }
 
 
-   /** Establish a new network connection to the lighning detector. */
+   /** Establish a new network connection to the lighnting detector. */
    public
    boolean
    connect()
    throws Exception
    {
     try {
-      itsSocket = new Socket(itsHost, itsPort);
-      itsSocket.setSoTimeout(10000); ///Ten second timeout.
-      itsConnected = true;
-      itsReader = new BufferedReader(new InputStreamReader(
-                                     itsSocket.getInputStream()));
-      itsWriter = new PrintStream(itsSocket.getOutputStream());
-
+      super.connect();
       //Ensure it's set to poll-only mode
-      itsWriter.print("H 0\r\n");
+      itsWriter.write("H 0\r\n");
       itsReader.readLine();
       //Ensure it's set to 15-minute strike expiry age
-      itsWriter.print("J 1\r\n");
+      itsWriter.write("J 1\r\n");
       itsReader.readLine();
-
-      System.err.println("DataSourceLightning: Connected to " + itsHost);
-      MonitorMap.logger.information("DataSourceLightning: Connected to "
-                                    + itsHost);
-      //Reset the transaction counter
-      itsNumTransactions = 0; 
     } catch (Exception e) {
       try {
-	if (itsSocket!=null) itsSocket.close();
+        if (itsSocket!=null) itsSocket.close();
       } catch (Exception f) { }
       itsSocket = null;
       itsReader = null;
       itsConnected  = false;
-      System.err.println("DataSourceLightning: Couldn't Connect: "
-			 + e.getMessage());
+      System.err.println("DataSourceTSS928: Couldn't Connect: "
+                         + e.getMessage());
     }
     return itsConnected;
    }
 
 
-   /** Close the network connection to the lightning detector. */
+   /** Query detector and parse data into HashMap for monitor point to
+    * use as data. */
    public
-   void
-   disconnect()
-   throws Exception
-   {
-     System.err.println("DataSourceLightning: Lost Connection");
-     itsConnected = false;
-     if (itsSocket!=null) itsSocket.close();
-     itsSocket = null;
-     itsReader = null;
-     itsWriter = null;
-   }
-
-
-   /** Do the actual network transactions and parse the output of the
-    * lightning detector into a HashMap that can be used by other monitor
-    * points. */
-   private
-   HashMap
-   getNewData()
+   Object
+   parseData(PointMonitor requestor)
    throws Exception
    {
      if (!itsConnected) throw new Exception("Not connected to lightning detector");
 
-     itsWriter.print("A\r\n");
+     itsWriter.write("A\r\n");
      String line1 = itsReader.readLine();
      if (line1.startsWith("P")) {
        //It's an automatic status message, need to discard it
@@ -299,7 +272,7 @@ extends DataSource
      res.put("EBRATIO", ebrat);
 
      //Next we do a separate command to get the system run-time
-     itsWriter.print("F\r\n");
+     itsWriter.write("F\r\n");
      String line4 = itsReader.readLine();
      if (line4.startsWith("P")) {
        //It's an automatic status message, need to discard it
@@ -332,61 +305,28 @@ extends DataSource
      return res;
    }
 
-
-
-   public 
-   void
-   getData(Object[] points)
-   throws Exception
-   {
-     //Precondition
-     if (points==null || points.length==0) return;
-     //Increment transaction counter
-     itsNumTransactions += points.length;
-
-     //Try to get the new data and force a reconnect if the read times out
-     HashMap newdata = null;
-     try {
-       if (itsConnected) newdata = getNewData();
-     } catch (Exception e) {
-       try {
-	 System.err.println("DatasourceLightning: " + e.getMessage());
-	 disconnect();
-       } catch (Exception f) { }
-     }
-     //If the response was null then there must have been a parse error
-     //this tends to happen after a power glitch when the detector gets
-     //power cycled and spits out a heap of rubbish characters that then
-     //get buffered by the media converter. Let's force a reconnect and
-     //make sure the buffer has been flushed.
-     if (newdata==null) {
-       try {
-	 System.err.println("DatasourceLightning: Parse error..");
-	 disconnect();
-       } catch (Exception e) { }
-     }
-
-     //Fire off the new data
-     for (int i=0; i<points.length; i++) {
-       PointInteraction pm = (PointInteraction)points[i];
-       PointData pd = new PointData(pm.getName(), pm.getSource(), newdata);
-       pm.firePointEvent(new atnf.atoms.mon.PointEvent(this, pd, true));
-     }
-   }
-
+   
+   /** Test program. */
    public final static
    void
    main(String[] argv)
    {
      if (argv.length<1) {
-       System.err.println("Missing argument: Needs IP of lightning detector");
+       System.err.println("Missing argument: Needs host:port argument");
        System.exit(1);
      }
-     DataSourceLightning bang = new DataSourceLightning("lightning://" + argv[0]);
+     
+     String[] args=argv[0].split(":");
+     String[] fullargs=new String[4];
+     fullargs[0]="tss928";
+     fullargs[1]=args[0];
+     fullargs[2]=args[1];
+     fullargs[3]="10000";
+     DataSourceTSS928 bang = new DataSourceTSS928(args);
 
      try {
        bang.connect();
-       HashMap res = bang.getNewData();
+       HashMap res = (HashMap)bang.parseData(null);
        System.err.println("HashMap=" + res);
      } catch (Exception e) {
        System.err.println(e.getMessage());

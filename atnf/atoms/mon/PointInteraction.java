@@ -350,16 +350,17 @@ implements ActionListener, NamedObject, Comparable
        boolean[] pointEnabledArray = parseBoolean(pointEnabled);
        if (pointEnabled.length() < pointSourceArray.length) {
           boolean[] temp = new boolean[pointSourceArray.length];
-	  for (int i = 0; i < temp.length; i++) temp[i] = pointEnabledArray[0];
-	  pointEnabledArray = temp;
+          for (int i = 0; i < temp.length; i++) temp[i] = pointEnabledArray[0];
+          pointEnabledArray = temp;
        }
 
        if (pointChannelArray.length < pointSourceArray.length) {
           String[] temp = new String[pointSourceArray.length];
-          for (int i = 0; i < pointSourceArray.length; i++)
-	     if (i < pointChannelArray.length) temp[i] = pointChannelArray[i];
-	     else temp[i] = pointChannelArray[pointChannelArray.length-1];
-	  pointChannelArray = temp;
+          for (int i = 0; i < pointSourceArray.length; i++) {
+            if (i < pointChannelArray.length) temp[i] = pointChannelArray[i];
+            else temp[i] = pointChannelArray[pointChannelArray.length-1];
+          }
+          pointChannelArray = temp;
        }
 
 /*       if (pointTranslateArray.length < pointSourceArray.length) {

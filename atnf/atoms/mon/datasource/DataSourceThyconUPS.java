@@ -528,23 +528,22 @@ extends DataSource
    main(String[] argv)
    {
      if (argv.length<1) {
-       System.err.println("Missing argument: Needs IP of the UPS serial/ethernet converter");
+       System.err.println("Missing argument: Needs hostname:port of the socket!");
        System.exit(1);
      }
-     DataSourceThyconUPS ups = new DataSourceThyconUPS("thyconups://" + argv[0]);
+     //Add static arguments
+     String[] args=argv[0].split(":");
+     String[] fullargs=new String[4];
+     fullargs[0]="thyconups";
+     fullargs[1]=args[0];
+     fullargs[2]=args[1];
+     fullargs[3]="30000";
+     
+     DataSourceThyconUPS ups = new DataSourceThyconUPS(fullargs);
 
-     //ups.toFloat((byte)8, (byte)0, (byte)3, (byte)0xF);
-    // System.exit(0);
 
      try {
        ups.connect();
-/*       while (true) {
-	 ups.parseResponse(ups.sendRequest(OUTCUR), new HashMap());
-	 RelTime sleep = RelTime.factory(5000000);
-	 try {
-           sleep.sleep();
-	 } catch (Exception j) { }
-       }*/
        HashMap res = ups.getNewData();
        System.err.println("HashMap=" + res);
      } catch (Exception e) {

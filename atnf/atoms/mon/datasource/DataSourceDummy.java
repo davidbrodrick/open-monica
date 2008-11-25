@@ -22,7 +22,7 @@ extends DataSource
 {
   public DataSourceDummy(String[] args)
   {
-    super(args);
+    super(args[0]);
   }
    
   protected

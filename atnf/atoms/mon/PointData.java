@@ -146,6 +146,7 @@ public class PointData implements Serializable
    public PointData(Object data)
    {
      itsData = data;
+     itsTimestamp = AbsTime.factory();
    }
 
 
