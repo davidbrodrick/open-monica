@@ -29,6 +29,7 @@ Please maintain lists in lexigraphic order.
 || NV || Retrieve one named element from a HashMap or NameValueList input object. || *Name:* The key for the value we wish to extract. ||
 || None || Just returns the input argument. || ||
 || !NumDecimals || Limit the number of decimals in a floating point number. || *Decimals:* The maximum number of non-zero digits after the decimal place. ||
+|| !PeakDetect || Find the peak of the input over a time period. || *Period:* Period to perform the peak detection over, in seconds. ||
 || Polynomial || Apply an arbitrary order polynomial to the input. || *Order:* First argument is the order of the polynomial. *Offset:* Value of the 0th order term. *Coefficients:* Include one additional coefficient argument for every term in the polynomial. ||
 || Ratio || !DualListen implementation which produces the ratio of two other points.|| *Numerator:* Name of the point to be used as numerator. *Divisor:* Name of point to be used as the divisor. ||
 || !StringToArray || Break the input String into an array of tokens. || *Regexp:* Delimiter for splitting string, as used by the Java String.split method. If no argument is given the space character is used by default. ||
