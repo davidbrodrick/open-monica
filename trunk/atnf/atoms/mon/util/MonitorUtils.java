@@ -45,9 +45,6 @@ public abstract class MonitorUtils
       StringTokenizer tok = new StringTokenizer(line, "\"");
       String[] res = new String[tok.countTokens()];
       for (int i = 0; tok.hasMoreTokens(); i++) res[i] = tok.nextToken();
-      System.err.println("tokToStringArray: " + line);
-      for (int i=0; i<res.length; i++)
-        System.err.println("\t" + res[i]);
       return res;
    }
    
