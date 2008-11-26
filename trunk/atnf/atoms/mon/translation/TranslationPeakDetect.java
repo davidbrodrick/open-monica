@@ -30,7 +30,7 @@ extends Translation
   protected Vector itsBuffer = new Vector();
 
   /** Period to measure the peak over. */
-  protected RelTime itsPeriod = RelTime.factory(60000000l);
+  protected RelTime itsPeriod = RelTime.factory(-60000000l);
 
   protected static String[] itsArgs = new String[]{
       "Translation Peak Detect", "PeakDetect",
