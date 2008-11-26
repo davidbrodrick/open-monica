@@ -19,6 +19,7 @@ Please maintain lists in lexigraphic order.
 || Array || Return a single entry from an array input. || *Index:* The array index to be selected. ||
 || !BitShift || Mask a bit field and then rotate to the right. || *Mask:* The value to AND the input with. *Shift:* The number of bits to right shift. ||
 || !BoolMap || Map a boolean input to one of two string outputs. || *True:* String to output when the input is true. *False:* String to output when the input is false. ||
+|| !DailyIntegrator || Accumulate the input and reset once per day. || *Time:* Time of day to reset the integrator, in "HH:MM" 24-hour format. *TimeZone:* The time zone that the time should be interpreted in, eg "Australia/Sydney" ||
 || Delta || Calculate the difference between successive input values. || ||
 || Difference || !DualListen implementation which returns the difference between the two values being monitored. || *Point1:* Name of listened-to point 1. *Point2:* Name of listened-to point 2. ||
 || EQ || Apply an arbitrary equation to numerical input. Uses [http://www.singularsys.com/jep/ JEP] for expression parsing. || *Equation:* Use X to represent the input number. ||
