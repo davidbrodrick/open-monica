@@ -793,7 +793,7 @@ implements
         case Format.UTC_STRING_ORD: {
           // Convert to UTC date/time string
           Date d = this.getAsDate();
-          DateFormat outdfm  = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+          DateFormat outdfm  = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
           outdfm.setTimeZone(TimeZone.getTimeZone("GMT"));
           res = outdfm.format(d);
           break;

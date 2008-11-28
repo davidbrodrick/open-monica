@@ -4,7 +4,7 @@
 CLIENT_JAR=monica-client.jar
 SERVER_JAR=monica-server.jar
 
-CLASSPATH=".:3rdParty/caj-1.1.5.jar:3rdParty/jcommon-0.9.1.jar:3rdParty/jfreechart-0.9.16.jar:3rdParty/jca-2.3.2.jar:3rdParty/jep-2.24.jar:3rdParty/jsch-0.1.37.jar"
+CLASSPATH=".:3rdParty/caj-1.1.5.jar:3rdParty/jcommon-0.9.1.jar:3rdParty/jfreechart-0.9.16.jar:3rdParty/jca-2.3.2.jar:3rdParty/jep-2.24.jar:3rdParty/jsch-0.1.37.jar:3rdParty/mysql-connector-java-5.1.7-bin.jar"
 
 CLIENT_FILES =atnf/atoms/mon/*.class \
               atnf/atoms/mon/client/*.class \
