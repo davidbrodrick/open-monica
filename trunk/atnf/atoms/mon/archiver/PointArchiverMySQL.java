@@ -15,6 +15,20 @@ import atnf.atoms.util.*;
 import atnf.atoms.time.*;
 
 /**
+ * Monitor point archiver which uses a MySQL database as the backend.
+ *
+ * <P>In the interest of speed and space efficiency each monitor point has 
+ * its own table in the database, which is derived from the source and monitor
+ * point name with .'s replaced by $'s so as not to conflict with the SQL
+ * syntax.
+ *
+ * <P>Since MoniCA does not require strict typing for values of a particular
+ * monitor point, each record includes a type and value specifier. The value
+ * is stored as a VARCHAR(255) which means it may not exceed 255 bytes when
+ * expressed as a string.
+ *
+ * <P>The <tt>bin/setupMySQL.sh</tt> script provided will create the user and
+ * database required for the archiver to operate.
  *
  * @author David Brodrick
  */
@@ -26,7 +40,7 @@ extends PointArchiver
   
   /** The RUL to connect to the server/database. */
   protected String itsURL = "jdbc:mysql://localhost/MoniCA?user=monica&useTimezone=false";
-  
+
   
   /** Constructor. */
   public
