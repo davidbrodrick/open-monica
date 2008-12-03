@@ -256,8 +256,17 @@ extends PointArchiver
   {
     boolean res=false;
     try {
-      //Check if the existing connection is valid
-      if (itsConnection==null || !itsConnection.isValid(1)) {
+      //Do a minimal query to see if connection is valid
+      //From Java 1.6 we could use itsConnection.isValid(1)
+      if (itsConnection!=null) {
+        try {
+          Statement stmt = itsConnection.createStatement();
+          stmt.execute("select 1;");
+        } catch (Exception f) {
+          itsConnection=null;
+        }
+      }
+      if (itsConnection==null) {
         itsConnection=DriverManager.getConnection(itsURL);
       } else {
         res=true;
