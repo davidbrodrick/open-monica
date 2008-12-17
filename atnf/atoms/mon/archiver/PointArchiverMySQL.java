@@ -135,7 +135,7 @@ extends PointArchiver
     
       //Build and execute the data request
       String cmd = "SELECT * from " + table + " WHERE ts<="
-                   + ts.getValue() + " LIMIT 1;";
+                   + ts.getValue() + " ORDER BY TS DESC LIMIT 1;";
       //System.err.println(cmd);
       Statement stmt = itsConnection.createStatement();
       stmt.execute(cmd);
@@ -172,7 +172,7 @@ extends PointArchiver
     
       //Build and execute the data request
       String cmd = "SELECT * from " + table + " WHERE ts>="
-                   + ts.getValue() + " LIMIT 1;";
+                   + ts.getValue() + " ORDER BY TS LIMIT 1;";
       //System.err.println(cmd);
       Statement stmt = itsConnection.createStatement();
       stmt.execute(cmd);
