@@ -310,12 +310,13 @@ implements ActionListener, NamedObject, Comparable
      String[] lines = MonitorUtils.parseFile(pointsfile);
      if (lines != null) {
        for (int i = 0; i < lines.length; i++) {
-	 ArrayList al = parseLine(lines[i]);
-	 if (al!=null) result.addAll(al);
-	 else {
-             System.err.println("PARSE ERROR: " + pointsfile + "["
-                                + i + "]: " + lines[i]);
-	 }
+         ArrayList al = parseLine(lines[i]);
+         if (al!=null) {
+           result.addAll(al);
+         } else {
+           System.err.println("PARSE ERROR: " + pointsfile + "["
+                              + i + "]: " + lines[i]);
+         }
        }
      }
      return result;
@@ -374,14 +375,14 @@ implements ActionListener, NamedObject, Comparable
        if (pointLimitsArray.length < pointSourceArray.length) {
           String[] temp = new String[pointSourceArray.length];
           for (int i = 0; i < pointSourceArray.length; i++)
-	     if (i < pointLimitsArray.length) temp[i] = pointLimitsArray[i];
-	     else temp[i] = pointLimitsArray[pointLimitsArray.length-1];
-	  pointLimitsArray = temp;
+            if (i < pointLimitsArray.length) temp[i] = pointLimitsArray[i];
+            else temp[i] = pointLimitsArray[pointLimitsArray.length-1];
+          pointLimitsArray = temp;
        }
 
        for (int i = 0; i < pointSourceArray.length; i++)
-	  if (!controlF) result.add((real) ?
-	     PointMonitor.factory(pointNameArray, pointLongDesc, pointShortDesc, pointUnits,
+         if (!controlF) result.add((real) ?
+          PointMonitor.factory(pointNameArray, pointLongDesc, pointShortDesc, pointUnits,
 				  pointSourceArray[i], pointChannelArray[i],
 				  pointTranslateArray, pointLimitsArray[i],
 				  pointArchiveArray, pointPeriod, pointEnabledArray[i]

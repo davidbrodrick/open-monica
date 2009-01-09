@@ -124,16 +124,14 @@ public class FakeMonitor extends PointMonitor
       Object[] listeners = itsPLList.getListenerList();
       // No-one is listening except for the DataMaintainer
       if (listeners.length < 3) {
-	firePointEvent(new PointEvent(this, null, false));
-	return;
+        firePointEvent(new PointEvent(this, null, false));
+        return;
       }
       PointData data = (MonClientUtil.getServer()).getPointData(getHash());
       if (data==null) return; //Maybe no connection to server?
       System.err.println("FakeMonitor:CollectData: " + data.getName() + " " + data.getSource() + " " + data.getData());
       firePointEvent(new PointEvent(this, data, false));
    }
-
-
 
    public void collecting()
    {
@@ -180,15 +178,15 @@ public class FakeMonitor extends PointMonitor
 
 
       if (itsPeriod > 0) {
-	if (!data.isValid()) {
-	  //No valid data found, the DataSource is probably disconnected
-	  //from the source, so just wait for a while and try again
+        if (!data.isValid()) {
+          //No valid data found, the DataSource is probably disconnected
+          //from the source, so just wait for a while and try again
           itsNextEpoch = new AbsTime().getValue() + itsPeriod;
-	} else if (duplicateCollection) {
+        } else if (duplicateCollection) {
           //Valid data - but it's the same data we've seen before!
-	  long diff = AbsTime.factory().getValue() - lastTimestamp;
-	  double d = diff/1000000.0;
-	  String n = getSource() + "." + getName();
+          long diff = AbsTime.factory().getValue() - lastTimestamp;
+          double d = diff/1000000.0;
+          String n = getSource() + "." + getName();
 
           System.out.println(n + " should update every " + itsPeriod/1000000 +
                              " seconds but last good value is " + d +
@@ -198,56 +196,53 @@ public class FakeMonitor extends PointMonitor
           //Try again in half a sample period
           itsNextEpoch = new AbsTime().getValue() + itsPeriod/2; 
           pe = null; //null event to ensure DataMaintainer reschedules us
-	} else {
-	  //We got valid data, and know when to collect the next data
-	  itsNextEpoch = lastTimestamp + itsPeriod;
-	}
+        } else {
+          //We got valid data, and know when to collect the next data
+          itsNextEpoch = lastTimestamp + itsPeriod;
+        }
       } else {
          // Non-predefined period
          // Check the sequences - invalidate data if sequence not met
-	 boolean seq = true;
+         boolean seq = true;
          if (data.getSequence() - itsSequence > 1 && itsSequence > -1) {
              seq = false;
          }
-	 itsSequence = data.getSequence();
+         itsSequence = data.getSequence();
 
          // Data is invalid
          //if (duplicateCollection || seq == false) {
          if (seq == false) {
-	   System.err.println("Sequence was invalid");
-	   //System.exit(1);
-	    itsNextEpoch += getDelay() + 50000;
-            fireEvents(pe);
-	    itsCollecting = false;
-	    return;
-	 }
+           System.err.println("Sequence was invalid");
+           itsNextEpoch += getDelay() + 50000;
+           fireEvents(pe);
+           itsCollecting = false;
+           return;
+         }
 	 
-	 // Data is valid
-	 setDelay(500000);
-	 itsLastTimestamps[itsTimestampPos] = lastTimestamp;
-	 itsTimestampPos++;
+         // Data is valid
+         setDelay(500000);
+         itsLastTimestamps[itsTimestampPos] = lastTimestamp;
+         itsTimestampPos++;
 
          // Expand array if you have to
-	 if (itsTimestampPos >= MAXTIMES) {
+         if (itsTimestampPos >= MAXTIMES) {
             long[] temp  = new long[MAXTIMES];
-	    for (int i = 0; i < MAXTIMES/2; i++) temp[i] = itsLastTimestamps[MAXTIMES/2+i];
-	    itsLastTimestamps = temp;
-	    itsTimestampPos = MAXTIMES/2;
-	 }
+            for (int i = 0; i < MAXTIMES/2; i++) temp[i] = itsLastTimestamps[MAXTIMES/2+i];
+            itsLastTimestamps = temp;
+            itsTimestampPos = MAXTIMES/2;
+         }
 	 
-	 long avg = getAvgPeriod();
-	 long last = getLastPeriod();
-	 long delay = getDelay();
+         long avg = getAvgPeriod();
+         long last = getLastPeriod();
+         long delay = getDelay();
 
-	 if (avg == 0 || last == 0) {
-	   itsNextEpoch = lastTimestamp + delay;
-System.err.println("#Foo3");
-	 } else if (Math.abs(avg - last) > delay) {
+         if (avg == 0 || last == 0) {
+           itsNextEpoch = lastTimestamp + delay;
+         } else if (Math.abs(avg - last) > delay) {
             if (itsLast < 0) itsLast = last;
-	    else if (Math.abs(itsLast - last) < last/10) itsTimestampPos = 0;
-	    itsNextEpoch = lastTimestamp + delay;
-System.err.println("#Foo4");
-	 } else itsNextEpoch =  avg + lastTimestamp;
+            else if (Math.abs(itsLast - last) < last/10) itsTimestampPos = 0;
+            itsNextEpoch = lastTimestamp + delay;
+         } else itsNextEpoch =  avg + lastTimestamp;
       }
       itsCollecting = false;
       if (itsNextEpoch < AbsTime.factory().getValue() + itsTimeOffset) itsNextEpoch = AbsTime.factory().getValue();
@@ -313,9 +308,9 @@ System.err.println("#Foo4");
       res.append(itsLimitsString);
       res.append(' ');
       if (itsArchiveString.length > 1) {
-         res.append('{');
-	 for (int i = 0; i < itsArchiveString.length - 1; i++) res.append(itsArchiveString[i]+",");
-	 res.append(itsArchiveString[itsArchiveString.length-1]+"}");
+        res.append('{');
+        for (int i = 0; i < itsArchiveString.length - 1; i++) res.append(itsArchiveString[i]+",");
+          res.append(itsArchiveString[itsArchiveString.length-1]+"}");
       } else res.append(itsArchiveString[0]);
       res.append(' ');
       res.append(itsPeriod);

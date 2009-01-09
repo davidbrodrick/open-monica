@@ -21,7 +21,7 @@ import atnf.atoms.time.AbsTime;
  *
  * @author Le Cuong Nguyen
  * @author David Brodrick
- * @version $Id: PointArchiver.java,v 1.6 2007/10/24 03:41:40 bro764 Exp $
+ * @version $Id: PointArchiver.java,v 1.8 2008/12/18 00:55:45 bro764 Exp bro764 $
  */
 public abstract
 class PointArchiver
@@ -45,7 +45,7 @@ extends Thread
    saveNow(PointMonitor pm, Vector data);
 
 
-   /** Extract data from the archive.
+   /** Extract data from the archive with no undersampling.
     * @param pm Point to extract data for.
     * @param start Earliest time in the range of interest.
     * @param end Most recent time in the range of interest.
@@ -139,6 +139,28 @@ extends Thread
    }
 
 
+   /** Check if data is still waiting to be flushed.
+   * @return True if data is waiting, False if not. */
+   public
+   boolean
+   checkBuffer()
+   {
+     boolean res=false;
+     synchronized(itsBuffer) {
+       Enumeration keys = itsBuffer.keys();
+       while (keys.hasMoreElements()) {
+         PointMonitor pm = (PointMonitor)keys.nextElement();
+         if (pm == null) continue;
+         if (itsBuffer.get(pm)!=null) {
+           res=true;
+           break;
+         }
+       }
+     }
+     return res;
+   }
+   
+
    /** Archive the Vector of data for the given point. Note this actually
     * places the data into a write-out buffer, the data may not be flushed
     * to disk immediately. The <tt>saveNow</tt> does the real archiving.
@@ -159,7 +181,6 @@ extends Thread
        itsBuffer.notifyAll();
      }
    }   
-   
    
    /** Get a 'name' for this class. */
    public static
