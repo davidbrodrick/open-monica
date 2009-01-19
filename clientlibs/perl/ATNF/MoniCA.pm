@@ -28,9 +28,51 @@ sub val {
   return $self->[2];
 }
 
-package ATNF::MoniCA;
+package MonBetweenPoint;
 
+sub new {
+  my $proto = shift;
+  my $class = ref($proto) || $proto;
+
+  my $monline = shift;
+  my $self = [split ' ', $monline];
+
+  bless ($self, $class);
+}
+
+sub bat {
+  my $self = shift;
+  if (@_) { $self->[0] = shift }
+  return $self->[0];
+}
+
+sub val {
+  my $self = shift;
+  if (@_) { $self->[1] = shift }
+  return $self->[1];
+}
+
+package ATNF::MoniCA;
 use strict;
+
+=head1 NAME
+
+
+=head1 SYNOPSIS
+
+    use ATNF::MoniCA
+
+=head1 DESCRIPTION
+
+To add
+
+=head1 AUTHOR
+
+Chris Phillips  Chris.Phillips@csiro.au
+
+=head1 FUNCTIONS
+
+=cut
 
 use IO::Socket;
 
@@ -44,7 +86,7 @@ require Exporter;
 use vars qw(@ISA @EXPORT);
 
 @ISA    = qw( Exporter );
-@EXPORT = qw(  bat2time monconnect monpoll monsince parse_tickphase current_bat 
+@EXPORT = qw( bat2time monconnect monpoll monsince parse_tickphase current_bat 
 	       monbetween montill bat2mjd mjd2bat bat2time atca_tied);
 
 sub monconnect($) {
@@ -122,7 +164,7 @@ sub monbetween ($$$$) {
   my $nval = <$mon>;
   for (my $i=0; $i<$nval; $i++) {
     my $line = <$mon>;
-    push @vals, [split ' ', $line];
+    push @vals, new MonBetweenPoint($line);
   }
 
   return (@vals);
@@ -224,12 +266,12 @@ sub atca_tied($$$;$) {
     }
 
     my $initialstate = pop @vals;
-    $currentstate{$ant} = $initialstate->[1];
+    $currentstate{$ant} = $initialstate->val;
 
     # Get the values during the period
     @vals = monbetween($mon, $mjd1-$dUT, $mjd2-$dUT, $thispoint);
     foreach (@vals) {
-      push @antstate, [bat2mjd($_->[0]), $_->[1]];
+      push @antstate, [bat2mjd($_->bat), $_->val];
     }
     $state{$ant} = [@antstate];
   }
