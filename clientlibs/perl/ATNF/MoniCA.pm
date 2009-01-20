@@ -57,20 +57,66 @@ use strict;
 
 =head1 NAME
 
+ATNF::MoniCA - Perl interface to OpenMoniCA
+
 
 =head1 SYNOPSIS
 
     use ATNF::MoniCA
 
+    my $server = 'monhost-nar.atnf.csiro.au';
+    my $mon = monconnect($server);
+    die "Could not connect to monitor host $server\n" if (!defined $mon);
+
+    my @points = qw(site.environment.weather.Temperature);
+
+    my $point = monpoll($mon, @points);
+
+    print "ATCA temperature is ", $point->val, "\n";
+
 =head1 DESCRIPTION
 
-To add
+ATNF::MoniCA is a perl interface to the OpenMoniCA ascii interface. It parallels the
+function calls available for the ascii interface. Users are directed to the ascii interface
+documentation for details.
+
+  http://code.google.com/p/open-monica/wiki/ClientASCII
+
+Note that the returned data is slightly "perlised" before returning. This part of the
+interface is currently in flux and will change without notice.
 
 =head1 AUTHOR
 
 Chris Phillips  Chris.Phillips@csiro.au
 
+=head1 Data Types
+
+Most functions parse the ascii return values from the server and return an perl 
+object. These are fairly simple and simple just used to encode the multiple 
+return values for each monitor point (value, bat, name etc). 
+
+=over 2
+
+=item B<MonPoint>
+
+A single monitor point. 
+
+  ->point    Name of the monitor point
+  ->bat      BAT time corresponding to the point sample
+  ->val      Actual value of the monitor point
+
+=item B<MonBetweenPoint>
+ 
+A single monitor point value returned by monbetween
+
+  ->bat      BAT time corresponding to the point sample
+  ->val      Actual value of the monitor point
+
+=back
+
 =head1 FUNCTIONS
+
+=over 1
 
 =cut
 
@@ -89,6 +135,17 @@ use vars qw(@ISA @EXPORT);
 @EXPORT = qw( bat2time monconnect monpoll monsince parse_tickphase current_bat 
 	       monbetween montill bat2mjd mjd2bat bat2time atca_tied);
 
+
+=item B<monconnect>
+
+  my $mon = monconnect($server);
+
+ Opens a connection to the MoniCA server 
+    $server  Name of server, e.g. 'myserver.domain.com'
+    $mon     Socket to MoniCA server, used for subsequent calls
+
+=cut
+
 sub monconnect($) {
   my $server = shift;
 
@@ -99,6 +156,24 @@ sub monconnect($) {
 
   return $mon;
 }
+
+=item B<monpoll>
+
+  my $pointval = monpoll($mon, $pointname);
+  my @pointvals = monpoll($mon, @pointnames);
+
+ Calls the "poll" function, returnint the most recent values for one
+ or more monitor points. Note calling in scalar mode only the first
+ monitor point is returned.
+
+    $mon           Monitor server
+    $pointname     Single monitor point
+    @pointnames  List of monitor points
+    $pointval      MonPoint object, representing the first returned monitor
+                   point
+    @pointvals   List of MonPoint objects
+
+=cut
 
 sub monpoll ($@) {
   my $mon = shift;
@@ -150,6 +225,21 @@ sub monsince ($$$) {
   return (@vals);
 }
 
+=item B<monbetween>
+
+  my @pointvals = monbetween($mon, $mjd1, $mjd2, $pointname);
+
+ Calls the "between" function, returning all records, for a single
+ monitor point, between two nominated times.
+
+    $mon           Monitor server
+    $mjd1          MJD of start of query range (double)
+    $mjd2          MJD of end of query range (double)
+    $pointname     Monitor point
+    @pointvals     List of MonBetweenPoint objects
+
+=cut
+
 sub monbetween ($$$$) {
   my ($mon, $mjd1, $mjd2, $point) = @_;
 
@@ -194,12 +284,31 @@ sub bat2time($;$$) {
  return mjd2time($mjd, $np);
 }
 
+=item B<bat2mjd>
+
+  my $mjd = bat2mjd($bat);
+
+ Convert a bat into mjd
+    $bat           BAT value
+    $mjd           MJD (double)
+=cut
+
 sub bat2mjd($;$) {
  my $bat = Math::BigInt->new(shift);
  my $dUT = shift;
  $dUT = 0 if (!defined $dUT);
  return (Math::BigFloat->new($bat)/1e6-$dUT)/60/60/24;
 }
+
+=item B<mjd2bat>
+
+  my $bat = mjd2bat($mjd);
+
+ Convert a mjd into bat
+
+    $mjd           MJD (double)
+    $bat           BAT value
+=cut
 
 sub mjd2bat($) {
   my $mjd = shift;
