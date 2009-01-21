@@ -16,7 +16,6 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 import java.util.zip.*;
-//import org.patrice_espie.stream.*;
 
 /**
  * Provides a simple ASCII interface for clients to obtain monitor data.
@@ -105,32 +104,36 @@ implements Runnable
     //Main loop for handling client requests
     while (itsRunning) {
       try {
-	synchronized (itsReader) {
-	  String line = itsReader.readLine();
-	  if (line==null) {
-	    //Connection broke..
-	    itsRunning = false;
+        synchronized (itsReader) {
+          String line = itsReader.readLine();
+          if (line==null) {
+            //Connection broke..
+            itsRunning = false;
             return;
-	  }
-	  line=line.trim();
-	  if (line.equalsIgnoreCase("poll")) {
-	    state_poll();
-	  } else if (line.equalsIgnoreCase("poll2")) {
-	    state_poll2();
-	  } else if (line.equalsIgnoreCase("since")) {
+          }
+          line=line.trim();
+          if (line.equalsIgnoreCase("poll")) {
+            state_poll();
+          } else if (line.equalsIgnoreCase("poll2")) {
+            state_poll2();
+          } else if (line.equalsIgnoreCase("since")) {
             state_since();
-	  } else if (line.equalsIgnoreCase("between")) {
-	    state_between();
-	  } else if (line.equalsIgnoreCase("names")) {
-	    state_names();
-	  } else if (line.equalsIgnoreCase("details")) {
-	    state_details();
-	  }
-	}
+          } else if (line.equalsIgnoreCase("between")) {
+            state_between();
+          } else if (line.equalsIgnoreCase("preceeding")) {
+            state_preceeding();
+          } else if (line.equalsIgnoreCase("following")) {
+            state_following();          
+          } else if (line.equalsIgnoreCase("names")) {
+            state_names();
+          } else if (line.equalsIgnoreCase("details")) {
+            state_details();
+          }
+        }
       } catch (Exception f) {
-	System.err.println("MonitorServerASCII: processConnection: " + f.getClass());
-        f.printStackTrace();
-	itsRunning = false;
+        System.err.println("MonitorServerASCII: processConnection: " + f.getClass());
+                           f.printStackTrace();
+        itsRunning = false;
       }
     }
     System.out.println("MonitorServerASCII: Lost Connection to "
@@ -179,44 +182,44 @@ implements Runnable
       //Line should say <TIMESTAMP> <TIMESTAMP> <POINTNAME>
       StringTokenizer st = new StringTokenizer(tempstr);
       if (st.countTokens()!=3) {
-	itsWriter.println("? Need two BAT timestamps and a point name argument");
-	itsWriter.flush();
+        itsWriter.println("? Need two BAT timestamps and a point name argument");
+        itsWriter.flush();
         return;
       }
 
       //Get/check start timestamp
       AbsTime starttime = null;
       try {
-	starttime = AbsTime.factory(st.nextToken());
+        starttime = AbsTime.factory(st.nextToken());
       } catch (Exception e) {
-	itsWriter.println("? First BAT timestamp couldn't be parsed");
-	itsWriter.flush();
-	return;
+        itsWriter.println("? First BAT timestamp couldn't be parsed");
+        itsWriter.flush();
+        return;
       }
 
       //Get/check end timestamp
       AbsTime endtime = null;
       try {
-	endtime = AbsTime.factory(st.nextToken());
+        endtime = AbsTime.factory(st.nextToken());
       } catch (Exception e) {
-	itsWriter.println("? Second BAT timestamp couldn't be parsed");
-	itsWriter.flush();
-	return;
+        itsWriter.println("? Second BAT timestamp couldn't be parsed");
+        itsWriter.flush();
+        return;
       }
 
       //Ensure start/end arguments are in the correct sequence
       if (endtime.isBefore(starttime)) {
-	AbsTime temp = endtime;
-	endtime = starttime;
+        AbsTime temp = endtime;
+        endtime = starttime;
         starttime = temp;
       }
 
       //Get/check monitor point name
       String mpname = st.nextToken();
       if (!MonitorMap.checkPointName(mpname)) {
-	itsWriter.println("? Named point doesn't exist");
-	itsWriter.flush();
-	return;
+        itsWriter.println("? Named point doesn't exist");
+        itsWriter.flush();
+        return;
       }
 
       //Get data between the specified times
@@ -228,8 +231,8 @@ implements Runnable
       itsWriter.println(numdata);
       //Send each sample
       for (int i=0; i<numdata; i++) {
-	PointData pd = (PointData)data.get(i);
-	itsWriter.println(pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t" + pd.getData());
+        PointData pd = (PointData)data.get(i);
+        itsWriter.println(pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t" + pd.getData());
       }
 
       itsWriter.flush();
@@ -249,27 +252,27 @@ implements Runnable
       //Line should say <TIMESTAMP> <POINTNAME>
       StringTokenizer st = new StringTokenizer(tempstr);
       if (st.countTokens()!=2) {
-	itsWriter.println("? Need BAT timestamp and point name arguments");
-	itsWriter.flush();
+        itsWriter.println("? Need BAT timestamp and point name arguments");
+        itsWriter.flush();
         return;
       }
 
       //Get/check timestamp
       AbsTime sincetime = null;
       try {
-	sincetime = AbsTime.factory(st.nextToken());
+        sincetime = AbsTime.factory(st.nextToken());
       } catch (Exception e) {
-	itsWriter.println("? BAT timestamp couldn't be parsed");
-	itsWriter.flush();
-	return;
+        itsWriter.println("? BAT timestamp couldn't be parsed");
+        itsWriter.flush();
+        return;
       }
 
       //Get/check monitor point name
       String mpname = st.nextToken();
       if (!MonitorMap.checkPointName(mpname)) {
-	itsWriter.println("? Named point doesn't exist");
-	itsWriter.flush();
-	return;
+        itsWriter.println("? Named point doesn't exist");
+        itsWriter.flush();
+        return;
       }
 
       //Get data between specified time and now
@@ -282,8 +285,8 @@ implements Runnable
       itsWriter.println(numdata);
       //Send each sample
       for (int i=0; i<numdata; i++) {
-	PointData pd = (PointData)data.get(i);
-	itsWriter.println(pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t" + pd.getData());
+        PointData pd = (PointData)data.get(i);
+        itsWriter.println(pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t" + pd.getData());
       }
 
       itsWriter.flush();
@@ -303,14 +306,14 @@ implements Runnable
       String tempstr = itsReader.readLine().trim();
       int numpoints = Integer.parseInt(tempstr);
       for (int i=0; i<numpoints; i++) {
-	String pointname = itsReader.readLine().trim();
-	PointMonitor pm = MonitorMap.getPointMonitor(pointname);
-	if (pm==null) {
-	  itsWriter.println("?");
-	} else {
-	  itsWriter.println(pointname + "\t" + pm.getPeriod()/1000000.0 + "\t\"" +
+        String pointname = itsReader.readLine().trim();
+        PointMonitor pm = MonitorMap.getPointMonitor(pointname);
+        if (pm==null) {
+          itsWriter.println("?");
+        } else {
+          itsWriter.println(pointname + "\t" + pm.getPeriod()/1000000.0 + "\t\"" +
 			    pm.getUnits() + "\"\t\"" + pm.getLongDesc() + "\"");
-	}
+        }
       }
       itsWriter.flush();
     } catch (Exception e) {
@@ -330,22 +333,123 @@ implements Runnable
       String tempstr = itsReader.readLine().trim();
       int numpoints = Integer.parseInt(tempstr);
       for (int i=0; i<numpoints; i++) {
-	String pointname = itsReader.readLine().trim();
-	if (MonitorMap.checkPointName(pointname)) {
-	  PointData pd = PointBuffer.getPointData(pointname);
-	  if (pd==null) {
-	    itsWriter.println(pointname + "\t?\t?");
-	  } else {
-	    itsWriter.println(pointname + "\t" + pd.getTimestamp().toString(AbsTime.Format.HEX_BAT)
-			      + "\t" + pd.getData());
-	  }
-	} else {
+        String pointname = itsReader.readLine().trim();
+        if (MonitorMap.checkPointName(pointname)) {
+          PointData pd = PointBuffer.getPointData(pointname);
+          if (pd==null) {
+            itsWriter.println(pointname + "\t?\t?");
+          } else {
+            itsWriter.println(pointname + "\t" + pd.getTimestamp().toString(AbsTime.Format.HEX_BAT)
+                              + "\t" + pd.getData());
+          }
+        } else {
           itsWriter.println("? Named point doesn't exist");
-	}
+        }
       }
       itsWriter.flush();
     } catch (Exception e) {
       System.err.println("MonitorServerASCII: poll: " + e.getClass());
+      itsRunning = false;
+    }
+  }
+
+  /** Return next update >= specified times, for specified monitor points. */
+  protected
+  void
+  state_following()
+  {
+    try {
+      //First line tells us how many points are going to be specified
+      String tempstr = itsReader.readLine().trim();
+      int numpoints = Integer.parseInt(tempstr);
+      for (int i=0; i<numpoints; i++) {
+        //Tokenise request line to get pointname and BAT arguments
+        StringTokenizer st = new StringTokenizer(itsReader.readLine());      
+        if (st.countTokens()!=2) {
+          itsWriter.println("? Need BAT timestamp and a point name argument");
+          itsWriter.flush();
+          continue;
+        }
+        
+        //Read the timestamp argument for this point
+        String argtimeascii = st.nextToken().trim();
+        AbsTime argtime = null;
+        try {
+          argtime = AbsTime.factory(argtimeascii);
+        } catch (Exception f) {
+          itsWriter.println("? Error parsing BAT timestamp \"" + argtimeascii + "\"");
+          itsWriter.flush();
+          continue;
+        }
+        
+        String pointname = st.nextToken().trim();
+        if (MonitorMap.checkPointName(pointname)) {
+          //All arguments look good so do the query
+          PointData pd = PointBuffer.getFollowing(pointname, argtime);
+          if (pd==null) {
+            itsWriter.println(pointname + "\t?\t?");
+          } else {
+            itsWriter.println(pointname + "\t" + pd.getTimestamp().toString(AbsTime.Format.HEX_BAT)
+                              + "\t" + pd.getData());
+          }
+        } else {
+          itsWriter.println("? Named point doesn't exist");
+        }
+      }
+      itsWriter.flush();
+    } catch (Exception e) {
+      System.err.println("MonitorServerASCII: following: " + e.getClass());
+      itsRunning = false;
+    }
+  }
+
+
+  /** Return last update <= specified times, for specified monitor points. */
+  protected
+  void
+  state_preceeding()
+  {
+    try {
+      //First line tells us how many points are going to be specified
+      String tempstr = itsReader.readLine().trim();
+      int numpoints = Integer.parseInt(tempstr);
+      for (int i=0; i<numpoints; i++) {
+        //Tokenise request line to get pointname and BAT arguments
+        StringTokenizer st = new StringTokenizer(itsReader.readLine());      
+        if (st.countTokens()!=2) {
+          itsWriter.println("? Need BAT timestamp and a point name argument");
+          itsWriter.flush();
+          continue;
+        }
+        
+        //Read the timestamp argument for this point
+        String argtimeascii = st.nextToken().trim();
+        AbsTime argtime = null;
+        try {
+          argtime = AbsTime.factory(argtimeascii);
+        } catch (Exception f) {
+          itsWriter.println("? Error parsing BAT timestamp \"" + argtimeascii + "\"");
+          itsWriter.flush();
+          continue;
+        }
+        
+        String pointname = st.nextToken().trim();
+        if (MonitorMap.checkPointName(pointname)) {
+          //All arguments look good so do the query
+          PointData pd = PointBuffer.getPreceeding(pointname, argtime);
+          if (pd==null) {
+            itsWriter.println(pointname + "\t?\t?");
+          } else {
+            itsWriter.println(pointname + "\t" + pd.getTimestamp().toString(AbsTime.Format.HEX_BAT)
+                              + "\t" + pd.getData());
+          }
+        } else {
+          itsWriter.println("? Named point doesn't exist");
+        }
+      }
+      itsWriter.flush();
+    } catch (Exception e) {
+      System.err.println("MonitorServerASCII: preceeding: " + e.getClass());
       itsRunning = false;
     }
   }
@@ -362,37 +466,37 @@ implements Runnable
       String tempstr = itsReader.readLine().trim();
       int numpoints = Integer.parseInt(tempstr);
       for (int i=0; i<numpoints; i++) {
-	String pointname = itsReader.readLine().trim();
+        String pointname = itsReader.readLine().trim();
         //Make sure the monitor point name is valid
-	if (MonitorMap.checkPointName(pointname)) {
-	  PointMonitor pm = MonitorMap.getPointMonitor(pointname);
-	  if (pm==null) {
+        if (MonitorMap.checkPointName(pointname)) {
+          PointMonitor pm = MonitorMap.getPointMonitor(pointname);
+          if (pm==null) {
             //Invalid monitor point requested
-	    itsWriter.println("? Named point doesn't exist");
-	  } else {
-	    PointData pd = PointBuffer.getPointData(pointname);
-	    if (pd==null) {
-	      //No current data for this monitor point
-	      itsWriter.println(pointname + "\t?\t?\t?\t?");
-	    } else {
-	      PointLimit pl = pm.getLimits();
-	      boolean limits = true;
-	      if (pl!=null) {
-		//If this point has a limit checker then check latest value
-		limits = pl.checkLimits(pd);
-	      }
-	      String units = pm.getUnits();
-	      if (units==null || units=="") {
+            itsWriter.println("? Named point doesn't exist");
+          } else {
+            PointData pd = PointBuffer.getPointData(pointname);
+            if (pd==null) {
+              //No current data for this monitor point
+              itsWriter.println(pointname + "\t?\t?\t?\t?");
+            } else {
+              PointLimit pl = pm.getLimits();
+              boolean limits = true;
+              if (pl!=null) {
+                //If this point has a limit checker then check latest value
+                limits = pl.checkLimits(pd);
+              }
+              String units = pm.getUnits();
+              if (units==null || units=="") {
                 units="?";
-	      }
-	      itsWriter.println(pointname + "\t" + pd.getTimestamp().toString(AbsTime.Format.HEX_BAT)
-				+ "\t" + pd.getData() + "\t" + units + "\t" +
-				limits);
-	    }
-	  }
-	} else {
-	  itsWriter.println("? Named point doesn't exist");
-	}
+              }
+              itsWriter.println(pointname + "\t" + pd.getTimestamp().toString(AbsTime.Format.HEX_BAT)
+                                + "\t" + pd.getData() + "\t" + units + "\t" +
+                                limits);
+            }
+          }
+        } else {
+          itsWriter.println("? Named point doesn't exist");
+        }
       }
       itsWriter.flush();
     } catch (Exception e) {
@@ -413,26 +517,26 @@ implements Runnable
   {
     try {
       if (itsSocket == null) {
-	//No socket specified - we are the main server
-	//Get the port to listen on for new client connections
-	int port = Integer.parseInt(MonitorConfig.getProperty("ASCIIPort"));
-	//Create the server socket to listen with
-	ServerSocket ss = new ServerSocket(port);
+        //No socket specified - we are the main server
+        //Get the port to listen on for new client connections
+        int port = Integer.parseInt(MonitorConfig.getProperty("ASCIIPort"));
+        //Create the server socket to listen with
+        ServerSocket ss = new ServerSocket(port);
 
-	//Keep looping until we need to stop
-	while (itsRunning) {
-	  try {
-	    //Await a new client connection
-	    Socket soc = ss.accept();
-	    //Got a new client connection, spawn a server to service it
-	    if (soc!=null) new MonitorServerASCII(soc);
-	  }
-	  catch (IOException ie) {}
-	}
+        //Keep looping until we need to stop
+        while (itsRunning) {
+        try {
+          //Await a new client connection
+          Socket soc = ss.accept();
+          //Got a new client connection, spawn a server to service it
+          if (soc!=null) new MonitorServerASCII(soc);
+        }
+          catch (IOException ie) {}
+        }
       } else {
-	//We aren't the main server: we need to service a particular client
-	processConnection();
-	//Keep track of how many servers/clients there are
+        //We aren't the main server: we need to service a particular client
+        processConnection();
+        //Keep track of how many servers/clients there are
         theirNumClients--;
       }
     } catch (IOException ie) {
