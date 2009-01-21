@@ -27,7 +27,7 @@ import atnf.atoms.util.*;
  * another or to backup/mirror an archive.
  * 
  * @author David Brodrick
- * @version $Id: $
+ * @version $Id: ArchiveReplicator.java,v 1.1 2009/01/09 03:36:06 bro764 Exp bro764 $
  */
 public
 class ArchiveReplicator
@@ -149,11 +149,25 @@ class ArchiveReplicator
           totalrecords+=numcollected;
           break;
         }
-        System.err.println("Got " + newdata.size() + " elements");
+        //System.err.println("Got " + newdata.size() + " elements");
         numcollected+=newdata.size();
+        
         //INSERT THIS DATA INTO LOCAL ARCHIVE
-        itsNewArchive.archiveData(thispoint, newdata);
-        //UPDATE TIME DELIMITERS
+        itsNewArchive.archiveData(thispoint, newdata);          
+        
+        //WAIT UNTIL ARCHIVE HAS FINISHED FLUSHING
+        while (itsNewArchive.checkBuffer()) {
+          RelTime sleeptime=RelTime.factory(1000000l);
+          try {
+            sleeptime.sleep();
+          } catch (Exception e) { }
+          //System.out.println("#Waiting for local archive to finish flushing..");
+        }
+//        if (numcollected>700000 || totalrecords>1000000) {
+//          System.exit(0);
+//        }
+        
+        //UPDATE QUERY TIME DELIMITERS
         downloadstart=((PointData)newdata.get(newdata.size()-1)).getTimestamp();
         downloadstart=downloadstart.add(RelTime.factory(1l));
       }
