@@ -15,20 +15,6 @@ import atnf.atoms.util.*;
 import atnf.atoms.time.*;
 
 /**
- * Monitor point archiver which uses a MySQL database as the backend.
- *
- * <P>In the interest of speed and space efficiency each monitor point has 
- * its own table in the database, which is derived from the source and monitor
- * point name with .'s replaced by $'s so as not to conflict with the SQL
- * syntax.
- *
- * <P>Since MoniCA does not require strict typing for values of a particular
- * monitor point, each record includes a type and value specifier. The value
- * is stored as a VARCHAR(255) which means it may not exceed 255 bytes when
- * expressed as a string.
- *
- * <P>The <tt>bin/setupMySQL.sh</tt> script provided will create the user and
- * database required for the archiver to operate.
  *
  * @author David Brodrick
  */
@@ -39,8 +25,8 @@ extends PointArchiver
   protected Connection itsConnection = null;
   
   /** The RUL to connect to the server/database. */
-  protected String itsURL = "jdbc:mysql://localhost/MoniCA?user=monica&useTimezone=false";
-
+  protected String itsURL = "jdbc:mysql://localhost/MoniCA?user=monica&tcpRcvBuf=100000";
+  
   
   /** Constructor. */
   public
@@ -69,6 +55,14 @@ extends PointArchiver
     for (int i=0; i<data.size(); i++) {
       insertData(table, (PointData)data.get(i));
     }
+    
+/*    try {
+      if (itsConnection!=null) {
+        itsConnection.commit();
+        itsConnection.clearWarnings();
+        itsConnection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+      }
+    } catch (Exception e) { }*/
   }
 
 
@@ -84,7 +78,9 @@ extends PointArchiver
     try {
       //Can't do anything if the server is not running
       if (!checkConnection()) return null;
-      
+
+      //Allocate result vector
+      Vector res=new Vector(5000, 10000);      
       //Get the table name for this point
       String table=getTableName(pm);
     
@@ -93,13 +89,14 @@ extends PointArchiver
                    + start.getValue() + " AND ts<="
                    + end.getValue() + " ORDER BY ts "
                    + "LIMIT " + MAXNUMRECORDS + ";";
-      //System.err.println(cmd);
-      Statement stmt = itsConnection.createStatement();
-      stmt.execute(cmd);
-    
-      //Get the results
-      Vector res=new Vector(5000, 10000);
-      ResultSet rs = stmt.getResultSet();
+                   
+      Statement stmt;           
+      ResultSet rs;
+      synchronized (itsConnection) {
+        stmt = itsConnection.createStatement();
+        stmt.execute(cmd);
+        rs = stmt.getResultSet();
+      }
 
       //Ensure we got some data
       if (!rs.first()) return null;
@@ -108,6 +105,7 @@ extends PointArchiver
         if (pd!=null) res.add(pd);
       } while (rs.next());
       
+      stmt.close();
       //Finished - return the extracted data
       return res;
     } catch (Exception e) {
@@ -135,16 +133,21 @@ extends PointArchiver
     
       //Build and execute the data request
       String cmd = "SELECT * from " + table + " WHERE ts<="
-                   + ts.getValue() + " ORDER BY TS DESC LIMIT 1;";
-      //System.err.println(cmd);
-      Statement stmt = itsConnection.createStatement();
-      stmt.execute(cmd);
-    
-      //Get the results
-      ResultSet rs = stmt.getResultSet();
+                   + ts.getValue() + " ORDER BY ts DESC LIMIT 1;";
+
+      Statement stmt;
+      ResultSet rs;
+      synchronized (itsConnection) {
+        stmt = itsConnection.createStatement();
+        stmt.execute(cmd);
+        rs = stmt.getResultSet();
+      }
+      
       //Ensure we got some data
       if (!rs.first()) return null;
       PointData res=getPointDataForRow(pm, rs);
+
+      stmt.close();
       //Finished - return the extracted data
       return res;
     } catch (Exception e) {
@@ -163,7 +166,7 @@ extends PointArchiver
   PointData
   getFollowing(PointMonitor pm, AbsTime ts)
   {
-        try {
+    try {
       //Can't do anything if the server is not running
       if (!checkConnection()) return null;
       
@@ -173,16 +176,21 @@ extends PointArchiver
       //Build and execute the data request
       String cmd = "SELECT * from " + table + " WHERE ts>="
                    + ts.getValue() + " ORDER BY TS LIMIT 1;";
-      //System.err.println(cmd);
-      Statement stmt = itsConnection.createStatement();
-      stmt.execute(cmd);
-    
-      //Get the results
-      ResultSet rs = stmt.getResultSet();
+
+      ResultSet rs;
+      Statement stmt;
+      synchronized (itsConnection) {
+        stmt = itsConnection.createStatement();
+        stmt.execute(cmd);
+        rs = stmt.getResultSet();
+      }
+      
       //Ensure we got some data
       if (!rs.first()) return null;
       PointData res=getPointDataForRow(pm, rs);
       //System.err.println(res.toString());
+
+      stmt.close();
       //Finished - return the extracted data
       return res;
     } catch (Exception e) {
@@ -221,6 +229,7 @@ extends PointArchiver
   void
   insertData(String table, PointData data)
   {
+    Statement stmt = null;
     try {
       //Get a string representation of the object type and value
       String typeval=null;
@@ -234,12 +243,20 @@ extends PointArchiver
       String cmd = "INSERT INTO " + table + " VALUES(" +
                    data.getTimestamp().getValue() +
                    ", " + typeval + ");";
-      Statement stmt = itsConnection.createStatement();
-      stmt.execute(cmd);
+      synchronized (itsConnection) {
+        stmt = itsConnection.createStatement();
+        stmt.execute(cmd);
+        stmt.close();
+      }
     } catch (Exception e) {
-      System.err.println("PointArchiverMySQL:insertData: " + e.getMessage());
-      checkConnection();
-      createTable(table);
+      if (e.getMessage().toLowerCase().indexOf("duplicate entry")==-1) {
+        System.err.println("PointArchiverMySQL:insertData: " + e.getMessage());
+        checkConnection();
+        createTable(table);
+        try {
+          if (stmt!=null) stmt.close();
+        } catch (Exception g) {}
+      }
     }
   }
   
@@ -250,14 +267,21 @@ extends PointArchiver
   void
   createTable(String table)
   {
+    Statement stmt = null;
     try {
       System.err.println("PointArchiverMySQL:createTable: Creating " + table);
-      Statement stmt = itsConnection.createStatement();
-      stmt.execute("CREATE table if not exists " + table +
-                   "(ts BIGINT, type CHAR(4), val VARCHAR(255), " +
-                   "PRIMARY KEY(`ts`)) ENGINE = MyISAM;");
+      synchronized (itsConnection) {
+        stmt = itsConnection.createStatement();
+        stmt.execute("CREATE table if not exists " + table +
+                     "(ts BIGINT, type CHAR(4), val VARCHAR(255), " +
+                     "PRIMARY KEY(`ts`)) ENGINE = MyISAM;");
+        stmt.close();
+      }
     } catch (Exception e) {
       System.err.println("PointArchiverMySQL:createTable: " + e.getMessage());
+      try {
+        if (stmt!=null) stmt.close();
+      } catch (Exception g) {}
     }
   }
 
@@ -269,15 +293,22 @@ extends PointArchiver
   checkConnection()
   {
     boolean res=false;
+    Statement stmt=null;
     try {
       //Do a minimal query to see if connection is valid
       //From Java 1.6 we could use itsConnection.isValid(1)
       if (itsConnection!=null) {
         try {
-          Statement stmt = itsConnection.createStatement();
-          stmt.execute("select 1;");
+          synchronized (itsConnection) {
+            stmt = itsConnection.createStatement();
+            stmt.execute("select 1;");
+            stmt.close();
+          }
         } catch (Exception f) {
           itsConnection=null;
+          try {
+            if (stmt!=null) stmt.close();
+          } catch (Exception g) {}
         }
       }
       if (itsConnection==null) {
@@ -300,9 +331,12 @@ extends PointArchiver
   String
   getTableName(PointMonitor pm)
   {
-    String rawname = pm.getSource() + "$" + pm.getName();
-    //Translate .'s to $'s so as not to conflict with SQL syntax
-    return rawname.replace('.', '$');
+    String name = pm.getSource() + "$" + pm.getName();
+    //Translate characters which conflict with SQL syntax
+    name = name.replace('.', '$');
+    name = name.replaceAll("\\x2b", "_plus_");
+    name = name.replaceAll("\\x2d", "_minus_");
+    return name;
   }  
   
   

@@ -21,7 +21,7 @@ import atnf.atoms.time.AbsTime;
  *
  * @author Le Cuong Nguyen
  * @author David Brodrick
- * @version $Id: PointArchiver.java,v 1.8 2008/12/18 00:55:45 bro764 Exp bro764 $
+ * @version $Id: PointArchiver.java,v 1.9 2009/01/09 02:34:53 bro764 Exp bro764 $
  */
 public abstract
 class PointArchiver
