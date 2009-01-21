@@ -18,6 +18,8 @@ The following commands are currently recognised by the server:
   * *poll2:* Request the current values, units and limit checks for a set of monitor points.
   * *since:* Request all updated values since a specified time.
   * *between:* Request all archival values between two nominated times.
+  * *following:* Return the first record >= a specified time for a set of points.
+  * *preceeding:* Return the last record <= a specified time for a set of points.
   * *names:* Request the names of all monitor points in the system.
   * *details:* Request meta-information about some monitor points.
 
@@ -122,6 +124,62 @@ between
 0x10820fbeb4a2c0 33.9
 0x10820fbf4d3940 33.9
 0x10820fbfe5cfc0 33.9
+}}}
+
+==following==
+
+Return a first archive records with timestamps >= specified times, for a set of monitor points. This can basically be used to step forward one step in time if you have an existing set of timestamps for a group of points.
+
+You need to send:
+{{{
+following
+[num_points]
+[BAT_timestamp1] [pointname1]
+...
+[BAT_timestampN] [pointnameN]
+}}}
+
+As per the poll command, the server will respond with:
+{{{
+[pointname1]\t[BAT_timestamp]\t[value]
+...
+[pointnameN]\t[BAT_timestamp]\t[value]
+}}}
+
+Here is a real example where we request the value for a single monitor point:
+{{{
+following
+1
+0x1081fca4250000 site.environment.weather.Temperature
+site.environment.weather.Temperature 0x1081fca424fe40 33.8
+}}}
+
+==preceeding==
+
+Return a last archive records with timestamps <= specified times, for a set of monitor points. This can basically be used to step backward one step in time if you have an existing set of timestamps for a group of points.
+
+You need to send:
+{{{
+preceeding
+[num_points]
+[BAT_timestamp1] [pointname1]
+...
+[BAT_timestampN] [pointnameN]
+}}}
+
+As per the poll command, the server will respond with:
+{{{
+[pointname1]\t[BAT_timestamp]\t[value]
+...
+[pointnameN]\t[BAT_timestamp]\t[value]
+}}}
+
+Here is a real example where we request the value for a single monitor point:
+{{{
+preceeding
+1
+0x1081fca4200000 site.environment.weather.Temperature
+site.environment.weather.Temperature 0x1081fca424fe40 33.8
 }}}
 
 ==names==
