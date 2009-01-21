@@ -20,7 +20,7 @@ import atnf.atoms.mon.archiver.PointArchiver;
  *
  * @author Le Cuong Nguyen
  * @author David Brodrick
- * @version $Id: PointBuffer.java,v 1.4 2006/05/11 23:40:55 bro764 Exp $
+ * @version $Id: PointBuffer.java,v 1.5 2008/12/18 00:47:02 bro764 Exp bro764 $
  */
 public class PointBuffer
 {
@@ -261,8 +261,8 @@ public class PointBuffer
   public static
   Vector
   getPointData(String name,
-	       String source,
-	       AbsTime timestamp)
+               String source,
+               AbsTime timestamp)
   {
     PointMonitor pm = MonitorMap.getPointMonitor(source+"."+name);
     if (timestamp.isASAP()) return getBufferData(pm);
@@ -282,7 +282,7 @@ public class PointBuffer
   public static
   Vector
   getPointData(String point,
-	       AbsTime timestamp)
+               AbsTime timestamp)
   {
     //Try to get the specified point and check if it was found
     PointMonitor pm = MonitorMap.getPointMonitor(point);
@@ -292,6 +292,95 @@ public class PointBuffer
     return getPointData(pm, timestamp, AbsTime.factory(), 0);
   }
 
+
+  /** Return the last record who's timestamp is <= the timestamp argument.
+   * @param point Monitor point to request data for.
+   * @param timestamp Get data before or equalling this time.
+   * @return The data, or null if no record was found. */
+  public static
+  PointData
+  getPreceeding(String point,
+                AbsTime timestamp)
+  {
+    //Try to get the specified point and check if it was found
+    PointMonitor pm = MonitorMap.getPointMonitor(point);
+    if (pm==null) return null;
+    
+    PointData res = null;
+
+    //Check if the requested data is still in our memory buffer
+    synchronized(bufferTable) {
+      Vector bufferdata = getBufferData(pm);
+
+      if (bufferdata!=null && bufferdata.size()>1 && 
+          ((PointData)bufferdata.get(0)).getTimestamp().isBeforeOrEquals(timestamp)) {
+        //That which we seek is buffered
+        for (int i=0; i<bufferdata.size(); i++) {
+          PointData pd = ((PointData)bufferdata.get(i));
+          if (pd.getTimestamp().isAfter(timestamp)) {
+            //Stop now
+            break;
+          } else {
+            //This record satisfies our criteria
+            res = pd;
+          }
+        }
+      }
+    }
+    
+    if (res==null) {
+      //The data is no longer buffered - need to ask the archive
+      PointArchiver arc = MonitorMap.getPointArchiver();
+      res = arc.getPreceeding(pm, timestamp);
+    }
+    
+    return res;
+  }
+
+
+  /** Return the last record who's timestamp is >= the timestamp argument.
+   * @param point Monitor point to request data for.
+   * @param timestamp Get data after or equalling this time.
+   * @return The data, or null if no record was found. */
+  public static
+  PointData
+  getFollowing(String point,
+               AbsTime timestamp)
+  {
+    //Try to get the specified point and check if it was found
+    PointMonitor pm = MonitorMap.getPointMonitor(point);
+    if (pm==null) return null;
+    
+    PointData res = null;
+    
+    //Check if the requested data is still in our memory buffer
+    synchronized(bufferTable) {
+      Vector bufferdata = getBufferData(pm);
+      if (bufferdata!=null && bufferdata.size()>1 && 
+          ((PointData)bufferdata.get(0)).getTimestamp().isBeforeOrEquals(timestamp)) {
+        //That which we seek is buffered
+        for (int i=bufferdata.size()-1; i>=0; i--) {
+          PointData pd = ((PointData)bufferdata.get(i));
+          if (pd.getTimestamp().isBefore(timestamp)) {
+            //Stop now
+            break;
+          } else {
+            //This record satisfies our criteria
+            res = pd;
+          }
+        }
+      } 
+    }
+    
+    if (res==null) {
+      //The data is no longer buffered - need to ask the archive
+      PointArchiver arc = MonitorMap.getPointArchiver();
+      res = arc.getFollowing(pm, timestamp);
+    }
+    
+    return res;
+  }
+  
 
   /** Return the latest data for the specified point. This call will block
    * until at least one piece of data is available for the given point.
