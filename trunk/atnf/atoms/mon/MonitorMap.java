@@ -60,14 +60,14 @@ public class MonitorMap
      //If the Transaction is not null, assign to appropriate DataSource
      Transaction t = pm.getTransaction();
      if (t!=null && !t.getChannel().equals("NONE")) {
-       DataSource ds = getDataSource(t.getChannel() + pm.getSource());
+       DataSource ds = getDataSource(t.getChannel());
        if (ds!=null) {
          ds.addPoint(pm);
          //System.err.println("MonitorMap:addPointMonitor: OK for "
-         //     	    + pm + " (" + t.getChannel() + pm.getSource() + ")");
+         //     	    + pm + " (" + t.getChannel() + ")");
        } else {
          System.err.println("MonitorMap:addPointMonitor: No DataSource for "
-                            + pm + " (" + t.getChannel() + pm.getSource() + ")");
+                            + pm + " (" + t.getChannel() + ")");
        }
      }
      if (pm.getArchive()!=null) {

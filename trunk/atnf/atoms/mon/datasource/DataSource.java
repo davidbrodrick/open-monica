@@ -111,14 +111,14 @@ implements Runnable
   addDataSource(String name, DataSource source)
   {
     theirDataSources.put(name, source);
+    MonitorMap.addDataSource(source); //Remove this eventually
   }
 
 
-   public DataSource(String nameOfSource)
+   public DataSource(String name)
    {
-     itsName = nameOfSource;
-     theirDataSources.put(itsName, this);
-     MonitorMap.addDataSource(this); //Remove this eventually
+     itsName = name;
+     addDataSource(name, this);
    }
    
    public DataSource()
