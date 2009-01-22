@@ -9,6 +9,7 @@ package atnf.atoms.mon.transaction;
 
 import java.util.*;
 import atnf.atoms.mon.PointInteraction;
+import atnf.atoms.mon.util.MonitorUtils;
 
 /**
  * Generic transaction for DataSources which require strings to retrieve the
@@ -35,8 +36,10 @@ extends Transaction
     String[] tokens=specifics.split("\"");
     assert tokens.length>2;
 
-    //Replace the macro $1 with source name if present    
-    tokens[1]=tokens[1].replaceAll("$1", parent.getSource());
+    //Replace the macro $1 with source name if present
+    if (tokens[1].indexOf("$1")!=-1) {
+      tokens[1]=MonitorUtils.replaceTok(tokens[1], parent.getSource());
+    }
     //Set the channel (used to determine which DataSource to use)
     setChannel(tokens[1]);
 
