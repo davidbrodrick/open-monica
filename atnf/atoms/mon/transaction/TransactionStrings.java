@@ -35,6 +35,8 @@ extends Transaction
     String[] tokens=specifics.split("\"");
     assert tokens.length>2;
 
+    //Replace the macro $1 with source name if present    
+    tokens[1]=tokens[1].replaceAll("$1", parent.getSource());
     //Set the channel (used to determine which DataSource to use)
     setChannel(tokens[1]);
 
