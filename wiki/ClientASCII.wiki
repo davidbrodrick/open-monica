@@ -110,6 +110,8 @@ The server will respond with:
 [timestampN]\t[dataN]
 }}}
 
+In order to prevent the server from becoming bogged down by large data requests it may impose a limit on the number of data records returned from a single call to the archive. Therefore you should process calls to 'since' in a loop which advances the request timestamp, until all data has been returned.
+
 ==between==
 
 The between command is similar to the since command except that it returns all records, for a single monitor point, between two nominated times (whereas since returns all data between the specified time and the present).
@@ -125,6 +127,8 @@ between
 0x10820fbf4d3940 33.9
 0x10820fbfe5cfc0 33.9
 }}}
+
+In order to prevent the server from becoming bogged down by large data requests it may impose a limit on the number of data records returned from a single call to the archive. Therefore you should process calls to 'between' in a loop which advances the request start timestamp, until all data has been returned.
 
 ==following==
 
