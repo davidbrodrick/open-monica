@@ -166,7 +166,8 @@ extends Translation
   }
 
 
-  /** Add new data to buffer and purge old data. */
+  /** Add new data to buffer and purge old data. 
+   * @return True if new data was okay, False if a problem. */
   protected
   void
   updateBuffer(PointData newdata)
