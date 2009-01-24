@@ -27,6 +27,8 @@ Please maintain lists in lexigraphic order.
 || !LimitCheck || Output depends on whether other monitor points are in an alarm state. Used together with `TransactionListen`. || *Okay:* String to output when all points are within limits. *Fail:* String to output when one or more points are in an alarm state. *Points:* All further arguments are the names of points to be checked. ||
 || !LinearCombo || Produces a linear combination of the listened-to points. Used together with `TransactionListen`. || Any number of points can be combined, every point requires the following two arguments, *Coefficient:* The coefficient of this point in the linear combination. *Point:* Name of the point which uses that coefficient. ||
 || Mean || Calculate a moving average of the input value. || *Buffer:* The averaging period, in seconds, eg, to average one minute worth os samples use `60`. *Timestamp:* A boolean which controls how we timestamp the output data, if `F` then we use the current time, if `T` then we use a timestamp from the middle of the buffer span. *Output:* An optional argument which specifies how often to produce output, in seconds. The default is to produce a new output every time we get a new input. ||
+|| Polar2X || Listen to two numeric inputs which represent a polar vector, and output the X cartesian component of the vector. || *Magnitude:* Name of the vector magnitude point. *Angle:* Name of the vector angle point. *Format:* Optional argument, set to 'd' to interpret the input angle as degrees (default is radians). ||
+|| Polar2Y || Listen to two numeric inputs which represent a polar vector, and output the Y cartesian component of the vector. || *Magnitude:* Name of the vector magnitude point. *Angle:* Name of the vector angle point. *Format:* Optional argument, set to 'd' to interpret the input angle as degrees (default is radians). ||
 || NV || Retrieve one named element from a HashMap or NameValueList input object. || *Name:* The key for the value we wish to extract. ||
 || None || Just returns the input argument. || ||
 || !NumDecimals || Limit the number of decimals in a floating point number. || *Decimals:* The maximum number of non-zero digits after the decimal place. ||
@@ -38,6 +40,8 @@ Please maintain lists in lexigraphic order.
 || !StringToNumber || Map the string representation of a number to an actual numeric class type. || *Type:* The type of output to be produced, Float, Double, or Integer. *Radix:* A radix may be used for integers. If it is omitted base 10 is assumed. ||
 || Squelch || Apply thresholding function. || *Threshold:* Squelch values below this number. *Output:* Value to output when input is squelched. ||
 || Variance || Calculate the variance of the input over a specified time range. || *Buffer:* The interval in seconds over which to calculate the variance of the input. ||
+|| XY2Angle || Listen to tow numeric inputs which represent the X and Y cartesian components of a vector and output the vector angle. || *X:* Monitor point representing X component. *Y:* Point representing Y component. *Format:* Optional argument, set to 'd' to output degrees (default is radians). ||
+|| XY2Mag || Listen to tow numeric inputs which represent the X and Y cartesian components of a vector and output the magnitude of the vector. || *X:* Monitor point representing X component. *Y:* Point representing Y component. ||
 
 == Weather Specific ==
 || *Class* || *Description* || *Arguments* ||
