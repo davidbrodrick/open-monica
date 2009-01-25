@@ -312,8 +312,11 @@ implements Runnable
            try {
              StringTokenizer tok = new StringTokenizer(lines[i]);
              String className = tok.nextToken();
-             //Split the arguments into an array at each colon
-             String[] classArgs = tok.nextToken().split(":");
+             String[] classArgs = null;
+             if (tok.countTokens()>1) {
+               //Split the arguments into an array at each colon
+               classArgs = tok.nextToken().split(":");
+             }
              Class datasource = Class.forName(className);
              Constructor con = datasource.getConstructor(new Class[]{String[].class});
              con.newInstance(new Object[]{classArgs});
