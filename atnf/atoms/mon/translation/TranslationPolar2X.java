@@ -44,10 +44,10 @@ extends TranslationDualListen
     super(parent, init);
     
     if (init.length==3 && init[2].toLowerCase().equals("d")) {
-      System.err.println("TranslationPolar2X: Will interpret as degrees");
+      //System.err.println("TranslationPolar2X: Will interpret as degrees");
       itsDegrees=true;
     } else {
-      System.err.println("TranslationPolar2X: Will interpret as radians");
+      //System.err.println("TranslationPolar2X: Will interpret as radians");
     }
   }
 

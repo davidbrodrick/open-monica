@@ -41,10 +41,10 @@ extends TranslationDualListen
     super(parent, init);
     
     if (init.length==3 && init[2].toLowerCase().equals("d")) {
-      System.err.println("TranslationXY2Angle: Will produce degrees");
+      //System.err.println("TranslationXY2Angle: Will produce degrees");
       itsDegrees=true;
     } else {
-      System.err.println("TranslationXY2Angle: Will produce radians");
+      //System.err.println("TranslationXY2Angle: Will produce radians");
     }
   }
 
