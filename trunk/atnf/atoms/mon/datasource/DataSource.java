@@ -313,7 +313,7 @@ implements Runnable
              StringTokenizer tok = new StringTokenizer(lines[i]);
              String className = tok.nextToken();
              String[] classArgs = null;
-             if (tok.countTokens()>1) {
+             if (tok.countTokens()>0) {
                //Split the arguments into an array at each colon
                classArgs = tok.nextToken().split(":");
              }
@@ -339,77 +339,77 @@ implements Runnable
      while (itsKeepRunning) {
        ///If we're not connected, try to reconnect
        if (!itsConnected) {
-	 try {
+         try {
            connect();
-	 } catch (Exception e) {
+         } catch (Exception e) {
            itsConnected = false;
-	 }
+         }
        }
 
        Vector thesepoints = null;
        ///We're connected, need to determine which points need collecting
        synchronized (itsPoints) {
-	 try {
-	   //Wait for notification if there are no points
-	   while (itsPoints.isEmpty()) {
-	     itsPoints.wait();
-	   }
-	 } catch (Exception e) {
-	   System.err.println("DataSource::run: " + e.getMessage());
-	   e.printStackTrace();
-	   continue;
-	 }
+         try {
+           //Wait for notification if there are no points
+           while (itsPoints.isEmpty()) {
+             itsPoints.wait();
+           }
+         } catch (Exception e) {
+           System.err.println("DataSource::run: " + e.getMessage());
+           e.printStackTrace();
+           continue;
+         }
 
-	 //Calculate the latest epoch we're prepared to collect now
-	 AbsTime cutoff = AbsTime.factory();
-	 cutoff.add(50000); //Fudge factor for better efficiency
+         //Calculate the latest epoch we're prepared to collect now
+         AbsTime cutoff = AbsTime.factory();
+         cutoff.add(50000); //Fudge factor for better efficiency
 
-	 //Get the set of all points within the time bracket
-	 thesepoints = itsPoints.headSet(cutoff);
+         //Get the set of all points within the time bracket
+         thesepoints = itsPoints.headSet(cutoff);
        }
-	 if (!thesepoints.isEmpty()) {
-	   Object[] parray = thesepoints.toArray();
-	   if (itsConnected) {
-	     try {
-	       //Call the sub-class specific method to do the real work
-	       getData(parray);
-             } catch (Exception e) {
-               e.printStackTrace();
-	       itsConnected = false;
-	     }
-	   } else {
-	     //Points are scheduled for collection but we're not connected.
-	     //Fire null-data events for those points since old data is stale
-	     for (int i=0; i<parray.length; i++) {
-	       PointInteraction pm = (PointInteraction)parray[i];
-	       pm.firePointEvent(new PointEvent(this,
-						new PointData(pm.getName(),
-							      pm.getSource()),
-						true));
-	     }
-	     //Throw in a brief sleep to stop fast reconnection loops
-	     try {
-	       final RelTime connectdelay = RelTime.factory(1000000);
-	       connectdelay.sleep();
-	     } catch (Exception e) {e.printStackTrace();}
-	   }
-	   //Insert the points back into our list
-	   addPoints(parray);
-	 }
+       if (!thesepoints.isEmpty()) {
+         Object[] parray = thesepoints.toArray();
+         if (itsConnected) {
+           try {
+             //Call the sub-class specific method to do the real work
+             getData(parray);
+           } catch (Exception e) {
+             e.printStackTrace();
+             itsConnected = false;
+           }
+         } else {
+           //Points are scheduled for collection but we're not connected.
+           //Fire null-data events for those points since old data is stale
+           for (int i=0; i<parray.length; i++) {
+             PointInteraction pm = (PointInteraction)parray[i];
+             pm.firePointEvent(new PointEvent(this,
+                                   new PointData(pm.getName(),
+                                   pm.getSource()),
+                               true));
+           }
+           //Throw in a brief sleep to stop fast reconnection loops
+           try {
+             final RelTime connectdelay = RelTime.factory(1000000);
+             connectdelay.sleep();
+           } catch (Exception e) {e.printStackTrace();}
+         }
+         //Insert the points back into our list
+         addPoints(parray);
+       }
 
        //We may need to wait before we collect the next point.
        try {
-	 PointInteraction headpoint = (PointInteraction)itsPoints.first();
-	 AbsTime nextTime = headpoint.getNextEpoch_AbsTime();
-	 AbsTime timenow = AbsTime.factory();
-	 if (nextTime.isAfter(timenow)) {
-	   //Work out how long we need to wait for
-	   RelTime waittime = Time.diff(nextTime, timenow);
-	   waittime.sleep();
-	 }
+         PointInteraction headpoint = (PointInteraction)itsPoints.first();
+         AbsTime nextTime = headpoint.getNextEpoch_AbsTime();
+         AbsTime timenow = AbsTime.factory();
+         if (nextTime.isAfter(timenow)) {
+           //Work out how long we need to wait for
+           RelTime waittime = Time.diff(nextTime, timenow);
+           waittime.sleep();
+         }
        } catch (Exception e) {
-	 System.err.println("DataSource::run(): " + e.getMessage());
-	 e.printStackTrace();
+         System.err.println("DataSource::run(): " + e.getMessage());
+         e.printStackTrace();
        }
      }
    }
