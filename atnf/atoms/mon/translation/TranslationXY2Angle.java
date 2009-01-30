@@ -23,6 +23,12 @@ import atnf.atoms.mon.util.*;
  * the result is returned in radians but an optional third argument can be 
  * set to "d" and the angle will be returned as degrees.
  *
+ * The output will occupy the domain:
+ * <ul>
+ * <li> 0<=x<=360 for degrees.
+ * <li> 0<=x<=2*PI for radians.
+ * </ul>
+ *
  * @author David Brodrick
  * @version $Id: $
  */
@@ -65,8 +71,14 @@ extends TranslationDualListen
     Float res;
     if (itsDegrees) {
       res = new Float(180*Math.atan2(x, y)/Math.PI);
+      if (res.floatValue()<0) {
+        res = new Float(360 + res.floatValue());
+      }
     } else {
       res = new Float(Math.atan2(x, y));
+      if (res.floatValue()<0) {
+        res = new Float(2*Math.PI + res.floatValue());
+      }      
     }
     return res;
   }
