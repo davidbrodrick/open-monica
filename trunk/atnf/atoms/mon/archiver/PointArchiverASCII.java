@@ -19,12 +19,18 @@ import atnf.atoms.util.*;
 import atnf.atoms.time.*;
 
 /**
- * BAT_time\t  data_type\t  data\t  raw_type\t  raw_data
- * WITH compression!
+ * Archiver which stores data into ASCII text files, which are then compressed.
+ *
+ * <P>Each record is appened to a text file which lives in a directory
+ * hierarchy which corresponds to the heirarchical name of the monitor
+ * point. When files either get too large or too old they are compressed and
+ * any subsequent data will be stored in a new file.
+ *
+ * <P>The compression is transparent to the user as the archiver will 
+ * decompress files when a archive request is made.
  *
  * @author David Brodrick
  * @author Le Cuong Ngyuen
- * @version $Id: PointArchiverASCII.java,v 1.7 2007/06/05 01:41:36 bro764 Exp bro764 $
  **/
 public class PointArchiverASCII
 extends PointArchiver
