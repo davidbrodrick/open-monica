@@ -15,6 +15,20 @@ import atnf.atoms.util.*;
 import atnf.atoms.time.*;
 
 /**
+ * Archiver which uses a MySQL database as the back end.
+ *
+ * <P>Connects to mysqld on localhost as user <i>monica</i> with a blank
+ * password. Writes data to a database called <i>MoniCA</i>, so the user
+ * needs full permissions to that database. A script <i>bin/setupMySQL.sh</i>
+ * is provided which creates the user and the database.
+ *
+ * <P>TODO: The URL to connect to the database should really be passed as
+ * an argument from the configuration file.
+ *
+ * <P>Since monitor points in MoniCA are not strictly-typed data is stored 
+ * as a string/varchar and the data type stored in a separate column. The 
+ * appropriate object is instanciated when data is extracted from the archive,
+ * however this approach degrades space efficiency.
  *
  * @author David Brodrick
  */
