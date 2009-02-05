@@ -24,73 +24,74 @@ import java.awt.event.ActionEvent;
  *
  * @author Le Cuong Nguyen
  * @author David Brodrick
- * @version $Id: PointMonitor.java,v 1.4 2007/04/12 05:18:28 bro764 Exp $
  */
 public class
 PointMonitor
 extends PointInteraction
 {
-   /**
-    * The period between updates for this PointMonitor. If the period is set
-    * to 0, then this point has no period.
-    */
+   /** The interval between updates. If the period is set to 0, then this
+    * point has no scheduled update frequency. */
    long itsPeriod = 0;
 
+   /** Indicates if the point is currently in the process of being updated. */
    boolean itsCollecting = false;
 
-   //boolean itsPerioditic = true;
-
+   /** The limit/alarm criteria for this point.
+    * TODO: Should make this an array for different criteria to be used. */
    PointLimit itsLimits = null;
    
+   /** The policies that define when to archive this point. */
    ArchivePolicy[] itsArchive = null;
    
+   /** The archiver used to store data for this point. */
    PointArchiver itsArchiver = null;
-   
+
+   /** The description of what this monitor point represents. */   
    String itsLongDesc = "";
    
-   String itsShortDesc = "";
-
    /** The "units" of the monitor point value. For instance this might be
     * "Volts" or "Amps" or "dBm". Leave as null if units are not appropriate
     * for a given point. */
    String itsUnits = null;
 
+   /** The time the point should next be updated. */
    protected transient long itsNextEpoch = 0;
 
-   public boolean isValid()
-   {
-      if (PointBuffer.getPointData(this) != null && PointBuffer.getPointData(this).getData() == null)
-      return false;
-      return true;
-   }
-   
+
    /**
     * Return the period between updates for this monitor point. A period
     * of zero has the special meaning that the update frequency is being
     * handled through some other mechanism.
     */
-   public long
+   public
+   long
    getPeriod()
    {
      return itsPeriod;
    }
 
-   /**
-    * Set the update period to be used for the monitor point.
-    */
-   public void
+
+   /** Set the update interval. */
+   public
+   void
    setPeriod(RelTime newperiod)
    {
      itsPeriod = newperiod.getValue();
    }
 
-   public void
+
+   /** Set the update interval. */
+   public
+   void
    setPeriod(long newperiod)
    {
      itsPeriod = newperiod;
    }
 
-   public void
+
+   /** Set the update interval. */
+   public
+   void
    setPeriod(String newperiod)
    {
      if (newperiod.equalsIgnoreCase("null") || newperiod.trim().equals("-")) {
@@ -106,32 +107,47 @@ extends PointInteraction
      }
    }
 
+
    /** Overriding the PointInteraction method of the same name. This method
        ensures that the data is appropriately marked in the buffer */
-   public void setEnabled(boolean enabled)
+   public
+   void
+   setEnabled(boolean enabled)
    {
       itsEnabled = enabled;
    }
 
-   public PointLimit
+
+   /** Get the limit/alarm checking criteria used by this point. */
+   public
+   PointLimit
    getLimits()
    {
      return itsLimits;
    }
 
-   public void
+
+   /** Set the limit/alarm checking criteria to be used by this point. */
+   public
+   void
    setLimits(PointLimit limits)
    {
      itsLimits = limits;
    }
 
-   public ArchivePolicy[]
+
+   /** Get the archive policies used by this point. */
+   public
+   ArchivePolicy[]
    getArchive()
    {
      return itsArchive;
    }
 
-   public void
+   
+   /** Specify the archive policies to be used by this point. */
+   public
+   void
    setArchive(ArchivePolicy[] archive)
    {
      itsArchive = archive;
@@ -142,7 +158,8 @@ extends PointInteraction
     * Return the time when this monitor point was last sampled.
     * If the monitor point hasn't yet been sampled "NEVER" is returned.
     */
-   public long
+   public
+   long
    getLastEpoch()
    {
      PointData data = PointBuffer.getPointData(this);
@@ -150,59 +167,73 @@ extends PointInteraction
      else return data.getTimestamp().getValue();
    }
 
+
    /**
     * Return the time when this monitor point will next be sampled.
     * If the monitor point hasn't yet been sampled, "ASAP" will be
     * returned.
     */
-   public long
+   public
+   long
    getNextEpoch()
    {
      return itsNextEpoch;
    }
    
+   
    /** Allows the manual setting of the next epoch */
-   public void setNextEpoch(long nextEpoch)
+   public
+   void
+   setNextEpoch(long nextEpoch)
    {
-      itsNextEpoch = nextEpoch;
+     itsNextEpoch = nextEpoch;
    }
 
+
    /** Allows the manual setting of the next epoch */
-   public void setNextEpoch(AbsTime nextEpoch)
+   public
+   void
+   setNextEpoch(AbsTime nextEpoch)
    {
      itsNextEpoch = nextEpoch.getValue();
    }
+
    
-   // As the name says, replace with appropriate code later
-   public int getMaxBufferSize()
+   /** Get the number of data updates to keep buffered in memory.
+    * TODO: This currently just returns a fixed number.
+    * TODO: Do we want to buffer updates at all? */
+   public
+   int
+   getMaxBufferSize()
    {
-      return 50;
+     return 50;
    }
 
-   // Currently working, leave me alone
-   public boolean isCollecting()
+
+   /** Indicates if the point is in the process of actively being updated. */
+   public
+   boolean
+   isCollecting()
    {
-      return itsCollecting;
+     return itsCollecting;
    }
 
-   public void setLongDesc(String desc)
+
+   /** Set the description of this point. */
+   public
+   void
+   setLongDesc(String desc)
    {
-      itsLongDesc = desc.replace('\"', '\0');
+     itsLongDesc = desc.replace('\"', '\0');
    }
 
-   public String getLongDesc()
+   
+   /** Get the description. */
+   public
+   String
+   getLongDesc()
    {
       return itsLongDesc;
-   }
-
-   public void setShortDesc(String desc)
-   {
-      itsShortDesc = desc.replace('\"', '\0');
-   }
-
-   public String getShortDesc()
-   {
-      return itsShortDesc;
    }
 
 
@@ -225,10 +256,7 @@ extends PointInteraction
    }
 
 
-   protected PointMonitor() 
-   {
-   }
-
+   /** Construct a new monitor point from the given fields. */
    public static PointMonitor factory(String[] names,
                                       String longDesc,
                                       String shortDesc,
@@ -243,7 +271,6 @@ extends PointInteraction
       PointMonitor result = new PointMonitor();
       result.setNames(names);
       result.setLongDesc(longDesc);
-      result.setShortDesc(shortDesc);
       result.setUnits(units);
       result.setSource(source);
 
@@ -267,8 +294,12 @@ extends PointInteraction
       return result;
    }
 
+
    /** OK, maybe data has been collected */
-   public synchronized void firePointEvent(PointEvent pe)
+   public
+   synchronized
+   void
+   firePointEvent(PointEvent pe)
    {
      MonitorWatchDog.ignore(this);
 
@@ -319,9 +350,11 @@ extends PointInteraction
 
        // Pass the event on to all listeners
        Object[] listeners = itsPLList.getListenerList();
-       for (int i = 0; i < listeners.length; i +=2)
-         if (listeners[i] == PointListener.class)
-          ((PointListener)listeners[i+1]).onPointEvent(this, pe);
+       for (int i = 0; i < listeners.length; i+=2) {
+         if (listeners[i] == PointListener.class) {
+           ((PointListener)listeners[i+1]).onPointEvent(this, pe);
+         }
+       }
      } else {
        //Schedule the next collection
        if (itsPeriod>0) {
@@ -332,39 +365,22 @@ extends PointInteraction
      itsCollecting = false;
    }
 
-   public void setArchiver(PointArchiver archiver)
+
+   /** Specify the PointArchiver to archive data for this point. 
+    * @param archiver The PointArchiver to be used. */
+   public
+   void
+   setArchiver(PointArchiver archiver)
    {
       itsArchiver = archiver;
    }
 
-   /** Collect the data */
-/*   public void collectData()
-   {
-      if (!itsEnabled) {
-	 if (isValid())
-             firePointEvent(new PointEvent(this, new PointData(itsNames[0], itsSource, AbsTime.factory()), false));
-	 return;
-      }
-      itsCollecting = true;
-      MonitorWatchDog.watch(this);
-      // Find the appropriate datasource
-      DataSource ds = MonitorMap.getDataSource(itsTransaction.getChannel()+itsSource);
-      // Tell datasource to collect the data
-      if (ds != null) ds.getData(this);
-      else MonitorWatchDog.ignore(this);
-   }*/
 
-   /** Watchdog called this. Timeout */
-/*   public void actionPerformed(ActionEvent e)
-   {
-      //System.out.println(getHash()+" has failed to collect data");
-      if (PointBuffer.getPointData(this).getData() != null)
-          firePointEvent(new PointEvent(this, new PointData(itsNames[0], itsSource, AbsTime.factory()), false));
-      collectData();
-   }
-*/
-   /** Converts this point into a string which can be used to re-create an identical point */
-   public String getStringEquiv()
+   /** Converts this point into a string which can be used to re-create 
+    * an identical point */
+   public
+   String
+   getStringEquiv()
    {
       StringBuffer res = new StringBuffer();
       res.append('M');
@@ -383,9 +399,8 @@ extends PointInteraction
       res.append(itsLongDesc);
       res.append('"');
       res.append(' ');
-      res.append('"');
-      res.append(itsShortDesc);
-      res.append('"');
+      res.append('"'); //Empty place where short description used to go..
+      res.append('"'); //..for backwards compat only.
       res.append(' ');
       res.append('"');
       res.append(itsUnits);

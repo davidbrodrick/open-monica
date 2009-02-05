@@ -4,11 +4,7 @@
 // modify it under the terms of the GNU Library General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-/**
- * Class: FakeMonitor
- * Description: Just like a PointMonitor, only not.
- * @author Le Cuong Nguyen
- **/
+
 package atnf.atoms.mon;
 
 import atnf.atoms.mon.client.*;
@@ -16,6 +12,11 @@ import atnf.atoms.mon.limit.*;
 import atnf.atoms.time.*;
 import atnf.atoms.mon.transaction.*;
 
+/**
+ * Just like a PointMonitor, only not.
+ *
+ * @author Le Cuong Nguyen
+ **/
 public class FakeMonitor extends PointMonitor
 {
    String[] itsArchiveString = null;
@@ -102,7 +103,6 @@ public class FakeMonitor extends PointMonitor
       FakeMonitor result = new FakeMonitor();
       result.setNames(names);
       result.setLongDesc(longDesc);
-      result.setShortDesc(shortDesc);
       result.setUnits(units);
       result.setSource(source);
       result.setTranslationString(translate);
@@ -293,9 +293,8 @@ public class FakeMonitor extends PointMonitor
       res.append(itsLongDesc);
       res.append('"');
       res.append(' ');
-      res.append('"');
-      res.append(itsShortDesc);
-      res.append('"');
+      res.append('"'); //Was short description..
+      res.append('"'); //..now empty field for backwards compat
       res.append(' ');
       res.append(itsSource);
       res.append(' ');
