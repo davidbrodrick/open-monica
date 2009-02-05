@@ -62,21 +62,52 @@ extends PointArchiver
    * @param data Vector of data to be archived. */
   protected
   void
-  saveNow(PointMonitor pm, Vector data)
+  saveNow(PointMonitor pm, Vector alldata)
   {
     String table = getTableName(pm);
-    
-    for (int i=0; i<data.size(); i++) {
-      insertData(table, (PointData)data.get(i));
-    }
-    
-/*    try {
-      if (itsConnection!=null) {
-        itsConnection.commit();
-        itsConnection.clearWarnings();
-        itsConnection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+		
+    //MySQL can have maximum packet size limits, so archive data in blocks
+    final int MAXCHUNK=100;
+    for (int start=0; start<alldata.size(); start=start+MAXCHUNK) {
+      Statement stmt = null;
+      try {
+        //Build the full SQL command, adding each new row
+        String cmd = "INSERT IGNORE INTO " + table + " VALUES";
+			
+        for (int i=start; i<(start+MAXCHUNK)&&i<alldata.size(); i++) {
+          PointData data=(PointData)alldata.get(i);
+				
+          //Get a string representation of the object type and value
+          String typeval=null;
+          try {
+            typeval=getStringForObject(data.getData());
+          } catch (IllegalArgumentException e) {
+            //Can't save this object
+            System.err.println("PointArchiverMySQL:insertData: " + e.getMessage());
+            continue;
+          }
+
+          if (i!=start) {
+            cmd=cmd+",";
+          }				
+          cmd=cmd + " (" + data.getTimestamp().getValue() +
+                    ", " + typeval + ")";
+        }
+        cmd=cmd+";";
+        synchronized (itsConnection) {
+          stmt = itsConnection.createStatement();
+          stmt.execute(cmd);
+          stmt.close();
+        }
+      } catch (Exception e) {
+        System.err.println("PointArchiverMySQL:insertData: " + e.getMessage());
+        checkConnection();
+        createTable(table);
+        try {
+          if (stmt!=null) stmt.close();
+        } catch (Exception g) {}
       }
-    } catch (Exception e) { }*/
+    }
   }
 
 
@@ -236,45 +267,6 @@ extends PointArchiver
   }
   
 
-  /** Insert the given data into the table.
-   * @param table Name of the table. 
-   * @param data The data to insert. */
-  protected
-  void
-  insertData(String table, PointData data)
-  {
-    Statement stmt = null;
-    try {
-      //Get a string representation of the object type and value
-      String typeval=null;
-      try {
-        typeval=getStringForObject(data.getData());
-      } catch (IllegalArgumentException e) {
-        //Can't save this object
-        System.err.println("PointArchiverMySQL:insertData: " + e.getMessage());
-        return;
-      }
-      String cmd = "INSERT INTO " + table + " VALUES(" +
-                   data.getTimestamp().getValue() +
-                   ", " + typeval + ");";
-      synchronized (itsConnection) {
-        stmt = itsConnection.createStatement();
-        stmt.execute(cmd);
-        stmt.close();
-      }
-    } catch (Exception e) {
-      if (e.getMessage().toLowerCase().indexOf("duplicate entry")==-1) {
-        System.err.println("PointArchiverMySQL:insertData: " + e.getMessage());
-        checkConnection();
-        createTable(table);
-        try {
-          if (stmt!=null) stmt.close();
-        } catch (Exception g) {}
-      }
-    }
-  }
-  
-  
   /** Create the specified table if it doesn't already exist.
    * @param table Name of the table to create. */
   protected

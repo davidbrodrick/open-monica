@@ -101,16 +101,16 @@ extends MonitorPolicy
      if (arg.equalsIgnoreCase("null")) arg= "-";
 
      Translation result = null;
-
-     // Find the specific informations
-     String specifics = arg.substring(arg.indexOf("-") + 1);
-     String[] transArgs = MonitorUtils.tokToStringArray(specifics);
-
-     // Find the type of translation
-     String type = arg.substring(0, arg.indexOf("-"));
-     if (type == "" || type == null || type.length()<1) type = "None";
-
+     
      try {
+       // Find the specific informations
+       String specifics = arg.substring(arg.indexOf("-") + 1);
+       String[] transArgs = MonitorUtils.tokToStringArray(specifics);
+
+       // Find the type of translation
+       String type = arg.substring(0, arg.indexOf("-"));
+       if (type == "" || type == null || type.length()<1) type = "None";
+
        Constructor Translation_con = Class.forName("atnf.atoms.mon.translation.Translation"+type).getConstructor(new Class[]{PointMonitor.class,String[].class});
        result = (Translation)(Translation_con.newInstance(new Object[]{parent,transArgs}));
      } catch (Exception e) {

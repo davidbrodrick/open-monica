@@ -258,7 +258,7 @@ implements Runnable
    {
      synchronized(itsPoints) {
        for (int i=0; i<v.length; i++) {
-	 itsPoints.add(v[i]);
+         itsPoints.add(v[i]);
        }
        itsPoints.notifyAll();
      }
@@ -346,8 +346,8 @@ implements Runnable
          }
        }
 
+       //We're connected, need to determine which points need collecting
        Vector thesepoints = null;
-       ///We're connected, need to determine which points need collecting
        synchronized (itsPoints) {
          try {
            //Wait for notification if there are no points

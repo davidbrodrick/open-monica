@@ -97,11 +97,11 @@ extends PointInteraction
        itsPeriod = -1;
      } else {
        try {
-	 itsPeriod = Long.parseLong(newperiod);
+         itsPeriod = Long.parseLong(newperiod);
        } catch (Exception e) {
-	 MonitorMap.logger.error("PointMonitor: (" + getName()
-				 + "): setPeriod: " + e.getMessage());
-	 itsPeriod = -1; //Better than doing nothing..
+         MonitorMap.logger.error("PointMonitor: (" + getName()
+                                 + "): setPeriod: " + e.getMessage());
+         itsPeriod = -1; //Better than doing nothing..
        }
      }
    }
@@ -176,7 +176,7 @@ extends PointInteraction
    // As the name says, replace with appropriate code later
    public int getMaxBufferSize()
    {
-      return 100;
+      return 50;
    }
 
    // Currently working, leave me alone
@@ -371,9 +371,13 @@ extends PointInteraction
       res.append(' ');
       if (itsNames.length > 1) {
          res.append('{');
-         for (int i = 0; i < itsNames.length - 1; i++) res.append(itsNames[i]+",");
+         for (int i = 0; i < itsNames.length - 1; i++) {
+           res.append(itsNames[i]+",");
+        }
          res.append(itsNames[itsNames.length-1]+"}");
-      } else res.append(itsNames[0]);
+      } else {
+        res.append(itsNames[0]);
+      }
       res.append(' ');
       res.append('"');
       res.append(itsLongDesc);
@@ -394,22 +398,28 @@ extends PointInteraction
       res.append(itsTransaction.getStringEquiv().trim());
       res.append(' ');
       if (itsTranslations.length>1) {
-	//Need to write out the entire chain of Translations
-	res.append('{');
-	for (int i=0; i<itsTranslations.length-1; i++) {
-	  res.append(itsTranslations[i].getStringEquiv().trim() + ",");
-	}
-	res.append(itsTranslations[itsTranslations.length-1].getStringEquiv().trim() + "}");
-      } else res.append(itsTranslations[0].getStringEquiv().trim());
+        //Need to write out the entire chain of Translations
+        res.append('{');
+        for (int i=0; i<itsTranslations.length-1; i++) {
+          res.append(itsTranslations[i].getStringEquiv().trim() + ",");
+        }
+        res.append(itsTranslations[itsTranslations.length-1].getStringEquiv().trim() + "}");
+      } else {
+        res.append(itsTranslations[0].getStringEquiv().trim());
+      }
       res.append(' ');
       res.append(itsLimits.getStringEquiv().trim());
       res.append(' ');
       if (itsArchive.length > 1) {
         //Write out a set of ArchivePolicies
-	res.append('{');
-	for (int i = 0; i < itsArchive.length - 1; i++) res.append(itsArchive[i].getStringEquiv()+",");
-	res.append(itsArchive[itsArchive.length-1].getStringEquiv().trim()+"}");
-      } else res.append(itsArchive[0].getStringEquiv());
+        res.append('{');
+        for (int i = 0; i < itsArchive.length - 1; i++) {
+          res.append(itsArchive[i].getStringEquiv()+",");
+        }
+        res.append(itsArchive[itsArchive.length-1].getStringEquiv().trim()+"}");
+      } else {
+        res.append(itsArchive[0].getStringEquiv());
+      }
       res.append(' ');
       res.append(itsPeriod);
       return res.toString();
