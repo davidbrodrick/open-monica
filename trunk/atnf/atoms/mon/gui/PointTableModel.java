@@ -47,11 +47,6 @@ implements PointListener, TableCellRenderer
   /** Names of sources selected for display in the table. */
   protected Vector itsSources  = new Vector();
 
-  /** Determines whether we display short names or long names for the
-   * points. If this is <tt>true</tt> we use short names, otherwise we use
-   * the long names for the monitor points. */
-  protected boolean itsUseShortNames = false;
-
 
   public
   PointTableModel()
@@ -83,35 +78,6 @@ implements PointListener, TableCellRenderer
   getSources()
   {
     return itsSources;
-  }
-
-
-  /** */
-  public
-  boolean
-  getUseShortNames()
-  {
-    return itsUseShortNames;
-  }
-
-
-  /** */
-  public
-  void
-  setUseShortNames(boolean useshort)
-  {
-    itsUseShortNames = useshort;
-    fireTableStructureChanged(); //Is there a better event?
-  }
-
-
-  /** */
-  public
-  void
-  set(Vector points, Vector sources, boolean useshort)
-  {
-    itsUseShortNames = useshort;
-    set(points, sources);
   }
 
 
@@ -378,11 +344,7 @@ implements PointListener, TableCellRenderer
       //Point name was requested
       PointMonitor pm = getPointForRow(row);
       if (pm!=null) {
-        if (itsUseShortNames) {
-          res = pm.getShortDesc();
-        } else {
-          res = pm.getLongDesc();
-        }
+        res = pm.getLongDesc();
         if (res==null || res.equals("")) {
           //No useful name is defined, so substitute the points name
           res = pm.getName();
@@ -431,7 +393,7 @@ implements PointListener, TableCellRenderer
     } else if (column == getColumnCount()-1) {
       PointMonitor pm = getPointForRow(row);
       if (pm!=null) {
-        res = "Units for " + pm.getShortDesc();
+        res = "Units for " + pm.getLongDesc();
       }
     } else {
       PointMonitor pm = getPoint(row, column);
@@ -547,16 +509,16 @@ implements PointListener, TableCellRenderer
       PointMonitor pm = getPointForRow(i);
       if (pm==null) continue; //Blank row
 
-      line = pm.getShortDesc();
+      line = pm.getLongDesc();
       for (int j=0; j<itsSources.size(); j++) {
         line += ", ";
-	String pname = (String)itsSources.get(j) + "." + (String)itsPoints.get(i);
+        String pname = (String)itsSources.get(j) + "." + (String)itsPoints.get(i);
 
-	PointData pd = DataMaintainer.getBuffer(pname);
-	if (pd==null || pd.getData()==null) continue;
+        PointData pd = DataMaintainer.getBuffer(pname);
+        if (pd==null || pd.getData()==null) continue;
 
-	if (pd.isValid()) line += pd.getData().toString();
-	else line += "?";
+        if (pd.isValid()) line += pd.getData().toString();
+        else line += "?";
       }
       p.println(line);
     }
