@@ -182,7 +182,7 @@ extends PointArchiver
       loadFile(res, pm, dir+FSEP+files.get(j), start, end);
       if (res.size()>MAXNUMRECORDS) {
         //Max size limit to prevent server bogging down
-        MonitorMap.logger.warning("MoniCA Server: Truncating archive request to " + res.size() + " records");
+        //MonitorMap.logger.warning("MoniCA Server: Truncating archive request to " + res.size() + " records");
         break;
       }
     }

@@ -80,7 +80,7 @@ extends Thread
    void
    run()
    {
-     RelTime sleeptime = RelTime.factory(50000);
+     RelTime sleeptime = RelTime.factory(10000);
      while (true) {
        Enumeration keys = itsBuffer.keys();
        while (keys.hasMoreElements()) {
@@ -92,15 +92,17 @@ extends Thread
            if (itsBuffer.get(pm) == null) continue;
            bData = new Vector((Vector)itsBuffer.remove(pm));
            if (bData.size() < 1) {
-             //Sleep even if no data to archive, otherwise uses all CPU
+             //Sleep if no data to archive, otherwise may fast loop
              try {
                sleeptime.sleep();
              } catch (Exception e) {
                MonitorMap.logger.error("MoniCA Server: PointArchiver.run1: " + e.getMessage());
              }
+             //System.err.println("Skipping " + pm.getSource() + "." + pm.getName());
              continue;
            }
          }
+         //System.err.println("Archiving " + pm.getSource() + "." + pm.getName() + "\t" + bData.size());
          saveNow(pm, bData);
          try {
            sleeptime.sleep();

@@ -12,12 +12,9 @@ import java.util.*;
 import java.lang.*;
 
 /** Simple linked list class which uses a Comparator to sort the nodes.
- * Most operations are completed in linear time in the worst case. We
- * keep track of the current size so that the <i>size</i> method runs
- * in constant time.
+ * Most operations are completed in linear time in the worst case.
  *
  * @author David Brodrick
- * @version $Id: SortedLinkedList.java,v 1.1 2004/11/25 00:07:39 bro764 Exp $
  */
 public class
 SortedLinkedList
@@ -73,25 +70,23 @@ SortedLinkedList
     } else {
       //Check if it needs to go right at the head
       if (itsComparator.compare(o, itsHead.data)<=0) {
-	newnode.next = itsHead;
+        newnode.next = itsHead;
         itsHead = newnode;
       }
       //Check if it needs to go right at the tail
-      //This is an unusual check but should boost performance
       else if (itsComparator.compare(o, itsTail.data)>=0) {
-	itsTail.next = newnode;
-	itsTail = newnode;
-      }
-      //It needs to be inserted into the middle of the list
-      else {
-	ListNode next = itsHead.next;
-	ListNode prev = itsHead;
-	while (itsComparator.compare(o, next.data)>0) {
-	  prev = next;
-	  next = next.next;
-	}
-	//Do the actual insertion
-	prev.next = newnode;
+        itsTail.next = newnode;
+        itsTail = newnode;
+      } else {
+        //It needs to be inserted into the middle of the list
+        ListNode next = itsHead.next;
+        ListNode prev = itsHead;
+        while (itsComparator.compare(o, next.data)>0) {
+          prev = next;
+          next = next.next;
+        }
+        //Do the actual insertion
+        prev.next = newnode;
         newnode.next = next;
       }
     }
@@ -108,19 +103,19 @@ SortedLinkedList
     ListNode prev = null;
     while (next!=null) {
       if (next.data==o) {
-	//Need to remove this node
+        //Need to remove this node
         itsSize--;
-	if (prev!=null) {
-	  //It's not the head
+        if (prev!=null) {
+          //It's not the head
           prev.next = next.next;
-	} else {
-	  //It was the head
-	  itsHead = next.next;
-	}
-	//Check if it's the tail
-	if (next==itsTail) {
-	  itsTail = prev;
-	}
+        } else {
+          //It was the head
+          itsHead = next.next;
+        }
+        //Check if it's the tail
+        if (next==itsTail) {
+          itsTail = prev;
+        }
       }
       prev = next;
       next = next.next;
@@ -154,9 +149,9 @@ SortedLinkedList
       res.add(itsHead.data);
       itsSize--;
       if (itsHead==itsTail) {
-	//the list has been emptied
-	itsHead = itsTail = null;
-	break;
+        //the list has been emptied
+        itsHead = itsTail = null;
+        break;
       }
       itsHead = itsHead.next;
     }

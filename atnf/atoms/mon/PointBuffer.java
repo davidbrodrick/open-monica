@@ -35,7 +35,7 @@ public class PointBuffer
   {
     synchronized(bufferTable) {
       //Add new key/storage to the hash
-      bufferTable.put(pm, new Vector());
+      bufferTable.put(pm, new Vector(pm.getMaxBufferSize()+1));
       //Wake any waiting threads
       bufferTable.notifyAll();
     }
