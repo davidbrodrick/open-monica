@@ -136,6 +136,12 @@ extends DataSource
       res[4]=new Float(Float.parseFloat(line.substring(20,line.length()).trim())*3.6);
       line = stdInput.readLine();
       res[5]=new Float(Float.parseFloat(line.substring(20,line.length()).trim())*3.6);
+      //If avg wind exceeds gust then the message is corrupted
+      if (res[4].floatValue()>res[5].floatValue() ||
+          res[4].floatValue()>162 || res[5].floatValue()>162) {
+        System.err.println("DataSourceWH1081: Invalid data..");
+        throw new Exception("Wind data is invalid");        
+      }
       line = stdInput.readLine();
       String wind_dir_temp=line.substring(20,line.length()).trim();
       double wdir;
