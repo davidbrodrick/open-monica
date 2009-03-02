@@ -52,7 +52,7 @@ extends DataSource
       String[] names = {"dummy."+i};
       String[] empty = {"-"};
       String[] trans = {"NumDecimals-\"2\""};
-      String[] arch = {"COUNTER-1"};
+      String[] arch = {"-"}; //{"COUNTER-1"};
       
       int period = minseconds + itsRandom.nextInt(maxseconds-minseconds);
       PointMonitor newpoint=PointMonitor.factory(names, "Dummy " + i,
