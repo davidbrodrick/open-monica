@@ -43,7 +43,7 @@ extends DataSource
   public DataSourceEPICS(String[] args)
   {
     //Try to read the list of points to monitor
-    InputStream mapfile = DataSourceEPICS.class.getClassLoader().getResourceAsStream("monitor-epics.txt");
+    InputStream mapfile = DataSourceEPICS.class.getClassLoader().getResourceAsStream(args[0]);
     System.err.println("DataSourceEPICS: Point map is " + mapfile);
     try {
       BufferedReader reader = new BufferedReader(new InputStreamReader(mapfile));
