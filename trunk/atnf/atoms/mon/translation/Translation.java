@@ -84,7 +84,8 @@ extends MonitorPolicy
    */
    protected static String itsArgs[] = new String[]{"Translation",""};
    
-   protected Translation(PointMonitor parent, String[] init)
+   protected
+   Translation(PointMonitor parent, String[] init)
    {
       itsInit = init;
       itsParent = parent;
@@ -95,7 +96,9 @@ extends MonitorPolicy
 
    // Needs a reference back to parent in order to inform that PointMonitor
    // that data has been translated
-   public static Translation factory(PointMonitor parent, String arg)
+   public static
+   Translation
+   factory(PointMonitor parent, String arg)
    {
      //Enable use of "null" keyword
      if (arg.equalsIgnoreCase("null")) arg= "-";
@@ -111,13 +114,21 @@ extends MonitorPolicy
        String type = arg.substring(0, arg.indexOf("-"));
        if (type == "" || type == null || type.length()<1) type = "None";
 
-       Constructor Translation_con = Class.forName("atnf.atoms.mon.translation.Translation"+type).getConstructor(new Class[]{PointMonitor.class,String[].class});
+       Constructor Translation_con;
+       try {
+         //Try to find class by assuming argument is full class name
+         Translation_con = Class.forName(type).getConstructor(new Class[]{PointMonitor.class,String[].class});
+       } catch (Exception f) {
+         //Supplied name was not a full path
+         //Look in atnf.atoms.mon.translation package
+         Translation_con = Class.forName("atnf.atoms.mon.translation.Translation"+type).getConstructor(new Class[]{PointMonitor.class,String[].class});
+       }
        result = (Translation)(Translation_con.newInstance(new Object[]{parent,transArgs}));
      } catch (Exception e) {
        System.err.println("Translation: Error Creating Translation!!");
        System.err.println("\tFor Monitor Point: " + parent.getName());
        System.err.println("\tFor Translation:   " + arg);
-       //substitude a no-op translation instead, dunno if it is best course
+       //substitute a no-op translation instead, dunno if it is best course
        //of action but at least system keeps running..
        result = new TranslationNone(parent, new String[]{});
      }

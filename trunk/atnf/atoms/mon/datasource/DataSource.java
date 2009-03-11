@@ -317,18 +317,26 @@ implements Runnable
                //Split the arguments into an array at each colon
                classArgs = tok.nextToken().split(":");
              }
-             Class datasource = Class.forName(className);
+             Class datasource;
+             try {
+               //Try to find class by assuming argument is full class name
+               datasource = Class.forName(className);
+             } catch (Exception g) {
+               //Supplied name was not a full path
+               //Look in atnf.atoms.mon.datasource package
+               datasource = Class.forName("atnf.atoms.mon.datasource.DataSource" + className);
+             }
              Constructor con = datasource.getConstructor(new Class[]{String[].class});
              con.newInstance(new Object[]{classArgs});
            } catch (Exception f) {
-             f.printStackTrace();
              MonitorMap.logger.error("DataSource: Cannot Initialise " + lines[i]);
+             System.err.println("DataSource: Cannot Initialise \"" + lines[i] + "\"");
            }
          }
        }
      } catch (Exception e) {
        e.printStackTrace();
-       MonitorMap.logger.error("DataSource: Cannot initialise DataSources");
+       MonitorMap.logger.error("DataSource: Cannot Initialise DataSources");
      }
    }
 
