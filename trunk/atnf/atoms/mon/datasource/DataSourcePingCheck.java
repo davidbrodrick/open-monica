@@ -23,7 +23,7 @@ extends DataSource
 {
   public DataSourcePingCheck(String[] args)
   {
-    super(args[0]);
+    super("pingcheck");
   }
 
 
