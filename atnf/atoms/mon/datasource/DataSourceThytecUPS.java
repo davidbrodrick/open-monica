@@ -25,7 +25,7 @@ import atnf.atoms.mon.*;
  * </ul>
  *
  * <P>Here is an example string for the monitor-sources.txt:<BR>
- * <tt>DataSourceThytecUPS thytecups://ca06ups:7001:ca06.power.ups.antenna.alldata</tt>
+ * <tt>DataSourceThytecUPS ca06ups:7001:ca06.power.ups.antenna.alldata</tt>
  *
  * <P>The specified monitor point will receive updates with a HashMap which
  * contains all of the data extracted from the UPS. You can then define
@@ -47,7 +47,7 @@ extends DataSourceASCIISocket
   {
     super(args);
 
-    itsMonitorPointName=args[4];
+    itsMonitorPointName=args[3];
 
     //Start the thread that reads the data as it comes in
     DataReader worker = new DataReader();

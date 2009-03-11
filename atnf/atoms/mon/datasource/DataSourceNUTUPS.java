@@ -20,7 +20,8 @@ import atnf.atoms.mon.transaction.*;
 /**
  * Discover and monitor UPSs from a NUT UPS monitor daemon.
  *
- * <BR>Constructor requires channel:hostname:port:timeout_ms arguments.
+ * <BR>Constructor requires <i>hostname:port</i> and optionally <i>:timeout_ms</i>
+ * arguments.
  *
  * @author David Brodrick
  * @version $Id: $

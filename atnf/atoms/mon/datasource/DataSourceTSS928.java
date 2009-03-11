@@ -22,7 +22,7 @@ import atnf.atoms.mon.transaction.*;
  * detector. This expects the unit is connected to a device or program which
  * allows two directional communications over a socket.<BR>
  *
- * The constructor requires tss928:hostname:port:timeout_ms:rotation arguments.
+ * The constructor requires hostname:port:timeout_ms:rotation arguments.
  * The rotation argument, in degrees, is optional and allows the unit to
  * compensate for an incorrect orientation.
  *
@@ -42,9 +42,9 @@ extends DataSourceASCIISocket
      super(args);
      
      //Check for optional rotation argument
-     if (args.length==5) {
+     if (args.length==4) {
        try {
-         itsRotation=Float.parseFloat(args[4]);
+         itsRotation=Float.parseFloat(args[3]);
        } catch (Exception e) {
          System.err.println("DataSourceTSS928: Error parsing rotation argument!");
        }
