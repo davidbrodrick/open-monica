@@ -115,7 +115,15 @@ implements Serializable
     if (type == "" || type == null || type.length() < 1) type = "DUMMY";
     
     try {
-      Constructor Transaction_con = Class.forName("atnf.atoms.mon.transaction.Transaction"+type).getConstructor(new Class[]{PointInteraction.class, String.class});
+      Constructor Transaction_con;
+      try {
+        //Try to find class by assuming argument is full class name
+        Transaction_con = Class.forName(type).getConstructor(new Class[]{PointInteraction.class, String.class});
+      } catch (Exception f) {
+        //Supplied name was not a full path
+        //Look in atnf.atoms.mon.translation package.
+        Transaction_con = Class.forName("atnf.atoms.mon.transaction.Transaction"+type).getConstructor(new Class[]{PointInteraction.class, String.class});
+      }
       result = (Transaction)(Transaction_con.newInstance(new Object[]{parent, specifics}));
     } catch (Exception e) {
       System.err.println("ERROR in Transaction.factory for " + parent.getName());
