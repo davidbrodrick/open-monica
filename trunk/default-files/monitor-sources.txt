@@ -1,2 +1,5 @@
-MonitorSystem misc.monitor_sys.datasources.:site.hidden.monitor_sys.DataSourceStatus:site.hidden.monitor_sys.DataSource_NP:site.hidden.monitor_sys.DataSource_NT
+MonitorSystem
 PingCheck
+Simulator 10:1:10
+Simulator 10:1:10
+Simulator 10:1:10
