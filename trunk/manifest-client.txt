@@ -1,3 +1,0 @@
-Main-Class: atnf.atoms.mon.gui.MonFrame
-Class-Path: jfreechart-0.9.16.jar jcommon-0.9.1.jar jsch-0.1.37.jar 3rdParty/jfreechart-0.9.16.jar 3rdParty/jcommon-0.9.1.jar 3rdParty/jsch-0.1.37.jar
- 
