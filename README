@@ -1,13 +1,2 @@
-When you first download open-monica, you should copy the default setup files
-into the base directory:
-
-cp default-files/* .
-
-Then compile the Java source code:
-
-make
-
-Then you can build the server and client jar files:
-
-make client
-make server
+Look at the following wiki page for details:
+http://code.google.com/p/open-monica/wiki/Installation

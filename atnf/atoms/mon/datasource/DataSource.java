@@ -377,7 +377,7 @@ implements Runnable
        }
        if (!thesepoints.isEmpty()) {
          Object[] parray = thesepoints.toArray();
-         if (itsConnected) {
+         if (itsConnected && parray!=null && parray.length>0) {
            try {
              //Call the sub-class specific method to do the real work
              getData(parray);

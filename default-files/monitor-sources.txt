@@ -1,2 +1,2 @@
-atnf.atoms.mon.datasource.DataSourceMonitorSystem "misc.monitor_sys.datasources.","Monitor.hidden.monitor_sys.DataSourceStatus","Monitor.hidden.monitor_sys.DataSource_NP","Monitor.hidden.monitor_sys.DataSource_NT"
-atnf.atoms.mon.datasource.DataSourcePingCheck pingcheck://OzF
+MonitorSystem misc.monitor_sys.datasources.:site.hidden.monitor_sys.DataSourceStatus:site.hidden.monitor_sys.DataSource_NP:site.hidden.monitor_sys.DataSource_NT
+PingCheck

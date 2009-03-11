@@ -1,6 +1,6 @@
 #This file contains the names of "plugin" classes which the clients need to
 #preload (so that class static blocks are executed and plugins get registered).
-#There is probably a better way of managing this.
+#There must be a better way of managing this.
 atnf.atoms.mon.gui.monpanel.ATTimeSeries
 atnf.atoms.mon.gui.monpanel.ATPointTable
 atnf.atoms.mon.gui.monpanel.HistoryTable
