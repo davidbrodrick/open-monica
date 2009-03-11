@@ -16,8 +16,8 @@ import atnf.atoms.mon.*;
  * over TCP socket connection to a remote end-point.
  * <P>
  * The constructor argument defined in <tt>monitor-sources.txt</tt> must
- * include the remote machine, port and timeout in
- * <tt>channel:host:port:timeout_ms:your_other_args</tt> format.
+ * include the remote machine, port and optionally timeout in
+ * <tt>host:port:timeout_ms:your_other_args</tt> format.
  * <P>
  * For devices where we send a command which trigger the remote end-point
  * to send the latest data, all you need to do is implement
@@ -64,13 +64,15 @@ extends DataSource
   /** Socket timeout period, in ms. */
   protected int itsTimeout = 5000;
 
-  /** Argument must include channel://host:port:timeout_ms */
+  /** Argument must include host:port and optionally :timeout_ms */
   public DataSourceASCIISocket(String[] args)
   {
-    super(args[0]+":"+args[1]+":"+args[2]);
-    itsHostName=args[1];
-    itsPort=Integer.parseInt(args[2]);
-    itsTimeout=Integer.parseInt(args[3]);
+    super(args[0]+":"+args[1]);
+    itsHostName=args[0];
+    itsPort=Integer.parseInt(args[1]);
+    if (args.length>2) {
+      itsTimeout=Integer.parseInt(args[2]);
+    }
   }
 
   /** Set the socket timeout to use (ms). */

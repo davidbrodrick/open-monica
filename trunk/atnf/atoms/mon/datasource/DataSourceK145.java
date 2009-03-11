@@ -23,14 +23,21 @@ import atnf.atoms.mon.transaction.TransactionStrings;
  * 
  * <P>The output from the microcontroller is read via a socket, so the
  * board needs to be plugged in to a serial/ethernet converter or
- * redirected from the serial port to a socket using something like sredird.
+ * redirected from the serial port to a socket using something like 'socat'.
+ * An example invocation of socat is:
+ * <i>socat /dev/ttyS2 TCP4-LISTEN:1234,fork</i>.
  *
  * <P>Sensor offsets can be removed by using a TranslationEQ to apply the
  * appropriate offset.
  *
- * <P>The constructor requires <i>hostname:port:timeout_ms</i> arguments. For
+ * <P>The constructor requires <i>hostname:port</i> arguments. For
  * instance your monitor-sources.txt file might contain:<BR>
- * <tt>atnf.atoms.mon.datasource.DataSourceK145 K145://localhost:1234:10000</tt>
+ * <tt>atnf.atoms.mon.datasource.DataSourceK145 localhost:1234</tt>
+ *
+ * <P>The monitor points for the four sensors then need to use a
+ * TransactionString with the channel set to <i>hostname:port</i> and
+ * the next argument being the sensor number for that point eg <i>"1"</i>
+ * or <i>"4"</i>
  *
  * @author David Brodrick
  * @version $Id: $
@@ -40,15 +47,15 @@ extends DataSourceASCIISocket
 {
   /** Number of sensors that a K145 kit supports. */
   private final static int theirNumSensors = 4;
-	/** Maximum age before we consider a reading to be stale. */
-	private final static AbsTime theirMaxAge = AbsTime.factory(30000000);
+  /** Maximum age before we consider a reading to be stale. */
+  private final static AbsTime theirMaxAge = AbsTime.factory(30000000);
 
   /** Latest temperature readings from each sensor. */
   private Float[] itsTemps = new Float[theirNumSensors];
-	/** Times we last acquired data for each sensor. */
-	private AbsTime[] itsTimes = new AbsTime[theirNumSensors];
+  /** Times we last acquired data for each sensor. */
+  private AbsTime[] itsTimes = new AbsTime[theirNumSensors];
 
-  /** Constructor, expects host:port:timeout argument. */  
+  /** Constructor, expects host:port[:timeout] argument. */  
   public DataSourceK145(String[] args)
   {
     super(args);
@@ -65,26 +72,26 @@ extends DataSourceASCIISocket
   parseData(PointMonitor requestor)
   throws Exception
   {
-		TransactionStrings thistrans=(TransactionStrings)requestor.getTransaction();
-		
-		//The Transaction should contain a numeric channel id
-		if (thistrans.getNumStrings()<1) {
-		  throw new Exception("DataSourceK145: Not enough arguments in Transaction");
-		}
-		int thischan=Integer.parseInt(thistrans.getString(0));
-		if (thischan<1 || thischan>theirNumSensors) {
-		  throw new Exception("DataSourceK145: Illegal sensor number requested");
-		}
-		
-		//Return null if data is stale
-		AbsTime now=new AbsTime();
-		if (itsTimes[thischan-1]==null || 
-		    Time.diff(now,itsTimes[thischan-1]).getValue()>theirMaxAge.getValue()) 
-		{
-		  return null;
-		} else {
-		  return itsTemps[thischan-1];
-		}
+    TransactionStrings thistrans=(TransactionStrings)requestor.getTransaction();
+
+    //The Transaction should contain a numeric channel id
+    if (thistrans.getNumStrings()<1) {
+      throw new Exception("DataSourceK145: Not enough arguments in Transaction");
+    }
+    int thischan=Integer.parseInt(thistrans.getString(0));
+    if (thischan<1 || thischan>theirNumSensors) {
+      throw new Exception("DataSourceK145: Illegal sensor number requested");
+    }
+
+    //Return null if data is stale
+    AbsTime now=new AbsTime();
+    if (itsTimes[thischan-1]==null || 
+        Time.diff(now,itsTimes[thischan-1]).getValue()>theirMaxAge.getValue()) 
+    {
+      return null;
+    } else {
+      return itsTemps[thischan-1];
+    }
   }
   
   ////////////////////////////////////////////////////////////////////////
@@ -127,9 +134,9 @@ extends DataSourceASCIISocket
               thissensor=Integer.parseInt(tokens[0]);
             } catch (Exception f) {continue;}
             if (thissensor<1 || thissensor>theirNumSensors) continue;
-						thissensor--;
+            thissensor--;
 						
-						//Parse float
+            //Parse float
             if (tokens[1].indexOf(".")==-1) continue;
             Float thistemp;
             try {
@@ -137,8 +144,8 @@ extends DataSourceASCIISocket
             } catch (Exception f) {continue;}
 	    
             //Looks like a good reading, save this update
-						itsTemps[thissensor]=thistemp;
-						itsTimes[thissensor]=new AbsTime();
+            itsTemps[thissensor]=thistemp;
+            itsTimes[thissensor]=new AbsTime();
           }
         } catch (Exception e) {
           System.err.println("DataSourceK145:DataReader.run (" + itsHostName 
@@ -159,11 +166,9 @@ extends DataSourceASCIISocket
      }
      //Add static arguments
      String[] args=argv[0].split(":");
-     String[] fullargs=new String[3];
-     fullargs[0]="K145";
-     fullargs[1]=args[0];
-     fullargs[2]=args[1];
-     fullargs[3]="10000";
+     String[] fullargs=new String[2];
+     fullargs[0]=args[0];
+     fullargs[1]=args[1];
      
      DataSourceK145 k145 = new DataSourceK145(fullargs);
 
