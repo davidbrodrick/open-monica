@@ -40,7 +40,7 @@ extends DataSourceASCIISocket
   {
     super(args);
 
-    itsMonitorPoint=args[4];
+    itsMonitorPoint=args[3];
 
     //Start the thread that reads the data as it comes in
     DataReader worker = new DataReader();

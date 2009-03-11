@@ -332,7 +332,7 @@ implements Runnable
              MonitorMap.logger.error("DataSource: Cannot Initialise " + lines[i]);
              System.err.println("DataSource: Cannot Initialise \"" + lines[i] + "\" defined on line " 
                                 + (i+1) + ": " + f + f.getMessage());
-             f.printStacktrace();
+             f.printStackTrace();
            }
          }
        }
