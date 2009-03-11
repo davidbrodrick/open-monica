@@ -1,9 +1,9 @@
-// Copyright (C) Oz Forecast, NSW, Australia.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
+//
 
 package atnf.atoms.mon.datasource;
 
@@ -21,10 +21,10 @@ import atnf.atoms.mon.*;
  * A TranslationString2Array can then be used to tokenise the elements
  * of the line, and other monitor points can listen to a particular field.
  *
- * <P>The constructor requires <i>channel:hostname:port:timeout_ms:point_name</i> 
+ * <P>The constructor requires <i>hostname:port:timeout_ms:point_name</i> 
  * arguments.
  * For instance your monitor-sources.txt file might contain:<BR>
- * <tt>atnf.atoms.mon.datasource.DataSourceASCIILine asciiline:localhost:10000:60000:site.monitor.point</tt>
+ * <tt>ASCIILine localhost:10000:60000:site.monitor.point</tt>
  *
  * @author David Brodrick
  **/
