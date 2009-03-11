@@ -1,2 +1,2 @@
 Main-Class: atnf.atoms.mon.MonitorMain
-Class-Path: caj-1.1.3.jar jca-2.3.1.jar jep-2.24.jar mysql-connector-java-5.1.7-bin.jar
+Class-Path: 3rdParty/caj-1.1.3.jar 3rdParty/jca-2.3.1.jar 3rdParty/jep-2.24.jar 3rdParty/mysql-connector-java-5.1.7-bin.jar
