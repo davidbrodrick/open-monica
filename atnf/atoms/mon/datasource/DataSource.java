@@ -330,7 +330,7 @@ implements Runnable
              con.newInstance(new Object[]{classArgs});
            } catch (Exception f) {
              MonitorMap.logger.error("DataSource: Cannot Initialise " + lines[i]);
-             System.err.println("DataSource: Cannot Initialise \"" + lines[i] + "\"");
+             System.err.println("DataSource: Cannot Initialise \"" + lines[i] + "\" defined on line " + i + ": " + f);
            }
          }
        }
