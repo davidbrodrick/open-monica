@@ -226,7 +226,7 @@ implements Runnable
     //Decrypt and check the users credentials
     String username = MonitorMap.decrypt((String)req.Args[1]);
     String password = MonitorMap.decrypt((String)req.Args[2]);
-    if (!atnf.atoms.mon.util.Authenticator.checkAll(username, password))
+    if (!atnf.atoms.mon.util.Authenticator.check(username, password))
       return null;
 
     //Log a message
@@ -290,7 +290,7 @@ implements Runnable
     //Decrypt and check the users credentials
     String username = MonitorMap.decrypt((String)req.Args[2]);
     String password = MonitorMap.decrypt((String)req.Args[3]);
-    if (!atnf.atoms.mon.util.Authenticator.checkAll(username, password))
+    if (!atnf.atoms.mon.util.Authenticator.check(username, password))
       return null;
 
     System.err.println("MonitorClientCustom:setPoint: UNIMPLEMENTED!");
@@ -414,7 +414,7 @@ implements Runnable
     String username = MonitorMap.decrypt((String)req.Args[0]);
     System.err.println("DECRYPTED USERNAME = " + username);
     String password = MonitorMap.decrypt((String)req.Args[1]);
-    if (!atnf.atoms.mon.util.Authenticator.checkAll(username, password))
+    if (!atnf.atoms.mon.util.Authenticator.check(username, password))
       return null;
 
     //Retrieve the SavedSetup and add it to the system
