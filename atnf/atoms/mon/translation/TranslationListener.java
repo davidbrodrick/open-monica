@@ -1,0 +1,235 @@
+//
+// Copyright (C) CSIRO Australia Telescope National Facility
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Library General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+
+package atnf.atoms.mon.translation;
+
+import java.util.*;
+import java.awt.event.*;
+import atnf.atoms.mon.*;
+import atnf.atoms.util.*;
+import atnf.atoms.time.AbsTime;
+import atnf.atoms.mon.util.*;
+
+/**
+ * Generic base-class for Translations which need to listen to the values
+ * of one or more other monitor points. It provides machinery for
+ * identifying the source of data events and matching and storing the
+ * data from the different points.
+ *
+ * <P>This class supercedes TranslationDualListen. This class subscribes to
+ * updates from the various points directly and does not need to be used with a
+ * TransactionListen.
+ * <P>
+ * The first constructor <i>init</i> argument needs to specify the number
+ * of monitor points which are being listened to. The next arguments must be
+ * the names of the points being listened to. Other, sub-class specific 
+ * arguments can then follow. After the super constructor has been called the
+ * index of the first sub-class argument can be obtained by 
+ * <i>itsNumPoints+2</i>.
+ * <P>
+ * Sub-classes should implement the abstract <i>doCalculations</i> method in
+ * order to achieve the desired functionality. This takes an array of inputs
+ * which contain the same order you declared them as arguments.
+ * <P>
+ * The <i>matchData</i> method is responsible for indicating when we have
+ * the appropriate data to call the <i>doCalculations</i> method. This base
+ * class performs the calculation whenever we have new values for all
+ * points since the last calculation was performed. Sub-classes can implement
+ * a <i>matchData</i> method with more specialised behavior, such as checking
+ * that both data have identical timestamps before allowing an output value 
+ * to be calculated.
+ *
+ * @author David Brodrick
+ */
+public abstract class
+TranslationListener
+extends Translation
+implements PointListener, ActionListener
+{
+  /** The number of points we are listening to. */
+  protected int itsNumPoints;
+  
+  /** Names of the points we are listening to. */
+  protected String[] itsNames;
+  
+  /** Reference to the points we are listeneing to. */
+  protected PointInteraction[] itsPoints;
+  
+  /** Latest updates for the points we are listening to. */
+  protected PointData[] itsValues;
+
+  /** Timer used when listened-to points haven't been created yet. */
+  protected MonitorTimer itsTimer = null;
+
+  protected static String[] itsArgs = new String[]{"Listener",
+  "Listens to two other points",
+  "NumPoints", "Integer",
+  "MonitorPoint 1", "String",
+  "MonitorPoint N", "String"};
+
+  /** Base-class constructor. */
+  public
+  TranslationListener(PointMonitor parent, String[] init)
+  {
+    super(parent, init);
+    if (init==null||init.length<1) {
+      System.err.println("TranslationListener: NO ARGUMENTS: for " +
+                         parent.getSource() + "." + parent.getName());
+      return;
+    }
+    
+    try {
+      itsNumPoints = Integer.parseInt(init[0]);
+      if (init.length<itsNumPoints+1) {
+        System.err.println("TranslationListener: INSUFFICIENT ARGUMENTS: for "
+                           + parent.getSource() + "." + parent.getName());
+        throw new Exception();
+      }
+      itsNames = new String[itsNumPoints];
+      itsPoints = new PointInteraction[itsNumPoints];
+      itsValues = new PointData[itsNumPoints];
+        
+      for (int i=0; i<itsNumPoints; i++) {
+        String thisname = init[i+1];
+        //Substitute the name of our source if $1 macro was used
+        if (thisname.indexOf("$1") > -1) {
+          thisname = MonitorUtils.replaceTok(thisname, parent.getSource());
+        }
+        itsNames[i]=thisname;
+      }
+    } catch (Exception e) {
+      System.err.println("TranslationListener: ERROR PARSING ARGUMENTS: for "
+                         + parent.getSource() + "." + parent.getName()
+                         + ": " + e);
+      itsNumPoints=0;
+    }
+      
+    //Start the timer which subscribes us to updates from the points      
+    itsTimer = new MonitorTimer(100, this);
+    itsTimer.start();
+  }
+
+
+  /** Just returns the input (which is created by us) */
+  public
+  PointData
+  translate(PointData data)
+  {
+    return data;
+  }
+
+
+  /** Check if now is an appropriate time to recalculate the output.
+   *
+   * <P>This method will be checked each time one of the input values updates.
+   *
+   * <P>The behaviour can be specialised by sub-classes. The default behaviour
+   * of this super-class is to recalculate every time any of the inputs 
+   * update, unless any of the inputs has never been set yet.
+   *
+   * @return <tt>True</tt> if we can now calculate an output value,
+   *   <tt>False</tt> if the current data don't enable us to perform the
+   *   calculation. */
+  protected
+  boolean
+  matchData()
+  {
+    for (int i=0; i<itsNumPoints; i++) {
+      if (itsValues[i]==null || itsValues[i].getData()==null) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+
+  /** Abstract method which must be implemented by sub-classes. This
+   * performs the manipulation of the input argument data required to
+   * produce the quantity of interest.
+   * 
+   * @return Arbitrary combination of the two values */
+  protected abstract
+  Object
+  doCalculations();
+
+
+  /** Called when a listened-to point updates. */
+  public
+  void
+  onPointEvent(Object source, PointEvent evt)
+  {    
+    PointData pd = evt.getPointData();
+    //Check that there's data.. ?
+    if (pd==null || pd.getData()==null) return;
+
+    //Find the index of the point
+    String fullname=pd.getSource()+"."+pd.getName();
+    int i=0;
+    for (; i<itsNumPoints; i++) {
+      if (itsNames[i].equals(fullname)) break;
+    }
+    
+    //Ensure we point the appropriate point
+    if (i==itsNumPoints) {
+      System.err.println("WARNING: TranslationListener (" + 
+                         itsParent.getSource() + "." + itsParent.getName() +
+                         "): UNEXPECTED EVENT FROM " + fullname);
+      return;
+    }
+    
+    //Everything looks good
+    itsValues[i]=pd;
+    
+    //Check whether now is an appropriate time to recalculate output
+    if (matchData()) {
+      //Recalculate output and fire update event
+      Object resval = doCalculations();
+      PointData res = new PointData(itsParent.getName(), itsParent.getSource(),
+                                    new AbsTime(), resval);
+      itsParent.firePointEvent(new PointEvent(this, res, true));
+    }
+  }
+
+
+  /** Only used to subscribe to monitor point updates via timer. */
+  public
+  void
+  actionPerformed(ActionEvent evt)
+  {
+    boolean stillmissing = false;
+    
+    //Try to find any points that are still missing
+    for (int i=0; i<itsNumPoints; i++) {
+      if (itsPoints[i]==null) {
+        itsPoints[i] = MonitorMap.getPointMonitor(itsNames[i]);
+        if (itsPoints[i]==null) {
+          //Still couldn't find the point, perhaps it doesn't exist?!
+          stillmissing = true;
+          System.err.println("WARNING: TranslationListener (" + 
+                             itsParent.getSource() + "." + itsParent.getName() +
+                             "): LISTENED-TO POINT " + itsNames[i] + " DOESN'T EXIST?!");
+        } else {
+          itsPoints[i].addPointListener(this);
+        }
+      }
+    }
+
+    if (!stillmissing) {
+      //All points now found and all subscriptions complete
+      itsTimer.stop();
+      itsTimer = null;
+    }
+  }
+
+
+  public static String[] getArgs()
+  {
+     return itsArgs;
+  }
+}
