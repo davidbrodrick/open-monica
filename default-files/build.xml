@@ -4,9 +4,11 @@
     <property name="src" value="src"/>
     <property name="config" value="config"/>
     <property name="output" value="build"/>
+    <property name="javadoc" value="javadoc"/>
     <property name="jarname" value="open-monica.jar"/>
 
-    <target name="compile" depends="create">
+    <target name="compile">
+        <mkdir dir="${output}"/>
         <javac destdir="${output}">            
             <src path="${src}"/>            
             <classpath refid="3rdParty"/>
@@ -16,16 +18,20 @@
     <target name="jar" depends="compile">
         <jar destfile="${jarname}" manifest="config/manifest.txt">
             <fileset dir="${output}"/>
-            <fileset dir="${config}"/>
+            <fileset dir="${config}"/>              
+            <fileset dir="${src}" casesensitive="no">
+              <include name="**/*.gif"/>
+              <include name="**/*.png"/>
+              <include name="**/*.wav"/>
+              <include name="**/*.au"/>
+            </fileset>
         </jar>
+        <signjar jar="${jarname}" alias="monica" storepass="monica" keystore="demo-keys"/>
     </target>
 
     <target name="clean">
         <delete dir="${output}"/>
-    </target>
-
-    <target name="create">
-        <mkdir dir="${output}"/>
+        <delete dir="${javadoc}"/>
     </target>
 
     <path id="3rdParty">
@@ -33,4 +39,12 @@
             <include name="*.jar"/>
         </fileset>
     </path>
+    
+    <target name="javadoc" description="o Create Javadocs for atoms">
+        <mkdir dir="${javadoc}/"/>
+        <javadoc destdir="${javadoc}/"> 
+          <link href="http://java.sun.com/javase/6/docs/api/"/>
+          <fileset dir="${src}/" includes="**/*.java" />
+        </javadoc>
+    </target>
 </project>
