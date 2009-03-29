@@ -20,25 +20,25 @@ The server uses a number of configuration files. Some of these are described on 
 
 {{{
 cd open-monica-read-only/
-cp default-files/* .
+cp default-files/build.xml .
+cp default-files/demo-keys .
+cp default-files/monitor* config/
 }}}
 
 At this point you may wish to add an extra line to the `monitor-servers.txt` configuration file containing the name and IP address of the machine you plane to run the MoniCA server on. This will ensure that your server is available as an option when the client program starts.
 
 = Building =
 
-Assuming you already have the Java Development Kit installed, compiling the software and then generating the client and server jar files should only be a matter of executing the following commands:
+Assuming you already have the Java Development Kit installed, compiling the software and then generating the client and server jar files should only be a matter of invoking ant:
 
 {{{
-make
-make client
-make server
+ant
 }}}
 
-You should now be able to test that your server runs. With the default configuration files the server only monitors some internal statistics (eg. memory usage and the number of client programs currently connected).
+You should now be able to test that your server runs (not that the default configuration does very much):
 
 {{{
-java -jar monica-server.jar
+java -jar open-monica.jar
 }}}
 
 = Client =
@@ -46,7 +46,7 @@ java -jar monica-server.jar
 You should now be able to run the client and connect to your own server:
 
 {{{
-java -jar monica-client.jar
+java -cp open-monica.jar atnf.atoms.mon.gui.MonFrame
 }}}
 
 The default `monitor-servers.txt` file may contain other public servers to which you can connect to explore the features of the MoniCA client. A simple way to become familiar with the essential features of the client is to:
