@@ -7,6 +7,7 @@
   <property name="output" value="build"/>
   <property name="javadoc" value="javadoc"/>
   <property name="jarname" value="open-monica.jar"/>
+  <property name="prefix" value="/usr/local/"/>
 
 
   <!-- Purge build and doc directories (but not jar file) -->
@@ -43,6 +44,66 @@
       </fileset>
     </jar>
     <signjar jar="${jarname}" alias="monica" storepass="monica" keystore="demo-keys"/>
+  </target>
+
+
+  <!-- Install the jar files to a run-time directory -->
+  <target name="install" depends="jar">
+    <!-- Copy jar files to lib area -->
+    <property name="libdir" value="${prefix}/lib/open-monica"/>
+    <mkdir dir="${libdir}"/>
+    <copy file="${jarname}" todir="${libdir}"/>
+    <copy todir="${libdir}">
+      <fileset dir="3rdParty/">
+        <include name="*.jar"/>
+      </fileset>
+    </copy>
+    <!-- Generate some scripts in bin area -->
+    <property name="bindir" value="${prefix}/bin"/>
+    <mkdir dir="${bindir}"/>
+    <echo file="${bindir}/open-monica-server.sh" append="false">#!/bin/sh
+
+case "$1" in
+  start)
+    NUM=$$(ps -efw | grep "java -jar ${jarname}" | grep -v grep | wc -l)
+    if (( $$NUM == 0 )); then
+      cd ${libdir}
+      java -jar ${jarname}
+    else
+      echo Open-MoniCA server is already running
+    fi        
+    ;;
+
+  stop)
+    PROCLINE=$(ps -efw | grep "java -jar ${jarname}" | grep -v grep)
+    if (( $? )); then
+      echo Open-MoniCA server is not running
+    else
+      PID=$(echo $PROCLINE | awk '{print $2}')
+      echo MoniCA server running as PID=$PID, terminating now
+      kill $PID
+    fi
+    ;;
+    
+  restart)
+    $0 stop
+    sleep 3
+    $0 start
+    ;;
+    
+  *)
+    echo "Usage: open-monica-server {start|stop|restart}"
+    exit 1
+    ;;
+esac
+    </echo>
+    <chmod file="${bindir}/open-monica-server.sh" perm="ugo+rx"/>
+
+    <echo file="${bindir}/open-monica-client.sh" append="false">#!/bin/sh
+cd ${libdir}
+java -cp ${jarname} atnf.atoms.mon.gui.MonFrame
+    </echo>
+    <chmod file="${bindir}/open-monica-client.sh" perm="ugo+rx"/>
   </target>
 
 
