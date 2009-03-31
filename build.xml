@@ -43,7 +43,7 @@
         <include name="**/*.au"/>
       </fileset>
     </jar>
-    <signjar jar="${jarname}" alias="monica" storepass="monica" keystore="demo-keys"/>
+    <signjar jar="${jarname}" alias="monica" storepass="monica" keystore="signature.keys"/>
   </target>
 
 
@@ -58,6 +58,7 @@
         <include name="*.jar"/>
       </fileset>
     </copy>
+
     <!-- Generate some scripts in bin area -->
     <property name="bindir" value="${prefix}/bin"/>
     <mkdir dir="${bindir}"/>
@@ -92,7 +93,7 @@ case "$1" in
     ;;
     
   *)
-    echo "Usage: open-monica-server {start|stop|restart}"
+    echo "Usage: open-monica-server.sh {start|stop|restart}"
     exit 1
     ;;
 esac
@@ -100,6 +101,7 @@ esac
     <chmod file="${bindir}/open-monica-server.sh" perm="ugo+rx"/>
 
     <echo file="${bindir}/open-monica-client.sh" append="false">#!/bin/sh
+
 cd ${libdir}
 java -cp ${jarname} atnf.atoms.mon.gui.MonFrame
     </echo>
