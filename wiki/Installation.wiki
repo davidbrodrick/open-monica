@@ -16,12 +16,10 @@ This will create a directory called `open-monica-read-only` which will contain t
 
 = Configuring =
 
-The server uses a number of configuration files. Some of these are described on the [ServerIntro] wiki page. Default configuration files are stored in the `default-files/` subdirectory, so you will want to copy those into the top level directory.
+The server uses a number of configuration files. Some of these are described on the [IntroServerCode] wiki page. Default configuration files are stored in the `default-files/` subdirectory, so you will want to copy those into the top level directory.
 
 {{{
 cd open-monica-read-only/
-cp default-files/build.xml .
-cp default-files/demo-keys .
 cp default-files/monitor* config/
 }}}
 
@@ -29,7 +27,7 @@ At this point you may wish to add an extra line to the `monitor-servers.txt` con
 
 = Building =
 
-Assuming you already have the Java Development Kit installed, compiling the software and then generating the client and server jar files should only be a matter of invoking ant:
+Assuming you already have the ant build tool and JDK installed, compiling and signing the jar file should only be a matter of invoking ant:
 
 {{{
 ant
@@ -41,17 +39,30 @@ You should now be able to test that your server runs (not that the default confi
 java -jar open-monica.jar
 }}}
 
-= Client =
-
-You should now be able to run the client and connect to your own server:
+You should now also be able to run the client and connect to your server:
 
 {{{
 java -cp open-monica.jar atnf.atoms.mon.gui.MonFrame
 }}}
 
-The default `monitor-servers.txt` file may contain other public servers to which you can connect to explore the features of the MoniCA client. A simple way to become familiar with the essential features of the client is to:
+The default `monitor-servers.txt` file may contain other public servers to which you can connect to explore the features of the MoniCA client.
 
-  * Connect to a server.
-  * Select a predefined page setup from the `Navigator` menu.
-  * Click on the tabs which appear, eg these may be called `'Point Table'` or `'Time Series'` depending on which page setup you selected.
-  * Customise the monitor information being displayed by using the controls and clicking `OK`.
+= Deployment =
+
+Once you are ready to deploy the software you can invoke ant to run the install target. By default the system will be installed into /usr/local/ however you can define the appropriate directory using the prefix property:
+
+{{{
+ant -Dprefix=/my/install/dir/ install
+}}}
+
+This will copy all of the jar files required to run the server and client, and will generate scripts to facilitate starting/stopping the server and running the client. For instance using two different terminals, try running:
+
+{{{
+/my/install/dir/bin/open-monica-server.sh start
+/my/install/dir/bin/open-monica-client.sh
+}}}
+
+The open-monica-server.sh script will not attempt to start the server if another instance is already running. Therefore you may choose to invoke this script from cron periodically, to ensure the server starts automatically. For instance add the following line to your crontab file:
+{{{
+*/5 * * * * /my/install/dir/bin/open-monica-server.sh start >/dev/null 2>/dev/null
+}}}
