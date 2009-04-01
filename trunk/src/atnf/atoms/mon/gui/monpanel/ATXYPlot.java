@@ -1861,7 +1861,7 @@ implements ActionListener, Runnable
   getSince(String pointname, AbsTime t1)
   {
     //Request the data from the server
-    Vector v = itsServer.getPointDataSince(pointname, t1);
+    Vector v = itsServer.getPointData(pointname, t1, new AbsTime());
     //Remove first element - we already have that
     if (v!=null && v.size()>0) v.remove(v.firstElement());
     return v;
