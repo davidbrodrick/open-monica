@@ -259,60 +259,6 @@ MonitorClientCustom
   }
 
 
-  /** Return all data collected since the specified time for the given point.
-   * NB: This also includes data AT the specified time, if such data exists.
-   * @param point Point to get data for. Expected format is
-   *                                     <tt>source.point.name</tt>
-   * @param since The oldest data to be retrieved.
-   * @return Data collected since the specified time. */
-  public 
-  Vector
-  getPointDataSince(String point, AbsTime since)
-  {
-    //Server may have limit on number of points returned at once,
-    //therefore go into loop which makes consecutive requests.
-    Vector res = new Vector();
-    AbsTime thisstart = since;
-    while (true) {
-      MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart});
-      PointData data = makeRequest(req);
-      if (data==null || data.getData()==null) break;
-      Vector thisres=(Vector)(MonitorUtils.decompress((byte[])(data.getData())));
-      res.addAll(thisres);
-      thisstart=((PointData)(thisres.get(thisres.size()-1))).getTimestamp().add(RelTime.factory(1));
-    }
-    if (res.size()==0) res=null;
-    return res;
-  }
-
-  /** Return data collected since the specified time for the given point.
-   * NB: This also includes data AT the specified time, if such data exists.
-   * @param point Point to get data for. Expected format is
-   *                                     <tt>source.point.name</tt>
-   * @param since The oldest data to be retrieved.
-   * @param maxsamples the maximum number of samples to be returned.
-   * @return Data collected since the specified time. */
-  public 
-  Vector
-  getPointDataSince(String point, AbsTime since, int maxsamples)
-  {
-    //Server may have limit on number of points returned at once,
-    //therefore go into loop which makes consecutive requests.
-    Vector res = new Vector();
-    AbsTime thisstart = since;
-    while (true) {      
-      MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart, new AbsTime(), new Integer(maxsamples)});
-      PointData data = makeRequest(req);
-      if (data==null || data.getData()==null) break;
-      Vector thisres=(Vector)(MonitorUtils.decompress((byte[])(data.getData())));
-      res.addAll(thisres);
-      thisstart=((PointData)(thisres.get(thisres.size()-1))).getTimestamp().add(RelTime.factory(1));
-    }
-    if (res.size()==0) res=null;
-    return res;
-  }
-
-
   /** Return archived data for the given point.
    * @param point Point to get data for. Expected format is
    *                                     <tt>source.point.name</tt>

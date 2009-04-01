@@ -921,46 +921,46 @@ implements ActionListener, Runnable
 
       if (itsChartPanel!=null && itsChartPanel.getChart()!=null) {
         //Update the time/date axis of the graph
-	DateAxis timeaxis = (DateAxis)itsChartPanel.getChart().getXYPlot().getDomainAxis();
-	timeaxis.setAutoRange(false);
-	timeaxis.setMaximumDate((itsStart.add(itsPeriod)).getAsDate());
-	timeaxis.setMinimumDate(itsStart.getAsDate());
+        DateAxis timeaxis = (DateAxis)itsChartPanel.getChart().getXYPlot().getDomainAxis();
+        timeaxis.setAutoRange(false);
+        timeaxis.setMaximumDate((itsStart.add(itsPeriod)).getAsDate());
+        timeaxis.setMinimumDate(itsStart.getAsDate());
       }
 
       if (itsRealtime) {
-	synchronized (itsPointNames) {
-	  for (int a=0; a<itsNumAxis; a++) {
-	    Vector points = (Vector)itsPointNames.get(a);
-	    Vector times = (Vector)itsPointEpochs.get(a);
-	    for (int i=0; i<points.size(); i++) {
-	      AbsTime last = (AbsTime)times.get(i);
+        synchronized (itsPointNames) {
+          for (int a=0; a<itsNumAxis; a++) {
+            Vector points = (Vector)itsPointNames.get(a);
+            Vector times = (Vector)itsPointEpochs.get(a);
+            for (int i=0; i<points.size(); i++) {
+              AbsTime last = (AbsTime)times.get(i);
               //Get any new data
               Vector v = getSince((String)points.get(i), last);
-	      //If we need to down-sample it, then do that
-	      if (itsMaxSamps>1 && v!=null && v.size()>0) {
-		Vector newv = new Vector();
-		AbsTime next = last;
-		RelTime increment = RelTime.factory(itsPeriod.getValue()/itsMaxSamps);
+              //If we need to down-sample it, then do that
+              if (itsMaxSamps>1 && v!=null && v.size()>0) {
+                Vector newv = new Vector();
+                AbsTime next = last;
+                RelTime increment = RelTime.factory(itsPeriod.getValue()/itsMaxSamps);
                 int s = 0;
-		while (s<v.size()) {
-		  next = next.add(increment);
-		  AbsTime thissamp = ((PointData)v.get(s)).getTimestamp();
-		  while (thissamp.isBefore(next)) {
-		    s++;
+                while (s<v.size()) {
+                  next = next.add(increment);
+                  AbsTime thissamp = ((PointData)v.get(s)).getTimestamp();
+                  while (thissamp.isBefore(next)) {
+                    s++;
                     if (s>=v.size()) break;
-		    thissamp = ((PointData)v.get(s)).getTimestamp();
-		  }
-		  if (s<v.size()) {
-		    newv.add(v.get(s));
-		    s++;
-		  }
-		}
+                    thissamp = ((PointData)v.get(s)).getTimestamp();
+                  }
+                  if (s<v.size()) {
+                    newv.add(v.get(s));
+                    s++;
+                  }
+                }
                 v = newv;
-	      }
-	      mergeData(a, i, v);
-	    }
-	  }
-	}
+              }
+              mergeData(a, i, v);
+            }
+          }
+        }
       } //synchronized
 
       if (itsNumAxis>0) {
@@ -1385,40 +1385,39 @@ implements ActionListener, Runnable
       makeSeries(); //Create new containers for the data
 
       Runnable displaygraph = new Runnable() {
-	public void run() {
-	  setGraph(chart);
-	}
+        public void run() {
+          setGraph(chart);
+        }
       };
       try {
-	//Need to do the notification using event thread
-	SwingUtilities.invokeAndWait(displaygraph);
+        //Need to do the notification using event thread
+        SwingUtilities.invokeAndWait(displaygraph);
       } catch (Exception e) {e.printStackTrace();}
 
       for (int a=0; a<itsNumAxis; a++) {
-	Vector points = (Vector)itsPointNames.get(a);
-	for (int i=0; i<points.size(); i++) {
-	  //Get archival data from the archive
-	  AbsTime endtime = itsStart.add(itsPeriod);
-	  Vector v = getArchive((String)points.get(i),
-				itsStart, endtime);
-	  mergeData(a, i, v);
+        Vector points = (Vector)itsPointNames.get(a);
+        for (int i=0; i<points.size(); i++) {
+          //Get archival data from the archive
+          AbsTime endtime = itsStart.add(itsPeriod);
+          Vector v = getArchive((String)points.get(i), itsStart, endtime);
+          mergeData(a, i, v);
 
-	  Runnable drawnow = new Runnable() {
-	    public void run() {
-	      //Update our cached image of the graph
-	      ((TimeSeriesCollection)itsData.get(0)).getSeries(0).setNotify(true);
-	      ((TimeSeriesCollection)itsData.get(0)).getSeries(0).setNotify(false);
-	      int w = getSize().width;
-	      int h = getSize().height;
-	      if (itsGraph!=null) itsImage = itsGraph.createBufferedImage(w,h);
-	      repaint();
-	    }
-	  };
-	  try {
-	    //Need to do the notification using event thread
-	    SwingUtilities.invokeAndWait(drawnow);
-	  } catch (Exception e) {e.printStackTrace();}
-	}
+          Runnable drawnow = new Runnable() {
+            public void run() {
+              //Update our cached image of the graph
+              ((TimeSeriesCollection)itsData.get(0)).getSeries(0).setNotify(true);
+              ((TimeSeriesCollection)itsData.get(0)).getSeries(0).setNotify(false);
+              int w = getSize().width;
+              int h = getSize().height;
+              if (itsGraph!=null) itsImage = itsGraph.createBufferedImage(w,h);
+              repaint();
+            }
+          };
+          try {
+            //Need to do the notification using event thread
+            SwingUtilities.invokeAndWait(drawnow);
+          } catch (Exception e) {e.printStackTrace();}
+        }
       }
 
       itsTimer.setRepeats(true);
@@ -1504,7 +1503,7 @@ implements ActionListener, Runnable
   getSince(String pointname, AbsTime t1)
   {
     //Request the data from the server
-    Vector v = itsServer.getPointDataSince(pointname, t1);
+    Vector v = itsServer.getPointData(pointname, t1, new AbsTime());
     //Remove first element - we already have that
     if (v!=null && v.size()>0) v.remove(v.firstElement());
     return v;
