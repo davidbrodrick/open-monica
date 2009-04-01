@@ -69,7 +69,14 @@ case "$1" in
     NUM=$$(ps -efw | grep "java -jar ${jarname}" | grep -v grep | wc -l)
     if (( $$NUM == 0 )); then
       cd ${libdir}
-      java -jar ${jarname}
+      which nohup >/dev/null 2>/dev/null
+      if (( $? )); then
+        echo Starting Open-MoniCA server in the foreground
+        java -jar ${jarname}
+      else
+        echo Invoking Open-MoniCA server using 'nohup'
+        nohup java -jar ${jarname} >/dev/null &amp;
+      fi
     else
       echo Open-MoniCA server is already running
     fi        
@@ -81,7 +88,7 @@ case "$1" in
       echo Open-MoniCA server is not running
     else
       PID=$(echo $PROCLINE | awk '{print $2}')
-      echo MoniCA server running as PID=$PID, terminating now
+      echo Open-MoniCA server running as PID=$PID - Terminating Now
       kill $PID
     fi
     ;;
