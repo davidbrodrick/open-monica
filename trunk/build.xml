@@ -71,16 +71,27 @@ case "$1" in
       cd ${libdir}
       which nohup >/dev/null 2>/dev/null
       if (( $? )); then
-        echo Starting Open-MoniCA server in the foreground
-        java -jar ${jarname}
+        echo Cannot start in background: \'nohup\' not found
+        $0 start-fg
       else
-        echo Invoking Open-MoniCA server using 'nohup'
+        echo Invoking Open-MoniCA server in background using \'nohup\'
         nohup java -jar ${jarname} >/dev/null &amp;
       fi
     else
       echo Open-MoniCA server is already running
     fi        
     ;;
+
+  start-fg)
+    NUM=$$(ps -efw | grep "java -jar ${jarname}" | grep -v grep | wc -l)
+    if (( $$NUM == 0 )); then
+      cd ${libdir}
+      echo Starting Open-MoniCA server in the foreground
+      java -jar ${jarname}
+    else
+      echo Open-MoniCA server is already running
+    fi        
+    ;;   
 
   stop)
     PROCLINE=$(ps -efw | grep "java -jar ${jarname}" | grep -v grep)
@@ -100,7 +111,7 @@ case "$1" in
     ;;
     
   *)
-    echo "Usage: open-monica-server.sh {start|stop|restart}"
+    echo "Usage: open-monica-server.sh {start|start-fg|stop|restart}"
     exit 1
     ;;
 esac
