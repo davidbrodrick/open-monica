@@ -54,6 +54,7 @@ extends TranslationListener
     }
 
     //Configure parser options
+    itsParser.setAllowUndeclared(true);
     itsParser.addStandardConstants();
     itsParser.addStandardFunctions();
     itsParser.parseExpression(init[itsNumPoints+1]);
