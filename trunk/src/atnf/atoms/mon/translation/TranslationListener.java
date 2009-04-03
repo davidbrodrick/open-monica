@@ -31,7 +31,7 @@ import atnf.atoms.mon.util.*;
  * the names of the points being listened to. Other, sub-class specific 
  * arguments can then follow. After the super constructor has been called the
  * index of the first sub-class argument can be obtained by 
- * <i>itsNumPoints+2</i>.
+ * <i>itsNumPoints+1</i>.
  * <P>
  * Sub-classes should implement the abstract <i>doCalculations</i> method in
  * order to achieve the desired functionality. This takes an array of inputs
@@ -153,7 +153,7 @@ implements PointListener, ActionListener
    * performs the manipulation of the input argument data required to
    * produce the quantity of interest.
    * 
-   * @return Arbitrary combination of the two values */
+   * @return Arbitrary combination of the input values */
   protected abstract
   Object
   doCalculations();
