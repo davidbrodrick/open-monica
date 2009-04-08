@@ -10,22 +10,25 @@ Please maintain lists in lexigraphic order.
 == Abstract Base Classes ==
 
 || *Class* || *Description* || *Arguments* ||
-|| !DualListen || Buffer the values of two other monitor points. Subclasses may combine these in arbitrary ways to create the desired output. Must be used together with `TransactionListen`. || *Point1:* Name of listened-to point 1. *Point2:* Name of listened-to point 2. ||
+|| Listener || Listen to updates from one or more other points. || *Num:* Number of points to be listened to. *Names:* The N subsequent arguments are the names of the points to listen to. ||
+|| !DualListen || Buffer the values of two other monitor points. Subclasses may combine these in arbitrary ways to create the desired output. Must be used together with `TransactionListen`. _deprecated use Listener_ || *Point1:* Name of listened-to point 1. *Point2:* Name of listened-to point 2. ||
 || Synch || Subclass of !DualListen which only processes when the input data has identical timestamps. This is only appropriate for points which are monitored synchronously. || *Point1:* Name of listened-to point 1. *Point2:* Name of listened-to point 2. ||
 
 == General Purpose ==
 || *Class* || *Description* || *Arguments* ||
 || Add16 || Add a constant offset to a 16-bit integer, wrapping at 0 and 65535. || *Offset:* The number to add. ||
 || Array || Return a single entry from an array input. || *Index:* The array index to be selected. ||
+|| !AvailabilityMask || Block updates if listened-to points are unavailable or in an alarm state. || *Num:* Number of points to be listened to. *Names:* The N subsequent arguments are the names of the points to listen to. ||
 || !BitShift || Mask a bit field and then rotate to the right. || *Mask:* The value to AND the input with. *Shift:* The number of bits to right shift. ||
 || !BoolMap || Map a boolean input to one of two string outputs. || *True:* String to output when the input is true. *False:* String to output when the input is false. ||
+|| Calculation || Arbitrary mathematical function of any number of listened-to points. Uses JEP for expression parsing. || *Num:* Number of points to be listened to. *Names:* The N subsequent arguments are the names of the points to listen to. *Function:* The function to be calculated where _a_ is the first listened to point, _b_ is the second, etc. ||
 || !DailyIntegrator || Accumulate the input and reset once per day. || *Time:* Time of day to reset the integrator, in "HH:MM" 24-hour format. *!TimeZone:* The time zone that the time should be interpreted in, eg "Australia/Sydney". ||
 || Delta || Calculate the difference between successive input values. || ||
-|| Difference || !DualListen implementation which returns the difference between the two values being monitored. || *Point1:* Name of listened-to point 1. *Point2:* Name of listened-to point 2. ||
-|| EQ || Apply an arbitrary equation to numerical input. Uses [http://www.singularsys.com/jep/ JEP] for expression parsing. || *Equation:* Use X to represent the input number. ||
+|| Difference || !DualListen implementation which returns the difference between the two values being monitored. _deprecated use Calculation_ || *Point1:* Name of listened-to point 1. *Point2:* Name of listened-to point 2. ||
+|| EQ || Apply an arbitrary equation to numerical input. Uses JEP for expression parsing. || *Equation:* Use x to represent the input number. ||
 || !EnumMap || Map numbers into strings. || *Maps:* As many number to string mappings as required, each having the format `number:string`. *Default:* Any argument without a `:` is treated as the default string to be used when no explicit map exists for the input. ||
 || !LimitCheck || Output depends on whether other monitor points are in an alarm state. Used together with `TransactionListen`. || *Okay:* String to output when all points are within limits. *Fail:* String to output when one or more points are in an alarm state. *Points:* All further arguments are the names of points to be checked. ||
-|| !LinearCombo || Produces a linear combination of the listened-to points. Used together with `TransactionListen`. || Any number of points can be combined, every point requires the following two arguments, *Coefficient:* The coefficient of this point in the linear combination. *Point:* Name of the point which uses that coefficient. ||
+|| !LinearCombo || Produces a linear combination of the listened-to points. Used together with `TransactionListen`. _deprecated use Calculation_ || Any number of points can be combined, every point requires the following two arguments, *Coefficient:* The coefficient of this point in the linear combination. *Point:* Name of the point which uses that coefficient. ||
 || Mean || Calculate a moving average of the input value. || *Buffer:* The averaging period, in seconds, eg, to average one minute worth os samples use `60`. *Timestamp:* A boolean which controls how we timestamp the output data, if `F` then we use the current time, if `T` then we use a timestamp from the middle of the buffer span. *Output:* An optional argument which specifies how often to produce output, in seconds. The default is to produce a new output every time we get a new input. ||
 || Polar2X || Listen to two numeric inputs which represent a polar vector, and output the X cartesian component of the vector. || *Magnitude:* Name of the vector magnitude point. *Angle:* Name of the vector angle point. *Format:* Optional argument, set to 'd' to interpret the input angle as degrees (default is radians). ||
 || Polar2Y || Listen to two numeric inputs which represent a polar vector, and output the Y cartesian component of the vector. || *Magnitude:* Name of the vector magnitude point. *Angle:* Name of the vector angle point. *Format:* Optional argument, set to 'd' to interpret the input angle as degrees (default is radians). ||
@@ -34,8 +37,8 @@ Please maintain lists in lexigraphic order.
 || !NumDecimals || Limit the number of decimals in a floating point number. || *Decimals:* The maximum number of non-zero digits after the decimal place. ||
 || !NumberToAngle || Convert a number to an Angle type. || *Format:* Optional argument set to "d" if the input is in degrees or "r" for radians. Default is radians. ||
 || !PeakDetect || Find the peak of the input over a time period. || *Period:* Period to perform the peak detection over, in seconds. ||
-|| Polynomial || Apply an arbitrary order polynomial to the input. || *Order:* First argument is the order of the polynomial. *Offset:* Value of the 0th order term. *Coefficients:* Include one additional coefficient argument for every term in the polynomial. ||
-|| Ratio || !DualListen implementation which produces the ratio of two other points.|| *Numerator:* Name of the point to be used as numerator. *Divisor:* Name of point to be used as the divisor. ||
+|| Polynomial || Apply an arbitrary order polynomial to the input. _deprecated use Calculation_ || *Order:* First argument is the order of the polynomial. *Offset:* Value of the 0th order term. *Coefficients:* Include one additional coefficient argument for every term in the polynomial. ||
+|| Ratio || !DualListen implementation which produces the ratio of two other points. _deprecated use Calculation_ || *Numerator:* Name of the point to be used as numerator. *Divisor:* Name of point to be used as the divisor. ||
 || !StringToArray || Break the input String into an array of tokens. || *Regexp:* Delimiter for splitting string, as used by the Java String.split method. If no argument is given the space character is used by default. ||
 || !StringMap || Map input strings to corresponding output strings. || *Mappings:* Any number of string mappings in the format `input1:output1`||
 || !StringToNumber || Map the string representation of a number to an actual numeric class type. || *Type:* The type of output to be produced, Float, Double, or Integer. *Radix:* A radix may be used for integers. If it is omitted base 10 is assumed. ||
