@@ -11,8 +11,6 @@ package atnf.atoms.mon.translation;
 
 import java.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
 
 /**
@@ -43,7 +41,9 @@ extends Translation
     //Find amount of time to buffer data for
     try {
       float period = Float.parseFloat(init[0])*1000000;
-      if (period>0) period=-period;
+      if (period>0) {
+        period=-period;
+      }
       itsPeriod = RelTime.factory((long)period);
     } catch (Exception e) {
       System.err.println("TranslationPeakDetect: " + itsParent.getLongName() +
@@ -115,8 +115,11 @@ extends Translation
       }
     }
 
-    if (first) return null;
-    else return new Double(peak);
+    if (first) {
+      return null;
+    } else {
+      return new Double(peak);
+    }
   }
 
 

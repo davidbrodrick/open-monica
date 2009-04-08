@@ -7,10 +7,7 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
-import java.lang.reflect.*;
 
 /**
  * Translation which sets the numeric value to a specified level if the 
@@ -78,7 +75,9 @@ extends Translation
   PointData
   translate(PointData data)
   {
-    if (data==null) return null;
+    if (data==null) {
+      return null;
+    }
 
     Object rawval = data.getData();
 
@@ -94,8 +93,11 @@ extends Translation
       newval = null;
     } else if (rawval instanceof Number) {
       double temp = ((Number)rawval).doubleValue();
-      if (temp<itsThreshold) newval=new Double(itsSquelchOutput);
-      else newval=new Double(temp);
+      if (temp<itsThreshold) {
+        newval=new Double(itsSquelchOutput);
+      } else {
+        newval=new Double(temp);
+      }
     } else {
       //It's an unknown data type
       System.err.println("TranslationSquelch for \"" + itsParent.getName()

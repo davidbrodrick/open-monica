@@ -14,8 +14,6 @@ import java.net.*;
 
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
-import atnf.atoms.mon.transaction.*;
 
 /**
  *
@@ -83,7 +81,9 @@ extends DataSource
       itsNumTransactions = 0;
     } catch (Exception e) {
       try {
-	if (itsSocket!=null) itsSocket.close();
+	if (itsSocket!=null) {
+    itsSocket.close();
+  }
       } catch (Exception f) { }
       itsSocket = null;
       itsReader = null;
@@ -103,7 +103,9 @@ extends DataSource
   {
     System.err.println("DataSourceThyconUPS: Lost Connection");
     itsConnected = false;
-    if (itsSocket!=null) itsSocket.close();
+    if (itsSocket!=null) {
+      itsSocket.close();
+    }
     itsSocket = null;
     itsReader = null;
     itsWriter = null;
@@ -148,28 +150,51 @@ extends DataSource
   byte
   BCD2byte(byte b)
   {
-    if (b=='0') return 0;
-    else if (b=='1') return 1;
-    else if (b=='2') return 2;
-    else if (b=='3') return 3;
-    else if (b=='4') return 4;
-    else if (b=='5') return 5;
-    else if (b=='6') return 6;
-    else if (b=='7') return 7;
-    else if (b=='8') return 8;
-    else if (b=='9') return 9;
-    else if (b=='a') return 10;
-    else if (b=='b') return 11;
-    else if (b=='c') return 12;
-    else if (b=='d') return 13;
-    else if (b=='e') return 14;
-    else if (b=='f') return 15;
-    else if (b=='A') return 10;
-    else if (b=='B') return 11;
-    else if (b=='C') return 12;
-    else if (b=='D') return 13;
-    else if (b=='E') return 14;
-    else return 15;
+    if (b=='0') {
+      return 0;
+    } else if (b=='1') {
+      return 1;
+    } else if (b=='2') {
+      return 2;
+    } else if (b=='3') {
+      return 3;
+    } else if (b=='4') {
+      return 4;
+    } else if (b=='5') {
+      return 5;
+    } else if (b=='6') {
+      return 6;
+    } else if (b=='7') {
+      return 7;
+    } else if (b=='8') {
+      return 8;
+    } else if (b=='9') {
+      return 9;
+    } else if (b=='a') {
+      return 10;
+    } else if (b=='b') {
+      return 11;
+    } else if (b=='c') {
+      return 12;
+    } else if (b=='d') {
+      return 13;
+    } else if (b=='e') {
+      return 14;
+    } else if (b=='f') {
+      return 15;
+    } else if (b=='A') {
+      return 10;
+    } else if (b=='B') {
+      return 11;
+    } else if (b=='C') {
+      return 12;
+    } else if (b=='D') {
+      return 13;
+    } else if (b=='E') {
+      return 14;
+    } else {
+      return 15;
+    }
   }
 
 
@@ -211,18 +236,23 @@ extends DataSource
   {
     int i1=BCD2byte(b) + (BCD2byte(a)<<4) +
            (BCD2byte(d)<<8) + (BCD2byte(c)<<12);
-    if (i1==0) return new Float(0.0);
+    if (i1==0) {
+      return new Float(0.0);
+    }
 
     int e=(i1&0x7c00)>>10; //exponent
     float f=((i1&0x03ff)/1024.0f)+1.0f;;
 
 //    System.out.println("e=" + e + "\tf=" + f);
-    if (e>0 && e<31) e-=8;
-    else if (e==31) e=255;
+    if (e>0 && e<31) {
+      e-=8;
+    } else if (e==31) {
+      e=255;
 //    else if (e==0 && f!=0) {
 //      e = 127 - 8;
 //      f = f<<1;
 //    }
+    }
 
     float res = (float)(f * Math.pow(2, e));
 //    System.out.println("Float value=" + res);
@@ -235,11 +265,15 @@ extends DataSource
   boolean
   checkResponse(String resp)
   {
-    if (resp==null || resp.length()<5) return false;
+    if (resp==null || resp.length()<5) {
+      return false;
+    }
 
     byte[] bytes = resp.getBytes();
 
-    if (bytes[0]!='!') return false;
+    if (bytes[0]!='!') {
+      return false;
+    }
 
     ///Still needs to verify checksum
 
@@ -254,31 +288,37 @@ extends DataSource
   sendRequest(byte[] req)
   throws Exception
   {
-    if (!itsConnected)
+    if (!itsConnected) {
       throw new Exception("Not connected to UPS");
+    }
 
     //Build request array of bytes
     byte[] allbytes = new byte[req.length + 2];
     allbytes[0] = itsAddress;
-    for (int i=0; i<req.length; i++) allbytes[i+1] = req[i];
+    for (int i=0; i<req.length; i++) {
+      allbytes[i+1] = req[i];
+    }
     //Calculate checksum
     byte checksum = 0;
-    for (int i=0; i<allbytes.length; i++)
+    for (int i=0; i<allbytes.length; i++) {
       checksum = (byte)(checksum + allbytes[i]);
+    }
     checksum = (byte)(-checksum);
     allbytes[allbytes.length-1] = checksum;
     //Convert to string
     String reqstr = "!";
-    for (int i=0; i<allbytes.length; i++)
+    for (int i=0; i<allbytes.length; i++) {
       reqstr = reqstr + byte2BCD(allbytes[i]);
+    }
     reqstr = reqstr + "\r";
 //    System.out.println("Request is: \t" + reqstr);
     itsWriter.print(reqstr);
     itsWriter.flush();
 
     String line = itsReader.readLine();
-    if (!checkResponse(line))
+    if (!checkResponse(line)) {
       throw new Exception("Invalid response from UPS!");
+    }
 
 //    System.out.println("Response is:\t" + line);
     return line;
@@ -338,22 +378,46 @@ extends DataSource
     } else if (bytes[3]=='9' && bytes[4]=='0') {
       //Status message
       byte b = (byte)((bytes[5]<<4) + bytes[6]);
-      if ((b&1)==0) map.put("CB1", new Boolean(false));
-      else map.put("CB1", new Boolean(true));
-      if ((b&2)==0) map.put("CB2", new Boolean(false));
-      else map.put("CB2", new Boolean(true));
-      if ((b&4)==0) map.put("CB3", new Boolean(false));
-      else map.put("CB3", new Boolean(true));
-      if ((b&8)==0) map.put("CB4", new Boolean(false));
-      else map.put("CB4", new Boolean(true));
-      if ((b&16)==0) map.put("CB5", new Boolean(false));
-      else map.put("CB5", new Boolean(true));
-      if ((b&32)==0) map.put("CB6", new Boolean(false));
-      else map.put("CB6", new Boolean(true));
-      if ((b&64)==0) map.put("CB7", new Boolean(false));
-      else map.put("CB7", new Boolean(true));
-      if ((b&128)==0) map.put("CB8", new Boolean(false));
-      else map.put("CB8", new Boolean(true));
+      if ((b&1)==0) {
+        map.put("CB1", new Boolean(false));
+      } else {
+        map.put("CB1", new Boolean(true));
+      }
+      if ((b&2)==0) {
+        map.put("CB2", new Boolean(false));
+      } else {
+        map.put("CB2", new Boolean(true));
+      }
+      if ((b&4)==0) {
+        map.put("CB3", new Boolean(false));
+      } else {
+        map.put("CB3", new Boolean(true));
+      }
+      if ((b&8)==0) {
+        map.put("CB4", new Boolean(false));
+      } else {
+        map.put("CB4", new Boolean(true));
+      }
+      if ((b&16)==0) {
+        map.put("CB5", new Boolean(false));
+      } else {
+        map.put("CB5", new Boolean(true));
+      }
+      if ((b&32)==0) {
+        map.put("CB6", new Boolean(false));
+      } else {
+        map.put("CB6", new Boolean(true));
+      }
+      if ((b&64)==0) {
+        map.put("CB7", new Boolean(false));
+      } else {
+        map.put("CB7", new Boolean(true));
+      }
+      if ((b&128)==0) {
+        map.put("CB8", new Boolean(false));
+      } else {
+        map.put("CB8", new Boolean(true));
+      }
 
 /*      map.put("LCD1", "-"); //Initialise status strings to default values
       map.put("LCD2", "-");
@@ -465,7 +529,9 @@ extends DataSource
    getNewData()
    throws Exception
    {
-     if (!itsConnected) throw new Exception("Not connected to UPS");
+     if (!itsConnected) {
+      throw new Exception("Not connected to UPS");
+    }
 
      HashMap res = new HashMap();
      try {
@@ -489,14 +555,18 @@ extends DataSource
    throws Exception
    {
      //Precondition
-     if (points==null || points.length==0) return;
+     if (points==null || points.length==0) {
+      return;
+    }
      //Increment transaction counter
      itsNumTransactions += points.length;
 
      //Try to get the new data and force a reconnect if the read times out
      HashMap newdata = null;
      try {
-       if (itsConnected) newdata = getNewData();
+       if (itsConnected) {
+        newdata = getNewData();
+      }
      } catch (Exception e) {
        try {
 	 System.err.println("DatasourceThyconUPS: " + e.getMessage());
@@ -517,7 +587,7 @@ extends DataSource
 
      //Fire off the new data
      for (int i=0; i<points.length; i++) {
-       PointInteraction pm = (PointInteraction)points[i];
+       PointMonitor pm = (PointMonitor)points[i];
        PointData pd = new PointData(pm.getName(), pm.getSource(), newdata);
        pm.firePointEvent(new atnf.atoms.mon.PointEvent(this, pd, true));
      }
@@ -552,6 +622,8 @@ extends DataSource
      }
      System.exit(0);
 
-     while (true);
+     while (true) {
+      ;
+    }
    }
 }

@@ -52,8 +52,7 @@ extends TranslationListener
         break;
       }
       
-      PointLimit limits = itsPoints[i].getLimits();
-      if (limits!=null && limits.checkLimits(itsValues[i])==false) {
+      if (itsPoints[i].checkLimits(itsValues[i])==false) {
         //This point is in an alarm state
         System.err.println("data in alarm");
         unavailable=true;

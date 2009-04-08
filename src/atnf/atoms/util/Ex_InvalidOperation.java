@@ -17,8 +17,6 @@
 
 package atnf.atoms.util;
 
-import java.lang.*;
-
 /**
  * Indicates an invalid operation.
  *

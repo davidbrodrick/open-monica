@@ -10,7 +10,6 @@ package atnf.atoms.mon.limit;
 
 import java.lang.reflect.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
 import atnf.atoms.mon.util.*;
 
 
@@ -42,7 +41,9 @@ extends MonitorPolicy
    
    public static PointLimit factory(String arg)
    {
-      if (arg.equalsIgnoreCase("null")) arg= "-";
+      if (arg.equalsIgnoreCase("null")) {
+        arg= "-";
+      }
 
       PointLimit result = null;
 
@@ -51,7 +52,9 @@ extends MonitorPolicy
       String[] limitArgs = MonitorUtils.tokToStringArray(specifics);
       // Find the type of translation
       String type = arg.substring(0, arg.indexOf("-"));
-      if (type == "" || type == null || type.length()<1) type = "SIMPLE";
+      if (type == "" || type == null || type.length()<1) {
+        type = "SIMPLE";
+      }
 
       try {
 	 Constructor Limit_con = Class.forName("atnf.atoms.mon.limit.PointLimit"+type).getConstructor(new Class[]{String[].class});

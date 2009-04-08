@@ -10,7 +10,6 @@ package atnf.atoms.mon;
 import atnf.atoms.mon.client.*;
 import atnf.atoms.mon.limit.*;
 import atnf.atoms.time.*;
-import atnf.atoms.mon.transaction.*;
 
 /**
  * Just like a PointMonitor, only not.
@@ -90,12 +89,12 @@ public class FakeMonitor extends PointMonitor
    FakeMonitor
    Fakefactory(String[] names,
 	       String longDesc,
-	       String shortDesc,
 	       String units,
 	       String source,
-	       String channel,
+	       String[] inputs,
+         String[] outputs,
 	       String[] translate,
-	       String limits,
+	       String[] limits,
 	       String[] archive,
 	       String period,
 	       boolean enabled)
@@ -106,15 +105,18 @@ public class FakeMonitor extends PointMonitor
       result.setUnits(units);
       result.setSource(source);
       result.setTranslationString(translate);
-      result.setTransactionString(channel);
-      //result.setTransaction(Transaction.factory(result, channel));
-      result.setTransaction(null);
+      result.setInputTransactionString(inputs);
+      result.setOutputTransactionString(outputs);
       result.setLimitsString(limits);
-      result.setLimits(PointLimit.factory(limits));
+      PointLimit[] limitsa = new PointLimit[limits.length];
+      for (int i=0; i<limits.length; i++) {
+        limitsa[i] = PointLimit.factory(limits[i]);
+      }
+      result.setLimits(limitsa);
       result.setArchiveString(archive);
       result.setPeriod(period);
       result.setEnabled(enabled);
-      MonitorMap.addPointMonitor(result);
+      //MonitorMap.addPointMonitor(result);
       return result;
    }
 
@@ -127,8 +129,10 @@ public class FakeMonitor extends PointMonitor
         firePointEvent(new PointEvent(this, null, false));
         return;
       }
-      PointData data = (MonClientUtil.getServer()).getPointData(getHash());
-      if (data==null) return; //Maybe no connection to server?
+      PointData data = (MonClientUtil.getServer()).getPointData(getFullName());
+      if (data==null) {
+        return; //Maybe no connection to server?
+      }
       System.err.println("FakeMonitor:CollectData: " + data.getName() + " " + data.getSource() + " " + data.getData());
       firePointEvent(new PointEvent(this, data, false));
    }
@@ -149,10 +153,11 @@ public class FakeMonitor extends PointMonitor
    {
      if (pe.getPointData() == null) {
        //System.err.println("FakeMonitor:firePointEvent: Event Data was Null");
-       if (itsNextEpoch!=0 && itsPeriod>0)
-	 itsNextEpoch = AbsTime.factory().getValue() + itsPeriod;
-       else
-	 itsNextEpoch = AbsTime.factory().getValue() + 1000000;
+       if (itsNextEpoch!=0 && itsPeriod>0) {
+        itsNextEpoch = AbsTime.factory().getValue() + itsPeriod;
+      } else {
+        itsNextEpoch = AbsTime.factory().getValue() + 1000000;
+      }
        itsNextEpoch += 50000;
        fireEvents(pe);
        itsCollecting = false;
@@ -167,7 +172,9 @@ public class FakeMonitor extends PointMonitor
      //of the point has changed.
       boolean duplicateCollection = false;
       long lastTimestamp = data.getTimestamp().getValue();
-      if (lastTimestamp == itsLastTimestamp) duplicateCollection = true;
+      if (lastTimestamp == itsLastTimestamp) {
+        duplicateCollection = true;
+      }
       itsLastTimestamp = lastTimestamp;
 
       if (data.getSequence() - itsSequence > 1 && itsSequence > -1) {
@@ -227,7 +234,9 @@ public class FakeMonitor extends PointMonitor
          // Expand array if you have to
          if (itsTimestampPos >= MAXTIMES) {
             long[] temp  = new long[MAXTIMES];
-            for (int i = 0; i < MAXTIMES/2; i++) temp[i] = itsLastTimestamps[MAXTIMES/2+i];
+            for (int i = 0; i < MAXTIMES/2; i++) {
+              temp[i] = itsLastTimestamps[MAXTIMES/2+i];
+            }
             itsLastTimestamps = temp;
             itsTimestampPos = MAXTIMES/2;
          }
@@ -239,13 +248,20 @@ public class FakeMonitor extends PointMonitor
          if (avg == 0 || last == 0) {
            itsNextEpoch = lastTimestamp + delay;
          } else if (Math.abs(avg - last) > delay) {
-            if (itsLast < 0) itsLast = last;
-            else if (Math.abs(itsLast - last) < last/10) itsTimestampPos = 0;
+            if (itsLast < 0) {
+              itsLast = last;
+            } else if (Math.abs(itsLast - last) < last/10) {
+              itsTimestampPos = 0;
+            }
             itsNextEpoch = lastTimestamp + delay;
-         } else itsNextEpoch =  avg + lastTimestamp;
+         } else {
+          itsNextEpoch =  avg + lastTimestamp;
+        }
       }
       itsCollecting = false;
-      if (itsNextEpoch < AbsTime.factory().getValue() + itsTimeOffset) itsNextEpoch = AbsTime.factory().getValue();
+      if (itsNextEpoch < AbsTime.factory().getValue() + itsTimeOffset) {
+        itsNextEpoch = AbsTime.factory().getValue();
+      }
       itsNextEpoch += 100000;
       itsNextEpoch += itsTimeOffset;
       fireEvents(pe);
@@ -253,16 +269,22 @@ public class FakeMonitor extends PointMonitor
 
    public long getAvgPeriod()
    {
-      if (itsTimestampPos < 2) return 0;
+      if (itsTimestampPos < 2) {
+        return 0;
+      }
       long sum = 0;
-      for (int i = 1; i < itsTimestampPos; i++) sum += itsLastTimestamps[i] - itsLastTimestamps[i-1];
-      return (long)(sum/(itsTimestampPos-1));
+      for (int i = 1; i < itsTimestampPos; i++) {
+        sum += itsLastTimestamps[i] - itsLastTimestamps[i-1];
+      }
+      return (sum/(itsTimestampPos-1));
    }
    
    public long getLastPeriod()
    {
-      if (itsTimestampPos < 2) return 0;
-      return (long)((itsLastTimestamps[itsTimestampPos-1]-itsLastTimestamps[itsTimestampPos-2]));
+      if (itsTimestampPos < 2) {
+        return 0;
+      }
+      return ((itsLastTimestamps[itsTimestampPos-1]-itsLastTimestamps[itsTimestampPos-2]));
    }
    
    private void fireEvents(PointEvent pe)
@@ -285,9 +307,13 @@ public class FakeMonitor extends PointMonitor
       res.append(' ');
       if (itsNames.length > 1) {
          res.append('{');
-	 for (int i = 0; i < itsNames.length - 1; i++) res.append(itsNames[i]+",");
+	 for (int i = 0; i < itsNames.length - 1; i++) {
+    res.append(itsNames[i]+",");
+  }
 	 res.append(itsNames[itsNames.length-1]+"}");
-      } else res.append(itsNames[0]);
+      } else {
+        res.append(itsNames[0]);
+      }
       res.append(' ');
       res.append('"');
       res.append(itsLongDesc);
@@ -300,7 +326,7 @@ public class FakeMonitor extends PointMonitor
       res.append(' ');
       res.append(itsEnabled ? 'T' : 'F');
       res.append(' ');
-      res.append(itsTransactionString);
+      res.append(itsInputTransactionString);
       res.append(' ');
       res.append(itsTranslationString);
       res.append(' ');
@@ -308,9 +334,13 @@ public class FakeMonitor extends PointMonitor
       res.append(' ');
       if (itsArchiveString.length > 1) {
         res.append('{');
-        for (int i = 0; i < itsArchiveString.length - 1; i++) res.append(itsArchiveString[i]+",");
+        for (int i = 0; i < itsArchiveString.length - 1; i++) {
+          res.append(itsArchiveString[i]+",");
+        }
           res.append(itsArchiveString[itsArchiveString.length-1]+"}");
-      } else res.append(itsArchiveString[0]);
+      } else {
+        res.append(itsArchiveString[0]);
+      }
       res.append(' ');
       res.append(itsPeriod);
       return res.toString();

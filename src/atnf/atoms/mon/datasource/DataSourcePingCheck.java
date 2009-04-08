@@ -9,6 +9,7 @@ package atnf.atoms.mon.datasource;
 
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.transaction.*;
+
 import java.io.*;
 import java.net.*;
 
@@ -34,11 +35,13 @@ extends DataSource
   throws Exception
   {
     //Precondition
-    if (points==null) return;
+    if (points==null) {
+      return;
+    }
 
     for (int i=0; i<points.length; i++) {
-      PointInteraction pm = (PointInteraction)points[i];
-      String host = ((TransactionStrings)pm.getTransaction()).getString();
+      PointMonitor pm = (PointMonitor)points[i];
+      String host = ((TransactionStrings)getMyTransactions(pm.getInputTransactions()).get(0)).getString();
       boolean canping = false;
       try {
         InetAddress address = InetAddress.getByName(host);

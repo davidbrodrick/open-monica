@@ -14,12 +14,9 @@ import atnf.atoms.mon.client.MonClientUtil;
 import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
-import atnf.atoms.util.Angle;
-
 import java.util.Vector;
 import java.util.StringTokenizer;
 import java.awt.*;
-import java.awt.print.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.io.*;
@@ -61,8 +58,9 @@ implements ActionListener
         if (returnVal==JFileChooser.APPROVE_OPTION) {
           try {
             File file = fc.getSelectedFile();
-            if (!recoverArrangement(file.getAbsoluteFile().toString()))
+            if (!recoverArrangement(file.getAbsoluteFile().toString())) {
               throw new Exception("Unable to properly load the file");
+            }
           } catch (Exception f) {
             //No Joy..
             f.printStackTrace();
@@ -79,8 +77,9 @@ implements ActionListener
         if (returnVal==JFileChooser.APPROVE_OPTION) {
           try {
             File file = fc.getSelectedFile();
-            if (!saveArrangement(file.getAbsoluteFile().toString()))
+            if (!saveArrangement(file.getAbsoluteFile().toString())) {
               throw new Exception("Unable to properly save the file");
+            }
           } catch (Exception f) {
             //No Joy..
             f.printStackTrace();
@@ -110,7 +109,9 @@ implements ActionListener
 	  selected.setVisible(false);
 	  remove(selected);
 	  //If there are no windows left, we can close the app!
-	  if (numWindows()==0) System.exit(0);
+	  if (numWindows()==0) {
+      System.exit(0);
+    }
 	} else {
 	  System.err.println("MonFrame:WindowManager: Can't remove Monframe");
 	}
@@ -171,7 +172,9 @@ implements ActionListener
     MonFrame
     getWindow(int i)
     {
-      if (i>=itsWindows.size()) return null;
+      if (i>=itsWindows.size()) {
+        return null;
+      }
       return (MonFrame)itsWindows.get(i);
     }
 
@@ -286,7 +289,9 @@ implements ActionListener
           temp = new JMenuItem(tempframe.getTitle());
           temp.setActionCommand("Raise:" + tempframe.getNumber());
           temp.addActionListener(this);
-          if (tempframe==frame) temp.setEnabled(false);
+          if (tempframe==frame) {
+            temp.setEnabled(false);
+          }
           menu.add(temp);
         }
       }
@@ -420,7 +425,9 @@ implements ActionListener
         thisframe.setVisible(false);
         theirWindowManager.remove(thisframe);
         //If there are no windows left, we can close the app!
-        if (theirWindowManager.numWindows()==0) System.exit(0);
+        if (theirWindowManager.numWindows()==0) {
+          System.exit(0);
+        }
       }
     });
 
@@ -521,8 +528,9 @@ implements ActionListener
       //Must be the name of a setup to load
       SavedSetup reqsetup = MonClientUtil.getSetup(this.getClass().getName(),
 						   action);
-      if (reqsetup!=null) loadSetup(reqsetup);
-      else {
+      if (reqsetup!=null) {
+        loadSetup(reqsetup);
+      } else {
         //Setup couldn't be found
         JOptionPane.showMessageDialog(this,
 				      "Curiously, the setup called:\n" +
@@ -599,13 +607,16 @@ implements ActionListener
     //Get the index for the panel to be removed
     int i;
     for (i=0; i<itsPanels.size(); i++) {
-      if (itsPanels.get(i)==deadpan) break;
+      if (itsPanels.get(i)==deadpan) {
+        break;
+      }
     }
 
     itsMainPanel.remove(deadpan);
     itsPanels.remove(i);
-    if (itsSetupPanels.get(i)!=null)
+    if (itsSetupPanels.get(i)!=null) {
       itsTabs.remove((Component)itsSetupPanels.get(i));
+    }
     itsSetupPanels.remove(i);
 
     //Remove the MonPanel
@@ -633,7 +644,9 @@ implements ActionListener
     itsMainPanel.removeAll();
     itsSetupPanels.clear();
     //while (itsTabs.getTabCount()>2) itsTabs.remove(2);
-    while (itsTabs.getTabCount()>1) itsTabs.remove(1);
+    while (itsTabs.getTabCount()>1) {
+      itsTabs.remove(1);
+    }
     rebuildSubPanelMenu();
     //Redraw empty screen
     validate();
@@ -715,11 +728,15 @@ implements ActionListener
     tempMenu.addActionListener(this);
     tempMenu.setActionCommand("Clear Frame");
     tempMenu.setToolTipText("Remove all the panels from the window");
-    if (itsPanels.size()==0) tempMenu.setEnabled(false);
+    if (itsPanels.size()==0) {
+      tempMenu.setEnabled(false);
+    }
     itsSubPanelsMenu.add(tempMenu);
     JMenu saveMenu = new JMenu("Save Setup");
     saveMenu.setToolTipText("Save current setup so it can be reused");
-    if (itsPanels.size()==0) saveMenu.setEnabled(false);
+    if (itsPanels.size()==0) {
+      saveMenu.setEnabled(false);
+    }
     itsSubPanelsMenu.add(saveMenu);
     tempMenu = new JMenuItem("Locally");
     tempMenu.addActionListener(this);
@@ -808,8 +825,9 @@ implements ActionListener
 					  "Error Loading Setup",
 					  JOptionPane.WARNING_MESSAGE);
 	    //Remove the not-yet-displayed panels
-	    for (int j=0; j<newpanels.size(); j++)
-	      ((MonPanel)newpanels.get(j)).vaporise();
+	    for (int j=0; j<newpanels.size(); j++) {
+        ((MonPanel)newpanels.get(j)).vaporise();
+      }
 	    blankSetup();
 	    return false;
 	  }
@@ -824,15 +842,18 @@ implements ActionListener
                                         "Error Loading Setup",
 					JOptionPane.WARNING_MESSAGE);
 	  //Remove the not-yet-displayed panels
-	  for (int j=0; j<newpanels.size(); j++)
-	    ((MonPanel)newpanels.get(j)).vaporise();
+	  for (int j=0; j<newpanels.size(); j++) {
+      ((MonPanel)newpanels.get(j)).vaporise();
+    }
 	  blankSetup();
 	  return false;
 	}
       }
 
       //SECOND, add all the empty panels to the frame and redraw
-      for (int i=0; i<numpanels; i++) addPanel((MonPanel)newpanels.get(i));
+      for (int i=0; i<numpanels; i++) {
+        addPanel((MonPanel)newpanels.get(i));
+      }
       setTitle("MoniCA: " + title);
       validate();
 
@@ -849,7 +870,9 @@ implements ActionListener
 	  return false;
 	}
 	MonPanelSetupPanel sp = (MonPanelSetupPanel)itsSetupPanels.get(i);
-        if (sp!=null) sp.showSetup(newsetup);
+        if (sp!=null) {
+          sp.showSetup(newsetup);
+        }
       }
 
       //Pack the window for new content
@@ -885,7 +908,9 @@ implements ActionListener
   SavedSetup
   getSetup()
   {
-    if (itsSetup!=null) return itsSetup;
+    if (itsSetup!=null) {
+      return itsSetup;
+    }
 
     SavedSetup setup = new SavedSetup("temp", this.getClass().getName());
 
@@ -940,7 +965,9 @@ implements ActionListener
       itsTimer.stop();
       itsTimer=null;
     } else {
-      if (itsTimer!=null) itsTimer.stop();
+      if (itsTimer!=null) {
+        itsTimer.stop();
+      }
       itsTimer = new Timer(interval, new DummyAutodump());
       itsTimer.start();
     }
@@ -960,7 +987,9 @@ implements ActionListener
 
       while (f.ready()) {
         String line = f.readLine();
-        if (line.startsWith("#")) continue;
+        if (line.startsWith("#")) {
+          continue;
+        }
         StringTokenizer st = new StringTokenizer(line);
         //Get the requested setup from the database
         SavedSetup setup = MonClientUtil.getSetup("atnf.atoms.mon.gui.MonFrame",
@@ -1077,7 +1106,9 @@ implements ActionListener
             System.exit(1);
           }
           outputdir = argv[i+1];
-          if (!outputdir.endsWith("/")) outputdir = outputdir + "/";
+          if (!outputdir.endsWith("/")) {
+            outputdir = outputdir + "/";
+          }
           i++;
         } else if (argv[i].equals("-f")||argv[i].equals("--file")) {
           if (argv.length==i+1) {
@@ -1126,7 +1157,9 @@ implements ActionListener
         //If there is a "default" page, then display it
         SavedSetup def = MonClientUtil.getSetup("atnf.atoms.mon.gui.MonFrame",
 				                                        "default");
-        if (def!=null) frame.loadSetup(def);
+        if (def!=null) {
+          frame.loadSetup(def);
+        }
       }
     } else {
       //Apply the "autodump" settings

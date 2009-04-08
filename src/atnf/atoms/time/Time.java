@@ -17,9 +17,6 @@
 
 package atnf.atoms.time;
 
-import java.lang.*;
-import atnf.atoms.util.*;
-
 /**
  * Container class for miscellaneous time functionality.
  *

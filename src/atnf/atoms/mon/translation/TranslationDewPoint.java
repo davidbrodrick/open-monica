@@ -9,10 +9,7 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 
 /**
  * Calculate dew point by translating a measurement of water vapour pressure.
@@ -50,7 +47,9 @@ extends Translation
   translate(PointData data)
   {
     //Precondition
-    if (data==null) return null;
+    if (data==null) {
+      return null;
+    }
 
     //Create return structure with right details
     PointData res = new PointData(itsParent.getName(),
@@ -73,7 +72,9 @@ extends Translation
   doCalculations(Object val)
   {
     //Do some reality checks
-    if (val == null) return null;
+    if (val == null) {
+      return null;
+    }
     if (! (val instanceof Number) ) {
       System.err.println("TranslationDewPoint: " + itsParent.getName()
 			 + ": ERROR got non-numeric argument data!");

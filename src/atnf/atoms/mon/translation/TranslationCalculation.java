@@ -70,7 +70,7 @@ extends TranslationListener
   {
     for (int i=0; i<itsNumPoints; i++) {
       //Update the value for this variable
-      String thisvar=""+((char)(((int)'a')+i));
+      String thisvar=""+((char)(('a')+i));
       itsParser.addVariableAsObject(thisvar,itsValues[i].getData());
       //Clear the current value now that it has been used
       itsValues[i]=null;

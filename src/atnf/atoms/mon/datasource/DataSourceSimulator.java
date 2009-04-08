@@ -8,8 +8,6 @@
 package atnf.atoms.mon.datasource;
 
 import java.util.*;
-import java.io.*;
-import atnf.atoms.time.RelTime;
 import atnf.atoms.mon.*;
 
 /**
@@ -51,13 +49,14 @@ extends DataSource
     for (int i=0; i<numpoints; i++) {
       String[] names = {"dummy."+i};
       String[] empty = {"-"};
-      String[] trans = {"NumDecimals-\"2\""};
+      String[] transaction = {"Generic-\"simulator" + theirPopulation+"\""};
+      String[] translation = {"NumDecimals-\"2\""};
       String[] arch = {"-"}; //{"COUNTER-1"};
       
       int period = minseconds + itsRandom.nextInt(maxseconds-minseconds);
       PointMonitor newpoint=PointMonitor.factory(names, "Dummy " + i,
-                   "", "", "sim"+theirPopulation, "Generic-\"simulator" + theirPopulation+"\"",
-                   trans, "-", arch, "" + period + "000000", true);
+                   "", "sim"+theirPopulation, transaction, null,
+                   translation, empty, arch, "" + period + "000000", true);
     }
     
     //Increase the record of the number of simulators created

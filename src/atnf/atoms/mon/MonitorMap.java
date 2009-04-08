@@ -18,10 +18,8 @@ import java.util.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.mon.archiver.*;
 import atnf.atoms.mon.datasource.*;
-import atnf.atoms.mon.client.*;
 import atnf.atoms.mon.transaction.*;
 import atnf.atoms.util.*;
-import java.math.BigInteger;
 
 public class MonitorMap
 {
@@ -30,9 +28,6 @@ public class MonitorMap
 
    private static TreeMap itsPointMap = new TreeMap();
    
-   /** Map of all data sources known to the system. */
-   private static TreeMap itsDataSourceMap = new TreeMap();
-
    /** Holds all known <i>'saved setups</i> for the clients to use. */
    private static TreeMap itsSetupMap = new TreeMap();
 
@@ -51,23 +46,32 @@ public class MonitorMap
 
    public static synchronized void addPointMonitor(PointMonitor pm)
    {
-     String[] hashes = pm.getHashes();
-     for (int i = 0; i < hashes.length; i++) itsPointMap.put(hashes[i], pm);
-     if (itsSources.get(pm.getSource()) == null) itsSources.put(pm.getSource(), new TreeSet());
+     String[] names = pm.getFullNames();
+     for (int i = 0; i < names.length; i++) {
+      itsPointMap.put(names[i], pm);
+    }
+     if (itsSources.get(pm.getSource()) == null) {
+      itsSources.put(pm.getSource(), new TreeSet());
+    }
      ((TreeSet)itsSources.get(pm.getSource())).add(pm.getLongName());
-     if (itsPoints.get(pm.getLongName()) == null) itsPoints.put(pm.getLongName(), new TreeSet());
+     if (itsPoints.get(pm.getLongName()) == null) {
+      itsPoints.put(pm.getLongName(), new TreeSet());
+    }
      ((TreeSet)itsPoints.get(pm.getLongName())).add(pm.getSource());
      //If the Transaction is not null, assign to appropriate DataSource
-     Transaction t = pm.getTransaction();
-     if (t!=null && !t.getChannel().equals("NONE")) {
-       DataSource ds = getDataSource(t.getChannel());
-       if (ds!=null) {
-         ds.addPoint(pm);
-         //System.err.println("MonitorMap:addPointMonitor: OK for "
-         //     	    + pm + " (" + t.getChannel() + ")");
-       } else {
-         System.err.println("MonitorMap:addPointMonitor: No DataSource for "
-                            + pm + " (" + t.getChannel() + ")");
+     Transaction[] transactions=pm.getInputTransactions();
+     for (int i=0; i<transactions.length; i++) {
+       Transaction t = transactions[i];
+       if (t!=null && !t.getChannel().equals("NONE")) {
+         DataSource ds = DataSource.getDataSource(t.getChannel());
+         if (ds!=null) {
+           ds.addPoint(pm);
+           //System.err.println("MonitorMap:addPointMonitor: OK for "
+           //     	    + pm + " (" + t.getChannel() + ")");
+         } else {
+           System.err.println("MonitorMap:addPointMonitor: No DataSource for "
+                              + pm + " (" + t.getChannel() + ")");
+         }
        }
      }
      if (pm.getArchive()!=null) {
@@ -75,49 +79,11 @@ public class MonitorMap
      }
    }
    
-   public static synchronized PointInteraction getPointInteraction(String hash)
-   {
-     return (PointInteraction)itsPointMap.get(hash);
-   }
-
    public static synchronized PointMonitor getPointMonitor(String hash)
    {
       return (PointMonitor)itsPointMap.get(hash);
    }
    
-   /** Careful, this method does not fix all the maps yet */
-   public static synchronized void removePointMonitor(PointMonitor pm)
-   {
-      String[] hashes = pm.getHashes();
-      for (int i = 0; i < hashes.length; i++) {
-         itsPointMap.remove(hashes[i]);
-      }
-      if (itsSources.get(pm.getSource()) != null)
-        ((TreeSet)itsSources.get(pm.getSource())).remove(pm.getLongName());
-      if (itsPoints.get(pm.getLongName()) != null)
-        ((TreeSet)itsPoints.get(pm.getLongName())).remove(pm.getSource());
-   }
-   
-   public static synchronized void addDataSource(DataSource source)
-   {
-      itsDataSourceMap.put(source.getName(), source);
-   }
-
-   public static synchronized void addDataSource(String name, DataSource source)
-   {
-      itsDataSourceMap.put(name, source);
-   }
-   
-   public static synchronized DataSource getDataSource(String name)
-   {
-      return (DataSource)itsDataSourceMap.get(name);
-   }
-   
-   public static synchronized String[] getDataSources()
-   {
-      return MonitorUtils.toStringArray(itsDataSourceMap.keySet().toArray());
-   }
-
    /** Specify the archiver to be used for archiving all data. */
    public static synchronized void setPointArchiver(PointArchiver archiver)
    {
@@ -136,24 +102,15 @@ public class MonitorMap
       return MonitorUtils.toStringArray(itsPointMap.keySet().toArray());
    }
 
-   /** Returns the names of all the points (including aliases) without prepending the sourcename */
-   public static synchronized String[] getPointNamesShort()
-   {
-      return MonitorUtils.toStringArray(itsPoints.keySet().toArray());
-   }
 
    /** Returns all the points on a source */
    public static synchronized String[] getPointNames(String source)
    {
       String[] res = MonitorUtils.toStringArray(((TreeSet)itsSources.get(source)).toArray());
-      for (int i = 0; i < res.length; i++) res[i] = source + "." + res[i];
+      for (int i = 0; i < res.length; i++) {
+        res[i] = source + "." + res[i];
+      }
       return res;
-   }
-
-   /** Returns all the points on a source without the prepending sourcename*/
-   public static synchronized String[] getPointNamesShort(String source)
-   {
-      return MonitorUtils.toStringArray(((TreeSet)itsSources.get(source)).toArray());
    }
 
    /** Check if the specified monitor point exists */
@@ -161,28 +118,11 @@ public class MonitorMap
    boolean
    checkPointName(String name)
    {
-     if (itsPointMap.containsKey(name)) return true;
-     else return false;
-   }
-
-   /** Returns all sources on the system */
-   public static synchronized String[] getSources()
-   {
-      return MonitorUtils.toStringArray(itsSources.keySet().toArray());
-   }
-
-   /** Returns all the sources for the specified point.
-    * @param pointname Name of the point ot get the sources for.
-    * @return Array containing all sources for the given point.
-    *         <tt>null</tt> will be returned if there are no sources. */
-   public static synchronized String[] getSources(String pointname)
-   {
-     String[] res = null;
-     TreeSet ts = (TreeSet)itsPoints.get(pointname);
-     if (ts!=null) {
-       res = MonitorUtils.toStringArray(ts.toArray());
-     }
-     return res;
+     if (itsPointMap.containsKey(name)) {
+      return true;
+    } else {
+      return false;
+    }
    }
 
    public static long getTotalMemory()
@@ -195,24 +135,6 @@ public class MonitorMap
       return Runtime.getRuntime().freeMemory();
    }
       
-   public static long getCPUTime()
-   {
-      return 0;
-//      return MonitorNativeLinux.getCPUTime();
-   }
-
-   public static long getCPUUserTime()
-   {
-      return 0;
-//      return MonitorNativeLinux.getCPUUserTime();
-   }
-
-   public static long getCPUSystemTime()
-   {
-      return 0;
-//      return MonitorNativeLinux.getCPUSystemTime();
-   }
-
    /** Return the public RSA key. */
    public static String getPublicKey()
    {
@@ -251,14 +173,18 @@ public class MonitorMap
    public static synchronized void removeSetup(String setupname)
    {
      SavedSetup setup = (SavedSetup)itsSetupMap.get(setupname);
-     if (setup!=null) itsSetupMap.remove(setup);
+     if (setup!=null) {
+      itsSetupMap.remove(setup);
+    }
    }
 
    /** Return all SavedSetups on the system. */
    public static synchronized SavedSetup[] getAllSetups()
    {
      Object[] allkeys = itsSetupMap.keySet().toArray();
-     if (allkeys==null || allkeys.length==0) return null;
+     if (allkeys==null || allkeys.length==0) {
+      return null;
+    }
 
      SavedSetup[] res = new SavedSetup[allkeys.length];
      for (int i=0; i<allkeys.length; i++) {
@@ -272,7 +198,9 @@ public class MonitorMap
       TreeSet uniquePoints = new TreeSet(itsPointMap.values());
       Iterator i = uniquePoints.iterator();
       TreeSet points = new TreeSet();
-      while (i.hasNext()) points.add(((PointMonitor)i.next()).getStringEquiv());
+      while (i.hasNext()) {
+        points.add(((PointMonitor)i.next()).getStringEquiv());
+      }
       return MonitorUtils.toStringArray(points.toArray());
    }
 

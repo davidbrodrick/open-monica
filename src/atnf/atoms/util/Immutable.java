@@ -17,8 +17,6 @@
 
 package atnf.atoms.util;
 
-import java.lang.*;
-
 /**
  * Immutable tag interface.
  *

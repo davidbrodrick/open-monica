@@ -9,8 +9,6 @@
 package atnf.atoms.mon.datasource;
 
 import java.util.HashMap;
-import java.net.*;
-
 import atnf.atoms.mon.*;
 import atnf.atoms.time.*;
 

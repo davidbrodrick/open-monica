@@ -17,10 +17,6 @@
 
 package atnf.atoms.time;
 
-import java.lang.*;
-
-import atnf.atoms.util.*;
-
 /**
  * Encapsulates dUTC (current, past and future).
  *
@@ -128,7 +124,9 @@ class DUTC
   get(double utc) {
     int n = leap.length;
     for (int i=0; i<n; i++) {
-      if (utc >= leap[i][0]) return leap[i][1];
+      if (utc >= leap[i][0]) {
+        return leap[i][1];
+      }
     }
     return 0;// different system before then
   } 
@@ -145,7 +143,9 @@ class DUTC
     double t = bat / 1000000.0; // seconds
     int n = leap.length;
     for (int i=0; i<n; i++) {
-      if (t >= (leap[i][0]*86400.0 + leap[i][1])) return leap[i][1];
+      if (t >= (leap[i][0]*86400.0 + leap[i][1])) {
+        return leap[i][1];
+      }
     }
     return 0;// different system before then
   } 

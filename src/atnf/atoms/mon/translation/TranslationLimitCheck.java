@@ -10,7 +10,6 @@ package atnf.atoms.mon.translation;
 
 import java.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
 import atnf.atoms.mon.limit.*;
 import atnf.atoms.time.AbsTime;
 
@@ -70,7 +69,9 @@ extends Translation
   translate(PointData data)
   {
     //Not interested in null arguments..
-    if (data==null) return null;
+    if (data==null) {
+      return null;
+    }
 
     //Get the name of the monitor point that this data comes from
     String dsrc = data.getSource() + "." + data.getName();
@@ -85,18 +86,12 @@ extends Translation
     if (data.getData()==null) {
       itsLastValues.put(dsrc, null);
     } else {
-      //Get the limit checking object associated with the point
-      PointLimit limits = pm.getLimits();
-      if (limits==null) {
-	//No problem, just assume value is OK
-	itsLastValues.put(dsrc, new Boolean(true));
-      } else {
 	//Check the value of this point and set hashtable
-	if (limits.checkLimits(data))
-	  itsLastValues.put(dsrc, new Boolean(true));
-	else
-	  itsLastValues.put(dsrc, new Boolean(false));
-      }
+	if (pm.checkLimits(data)) {
+    itsLastValues.put(dsrc, new Boolean(true));
+  } else {
+    itsLastValues.put(dsrc, new Boolean(false));
+  }
     }
 
     //If it's not time to produce another output, then just return
@@ -119,13 +114,20 @@ extends Translation
       boolean gotvalues = true;
       boolean notokay   = false;
       for (int i=0; i<values.length; i++) {
-	if (values[i]==null) gotvalues = false;
-	else if (!((Boolean)values[i]).booleanValue()) notokay = true;
+	if (values[i]==null) {
+    gotvalues = false;
+  } else if (!((Boolean)values[i]).booleanValue()) {
+    notokay = true;
+  }
       }
 
-      if (notokay) res.setData(itsOutput2); //Warning warning!
-      else if (!gotvalues) res.setData(null); //Missing some data
-      else res.setData(itsOutput1); //Everything's cool man!
+      if (notokay) {
+        res.setData(itsOutput2); //Warning warning!
+      } else if (!gotvalues) {
+        res.setData(null); //Missing some data
+      } else {
+        res.setData(itsOutput1); //Everything's cool man!
+      }
     }
     return res;
   }

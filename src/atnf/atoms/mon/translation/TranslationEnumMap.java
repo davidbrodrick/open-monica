@@ -9,10 +9,7 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 
 /**
  * any argument with out a : is considered to define the default string
@@ -43,7 +40,9 @@ extends Translation
     //Count how many mapping arguments there are
     int count = 0;
     for (int i=0; i<init.length; i++) {
-      if (init[i].indexOf(":")!=-1) count++;
+      if (init[i].indexOf(":")!=-1) {
+        count++;
+      }
     }
 
     //Allocate containers of the correct size
@@ -75,7 +74,9 @@ extends Translation
   translate(PointData data)
   {
     //preconditions
-    if (data==null) return null;
+    if (data==null) {
+      return null;
+    }
     Object val = data.getData();
 
     //If we got null-data then throw a null-data result
@@ -96,7 +97,9 @@ extends Translation
     //See if it corresponds to a value in our mapping set
     String m = null;
     for (int i=0; i<itsValues.length; i++) {
-      if (itsValues[i]==d) m = itsMappings[i];
+      if (itsValues[i]==d) {
+        m = itsMappings[i];
+      }
     }
     if (m==null) {
       //Didn't find a match, so use our default value

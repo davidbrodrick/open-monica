@@ -8,7 +8,6 @@
 
 package atnf.atoms.mon.archiver;
 
-import java.io.*;
 import java.util.*;
 import atnf.atoms.time.RelTime;
 import atnf.atoms.mon.*;
@@ -88,8 +87,12 @@ extends Thread
          PointMonitor pm = null;
          synchronized(itsBuffer) {
            pm = (PointMonitor)keys.nextElement();
-           if (pm == null) continue;
-           if (itsBuffer.get(pm) == null) continue;
+           if (pm == null) {
+            continue;
+          }
+           if (itsBuffer.get(pm) == null) {
+            continue;
+          }
            bData = new Vector((Vector)itsBuffer.remove(pm));
            if (bData.size() < 1) {
              //Sleep if no data to archive, otherwise may fast loop
@@ -152,7 +155,9 @@ extends Thread
        Enumeration keys = itsBuffer.keys();
        while (keys.hasMoreElements()) {
          PointMonitor pm = (PointMonitor)keys.nextElement();
-         if (pm == null) continue;
+         if (pm == null) {
+          continue;
+        }
          if (itsBuffer.get(pm)!=null) {
            res=true;
            break;

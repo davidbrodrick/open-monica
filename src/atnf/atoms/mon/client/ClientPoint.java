@@ -54,7 +54,9 @@ public class ClientPoint
       itsTimestampPos++;
       if (itsTimestampPos >= MAXTIMES) {
          long[] temp  = new long[MAXTIMES];
-	 for (int i = 0; i < MAXTIMES/2; i++) temp[i] = itsLastTimestamps[MAXTIMES/2+i];
+	 for (int i = 0; i < MAXTIMES/2; i++) {
+    temp[i] = itsLastTimestamps[MAXTIMES/2+i];
+  }
 	 itsLastTimestamps = temp;
 	 itsTimestampPos = MAXTIMES/2;
       }
@@ -62,16 +64,22 @@ public class ClientPoint
    
    public long getAvgPeriod()
    {
-      if (itsTimestampPos < 2) return 0;
+      if (itsTimestampPos < 2) {
+        return 0;
+      }
       long sum = 0;
-      for (int i = 0; i < itsTimestampPos; i++) sum += itsLastTimestamps[itsTimestampPos];      
-      return (long)(sum/(itsTimestampPos+1));
+      for (int i = 0; i < itsTimestampPos; i++) {
+        sum += itsLastTimestamps[itsTimestampPos];
+      }      
+      return (sum/(itsTimestampPos+1));
    }
    
    public long getLastPeriod()
    {
-      if (itsTimestampPos < 2) return 0;
-      return (long)((itsLastTimestamps[itsTimestampPos-1]-itsLastTimestamps[itsTimestampPos-2])/2);
+      if (itsTimestampPos < 2) {
+        return 0;
+      }
+      return ((itsLastTimestamps[itsTimestampPos-1]-itsLastTimestamps[itsTimestampPos-2])/2);
    }
    
    public long getNextCollectEpoch()
@@ -79,10 +87,15 @@ public class ClientPoint
       long now = (new AbsTime()).getValue();
       long avg = getAvgPeriod();
       long last = getLastPeriod();
-      if (avg == 0 || last == 0) return (now + DEFAULTPERIOD);
+      if (avg == 0 || last == 0) {
+        return (now + DEFAULTPERIOD);
+      }
       if (Math.abs(avg - last) > DEFAULTPERIOD) {
-         if (itsLast < 0) itsLast = last;
-	 else if (Math.abs(itsLast - last) < last/10) itsTimestampPos = 0;
+         if (itsLast < 0) {
+          itsLast = last;
+        } else if (Math.abs(itsLast - last) < last/10) {
+    itsTimestampPos = 0;
+  }
 	 return (now + DEFAULTPERIOD);
       }
       return avg + now;

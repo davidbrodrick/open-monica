@@ -18,8 +18,6 @@ import javax.swing.event.*;
 import javax.swing.border.*;
 import java.util.Vector;
 
-import atnf.atoms.mon.client.*;
-import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
 
 /**
@@ -98,7 +96,9 @@ implements ActionListener
 	int selRow = itsTree.getRowForLocation(e.getX(), e.getY());
 	TreePath selPath = itsTree.getPathForLocation(e.getX(), e.getY());
 	if(selRow != -1) {
-	  if(e.getClickCount() == 2) itsAddBut.doClick();
+	  if(e.getClickCount() == 2) {
+      itsAddBut.doClick();
+    }
 	}
       }
     };
@@ -150,7 +150,9 @@ implements ActionListener
 	  if (e.getClickCount() == 2) {
 	    Point p = e.getPoint();
 	    int row = itsTable.rowAtPoint(p);
-	    if (row<0) return;
+	    if (row<0) {
+        return;
+      }
 	    itsSelected.remove(row);
 	    recomputeTable();
 	    itsRemoveBut.doClick();
@@ -190,15 +192,21 @@ implements ActionListener
 
     if (cmd.equals("Add")) {
       TreePath[] selection = itsTree.getSelectionPaths();
-      if (selection==null || selection.length==0) return;
+      if (selection==null || selection.length==0) {
+        return;
+      }
       for (int i=0; i<selection.length; i++) {
 	Object[] path = selection[i].getPath();
 
-	if (path==null || path.length<2 || !((DefaultMutableTreeNode)(selection[i].getLastPathComponent())).isLeaf()) continue;
+	if (path==null || path.length<2 || !((DefaultMutableTreeNode)(selection[i].getLastPathComponent())).isLeaf()) {
+    continue;
+  }
         String thispath = "";
 	for (int j=1; j<path.length; j++) {
 	  thispath += path[j];
-	  if (j!=path.length-1) thispath+=".";
+	  if (j!=path.length-1) {
+      thispath+=".";
+    }
 	}
         String username = (String)itsTreeUtil.getNodeObject(thispath);
 	itsSelected.add(username);
@@ -207,7 +215,9 @@ implements ActionListener
       itsTree.getSelectionModel().clearSelection();
     } else if (cmd.equals("Remove")) {
       ListSelectionModel sm = itsTable.getSelectionModel();
-      if (sm.isSelectionEmpty()) return;
+      if (sm.isSelectionEmpty()) {
+        return;
+      }
       int i=0; int j=0;
       while (i<itsSelected.size()) {
 	if (sm.isSelectedIndex(j)) {
@@ -258,9 +268,11 @@ implements ActionListener
   fireChangeEvent(ChangeEvent ce)
   {
     Object[] listeners = itsListeners.getListenerList();
-    for (int i = 0; i < listeners.length; i +=2)
-      if (listeners[i] == ChangeListener.class)
-	((ChangeListener)listeners[i+1]).stateChanged(ce);
+    for (int i = 0; i < listeners.length; i +=2) {
+      if (listeners[i] == ChangeListener.class) {
+        ((ChangeListener)listeners[i+1]).stateChanged(ce);
+      }
+    }
   }
 
 
@@ -280,8 +292,11 @@ implements ActionListener
   void
   setSelections(Vector v)
   {
-    if (v==null || v.size()==0) itsSelected.clear();
-    else itsSelected = (Vector)v.clone();
+    if (v==null || v.size()==0) {
+      itsSelected.clear();
+    } else {
+      itsSelected = (Vector)v.clone();
+    }
     recomputeTable();
     fireChangeEvent(new ChangeEvent(this));
   }

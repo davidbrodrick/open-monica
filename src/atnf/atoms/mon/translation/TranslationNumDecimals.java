@@ -9,8 +9,6 @@ package atnf.atoms.mon.translation;
 
 import atnf.atoms.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
-import java.lang.reflect.*;
 
 /**
  * Translation to limit the number of decimal places in a floating point
@@ -69,7 +67,9 @@ extends Translation
   PointData
   translate(PointData data)
   {
-    if (data==null) return null;
+    if (data==null) {
+      return null;
+    }
 
     Object rawval = data.getData();
 
@@ -87,7 +87,7 @@ extends Translation
       double temp = ((Number)rawval).doubleValue();
       //Had problems with remainder technique, so multiply the number
       //up, then convert it to an integer and then scale it back..
-      temp = Math.round(temp*itsNumPlaces)/(double)itsNumPlaces;
+      temp = Math.round(temp*itsNumPlaces)/itsNumPlaces;
 
       if (itsNumPlaces==1) {
 	//Need to output an Integer

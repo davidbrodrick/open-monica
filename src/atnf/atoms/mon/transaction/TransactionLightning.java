@@ -15,7 +15,6 @@
 package atnf.atoms.mon.transaction;
 
 import atnf.atoms.mon.*;
-import java.util.*;
 
 public class TransactionLightning
 extends Transaction
@@ -23,7 +22,7 @@ extends Transaction
   protected static String itsArgs[] = new String[]{"Transaction - Lightning",
   "Lightning"};
 
-  public TransactionLightning(PointInteraction parent, String specifics)
+  public TransactionLightning(PointMonitor parent, String specifics)
   {
     super(parent, specifics);
 

@@ -9,18 +9,20 @@
 
 package atnf.atoms.mon.gui;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-//import javax.swing.tree.*;
-import javax.swing.table.*;
-import javax.swing.event.*;
-import javax.swing.border.*;
+import java.awt.BorderLayout;
 import java.util.Vector;
 
-import atnf.atoms.mon.client.*;
-//import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.table.AbstractTableModel;
+
+import atnf.atoms.mon.client.MonClientUtil;
 
 /**
  * Listen for selection changes from a PointNameSelector and allow the user
@@ -52,8 +54,11 @@ implements ChangeListener
     }
 
     public Object getValueAt(int row, int col) {
-      if (col==0) return itsSelections.get(row);
-      else return itsSources.get(row);
+      if (col==0) {
+        return itsSelections.get(row);
+      } else {
+        return itsSources.get(row);
+      }
     }
 
     public Class getColumnClass(int c) {
@@ -61,12 +66,17 @@ implements ChangeListener
     }
 
     public boolean isCellEditable(int row, int col) {
-      if (col==0) return true;
-      else return false;
+      if (col==0) {
+        return true;
+      } else {
+        return false;
+      }
     }
 
     public void setValueAt(Object value, int row, int col) {
-      if (col!=0) return;
+      if (col!=0) {
+        return;
+      }
       itsSelections.set(row, value);
       fireTableCellUpdated(row, col);
     }
@@ -135,13 +145,17 @@ implements ChangeListener
 
 	if (points.size()>0) {
 	  //Ask the server to list the sources for each of the selected points
-	  Vector sresp = MonClientUtil.getServer().getSources(points);
+	  Vector sresp = MonClientUtil.getSources(points);
 
 	  for (int i=0; i<sresp.size(); i++) {
-	    String[] s = (String[])sresp.get(i);
-	    if (s==null || s.length==0) continue;
-	    for (int j=0; j<s.length; j++) {
-	      if (!newsources.contains(s[j])) newsources.add(s[j]);
+	    Vector s = (Vector)sresp.get(i);
+	    if (s==null || s.size()==0) {
+        continue;
+      }
+	    for (int j=0; j<s.size(); j++) {
+	      if (!newsources.contains(s.get(j))) {
+          newsources.add(s.get(j));
+        }
 	    }
 	  }
 	}
@@ -152,7 +166,9 @@ implements ChangeListener
 	  String next = (String)newsources.get(0);
 	  for (int i=1; i<newsources.size(); i++) {
 	    String test = (String)newsources.get(i);
-	    if (next.compareTo(test)>0) next = test;
+	    if (next.compareTo(test)>0) {
+        next = test;
+      }
 	  }
 	  newsources.remove(next);
 	  sortedsources.add(next);

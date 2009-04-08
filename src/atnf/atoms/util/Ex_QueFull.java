@@ -17,8 +17,6 @@
 
 package atnf.atoms.util;
 
-import java.lang.*;
-
 /**
  * Indicates that a queue is full.
  *

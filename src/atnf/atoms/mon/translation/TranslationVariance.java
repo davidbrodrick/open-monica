@@ -12,7 +12,6 @@ package atnf.atoms.mon.translation;
 import java.util.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
 
 /**
@@ -50,7 +49,9 @@ extends Translation
       try {
 	long period = Long.parseLong(init[0]);
 	period *= 1000000l; //To microseconds
-	if (period>0) period = -period; //Always want negative
+	if (period>0) {
+    period = -period; //Always want negative
+  }
 	itsPeriod = RelTime.factory(period);
       } catch (Exception e) {
 	System.err.println("TranslationVariance: " + itsParent.getLongName() +
@@ -125,10 +126,11 @@ extends Translation
     //Translate the data to an array of doubles
     for (int i=0; i<size; i++) {
       Object thisdata = ((PointData)itsBuffer.get(i)).getData();
-      if (thisdata instanceof Number)
-	data[i] = ((Number)thisdata).doubleValue();
-      else if (thisdata instanceof Angle)
-	data[i] = ((Angle)thisdata).getValue();
+      if (thisdata instanceof Number) {
+        data[i] = ((Number)thisdata).doubleValue();
+      } else if (thisdata instanceof Angle) {
+        data[i] = ((Angle)thisdata).getValue();
+      }
     }
 
     //Calculate the mean of the data
@@ -136,7 +138,7 @@ extends Translation
     for (int i=0; i<size; i++) {
       sum += data[i];
     }
-    double mean = sum/(float)size;
+    double mean = sum/size;
 
     //Get the variance
     double var = 0.0;
@@ -144,7 +146,7 @@ extends Translation
       double diff = data[i] - mean;
       var += diff*diff;
     }
-    var = var/(float)size;
+    var = var/size;
     return Math.sqrt(var);
   }
 

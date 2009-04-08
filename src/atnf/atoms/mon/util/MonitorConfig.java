@@ -9,8 +9,6 @@ package atnf.atoms.mon.util;
 
 import java.io.*;
 import java.util.*;
-import java.net.URL;
-import atnf.atoms.util.*;
 
 /**
  * Simple properties class for configuration settings.
@@ -31,26 +29,33 @@ public class MonitorConfig
        System.exit(1);
      }
      String[] lines = MonitorUtils.parseFile(new InputStreamReader(configfile));
-     if (lines != null)
-     for (int i = 0; i < lines.length; i++) {
-       int firstSpace = lines[i].indexOf(' ');
-       itsData.put(lines[i].substring(0, firstSpace), lines[i].substring(firstSpace+1, lines[i].length()));
-     }
+     if (lines != null) {
+      for (int i = 0; i < lines.length; i++) {
+         int firstSpace = lines[i].indexOf(' ');
+         itsData.put(lines[i].substring(0, firstSpace), lines[i].substring(firstSpace+1, lines[i].length()));
+       }
+    }
    }
    
    /** Return the string value of the named property. */
    public static String getProperty(String prop)
    {
-      if (!itsInit) init();
+      if (!itsInit) {
+        init();
+      }
       return (String)itsData.get(prop);
    }
    
    /** Return value of the named property, or <i>null</i> if it wasn't found. */
    public static String getProperty(String prop, String def)
    {
-      if (!itsInit) init();
+      if (!itsInit) {
+        init();
+      }
       String res=(String)itsData.get(prop);
-      if (res==null) res=def;
+      if (res==null) {
+        res=def;
+      }
       return res;
    }
 }

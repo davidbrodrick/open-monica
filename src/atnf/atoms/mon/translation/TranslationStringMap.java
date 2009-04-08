@@ -11,8 +11,6 @@ package atnf.atoms.mon.translation;
 
 import java.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 
 /**
  * Map between input strings and an output strings. Init arguments must be in
@@ -59,7 +57,9 @@ extends Translation
   translate(PointData data)
   {
     //preconditions
-    if (data==null) return null;
+    if (data==null) {
+      return null;
+    }
     Object val = data.getData();
 
     //If we got null-data then throw a null-data result
@@ -72,7 +72,9 @@ extends Translation
     //Do a lookup on the string value
     String newstr = (String)itsMappings.get(strval);
 
-    if (newstr==null) newstr = strval;
+    if (newstr==null) {
+      newstr = strval;
+    }
 
     //Create return structure with right details
     PointData res = new PointData(itsParent.getName(), itsParent.getSource());

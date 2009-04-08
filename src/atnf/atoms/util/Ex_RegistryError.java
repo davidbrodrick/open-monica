@@ -17,8 +17,6 @@
 
 package atnf.atoms.util;
 
-import java.lang.*;
-
 /**
  * Indicates that an error occurred accessing the registry.
  *

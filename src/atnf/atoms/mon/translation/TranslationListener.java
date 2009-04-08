@@ -9,10 +9,8 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
 import java.awt.event.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
 import atnf.atoms.time.AbsTime;
 import atnf.atoms.mon.util.*;
 
@@ -166,13 +164,17 @@ implements PointListener, ActionListener
   {    
     PointData pd = evt.getPointData();
     //Check that there's data.. ?
-    if (pd==null || pd.getData()==null) return;
+    if (pd==null || pd.getData()==null) {
+      return;
+    }
 
     //Find the index of the point
     String fullname=pd.getSource()+"."+pd.getName();
     int i=0;
     for (; i<itsNumPoints; i++) {
-      if (itsNames[i].equals(fullname)) break;
+      if (itsNames[i].equals(fullname)) {
+        break;
+      }
     }
     
     //Ensure we point the appropriate point

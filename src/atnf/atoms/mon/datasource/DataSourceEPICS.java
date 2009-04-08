@@ -7,16 +7,12 @@
 
 package atnf.atoms.mon.datasource;
 
-import java.net.*;
 import java.io.*;
 import java.util.*;
 
-import atnf.atoms.util.*;
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.transaction.*;
 
-import com.cosylab.epics.caj.*;
 import gov.aps.jca.*;
 import gov.aps.jca.dbr.*;
 import gov.aps.jca.event.*;
@@ -125,9 +121,13 @@ extends DataSource
           //Get the name of the next PV
           String thispv = (String)allpvs.next();
           //Don't try to connect if it's already connected
-          if (itsChannelMap.get(thispv)!=null) continue;
+          if (itsChannelMap.get(thispv)!=null) {
+            continue;
+          }
           //Don't try connect if monitor point hasn't been instantiated yet
-          if (MonitorMap.getPointMonitor((String)itsPVPointMap.get(thispv))==null) continue;
+          if (MonitorMap.getPointMonitor((String)itsPVPointMap.get(thispv))==null) {
+            continue;
+          }
 
           try {
             //Create the Channel to connect to the PV.

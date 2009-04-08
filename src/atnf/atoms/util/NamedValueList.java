@@ -17,14 +17,11 @@
 
 package atnf.atoms.util;
 
-import java.lang.*;
 import java.lang.reflect.*;
 import java.util.*;
 import java.beans.*;
 import java.io.*;
 import java.net.*;
-
-import atnf.atoms.util.*;
 
 /**
  * Models a list of strongly typed name/value pairs.

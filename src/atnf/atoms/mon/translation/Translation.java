@@ -7,14 +7,10 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.util.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
 
-import java.awt.event.*;
 import java.lang.reflect.*;
-import java.util.StringTokenizer;
-import javax.swing.*;
 
 
 /**
@@ -101,7 +97,9 @@ extends MonitorPolicy
    factory(PointMonitor parent, String arg)
    {
      //Enable use of "null" keyword
-     if (arg.equalsIgnoreCase("null")) arg= "-";
+     if (arg.equalsIgnoreCase("null")) {
+      arg= "-";
+    }
 
      Translation result = null;
      
@@ -112,7 +110,9 @@ extends MonitorPolicy
 
        // Find the type of translation
        String type = arg.substring(0, arg.indexOf("-"));
-       if (type == "" || type == null || type.length()<1) type = "None";
+       if (type == "" || type == null || type.length()<1) {
+        type = "None";
+      }
 
        Constructor Translation_con;
        try {

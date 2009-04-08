@@ -8,15 +8,13 @@
 
 package atnf.atoms.mon.datasource;
 
-import javax.swing.Timer;
 import java.util.*;
-import java.awt.event.ActionListener;
 import java.io.*;
 import java.lang.reflect.Constructor;
-import java.awt.event.ActionEvent;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
+import atnf.atoms.mon.transaction.*;
 
 /**
  * DataSource is the base class for objects which bring new information
@@ -35,7 +33,7 @@ public abstract
 class DataSource
 implements Runnable
 {
-  /** Comparator to compare PointInteractions and/or AbsTimes. We need
+  /** Comparator to compare PointMonitors and/or AbsTimes. We need
    * to use this Comparator with the SortedLinkedList class. */
   private class TimeComp
   implements Comparator
@@ -44,8 +42,8 @@ implements Runnable
     private
     long
     getTimeStamp(Object o) {
-      if (o instanceof PointInteraction) {
-        return ((PointInteraction)o).getNextEpoch();
+      if (o instanceof PointMonitor) {
+        return ((PointMonitor)o).getNextEpoch();
       } else if (o instanceof AbsTime) {
         return ((AbsTime)o).getValue();
       } else if (o==null) {
@@ -57,17 +55,19 @@ implements Runnable
       }
     }
 
-    /** Compare PointInteractions and/or AbsTimes. */
+    /** Compare PointMonitors and/or AbsTimes. */
     public
     int
     compare(Object o1, Object o2) {
       long val1 = getTimeStamp(o1);
       long val2 = getTimeStamp(o2);
 
-      if (val1>val2)
+      if (val1>val2) {
         return 1;
-      if (val1<val2)
+      }
+      if (val1<val2) {
         return -1;
+      }
       return 0;
     }
 
@@ -75,8 +75,11 @@ implements Runnable
     public
     boolean
     equals(Object o) {
-      if (o instanceof TimeComp) return true;
-      else return false;
+      if (o instanceof TimeComp) {
+        return true;
+      } else {
+        return false;
+      }
     }
   }
 
@@ -104,16 +107,21 @@ implements Runnable
   /** Static map of all DataSources. */
   protected static HashMap theirDataSources = new HashMap();
 
-  /** Add a datasource with the given name. This method is useful for
-   * registering the same DataSource under multiple names. */
+  /** Add a DataSource with the given unique channel description. */
   public static
   void
   addDataSource(String name, DataSource source)
   {
     theirDataSources.put(name, source);
-    MonitorMap.addDataSource(source); //Remove this eventually
   }
 
+  /** Get the DataSource with the specified channel description. */
+  public static
+  DataSource
+  getDataSource(String name)
+  {
+    return (DataSource)theirDataSources.get(name);
+  }
 
    public DataSource(String name)
    {
@@ -240,7 +248,7 @@ implements Runnable
     * @param p The point to start monitoring. */
    public
    void
-   addPoint(PointInteraction p)
+   addPoint(PointMonitor p)
    {
      synchronized(itsPoints) {
        //if (itsName.indexOf("servo")!=-1) System.err.println("datasource: Adding " + p + " (" + itsPoints.size() + ")");
@@ -279,7 +287,7 @@ implements Runnable
     * @param p The point to stop monitoring. */
    public
    void
-   removePoint(PointInteraction p)
+   removePoint(PointMonitor p)
    {
      synchronized(itsPoints) {
        itsPoints.remove(p);
@@ -287,6 +295,19 @@ implements Runnable
      }
    }
 
+   /** Return any Transactions which are associated with this DataSource. */
+   protected
+   Vector
+   getMyTransactions(Transaction[] transactions)
+   {
+     Vector match = new Vector(transactions.length);
+     for (int i=0; i<transactions.length; i++) {
+       if (transactions[i].getChannel().equals(itsName)) {
+         match.add(transactions[i]);
+       }
+     }
+     return match;
+   }
 
    /** This method does the real work. Sub-classes should implement this
     * method. It needs to fire PointEvent's for each monitor point once
@@ -297,7 +318,14 @@ implements Runnable
    getData(Object[] points)
    throws Exception;
 
-
+   public
+   void
+   putData(PointMonitor pm, PointData pd)
+   throws Exception
+   {
+     System.err.println("DataSource (" + itsName + "): Unsupported control request from " + pm.getFullName());
+   }
+   
    /** Initialise all the DataSources declared in a file.
     * @param fileName The file to parse for DataSource declarations. */
    public static
@@ -391,7 +419,7 @@ implements Runnable
            //Points are scheduled for collection but we're not connected.
            //Fire null-data events for those points since old data is stale
            for (int i=0; i<parray.length; i++) {
-             PointInteraction pm = (PointInteraction)parray[i];
+             PointMonitor pm = (PointMonitor)parray[i];
              pm.firePointEvent(new PointEvent(this,
                                    new PointData(pm.getName(),
                                    pm.getSource()),
@@ -409,7 +437,7 @@ implements Runnable
 
        //We may need to wait before we collect the next point.
        try {
-         PointInteraction headpoint = (PointInteraction)itsPoints.first();
+         PointMonitor headpoint = (PointMonitor)itsPoints.first();
          AbsTime nextTime = headpoint.getNextEpoch_AbsTime();
          AbsTime timenow = AbsTime.factory();
          if (nextTime.isAfter(timenow)) {

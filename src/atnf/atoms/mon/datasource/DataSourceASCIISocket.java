@@ -98,7 +98,9 @@ extends DataSource
   throws Exception
   {
     //Don't connect if already connected
-    if (itsConnected) return true;
+    if (itsConnected) {
+      return true;
+    }
     
     try {
       itsSocket = new Socket(itsHostName, itsPort);
@@ -128,7 +130,9 @@ extends DataSource
   disconnect()
   throws Exception
   {
-    if (itsSocket!=null) itsSocket.close();
+    if (itsSocket!=null) {
+      itsSocket.close();
+    }
     itsSocket = null;
     itsReader = null;
     itsWriter = null;
@@ -152,7 +156,9 @@ extends DataSource
   throws Exception
   {
     //Precondition
-    if (points==null || points.length==0 || !itsConnected) return;
+    if (points==null || points.length==0 || !itsConnected) {
+      return;
+    }
 
     Object[] buf = points;
     try {
@@ -161,7 +167,9 @@ extends DataSource
         PointMonitor pm = (PointMonitor)buf[i];
         o = parseData(pm);
         //Count successful transactions
-        if (o!=null) itsNumTransactions += buf.length;
+        if (o!=null) {
+          itsNumTransactions += buf.length;
+        }
         //Fire the new data off for this point
         pm.firePointEvent(new PointEvent(this,
            new PointData(pm.getName(), pm.getSource(), o), true));

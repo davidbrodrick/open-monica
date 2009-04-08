@@ -8,9 +8,7 @@
 
 package atnf.atoms.mon.limit;
 
-import java.util.StringTokenizer;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.Angle;
 
 /**
  * <i>PointLimit</i> sub-class which checks if a String data-value
@@ -77,9 +75,13 @@ extends PointLimit
   public boolean checkLimits(PointData data)
   {
     //No strings means we shouldn't even bother
-    if (itsStringSet==null) return true;
+    if (itsStringSet==null) {
+      return true;
+    }
     //No news is good news, right?
-    if (data==null || data.getData()==null) return true;
+    if (data==null || data.getData()==null) {
+      return true;
+    }
 
     //Get the data in string form
     String strData = data.getData().toString().trim();
@@ -94,8 +96,12 @@ extends PointLimit
     }
 
     //Return the appropriate result
-    if (havematch && itsMatchGood) return true;
-    else if (!havematch && !itsMatchGood) return true;
-    else return false;
+    if (havematch && itsMatchGood) {
+      return true;
+    } else if (!havematch && !itsMatchGood) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

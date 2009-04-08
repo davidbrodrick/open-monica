@@ -40,8 +40,12 @@ public class LoginPane extends JDialog implements ActionListener
    
    public String[] getLogin()
    {
-      if (!itsKeep && !itsFirst) return null;
-      if (!itsInit) return null;
+      if (!itsKeep && !itsFirst) {
+        return null;
+      }
+      if (!itsInit) {
+        return null;
+      }
       itsFirst = false;
       String[] res = new String[2];
       res[0] = itsUsername;

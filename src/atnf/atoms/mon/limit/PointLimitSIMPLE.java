@@ -5,7 +5,6 @@
  **/
 package atnf.atoms.mon.limit;
 
-import java.util.StringTokenizer;
 import atnf.atoms.mon.*;
 
 class PointLimitSIMPLE extends PointLimit
@@ -31,20 +30,30 @@ class PointLimitSIMPLE extends PointLimit
     **/ 
    public boolean checkLimits(PointData data)
    {
-      if (!itsCheck) return true;
+      if (!itsCheck) {
+        return true;
+      }
 
       Object myData = data.getData();
       if (!(myData instanceof Number) || !(myData instanceof Object[] &&
-      ((Object[])myData)[0] instanceof Number)) return false;
-      if (myData instanceof Object[]) return checkLimitsArray((Object[])myData);
+      ((Object[])myData)[0] instanceof Number)) {
+        return false;
+      }
+      if (myData instanceof Object[]) {
+        return checkLimitsArray((Object[])myData);
+      }
       if (myData instanceof Integer || myData instanceof Long || myData
       instanceof Short || myData instanceof Byte) {
          int intData = ((Number)myData).intValue();
-	 if (intData < (int)itsLower || intData > (int)itsUpper) return false;
+	 if (intData < (int)itsLower || intData > (int)itsUpper) {
+    return false;
+  }
          return true;
       }
       double doubleData = ((Number)myData).doubleValue();
-      if (doubleData < itsLower || doubleData > itsUpper) return false;      
+      if (doubleData < itsLower || doubleData > itsUpper) {
+        return false;
+      }      
       return true;
    }
    
@@ -59,10 +68,14 @@ class PointLimitSIMPLE extends PointLimit
 	 if (data[i] instanceof Integer || data[i] instanceof Long || data[i]
 	 instanceof Short || data[i] instanceof Byte) {
             int intData = ((Number)data[i]).intValue();
-	    if (intData < (int)itsLower || intData > (int)itsUpper) return false;
+	    if (intData < (int)itsLower || intData > (int)itsUpper) {
+        return false;
+      }
 	 } else {
 	 double doubleData = ((Number)data[i]).doubleValue();
-	 if (doubleData < itsLower || doubleData > itsUpper) return false;      
+	 if (doubleData < itsLower || doubleData > itsUpper) {
+    return false;
+  }      
          }
       }
       return true;

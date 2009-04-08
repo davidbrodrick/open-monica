@@ -17,8 +17,6 @@
 
 package atnf.atoms.util;
 
-import java.lang.*;
-import java.util.*;
 import java.io.*;
 import java.text.*;
 

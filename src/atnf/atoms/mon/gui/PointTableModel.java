@@ -20,7 +20,6 @@ import java.awt.Component;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.util.Vector;
-import java.util.Collection;
 import java.io.PrintStream;
 
 
@@ -91,7 +90,9 @@ implements PointListener, TableCellRenderer
     if (itsPoints!=null && itsPoints.size()>0) {
       for (int i=0; i<itsPoints.size(); i++) {
         String pname = (String)itsPoints.get(i);
-        if (pname==null || pname.equals("")) continue; //Blank row
+        if (pname==null || pname.equals("")) {
+          continue; //Blank row
+        }
         for (int j=0; j<itsSources.size(); j++) {
           DataMaintainer.unsubscribe(pname,
 				     (String)itsSources.get(j),
@@ -116,7 +117,9 @@ implements PointListener, TableCellRenderer
           Vector pnames = new Vector();
           for (int i=0; i<itsPoints.size(); i++) {
             String pname = (String)itsPoints.get(i);
-            if (pname==null || pname.equals("")) continue; //Blank row
+            if (pname==null || pname.equals("")) {
+              continue; //Blank row
+            }
             for (int j=0; j<itsSources.size(); j++) {
               pnames.add((String)itsSources.get(j) + "." + pname);
             }
@@ -297,8 +300,11 @@ implements PointListener, TableCellRenderer
   int
   getRowCount()
   {
-    if (itsPoints==null) return 0;
-    else return itsPoints.size();
+    if (itsPoints==null) {
+      return 0;
+    } else {
+      return itsPoints.size();
+    }
   }
 
 
@@ -311,8 +317,11 @@ implements PointListener, TableCellRenderer
   getColumnCount()
   {
     //Column for point name + one column for each source + one for units
-    if (itsSources==null) return 2;
-    else return itsSources.size() + 2;
+    if (itsSources==null) {
+      return 2;
+    } else {
+      return itsSources.size() + 2;
+    }
   }
 
 
@@ -321,9 +330,13 @@ implements PointListener, TableCellRenderer
   getColumnName(int column)
   {
     String res = null;
-    if (column==0) res = "Point";
-    else if (column==getColumnCount()-1) res = "Units";
-    else res = getSourceForColumn(column);
+    if (column==0) {
+      res = "Point";
+    } else if (column==getColumnCount()-1) {
+      res = "Units";
+    } else {
+      res = getSourceForColumn(column);
+    }
     return res;
   }
 
@@ -421,7 +434,9 @@ implements PointListener, TableCellRenderer
       if (newval!=null) {
         int row = getRowForPoint(newval.getName());
         int col = getColumnForSource(newval.getSource());
-        if (row>=0 && col>=0) fireTableCellUpdated(row, col);
+        if (row>=0 && col>=0) {
+          fireTableCellUpdated(row, col);
+        }
       }
     }
     //System.err.println("PointTableModel: Event!");
@@ -435,7 +450,9 @@ implements PointListener, TableCellRenderer
 				int row, int column)
   {
     Component res = null;
-    if (value==null) return null;
+    if (value==null) {
+      return null;
+    }
 
     if (value instanceof Component) {
       res = (Component)value;
@@ -458,16 +475,18 @@ implements PointListener, TableCellRenderer
           res.setForeground(Color.lightGray);
         }
 
-        PointLimit limits = pm.getLimits();
-        if (limits!=null) {
-          if (pd.isValid() && !limits.checkLimits(pd)) {
-            //Don't highlight the point if it has expired
-            //Point is outside of limits, so highlight this cell
-            if (age<3*period) res.setForeground(Color.red);
-            else res.setForeground(Color.orange);
-            if (res instanceof JComponent) ((JComponent)res).setOpaque(true);
-            res.setBackground(Color.yellow);
+        if (pd.isValid() && !pm.checkLimits(pd)) {
+          //Don't highlight the point if it has expired
+          //Point is outside of limits, so highlight this cell
+          if (age<3*period) {
+            res.setForeground(Color.red);
+          } else {
+            res.setForeground(Color.orange);
           }
+          if (res instanceof JComponent) {
+            ((JComponent)res).setOpaque(true);
+          }
+          res.setBackground(Color.yellow);
         }
       }
     }
@@ -507,7 +526,9 @@ implements PointListener, TableCellRenderer
     //Print table data
     for (int i=0; i<itsPoints.size(); i++) {
       PointMonitor pm = getPointForRow(i);
-      if (pm==null) continue; //Blank row
+      if (pm==null) {
+        continue; //Blank row
+      }
 
       line = pm.getLongDesc();
       for (int j=0; j<itsSources.size(); j++) {
@@ -515,10 +536,15 @@ implements PointListener, TableCellRenderer
         String pname = (String)itsSources.get(j) + "." + (String)itsPoints.get(i);
 
         PointData pd = DataMaintainer.getBuffer(pname);
-        if (pd==null || pd.getData()==null) continue;
+        if (pd==null || pd.getData()==null) {
+          continue;
+        }
 
-        if (pd.isValid()) line += pd.getData().toString();
-        else line += "?";
+        if (pd.isValid()) {
+          line += pd.getData().toString();
+        } else {
+          line += "?";
+        }
       }
       p.println(line);
     }

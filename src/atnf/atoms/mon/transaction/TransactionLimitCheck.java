@@ -8,7 +8,6 @@
 
 package atnf.atoms.mon.transaction;
 
-import java.util.*;
 import javax.swing.Timer;
 import java.awt.event.ActionListener;
 import atnf.atoms.mon.*;
@@ -72,7 +71,7 @@ implements ActionListener
   protected Timer itsTimer = null;
 
   public
-  TransactionLimitCheck(PointInteraction parent, String specifics)
+  TransactionLimitCheck(PointMonitor parent, String specifics)
   {
     super(parent, specifics);
     setChannel("NONE"); //Set the channel type - not used for us
@@ -116,7 +115,9 @@ implements ActionListener
 				  new AbsTime());
 
     //shuffle all the old values down
-    for (int i=0; i<itsHistory.length-1; i++) itsHistory[i]=itsHistory[i+1];
+    for (int i=0; i<itsHistory.length-1; i++) {
+      itsHistory[i]=itsHistory[i+1];
+    }
     //check the latest point values and store the summary
     itsHistory[itsHistory.length-1] = doUpdate();
 
@@ -129,12 +130,13 @@ implements ActionListener
       }
     }
 
-    if (allbad) res.setData(itsOutput2);
-    //Set as good only if last update was entirely good
-    else if (itsHistory[itsHistory.length-1]!=null &&
-	     itsHistory[itsHistory.length-1].booleanValue()==false)
+    if (allbad) {
+      res.setData(itsOutput2);
+    } else if (itsHistory[itsHistory.length-1]!=null &&
+	     itsHistory[itsHistory.length-1].booleanValue()==false) {
       res.setData(itsOutput1);
     //Otherwise leave data as null
+    }
 
     //Fire the result
     PointEvent pe = new PointEvent(this, res, true);
@@ -169,17 +171,11 @@ implements ActionListener
 	break;
       }
 
-      //Get the limit checking object associated with the point
-      PointLimit limits = pm.getLimits();
-      if (limits==null) {
-	//No problem, just assume value is OK
-	vals[i] = new Boolean(true);
+      // Check the value of this point and set result
+      if (pm.checkLimits(pd)) {
+        vals[i] = new Boolean(true);
       } else {
-	//Check the value of this point and set result
-	if (limits.checkLimits(pd))
-	  vals[i] = new Boolean(true);
-	else
-	  vals[i] = new Boolean(false);
+        vals[i] = new Boolean(false);
       }
     }
 

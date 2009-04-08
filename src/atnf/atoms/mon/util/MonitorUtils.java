@@ -9,7 +9,6 @@ package atnf.atoms.mon.util;
 
 import java.io.*;
 import java.util.*;
-import atnf.atoms.mon.*;
 import java.util.zip.*;
 
 /**
@@ -24,7 +23,9 @@ public abstract class MonitorUtils
    public static String[] toStringArray(Object[] data)
    {
       String[] res = new String[data.length];
-      for (int i = 0; i < res.length; i++) res[i] = (String)(data[i]);
+      for (int i = 0; i < res.length; i++) {
+        res[i] = (String)(data[i]);
+      }
       return res;
    }
 
@@ -44,7 +45,9 @@ public abstract class MonitorUtils
    {
       StringTokenizer tok = new StringTokenizer(line, "\"");
       String[] res = new String[tok.countTokens()];
-      for (int i = 0; tok.hasMoreTokens(); i++) res[i] = tok.nextToken();
+      for (int i = 0; tok.hasMoreTokens(); i++) {
+        res[i] = tok.nextToken();
+      }
       return res;
    }
    
@@ -68,7 +71,9 @@ public abstract class MonitorUtils
          // Composite
          if (line.charAt(startPos) == '{') {
            start++;
-           while (startPos < endPos && line.charAt(startPos) != '}') startPos++;
+           while (startPos < endPos && line.charAt(startPos) != '}') {
+            startPos++;
+          }
            res.add(line.substring(start, startPos));
            startPos++;
          } else {
@@ -76,25 +81,36 @@ public abstract class MonitorUtils
            if (line.charAt(startPos) == '\"') {
              start++;
              startPos++;
-             while (startPos < endPos && line.charAt(startPos) != '\"') startPos++;
-             if (startPos <= start) res.add("");
-             else res.add(line.substring(start, startPos));
+             while (startPos < endPos && line.charAt(startPos) != '\"') {
+              startPos++;
+            }
+             if (startPos <= start) {
+              res.add("");
+            } else {
+              res.add(line.substring(start, startPos));
+            }
              startPos++;
            } else {
-             while (startPos < endPos && line.charAt(startPos) != ' ' && line.charAt(startPos) != '\t') startPos++;
+             while (startPos < endPos && line.charAt(startPos) != ' ' && line.charAt(startPos) != '\t') {
+              startPos++;
+            }
              res.add(line.substring(start, startPos));
            }
          }
       }
       String[] res_str = new String[res.size()];
-      for (int i = 0; i < res_str.length; i++) res_str[i] = (String)(res.elementAt(i));
+      for (int i = 0; i < res_str.length; i++) {
+        res_str[i] = (String)(res.elementAt(i));
+      }
       return res_str;
    }
    
 
    public static byte[] compress(Object data)
    {
-      if (data == null) return null;
+      if (data == null) {
+        return null;
+      }
       try {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         GZIPOutputStream gout = new GZIPOutputStream(baos);
@@ -110,7 +126,9 @@ public abstract class MonitorUtils
 
    public static Object decompress(byte[] data)
    {
-      if (data == null) return null;
+      if (data == null) {
+        return null;
+      }
       try {
         ByteArrayInputStream bais = new ByteArrayInputStream(data);
         GZIPInputStream gin = new GZIPInputStream(bais);
@@ -140,7 +158,9 @@ public abstract class MonitorUtils
              break;
            }
          }
-         if (match) res.replace(i, i+tok.length(), replacement);
+         if (match) {
+          res.replace(i, i+tok.length(), replacement);
+        }
       }
       return res.toString();
    }
@@ -162,21 +182,32 @@ public abstract class MonitorUtils
          // Leading and trailing spaces
          line = line.trim();
          // Ignore blank lines
-         if (line.length()==0) continue;
+         if (line.length()==0) {
+          continue;
+        }
          // Ignore Comments
-         if (line.startsWith("#")) continue;
-         if (line.startsWith("//")) continue;
+         if (line.startsWith("#")) {
+          continue;
+        }
+         if (line.startsWith("//")) {
+          continue;
+        }
          int tempPos = line.indexOf("/*");
          if (tempPos > -1) {
            commentDepth++;
-           if (line.indexOf("*/", tempPos) > -1) commentDepth--;
-           else continue;
+           if (line.indexOf("*/", tempPos) > -1) {
+            commentDepth--;
+          } else {
+            continue;
+          }
          }
          if (line.indexOf("*/") > -1) {
            commentDepth--;
            continue;
          }
-         if (commentDepth > 0) continue;
+         if (commentDepth > 0) {
+          continue;
+        }
 
          // Commands
          if (line.startsWith("!")) {

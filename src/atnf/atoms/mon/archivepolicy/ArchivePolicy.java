@@ -8,7 +8,6 @@ package atnf.atoms.mon.archivepolicy;
 
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
 import java.lang.reflect.*;
 
 public abstract class ArchivePolicy extends MonitorPolicy
@@ -29,12 +28,16 @@ public abstract class ArchivePolicy extends MonitorPolicy
    public static ArchivePolicy factory(String arg)
    {
       assert (arg!=null && arg.indexOf("-")!=-1) || arg.equalsIgnoreCase("null");
-      if (arg.equalsIgnoreCase("null")) arg= "-";
+      if (arg.equalsIgnoreCase("null")) {
+        arg= "-";
+      }
 
       ArchivePolicy result = null;
       String specifics   = arg.substring(arg.indexOf("-") + 1);
       String type = arg.substring(0, arg.indexOf("-"));
-      if (type == "" || type == null || type.length()<1) type = "DUMMY";
+      if (type == "" || type == null || type.length()<1) {
+        type = "DUMMY";
+      }
             
       try {
 	 Constructor AP_con = Class.forName("atnf.atoms.mon.archivepolicy.ArchivePolicy"+type).getConstructor(new Class[]{String.class});

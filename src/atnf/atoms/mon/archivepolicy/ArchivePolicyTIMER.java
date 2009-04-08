@@ -35,7 +35,9 @@ public class ArchivePolicyTIMER extends ArchivePolicy
       if (data.getTimestamp().isAfter(itsLastSaved.add(itsPeriod))) {
          itsSaveNow = true;
 	 itsLastSaved = data.getTimestamp();
-      } else itsSaveNow = false;
+      } else {
+        itsSaveNow = false;
+      }
       return itsSaveNow;
    }
    

@@ -296,8 +296,9 @@ public class Crypt {
      */
     public static String crypt(byte[] salt, String original) {
 
-	if (!inited)
-	    initDes();
+	if (!inited) {
+    initDes();
+  }
 
 	String res;
 
@@ -403,10 +404,13 @@ public class Crypt {
 	    }
 	}
 
-	for (int i=0; i<4; i++)
-	    for (int j=0; j<256; j++)
-		for (int k=0; k<2; k++)
-		    ePerm32Tab[i][j][k] = 0;
+	for (int i=0; i<4; i++) {
+    for (int j=0; j<256; j++) {
+      for (int k=0; k<2; k++) {
+        ePerm32Tab[i][j][k] = 0;
+      }
+    }
+  }
 
 	for (int bit=0; bit< 48; bit++) {
 	    
@@ -447,10 +451,13 @@ public class Crypt {
 	    eInverse[esel[bit] - 1 + 32] = bit + 48;
 	}
 
-	for (int i=0; i < 16; i++)
-	    for (int j=0; j < 64 ; j++)
-		for (int k=0; k < 2; k++)
-		    efp[i][j][k] = 0;
+	for (int i=0; i < 16; i++) {
+    for (int j=0; j < 64 ; j++) {
+      for (int k=0; k < 2; k++) {
+        efp[i][j][k] = 0;
+      }
+    }
+  }
 	
 	for (int bit=0; bit < 64; bit++) {
 	    int oLong = bit / 32;
@@ -481,8 +488,9 @@ public class Crypt {
      */
     private static void setupSalt(byte[] s) {
 
-	if ((s[0] == currentSalt[0]) && (s[1] == currentSalt[1]))
-	    return;
+	if ((s[0] == currentSalt[0]) && (s[1] == currentSalt[1])) {
+    return;
+  }
 
 	currentSalt[0] = s[0];
 	currentSalt[1] = s[1];
@@ -539,8 +547,8 @@ public class Crypt {
 	long v2 = 0;
 	
 	for (int i=7; i>=0; i--) {
-	    v1 |= doPc1[(int)(k1 + (keyInd[key  ] & 0x7f))]; k1 += 128;
-	    v2 |= doPc1[(int)(k1 + (keyInd[key++] & 0x7f))]; k1 += 128;
+	    v1 |= doPc1[(k1 + (keyInd[key  ] & 0x7f))]; k1 += 128;
+	    v2 |= doPc1[(k1 + (keyInd[key++] & 0x7f))]; k1 += 128;
 	}
 
 	for (int i=0; i< 16; i++) {
@@ -621,8 +629,8 @@ public class Crypt {
 
     private static int[] ufcDoit(int l1, int l2, int r1, int r2, int itr) {
 
-	long l = (((long)l1) << 32) | ((long)l2);
-	long r = (((long)r1) << 32) | ((long)r2);
+	long l = (((long)l1) << 32) | (l2);
+	long r = (((long)r1) << 32) | (r2);
 
 	while (itr-- != 0) {
 	    int k = 0;

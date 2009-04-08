@@ -8,14 +8,12 @@
 
 package atnf.atoms.mon.datasource;
 
-import java.io.*;
-import java.util.*;
-import java.net.*;
+import java.util.Vector;
 
-import atnf.atoms.time.*;
-import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
-import atnf.atoms.mon.transaction.*;
+import atnf.atoms.mon.MonitorMap;
+import atnf.atoms.mon.PointMonitor;
+import atnf.atoms.mon.transaction.Transaction;
+import atnf.atoms.mon.transaction.TransactionStrings;
 
 /**
  * Discover and monitor UPSs from a NUT UPS monitor daemon.
@@ -112,10 +110,9 @@ extends DataSourceASCIISocket
         }
         
         //Since we have data, add ourselves as another DataSource
-        if (MonitorMap.getDataSource("NUTUPS"+itsHostName+thisname)==null) {
+        if (getDataSource("NUTUPS"+itsHostName+thisname)==null) {
           System.err.println("Adding DataSource: NUTUPS"+itsHostName+thisname);
           addDataSource("NUTUPS"+itsHostName+thisname, this);
-          MonitorMap.addDataSource("NUTUPS"+itsHostName+thisname, this);
         }
         
         //We got the list of this UPSs variables, now get info about each one
@@ -134,26 +131,30 @@ extends DataSourceASCIISocket
             thisdesc=thisvar.replace(".", " ").replace("ups ", "UPS ");
           }
           String[] pointnames={itsTreeBase+"."+thisvar.replace(".", "-")};
-          String limit="-";
+          String[] limits={"-"};
           //Use a special limit for UPS status
-          if (pointnames[0].endsWith("ups-status"))
-            limit="StringMatch-\"true\"\"mains\"";
+          if (pointnames[0].endsWith("ups-status")) {
+            limits[0]="StringMatch-\"true\"\"mains\"";
+          }
           String[] archivepolicy={"CHANGE-"};
           //Don't auto-create the point if it already exists
           if (!MonitorMap.checkPointName(thisname+"."+pointnames[0])) {
             final String[] nullarray = {"-"};
+            String[] transaction = {"Strings-\"NUTUPS" + itsHostName + "\"\"" + thisname + "\"\"" + thisvar + "\""};
             PointMonitor mp = PointMonitor.factory(pointnames,
                thisdesc,
-               "", //Short description
                "", //Units
                thisname,
-               "Strings-\"NUTUPS" + itsHostName + "\"\"" + thisname + "\"\"" + thisvar + "\"",
+               transaction,
                nullarray,
-               limit,
+               nullarray,
+               limits,
                archivepolicy,
                "5000000",
                true);
-        	  if (mp!=null) MonitorMap.addPointMonitor(mp);
+        	  if (mp!=null) {
+              MonitorMap.addPointMonitor(mp);
+            }
           }
         }
       }
@@ -171,7 +172,7 @@ extends DataSourceASCIISocket
   parseData(PointMonitor requestor)
   throws Exception
   {
-    TransactionStrings ts = (TransactionStrings)requestor.getTransaction();
+    TransactionStrings ts = (TransactionStrings)getMyTransactions(requestor.getInputTransactions()).get(0);
     while (itsReader.ready()) {
       itsReader.readLine();
     }
@@ -197,12 +198,13 @@ extends DataSourceASCIISocket
     } catch (Exception e) {}
     //If it is the UPS Status then remap it
     if (requestor.getName().endsWith("ups-status")) {
-      if (((String)val).equals("OL"))
+      if (((String)val).equals("OL")) {
         val = "mains";
-      else if (((String)val).equals("")) 
+      } else if (((String)val).equals("")) {
         val=null;
-      else
+      } else {
         val = "DISCHARGING";
+      }
       
         
     }

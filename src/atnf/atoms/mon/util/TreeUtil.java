@@ -77,7 +77,9 @@ public class TreeUtil implements ActionListener, TreeSelectionListener
 	      int targeti;
 	      for (targeti=0; targeti<tempNode.getChildCount(); targeti++) {
 		TreeNode bNode = tempNode.getChildAt(targeti);
-		if (bNode.isLeaf() || bNode.toString().compareToIgnoreCase(myTok)>0) break;
+		if (bNode.isLeaf() || bNode.toString().compareToIgnoreCase(myTok)>0) {
+      break;
+    }
 	      }
 	      tempNode.insert(aNode, targeti);
 	    } else {
@@ -85,7 +87,9 @@ public class TreeUtil implements ActionListener, TreeSelectionListener
 	      int targeti;
 	      for (targeti=0; targeti<tempNode.getChildCount(); targeti++) {
 		TreeNode bNode = tempNode.getChildAt(targeti);
-		if (bNode.isLeaf() && bNode.toString().compareToIgnoreCase(myTok)>0) break;
+		if (bNode.isLeaf() && bNode.toString().compareToIgnoreCase(myTok)>0) {
+      break;
+    }
 	      }
 	      tempNode.insert(aNode, targeti);
 	    }
@@ -138,8 +142,9 @@ public class TreeUtil implements ActionListener, TreeSelectionListener
    getMenus(JMenu menu)
    {
      int numChild = itsRootNode.getChildCount();
-     for (int i=0; i<numChild; i++)
-       menu.add(getMenus((DefaultMutableTreeNode)itsRootNode.getChildAt(i), menu));
+     for (int i=0; i<numChild; i++) {
+      menu.add(getMenus((DefaultMutableTreeNode)itsRootNode.getChildAt(i), menu));
+    }
    }
 
    /**
@@ -167,7 +172,9 @@ public class TreeUtil implements ActionListener, TreeSelectionListener
       JMenu tempMenu = new JMenu(name);
       tempMenu.setActionCommand(parentMenu.getActionCommand()+"."+name);
       tempMenu.addActionListener(this);
-      for (int i = 0; i < numChild; i++) tempMenu.add(getMenus((DefaultMutableTreeNode)node.getChildAt(i), tempMenu));
+      for (int i = 0; i < numChild; i++) {
+        tempMenu.add(getMenus((DefaultMutableTreeNode)node.getChildAt(i), tempMenu));
+      }
       return tempMenu;
    }
 
@@ -196,9 +203,11 @@ public class TreeUtil implements ActionListener, TreeSelectionListener
    public void fireActionEvent(ActionEvent ae)
    {
       Object[] listeners = itsListeners.getListenerList();
-      for (int i = 0; i < listeners.length; i +=2)
-         if (listeners[i] == ActionListener.class)
-	    ((ActionListener)listeners[i+1]).actionPerformed(ae);
+      for (int i = 0; i < listeners.length; i +=2) {
+        if (listeners[i] == ActionListener.class) {
+          ((ActionListener)listeners[i+1]).actionPerformed(ae);
+        }
+      }
    }
    
    public void actionPerformed(ActionEvent e)
@@ -213,10 +222,16 @@ public class TreeUtil implements ActionListener, TreeSelectionListener
    {
       TreePath path = e.getPath();
       Object[] items = path.getPath();
-      if (items.length < 1) return;
+      if (items.length < 1) {
+        return;
+      }
       String cmd = "";
-      for (int i = 0; i < items.length; i++) cmd = cmd + "." + items[i].toString();
-      if (cmd.length() > 0) cmd = cmd.substring(1);
+      for (int i = 0; i < items.length; i++) {
+        cmd = cmd + "." + items[i].toString();
+      }
+      if (cmd.length() > 0) {
+        cmd = cmd.substring(1);
+      }
       fireActionEvent(new ActionEvent(this, TREE, cmd));
    }
    
@@ -262,11 +277,17 @@ public class TreeUtil implements ActionListener, TreeSelectionListener
    
    public static String pathToString(TreePath path)
    {
-      if (path == null) return null;
+      if (path == null) {
+        return null;
+      }
       Object[] obj = path.getPath();
       String res = "";
-      for (int i = 0; i < obj.length; i++) res = res + "." + obj[i].toString();
-      if (res.length() > 0) res = res.substring(1);
+      for (int i = 0; i < obj.length; i++) {
+        res = res + "." + obj[i].toString();
+      }
+      if (res.length() > 0) {
+        res = res.substring(1);
+      }
       return res;
    }
 }

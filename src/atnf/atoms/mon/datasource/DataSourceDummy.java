@@ -8,7 +8,6 @@
 
 package atnf.atoms.mon.datasource;
 
-import java.util.Iterator;
 import atnf.atoms.time.AbsTime;
 import atnf.atoms.mon.*;
 
@@ -31,11 +30,13 @@ extends DataSource
   throws Exception
   {
     //Precondition
-    if (points==null || points.length==0) return;
+    if (points==null || points.length==0) {
+      return;
+    }
 
     Object[] buf = null;
     for (int i=0; i<buf.length; i++) {
-      PointInteraction pm = (PointInteraction)buf[i];
+      PointMonitor pm = (PointMonitor)buf[i];
       pm.firePointEvent(new PointEvent(this, new
          PointData(pm.getName(), pm.getSource(),
          AbsTime.factory(), null), true));

@@ -7,7 +7,6 @@
 
 package atnf.atoms.mon.transaction;
 
-import atnf.atoms.util.*;
 import java.lang.reflect.*;
 import atnf.atoms.mon.*;
 import java.io.Serializable;
@@ -31,7 +30,7 @@ extends MonitorPolicy
 implements Serializable
 {
   /** The Point this Transaction is associated with. */
-  protected PointInteraction itsParent = null;
+  protected PointMonitor itsParent = null;
 
   protected String itsName = null;
     
@@ -53,7 +52,7 @@ implements Serializable
 
 
   protected
-  Transaction(PointInteraction parent, String specifics)
+  Transaction(PointMonitor parent, String specifics)
   {
     itsParent = parent;
   }
@@ -98,11 +97,13 @@ implements Serializable
    */
   public static
   Transaction
-  factory(PointInteraction parent, String arg)
+  factory(PointMonitor parent, String arg)
   {
     assert (arg!=null && arg.indexOf("-")!=-1) || arg.equalsIgnoreCase("null");
 
-    if (arg.equalsIgnoreCase("null")) arg = "-";
+    if (arg.equalsIgnoreCase("null")) {
+      arg = "-";
+    }
     Transaction result = null;
     //Isolate the subclass specific data from the channel type
     //These should always be delimited by the first dash "-"
@@ -112,24 +113,26 @@ implements Serializable
     //type of transport channel. We use this to determine which
     //subclass to instantiate.
     String type = arg.substring(0, arg.indexOf("-"));
-    if (type == "" || type == null || type.length() < 1) type = "DUMMY";
+    if (type == "" || type == null || type.length() < 1) {
+      type = "DUMMY";
+    }
     
     try {
       Constructor Transaction_con;
       try {
         //Try to find class by assuming argument is full class name
-        Transaction_con = Class.forName(type).getConstructor(new Class[]{PointInteraction.class, String.class});
+        Transaction_con = Class.forName(type).getConstructor(new Class[]{PointMonitor.class, String.class});
       } catch (Exception f) {
         //Supplied name was not a full path
         //Look in atnf.atoms.mon.translation package.
-        Transaction_con = Class.forName("atnf.atoms.mon.transaction.Transaction"+type).getConstructor(new Class[]{PointInteraction.class, String.class});
+        Transaction_con = Class.forName("atnf.atoms.mon.transaction.Transaction"+type).getConstructor(new Class[]{PointMonitor.class, String.class});
       }
       result = (Transaction)(Transaction_con.newInstance(new Object[]{parent, specifics}));
     } catch (Exception e) {
       System.err.println("ERROR in Transaction.factory for " + parent.getName());
       System.err.println("\tUNABLE TO FIND CONSTRUCTOR FOR CLASS " + type);
       System.err.println("\tSubstituting class DUMMY rather than crash...");
-      result = new TransactionDUMMY(parent, "");
+      result = new TransactionNONE(parent, "");
     }
 
     result.setStringEquiv(arg);

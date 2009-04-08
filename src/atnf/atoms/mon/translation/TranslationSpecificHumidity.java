@@ -9,10 +9,7 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 
 /**
  * Calculate the specific humidity (in grams of water vapour per kilogram

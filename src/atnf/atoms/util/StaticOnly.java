@@ -17,8 +17,6 @@
 
 package atnf.atoms.util;
 
-import java.lang.*;
-
 /**
  * Tag interface for uninstantiable classes.
  * That is, classes that do not allow themselves to be instantiated.

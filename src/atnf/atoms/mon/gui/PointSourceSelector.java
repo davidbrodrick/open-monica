@@ -46,8 +46,9 @@ extends TreeItemSelector
       firstdot = theirPointNames[i].indexOf(".");
       String thissource = theirPointNames[i].substring(0, firstdot);
       String thispoint  = theirPointNames[i].substring(firstdot+1);
-      if (thispoint.equals(point) && !thissource.equals(source))
-	return false;
+      if (thispoint.equals(point) && !thissource.equals(source)) {
+        return false;
+      }
     }
     return true;
   }

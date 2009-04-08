@@ -38,12 +38,13 @@ public class PrintUtilities implements Printable {
   public void print() {
     PrinterJob printJob = PrinterJob.getPrinterJob();
     printJob.setPrintable(this);
-    if (printJob.printDialog())
+    if (printJob.printDialog()) {
       try {
         printJob.print();
       } catch(PrinterException pe) {
         System.out.println("Error printing: " + pe);
       }
+    }
   }
 
   public int print(Graphics g, PageFormat pageFormat, int pageIndex) {

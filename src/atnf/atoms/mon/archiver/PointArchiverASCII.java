@@ -11,8 +11,6 @@ import java.io.*;
 import java.util.*;
 import java.math.*;
 import java.util.zip.*;
-import java.text.*;
-
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.util.*;
@@ -60,7 +58,9 @@ extends PointArchiver
   PointArchiverASCII()
   {
     super();
-    if (!theirTempDir.isDirectory()) theirTempDir.mkdirs();
+    if (!theirTempDir.isDirectory()) {
+      theirTempDir.mkdirs();
+    }
   }
 
 
@@ -77,7 +77,9 @@ extends PointArchiver
       String path = getDir(pm);
       String fileName = path+FSEP+getDateTimeNow();
       File myDir = new File(path);
-      if (!myDir.isDirectory()) myDir.mkdirs();
+      if (!myDir.isDirectory()) {
+        myDir.mkdirs();
+      }
       ///Should probably use a filter with this .list() call
       String[] dirFiles = myDir.list();
 
@@ -208,10 +210,14 @@ extends PointArchiver
     String dir = getDir(pm);
     //Get any the archive files relevant to the period of interest
     Vector files = getFiles(dir, ts, ts);
-    if (files==null || files.size()==0) return null;
+    if (files==null || files.size()==0) {
+      return null;
+    }
     //Ensure the preceeding file is also included
     String preceeding = getPreceedingFile(dir, (String)files.get(0));
-    if (preceeding!=null) files.insertElementAt(preceeding, 0);
+    if (preceeding!=null) {
+      files.insertElementAt(preceeding, 0);
+    }
     //Try to load data from each of the files
     Vector tempbuf = new Vector(1000,8000);
     for (int i=0; i<files.size(); i++) {
@@ -247,10 +253,14 @@ extends PointArchiver
     String dir = getDir(pm);
     //Get any the archive files relevant to the period of interest
     Vector files = getFiles(dir, ts, ts);
-    if (files==null || files.size()==0) return null;
+    if (files==null || files.size()==0) {
+      return null;
+    }
     //Ensure the following file is also included
     String following=getFollowingFile(dir, (String)files.get(files.size()-1));
-    if (following!=null) files.add(following);
+    if (following!=null) {
+      files.add(following);
+    }
     
     //Try to load data from each of the files
     Vector tempbuf = new Vector(1000,8000);
@@ -284,7 +294,9 @@ extends PointArchiver
     String res = pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t";
     res += getStringForObject(data);
     //If the 'raw' data field is populated then write it out also
-    if (data!=raw && raw!=null) res += getStringForObject(raw);
+    if (data!=raw && raw!=null) {
+      res += getStringForObject(raw);
+    }
     return res;
   }
 
@@ -296,7 +308,9 @@ extends PointArchiver
   {
     PointData res = null;
     StringTokenizer st = new StringTokenizer(data, "\t");
-    if (st.countTokens()<3) return null;
+    if (st.countTokens()<3) {
+      return null;
+    }
 
     //Try to parse the timestamp
     AbsTime ts = null;
@@ -457,7 +471,9 @@ extends PointArchiver
     ///Should use filename filter with this .list() call
     String[] files = (new File(dir)).list();
     //Can't do anything if there were no files!
-    if (files==null || files.length==0) return res;
+    if (files==null || files.length==0) {
+      return res;
+    }
 
     //Map the filenames to dates, and sort
     for (int i=0; i<files.length; i++) {
@@ -519,7 +535,9 @@ extends PointArchiver
     if (!hit) {
       //No files completely within the range
       //but most recent file may contain useful data
-      if (prevkey!=null) res.add(map.get(prevkey)); //(if there was one)
+      if (prevkey!=null) {
+        res.add(map.get(prevkey)); //(if there was one)
+      }
     }
 
     return res;
@@ -545,7 +563,9 @@ extends PointArchiver
     
     //Get listing of all files in the archive dir for the given point
     String[] files = (new File(dir)).list();
-    if (files==null || files.length==0) return null;
+    if (files==null || files.length==0) {
+      return null;
+    }
 
     //Map the filenames to dates, and find target file
     RelTime afterdiff = null;
@@ -594,7 +614,9 @@ extends PointArchiver
     
     //Get listing of all files in the archive dir for the given point
     String[] files = (new File(dir)).list();
-    if (files==null || files.length==0) return null;
+    if (files==null || files.length==0) {
+      return null;
+    }
 
     //Map the filenames to dates, and find target file
     RelTime beforediff = null;
@@ -654,11 +676,17 @@ extends PointArchiver
         String line=reader.readLine();
         //Read the next data record from the archive file
         PointData pd = getPDForString(pm, line);
-        if (pd==null) continue;
+        if (pd==null) {
+          continue;
+        }
         //Check if it's in the right time range
         AbsTime ts = pd.getTimestamp();
-        if (start!=null && ts.isBefore(start)) continue; //Data's too early
-        if (end!=null && ts.isAfter(end)) break; //No more useful data in this file
+        if (start!=null && ts.isBefore(start)) {
+          continue; //Data's too early
+        }
+        if (end!=null && ts.isAfter(end)) {
+          break; //No more useful data in this file
+        }
         res.add(pd);
         num++;
       }
@@ -801,14 +829,22 @@ extends PointArchiver
      StringBuffer buf = new StringBuffer("");
      //YYYYMMDD-HHMM format
      buf.append(calendar.get(Calendar.YEAR));
-     if (calendar.get(Calendar.MONTH) < 9) buf.append("0");
+     if (calendar.get(Calendar.MONTH) < 9) {
+      buf.append("0");
+    }
      buf.append(calendar.get(Calendar.MONTH)+1);
-     if (calendar.get(Calendar.DAY_OF_MONTH) < 10) buf.append("0");
+     if (calendar.get(Calendar.DAY_OF_MONTH) < 10) {
+      buf.append("0");
+    }
      buf.append(calendar.get(Calendar.DAY_OF_MONTH));
      buf.append("-");
-     if (calendar.get(Calendar.HOUR_OF_DAY) < 10) buf.append("0");
+     if (calendar.get(Calendar.HOUR_OF_DAY) < 10) {
+      buf.append("0");
+    }
      buf.append(calendar.get(Calendar.HOUR_OF_DAY));
-     if (calendar.get(Calendar.MINUTE) < 10) buf.append("0");
+     if (calendar.get(Calendar.MINUTE) < 10) {
+      buf.append("0");
+    }
      buf.append(calendar.get(Calendar.MINUTE));
      return buf.toString();
   }

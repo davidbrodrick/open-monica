@@ -9,9 +9,7 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
 import atnf.atoms.mon.util.*;
 
 /**
@@ -75,10 +73,12 @@ extends Translation
       itsMP2 = init[1];
 
       //Substittude the name of our source if the $1 macro was used
-      if (itsMP1.indexOf("$1") > -1)
-	itsMP1 = MonitorUtils.replaceTok(itsMP1, parent.getSource());
-      if (itsMP2.indexOf("$1") > -1)
-	itsMP2 = MonitorUtils.replaceTok(itsMP2, parent.getSource());
+      if (itsMP1.indexOf("$1") > -1) {
+        itsMP1 = MonitorUtils.replaceTok(itsMP1, parent.getSource());
+      }
+      if (itsMP2.indexOf("$1") > -1) {
+        itsMP2 = MonitorUtils.replaceTok(itsMP2, parent.getSource());
+      }
     }
   }
 
@@ -89,7 +89,9 @@ extends Translation
   translate(PointData data)
   {
     //Precondition
-    if (data==null) return null;
+    if (data==null) {
+      return null;
+    }
 
     //Check that the data value is not null
     if (data.getData()==null) {

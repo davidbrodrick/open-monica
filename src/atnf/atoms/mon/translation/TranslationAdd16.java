@@ -48,11 +48,15 @@ extends Translation
   PointData
   translate(PointData data)
   {
-    if (data==null) return null;
+    if (data==null) {
+      return null;
+    }
 
     //Ensure there is raw data for us to translate!
     //Might actually need to return pd with null data field here?
-    if (data.getData()==null) return null;
+    if (data.getData()==null) {
+      return null;
+    }
 
     Object d = data.getData();
     if (d instanceof Number) {

@@ -10,8 +10,6 @@ package atnf.atoms.mon;
 
 import java.util.*;
 import atnf.atoms.time.*;
-import atnf.atoms.mon.transaction.*;
-import atnf.atoms.mon.translation.*;
 import atnf.atoms.mon.archiver.PointArchiver;
 
 /**
@@ -62,7 +60,9 @@ public class PointBuffer
         }
 
         //Ensure the buffer hasn't grown too large
-        while (buf.size()>pm.getMaxBufferSize()) buf.remove(0);
+        while (buf.size()>pm.getMaxBufferSize()) {
+          buf.remove(0);
+        }
 
         //Add the new data to the buffer
         buf.add(data);
@@ -81,7 +81,9 @@ public class PointBuffer
   getPointData(String point)
   {
     PointMonitor pm = MonitorMap.getPointMonitor(point);
-    if (pm==null) return null;
+    if (pm==null) {
+      return null;
+    }
     return getPointData(pm);
   }
 
@@ -108,10 +110,16 @@ public class PointBuffer
   getPointData(PointMonitor pm)
   {
     synchronized(bufferTable) {
-      if (pm==null) return null;
+      if (pm==null) {
+        return null;
+      }
       Vector data = (Vector)bufferTable.get(pm);
-      if (data == null) return null;
-      if (data.size() < 1) return null;
+      if (data == null) {
+        return null;
+      }
+      if (data.size() < 1) {
+        return null;
+      }
       return (PointData)((Vector)bufferTable.get(pm)).lastElement();
     }
   }
@@ -137,7 +145,9 @@ public class PointBuffer
   {
     //Get data from the memory buffer first
     Vector bufdata = getPointDataBuffer(pm, start_time, end_time);
-    if (bufdata==null) bufdata = new Vector(); //Ensure not null
+    if (bufdata==null) {
+      bufdata = new Vector(); //Ensure not null
+    }
 
     //If all data were in the memory buffer there's no point in
     //searching the disk archive for additional data.
@@ -205,7 +215,9 @@ public class PointBuffer
           i++;
         }
         //If we've exhausted the data then exit the loop
-        if (i>=arcdata.size()) break;
+        if (i>=arcdata.size()) {
+          break;
+        }
 
         //We need to keep this sample
         newres.add(arcdata.get(i));
@@ -216,7 +228,9 @@ public class PointBuffer
     }
 
     //Ensure null result if no data were found.
-    if (arcdata.size()==0) arcdata = null;
+    if (arcdata.size()==0) {
+      arcdata = null;
+    }
     return arcdata;
   }
 
@@ -243,7 +257,9 @@ public class PointBuffer
   {
     //Try to get the specified point and check if it was found
     PointMonitor pm = MonitorMap.getPointMonitor(point);
-    if (pm==null) return null;
+    if (pm==null) {
+      return null;
+    }
 
     return getPointData(pm, start, end, sample_rate);
   }
@@ -265,7 +281,9 @@ public class PointBuffer
                AbsTime timestamp)
   {
     PointMonitor pm = MonitorMap.getPointMonitor(source+"."+name);
-    if (timestamp.isASAP()) return getBufferData(pm);
+    if (timestamp.isASAP()) {
+      return getBufferData(pm);
+    }
     return getPointData(pm, timestamp, AbsTime.factory(), 0);
   }
 
@@ -286,9 +304,13 @@ public class PointBuffer
   {
     //Try to get the specified point and check if it was found
     PointMonitor pm = MonitorMap.getPointMonitor(point);
-    if (pm==null) return null;
+    if (pm==null) {
+      return null;
+    }
 
-    if (timestamp.isASAP()) return getBufferData(pm);
+    if (timestamp.isASAP()) {
+      return getBufferData(pm);
+    }
     return getPointData(pm, timestamp, AbsTime.factory(), 0);
   }
 
@@ -304,7 +326,9 @@ public class PointBuffer
   {
     //Try to get the specified point and check if it was found
     PointMonitor pm = MonitorMap.getPointMonitor(point);
-    if (pm==null) return null;
+    if (pm==null) {
+      return null;
+    }
     
     PointData res = null;
 
@@ -349,7 +373,9 @@ public class PointBuffer
   {
     //Try to get the specified point and check if it was found
     PointMonitor pm = MonitorMap.getPointMonitor(point);
-    if (pm==null) return null;
+    if (pm==null) {
+      return null;
+    }
     
     PointData res = null;
     
@@ -413,13 +439,21 @@ public class PointBuffer
   {
     synchronized(bufferTable) {
       Vector data = (Vector)bufferTable.get(pm);
-      if (data == null) return null;
-      if (data.size() < 1) return null;
+      if (data == null) {
+        return null;
+      }
+      if (data.size() < 1) {
+        return null;
+      }
       Vector res = new Vector();
       /// Should do this in a more efficient way
       res.addAll(data);
-      while (res.size()>0 && ((PointData)res.firstElement()).getTimestamp().isBefore(start_time)) res.remove(0);
-      while (res.size()>0 && ((PointData)res.lastElement()).getTimestamp().isAfter(end_time)) res.remove(res.lastElement());
+      while (res.size()>0 && ((PointData)res.firstElement()).getTimestamp().isBefore(start_time)) {
+        res.remove(0);
+      }
+      while (res.size()>0 && ((PointData)res.lastElement()).getTimestamp().isAfter(end_time)) {
+        res.remove(res.lastElement());
+      }
       return res;
     }
   }

@@ -9,7 +9,6 @@ package atnf.atoms.mon.util;
 
 import java.awt.event.*;
 import javax.swing.event.*;
-import java.util.*;
 
 public class MonitorTimer implements Runnable
 {
@@ -101,7 +100,7 @@ public class MonitorTimer implements Runnable
     **/
    public void setPeriod(int period)
    {
-      itsPeriod = (long)period;
+      itsPeriod = period;
    }
 
    /**
@@ -143,9 +142,11 @@ public class MonitorTimer implements Runnable
    public void fireActionEvent(ActionEvent ae)
    {
       Object[] listeners = itsListeners.getListenerList();
-      for (int i = 0; i < listeners.length; i +=2)
-         if (listeners[i] == ActionListener.class)
-	    ((ActionListener)listeners[i+1]).actionPerformed(ae);
+      for (int i = 0; i < listeners.length; i +=2) {
+        if (listeners[i] == ActionListener.class) {
+          ((ActionListener)listeners[i+1]).actionPerformed(ae);
+        }
+      }
    }
 
    /**
@@ -205,7 +206,9 @@ public class MonitorTimer implements Runnable
     **/
    public void start(int period, ActionListener listener)
    {
-      if (itsWorkers[0] == null) newThread();
+      if (itsWorkers[0] == null) {
+        newThread();
+      }
       itsPeriod = period;
       addActionListener(listener);
       start();
@@ -217,7 +220,9 @@ public class MonitorTimer implements Runnable
    public void start()
    {
       // This is in case the main Timer has not been initialised yet.
-      if (itsWorkers[0] == null) newThread();
+      if (itsWorkers[0] == null) {
+        newThread();
+      }
       if (itsRun) {
          stop();
 	 start();
@@ -234,8 +239,12 @@ public class MonitorTimer implements Runnable
     **/
    public void stop()
    {
-      if (!itsRun) return;
-      if (itsWorkers[0] == null) newThread();
+      if (!itsRun) {
+        return;
+      }
+      if (itsWorkers[0] == null) {
+        newThread();
+      }
       itsRun = false;
       removeTimer(this);
    }
@@ -254,7 +263,9 @@ public class MonitorTimer implements Runnable
 	 // Go through the list, find the first timer with exec time greater than
 	 // the new timer's exec time.
 	 while (nextTimer != null) {
-	    if (nextTimer.getNextExecTime() > nextExecTime) break;
+	    if (nextTimer.getNextExecTime() > nextExecTime) {
+        break;
+      }
 	    prevTimer = nextTimer;
 	    nextTimer = nextTimer.getNextTimer();
 	 }
@@ -263,13 +274,17 @@ public class MonitorTimer implements Runnable
 	    // Add to start of list
 	    itsFirstTimer = timer;
 	    itsLock.notifyAll();
-	 } else prevTimer.setNextTimer(timer);
+	 } else {
+    prevTimer.setNextTimer(timer);
+  }
       }
    }
    
    public void removeTimer(MonitorTimer timer)
    {
-      if (timer == null) return;
+      if (timer == null) {
+        return;
+      }
       synchronized(itsLock) {
          MonitorTimer nextTimer = itsFirstTimer;
 	 MonitorTimer prevTimer = null;
@@ -283,8 +298,12 @@ public class MonitorTimer implements Runnable
 		  timer.setNextTimer(null);
 		  itsLock.notifyAll();
 		  break;
-	       } else prevTimer.setNextTimer(nextTimer.getNextTimer());
-               if (nextTimer.getNextTimer() != null) nextTimer.getNextTimer().setLastTimer(prevTimer);
+	       } else {
+          prevTimer.setNextTimer(nextTimer.getNextTimer());
+        }
+               if (nextTimer.getNextTimer() != null) {
+                nextTimer.getNextTimer().setLastTimer(prevTimer);
+              }
 	       timer.setLastTimer(null);
 	       timer.setNextTimer(null);
 	       break;
@@ -309,26 +328,38 @@ public class MonitorTimer implements Runnable
          try {
 	    synchronized(itsLock) {
 	       // Wait until we get a timer
-               while (itsFirstTimer == null) itsLock.wait();
+               while (itsFirstTimer == null) {
+                itsLock.wait();
+              }
 	       // Wait until we have to run the first timer
 	       // Careful, because of the waits, the first timer may be not what
 	       // we expected.
-	       if (itsFirstTimer == null) continue;
+	       if (itsFirstTimer == null) {
+          continue;
+        }
 	       long waitTime = itsFirstTimer.getNextExecTime() - System.currentTimeMillis();
 	       runnow = (waitTime <= 0);
 	       if (runnow) {
         	  timer = itsFirstTimer;
 		  timer.stop();
-	       } else itsLock.wait(waitTime);
+	       } else {
+          itsLock.wait(waitTime);
+        }
 	    }
-            if (timer == null) continue;
-	    if (!runnow) continue;
+            if (timer == null) {
+              continue;
+            }
+	    if (!runnow) {
+        continue;
+      }
 	    
             synchronized(timer) {
                // Run the timer
 	       timer.fireActionEvent(new ActionEvent(timer, 0, "timer"));
                // Repeat if necessary
-	       if (timer.getRepeats()) timer.start();
+	       if (timer.getRepeats()) {
+          timer.start();
+        }
 	    }
 	 } catch (Exception e) {e.printStackTrace();}
       }

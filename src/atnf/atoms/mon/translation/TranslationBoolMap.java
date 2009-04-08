@@ -9,10 +9,7 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 
 /**
  * This takes two string arguments. The first string is what should be
@@ -62,7 +59,9 @@ extends Translation
   translate(PointData data)
   {
     //preconditions
-    if (data==null) return null;
+    if (data==null) {
+      return null;
+    }
     Object val = data.getData();
 
     //If we got null-data then throw a null-data result
@@ -72,11 +71,17 @@ extends Translation
 
     String resd = null;
     if (val instanceof Boolean) {
-      if (((Boolean)val).booleanValue()) resd = itsTrueVal;
-      else resd = itsFalseVal;
+      if (((Boolean)val).booleanValue()) {
+        resd = itsTrueVal;
+      } else {
+        resd = itsFalseVal;
+      }
     } else if (val instanceof Number) {
-      if (((Number)val).intValue()!=0) resd = itsTrueVal;
-      else resd = itsFalseVal;
+      if (((Number)val).intValue()!=0) {
+        resd = itsTrueVal;
+      } else {
+        resd = itsFalseVal;
+      }
     } else {
       System.err.println("TranslationBoolMap (for " + itsParent.getSource()
 			 + "." + itsParent.getName() +

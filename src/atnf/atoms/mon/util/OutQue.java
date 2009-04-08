@@ -8,11 +8,9 @@
 
 package atnf.atoms.mon.util;
 
-import java.lang.*;
 import java.net.*;
 import java.io.*;
 import java.util.Vector;
-import atnf.atoms.util.*;
 
 /**
  * Class representing the VMON output queue.
@@ -213,8 +211,11 @@ class OutQue
     Number data
   )
   {
-    if (data instanceof Integer) put(index, data.intValue());
-    else put(index, data.floatValue());
+    if (data instanceof Integer) {
+      put(index, data.intValue());
+    } else {
+      put(index, data.floatValue());
+    }
   }
 
 
@@ -241,7 +242,9 @@ class OutQue
         itsMess = new StringBuffer(4);
       }
       // make sure data is less than max signed integer*2 in fortran
-      if (data>32767) data-=65536;
+      if (data>32767) {
+        data-=65536;
+      }
       itsMess.append(" " + index + " " + data + " ");
       itsCount++;
 
@@ -310,8 +313,12 @@ class OutQue
        }     
        float a1 = f/tst;
        exp = 128 + exp; 
-       if (exp>255) exp=255;
-       if (exp<0) exp=0;
+       if (exp>255) {
+        exp=255;
+      }
+       if (exp<0) {
+        exp=0;
+      }
        exp = exp*128;
         
        int a2 = (new Float((a1-0.5f)*16777216.0f)).intValue();

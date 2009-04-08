@@ -17,8 +17,6 @@
 
 package atnf.atoms.util;
 
-import java.lang.*;
-
 /**
  * Tag interface for singleton classes.
  * That is, classes that allow only one of themselves to be instantiated.

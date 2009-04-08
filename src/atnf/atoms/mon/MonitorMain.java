@@ -9,12 +9,8 @@ package atnf.atoms.mon;
 
 import java.util.*;
 import java.io.*;
-import java.awt.event.ActionListener;
-import java.lang.reflect.*;
-import java.net.URL;
 import atnf.atoms.mon.datasource.*;
 import atnf.atoms.mon.util.*;
-import atnf.atoms.util.*;
 import atnf.atoms.mon.archiver.*;
 
 /**
@@ -54,12 +50,10 @@ MonitorMain
       System.err.println("ERROR: Failed to find monitor-points.txt configuration file");
       System.exit(1);
     }
-    ArrayList points = PointInteraction.parseFile(new InputStreamReader(pointsfile));
+    ArrayList points = PointMonitor.parseFile(new InputStreamReader(pointsfile));
     for (int i=0; i<points.size(); i++) {
-      if (points.get(i) instanceof PointMonitor) {
-        //Tell the point which archiver to use - for now there's only one
-        ((PointMonitor)points.get(i)).setArchiver(pa);
-      }
+      //Tell the point which archiver to use - for now there's only one
+      ((PointMonitor)points.get(i)).setArchiver(pa);
     }
 
     //Create a thread to update the encryption key occasionally
@@ -73,7 +67,9 @@ MonitorMain
       try {
         Vector setups = SavedSetup.parseFile(new InputStreamReader(setupfile));
         System.err.println("Recovered " + setups.size() + " SavedSetups from " + setupfile);
-        for (int i=0; i<setups.size(); i++) MonitorMap.addSetup((SavedSetup)setups.get(i));
+        for (int i=0; i<setups.size(); i++) {
+          MonitorMap.addSetup((SavedSetup)setups.get(i));
+        }
       } catch (Exception e) {
         System.err.println("ERROR: Can't parse saved setup file: " + setupfile);
       }
