@@ -8,20 +8,12 @@
 
 package atnf.atoms.mon.gui;
 
-//import atnf.atoms.mon.gui.monpanel.*;
-//import atnf.atoms.mon.client.*;
-import atnf.atoms.mon.client.MonClientUtil;
 import atnf.atoms.mon.SavedSetup;
-import atnf.atoms.time.RelTime;
-
 import java.util.Vector;
-import java.util.StringTokenizer;
 import java.awt.*;
-import java.awt.print.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.table.*;
-import java.io.*;
 
 /**
  * This is a tab that appears in each MonFrame window that allows the user
@@ -152,8 +144,11 @@ implements ActionListener
     boolean
     isCellEditable(int row, int col)
     {
-      if (col>0) return true;
-      else return false;
+      if (col>0) {
+        return true;
+      } else {
+        return false;
+      }
     }
 
     /*  public

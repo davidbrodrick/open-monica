@@ -10,7 +10,6 @@ package atnf.atoms.mon.translation;
 import java.util.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 
 /**
  * Returns a particular entry from a NamedValueList or HashMap.
@@ -44,7 +43,9 @@ extends Translation
    translate(PointData data)
    {
      //Precondition
-     if (data==null) return null;
+     if (data==null) {
+      return null;
+    }
 
      //Get the actual data
      Object realdata = data.getData();

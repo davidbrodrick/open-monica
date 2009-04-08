@@ -104,7 +104,9 @@ extends PointArchiver
         checkConnection();
         createTable(table);
         try {
-          if (stmt!=null) stmt.close();
+          if (stmt!=null) {
+            stmt.close();
+          }
         } catch (Exception g) {}
       }
     }
@@ -122,7 +124,9 @@ extends PointArchiver
   {
     try {
       //Can't do anything if the server is not running
-      if (!checkConnection()) return null;
+      if (!checkConnection()) {
+        return null;
+      }
 
       //Allocate result vector
       Vector res=new Vector(5000, 10000);      
@@ -144,10 +148,14 @@ extends PointArchiver
       }
 
       //Ensure we got some data
-      if (!rs.first()) return null;
+      if (!rs.first()) {
+        return null;
+      }
       do {
         PointData pd=getPointDataForRow(pm, rs);
-        if (pd!=null) res.add(pd);
+        if (pd!=null) {
+          res.add(pd);
+        }
       } while (rs.next());
       
       stmt.close();
@@ -171,7 +179,9 @@ extends PointArchiver
   {
     try {
       //Can't do anything if the server is not running
-      if (!checkConnection()) return null;
+      if (!checkConnection()) {
+        return null;
+      }
       
       //Get the table name for this point
       String table=getTableName(pm);
@@ -189,7 +199,9 @@ extends PointArchiver
       }
       
       //Ensure we got some data
-      if (!rs.first()) return null;
+      if (!rs.first()) {
+        return null;
+      }
       PointData res=getPointDataForRow(pm, rs);
 
       stmt.close();
@@ -213,7 +225,9 @@ extends PointArchiver
   {
     try {
       //Can't do anything if the server is not running
-      if (!checkConnection()) return null;
+      if (!checkConnection()) {
+        return null;
+      }
       
       //Get the table name for this point
       String table=getTableName(pm);
@@ -231,7 +245,9 @@ extends PointArchiver
       }
       
       //Ensure we got some data
-      if (!rs.first()) return null;
+      if (!rs.first()) {
+        return null;
+      }
       PointData res=getPointDataForRow(pm, rs);
       //System.err.println(res.toString());
 
@@ -286,7 +302,9 @@ extends PointArchiver
     } catch (Exception e) {
       System.err.println("PointArchiverMySQL:createTable: " + e.getMessage());
       try {
-        if (stmt!=null) stmt.close();
+        if (stmt!=null) {
+          stmt.close();
+        }
       } catch (Exception g) {}
     }
   }
@@ -313,7 +331,9 @@ extends PointArchiver
         } catch (Exception f) {
           itsConnection=null;
           try {
-            if (stmt!=null) stmt.close();
+            if (stmt!=null) {
+              stmt.close();
+            }
           } catch (Exception g) {}
         }
       }

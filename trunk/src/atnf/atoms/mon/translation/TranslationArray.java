@@ -7,10 +7,7 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 
 /**
  * Returns a particular entry from an array.
@@ -49,7 +46,9 @@ extends Translation
   translate(PointData data)
   {
     //Precondition
-    if (data==null) return null;
+    if (data==null) {
+      return null;
+    }
 
     //Get the full array
     Object[] array = (Object[])data.getData();
@@ -58,7 +57,9 @@ extends Translation
     PointData res = new PointData(itsParent.getName(), itsParent.getSource());
 
     //If the data is null we need to throw a null-data result
-    if (array==null || array.length<itsIndex) return res;
+    if (array==null || array.length<itsIndex) {
+      return res;
+    }
 
     //Copy just the particular index that we've been asked to
     res.setData(array[itsIndex]);

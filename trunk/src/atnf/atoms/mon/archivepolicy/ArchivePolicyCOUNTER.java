@@ -6,7 +6,6 @@
  **/
 package atnf.atoms.mon.archivepolicy;
 
-import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 
 public class ArchivePolicyCOUNTER extends ArchivePolicy
@@ -31,7 +30,9 @@ public class ArchivePolicyCOUNTER extends ArchivePolicy
       if (itsRunningCycles >= itsCycles) {
          itsSaveNow = true;
 	 itsRunningCycles = 0;
-      } else itsSaveNow = false;
+      } else {
+        itsSaveNow = false;
+      }
       return itsSaveNow;
    }
 

@@ -17,11 +17,6 @@
 
 package atnf.atoms.util;
 
-import java.lang.*;
-import java.util.*;
-import java.io.*;
-import java.text.*;
-
 /**
  * Sub-class of <i>Angle</i>. The only difference is that by default
  * the string representation will be shown as an hour rather than in

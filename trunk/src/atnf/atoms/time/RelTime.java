@@ -522,7 +522,7 @@ implements
           sign = "-";
         }
         int s = (int)(micros/1000000l);
-        micros = (micros-(long)s*1000000l)/1000l;
+        micros = (micros-s*1000000l)/1000l;
         int m = s/60;
         s = s - m*60;
         int h = m/60;
@@ -543,7 +543,7 @@ implements
           micros = -micros;
         }
         int s = (int)(micros/1000000l);
-        micros = (micros-(long)s*1000000l)/1000l;
+        micros = (micros-s*1000000l)/1000l;
         int m = s/60;
         s = s - m*60;
         int h = m/60;
@@ -552,28 +552,37 @@ implements
 	h = h - d*24;
 
         //Add sign only if period is negative
-	if (itsValue<0) res = "-";
-	else res = "";
+	if (itsValue<0) {
+    res = "-";
+  } else {
+    res = "";
+  }
 
         if (m==0 && h==0 && d==0) {
 	  //Only need seconds to express this period
 	  res += nf2.format(s);
 	  //Add in the decimal part of a second if required
-	  if (micros>0) res += "." + nf3.format(micros);
+	  if (micros>0) {
+      res += "." + nf3.format(micros);
+    }
 	} else if (d==0) {
 	  //Don't need to express the number of days
 	  res += nf2.format(h)+":"
 	      + nf2.format(m)+":"
 	      + nf2.format(s);
 	  //Add in the decimal part of a second if required
-	  if (micros>0) res += "." + nf3.format(micros);
+	  if (micros>0) {
+      res += "." + nf3.format(micros);
+    }
 	} else {
 	  res += d + "d "
 	      + nf2.format(h)+":"
 	      + nf2.format(m)+":"
 	      + nf2.format(s);
 	  //Add in the decimal part of a second if required
-	  if (micros>0) res += "." + nf3.format(micros);
+	  if (micros>0) {
+      res += "." + nf3.format(micros);
+    }
 	}
 	break;
       }

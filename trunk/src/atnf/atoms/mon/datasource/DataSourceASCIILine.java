@@ -99,7 +99,9 @@ extends DataSourceASCIISocket
             
             //Do any required pre-formatting
             line=preformat(line);
-            if (line==null) continue;
+            if (line==null) {
+              continue;
+            }
             
             //Present this new line to the monitor point
             PointData pd=new PointData(itsMonitorPoint, new AbsTime(), line);

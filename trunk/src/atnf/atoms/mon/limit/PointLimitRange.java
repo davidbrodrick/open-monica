@@ -8,7 +8,6 @@
 
 package atnf.atoms.mon.limit;
 
-import java.util.StringTokenizer;
 import atnf.atoms.mon.*;
 import atnf.atoms.util.Angle;
 
@@ -81,9 +80,13 @@ extends PointLimit
   public boolean checkLimits(PointData data)
   {
     //All zeroes means that we shouldn't even check
-    if (itsUpper==itsLower && itsLower==0.0) return true;
+    if (itsUpper==itsLower && itsLower==0.0) {
+      return true;
+    }
     //No news is good news, right?
-    if (data==null || data.getData()==null) return true;
+    if (data==null || data.getData()==null) {
+      return true;
+    }
 
     Object myData = data.getData();
     double doubleData = 0.0;
@@ -100,14 +103,18 @@ extends PointLimit
 
     //Check if the number is within the specified range
     boolean withinRange = false;
-    if (doubleData>=itsLower && doubleData<=itsUpper) withinRange = true;
+    if (doubleData>=itsLower && doubleData<=itsUpper) {
+      withinRange = true;
+    }
 
     //If it's inside the range and it's supposed to be, then all is well
-    if (itsInsideNormal && withinRange) return true;
-    //If it's outside and it's supposed to be, all is well
-    else if (!itsInsideNormal && !withinRange) return true;
-    //Otherwise, all is not well...
-    else return false;
+    if (itsInsideNormal && withinRange) {
+      return true;
+    } else if (!itsInsideNormal && !withinRange) {
+      return true;
+    } else {
+      return false;
+    }
   }
    
 }

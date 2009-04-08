@@ -228,8 +228,11 @@ public class PointData implements Serializable
    Object
    getRaw()
    {
-     if (itsRaw!=null) return itsRaw;
-     else return itsData;
+     if (itsRaw!=null) {
+      return itsRaw;
+    } else {
+      return itsData;
+    }
    }
 
    /** Get the actual translated data stored by this PointData. */
@@ -260,8 +263,11 @@ public class PointData implements Serializable
    boolean
    isValid()
    {
-     if (itsData==null) return false;
-     else return true;
+     if (itsData==null) {
+      return false;
+    } else {
+      return true;
+    }
    }
 
    /** Get a String representation of this Object. */

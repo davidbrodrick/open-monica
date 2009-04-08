@@ -7,8 +7,7 @@
 
 package atnf.atoms.mon.transaction;
 
-import java.util.*;
-import atnf.atoms.mon.PointInteraction;
+import atnf.atoms.mon.PointMonitor;
 
 /**
  * Pull data from a Thytec UPS.
@@ -22,7 +21,7 @@ extends Transaction
   protected static String itsArgs[] = new String[]{"Transaction - Thytec UPS",
   "Thytec UPS"};
 
-  public TransactionThytecUPS(PointInteraction parent, String specifics)
+  public TransactionThytecUPS(PointMonitor parent, String specifics)
   {
     super(parent, specifics);
     setChannel("thytecups://");

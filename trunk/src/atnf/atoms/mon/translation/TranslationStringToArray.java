@@ -10,8 +10,6 @@
 package atnf.atoms.mon.translation;
 
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 
 /**
  * Call the String.split() method to turn the input string into an array of 
@@ -46,7 +44,9 @@ extends Translation
   translate(PointData data)
   {
     //preconditions
-    if (data==null) return null;
+    if (data==null) {
+      return null;
+    }
     Object val = data.getData();
 
     //If we got null-data then throw a null-data result

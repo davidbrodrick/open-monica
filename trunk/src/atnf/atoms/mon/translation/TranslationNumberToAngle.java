@@ -58,8 +58,9 @@ extends Translation
   translate(PointData data)
   {
     //Ensure there is raw data for us to translate!
-    if (data==null || data.getData()==null) 
+    if (data==null || data.getData()==null) {
       return null;
+    }
 
     if (! (data.getData() instanceof Number)) {
       System.err.println("ERROR: TranslationNumberToAngle (" 

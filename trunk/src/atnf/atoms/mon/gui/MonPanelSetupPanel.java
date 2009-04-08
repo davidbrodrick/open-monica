@@ -12,10 +12,6 @@ package atnf.atoms.mon.gui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-//import javax.swing.event.*;
-import javax.swing.border.*;
-//import java.util.Vector;
-
 //import atnf.atoms.mon.client.*;
 import atnf.atoms.mon.*;
 //import atnf.atoms.mon.util.*;
@@ -97,12 +93,19 @@ implements ActionListener
   actionPerformed(ActionEvent e)
   {
     String cmd = e.getActionCommand();
-    if (cmd == null) return;
+    if (cmd == null) {
+      return;
+    }
     //If the command was one of ours, deal with it.
-    if (cmd.equals("Peek"))        peekClicked();
-    else if (cmd.equals("Apply"))  applyClicked();
-    else if (cmd.equals("Cancel")) cancelClicked();
-    else if (cmd.equals("OK"))     okClicked();
+    if (cmd.equals("Peek")) {
+      peekClicked();
+    } else if (cmd.equals("Apply")) {
+      applyClicked();
+    } else if (cmd.equals("Cancel")) {
+      cancelClicked();
+    } else if (cmd.equals("OK")) {
+      okClicked();
+    }
   }
 
 
@@ -159,7 +162,9 @@ implements ActionListener
 	//There was an error. The MonPanel has probably already issued
 	//a dialog to the user to explain the problem.
       } else {
-        if (itsFrame instanceof MonFrame) ((MonFrame)itsFrame).showDisplay();
+        if (itsFrame instanceof MonFrame) {
+          ((MonFrame)itsFrame).showDisplay();
+        }
       }
     }
   }
@@ -187,8 +192,11 @@ implements ActionListener
 	//There was an error. The MonPanel has probably already issued
 	//a dialog to the user to explain the problem.
       } else {
-	if (itsFrame instanceof MonFrame) ((MonFrame)itsFrame).showDisplay();
-	else itsFrame.setVisible(false);
+	if (itsFrame instanceof MonFrame) {
+    ((MonFrame)itsFrame).showDisplay();
+  } else {
+    itsFrame.setVisible(false);
+  }
 	//Now that the setup has been OKayed, we should save it
         itsInitialSetup = setup;
       }

@@ -9,11 +9,8 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.time.AbsTime;
-import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 
 /**
  * Base-class for Translations which need synchronous values from two other

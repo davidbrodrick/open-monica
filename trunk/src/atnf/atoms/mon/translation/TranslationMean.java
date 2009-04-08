@@ -12,7 +12,6 @@ package atnf.atoms.mon.translation;
 import java.util.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
 
 /**
@@ -74,7 +73,9 @@ extends Translation
       try {
 	long period = Long.parseLong(init[0]); ///Could parse as double instead
 	period *= 1000000l; //To microseconds
-	if (period>0) period = -period; //Always want negative
+	if (period>0) {
+    period = -period; //Always want negative
+  }
 	itsPeriod = RelTime.factory(period);
       } catch (Exception e) {
 	System.err.println("TranslationMean: " + itsParent.getLongName() +
@@ -99,7 +100,9 @@ extends Translation
 	} else {
 	  long operiod = Long.parseLong(init[2]);
 	  operiod *= 1000000l; //To microseconds
-	  if (operiod<0) operiod = -operiod; //Always want positive
+	  if (operiod<0) {
+      operiod = -operiod; //Always want positive
+    }
 	  itsOutputPeriod = RelTime.factory(operiod);
 	}
       }
@@ -203,10 +206,11 @@ extends Translation
     //Translate the data to an array of doubles
     for (int i=0; i<size; i++) {
       Object thisdata = ((PointData)itsBuffer.get(i)).getData();
-      if (thisdata instanceof Number)
-	data[i] = ((Number)thisdata).doubleValue();
-      else if (thisdata instanceof Angle)
-	data[i] = ((Angle)thisdata).getValue();
+      if (thisdata instanceof Number) {
+        data[i] = ((Number)thisdata).doubleValue();
+      } else if (thisdata instanceof Angle) {
+        data[i] = ((Angle)thisdata).getValue();
+      }
     }
 
     //Calculate the mean of the data
@@ -214,7 +218,7 @@ extends Translation
     for (int i=0; i<size; i++) {
       sum += data[i];
     }
-    return sum/(float)size;
+    return sum/size;
   }
 
 

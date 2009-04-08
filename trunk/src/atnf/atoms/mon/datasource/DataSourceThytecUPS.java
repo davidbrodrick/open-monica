@@ -7,7 +7,6 @@
 
 package atnf.atoms.mon.datasource;
 
-import java.util.StringTokenizer;
 import java.util.HashMap;
 import atnf.atoms.time.RelTime;
 import atnf.atoms.mon.*;

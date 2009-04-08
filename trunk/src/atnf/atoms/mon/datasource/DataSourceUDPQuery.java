@@ -8,12 +8,6 @@
 package atnf.atoms.mon.datasource;
 
 import java.net.*;
-import java.io.*;
-import java.util.StringTokenizer;
-import java.util.HashMap;
-
-import atnf.atoms.util.*;
-import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.transaction.*;
 
@@ -85,8 +79,7 @@ extends DataSourceUDPSocket
   throws Exception
   {
     try {
-      //Get the query string from the point's transaction
-      String requeststr = ((TransactionStrings)requestor.getTransaction()).getString(0);
+      String requeststr = ((TransactionStrings)getMyTransactions(requestor.getInputTransactions()).get(0)).getString(0);
     
       //Build datagrams for the request and response packet
       DatagramPacket request = new DatagramPacket(requeststr.getBytes(), requeststr.length(),

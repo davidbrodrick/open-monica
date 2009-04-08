@@ -12,32 +12,16 @@ import atnf.atoms.mon.gui.*;
 import atnf.atoms.mon.client.*;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.SavedSetup;
-import atnf.atoms.mon.util.MonitorTimer;
 import atnf.atoms.time.*;
-import atnf.atoms.util.*;
-
 import java.util.Vector;
 import java.util.Date;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.event.*;
 import java.awt.*;
-import java.awt.geom.*;
-import java.net.URL;
-import java.awt.image.*;
 import java.lang.Number;
 import java.text.SimpleDateFormat;
 import java.io.PrintStream;
-
-import org.jfree.chart.*;
-import org.jfree.chart.axis.*;
-import org.jfree.chart.event.*;
-import org.jfree.chart.plot.*;
-import org.jfree.chart.renderer.*;
-import org.jfree.data.time.*;
-import org.jfree.data.*;
 
 
 /**
@@ -262,7 +246,9 @@ implements ActionListener, Runnable
           int loopspan=60;
           try {
             loopspan = Integer.parseInt(itsLoopSpan.getText());
-            if (loopspan<5 || loopspan>3600) throw new Exception();
+            if (loopspan<5 || loopspan>3600) {
+              throw new Exception();
+            }
           } catch (Exception e) {
              JOptionPane.showMessageDialog(this,
                 "The entry for Loop Span couldn't\n"+
@@ -316,7 +302,9 @@ implements ActionListener, Runnable
         int framedelay=200;
         try {
           framedelay = Integer.parseInt(itsFrameDelay.getText());
-          if (framedelay<0 || framedelay>10000) throw new Exception();
+          if (framedelay<0 || framedelay>10000) {
+            throw new Exception();
+          }
         } catch (Exception e) {
           JOptionPane.showMessageDialog(this,
             "The entry for Frame Delay couldn't\n"+
@@ -331,7 +319,9 @@ implements ActionListener, Runnable
         int looppause=1500;
         try {
           looppause  = Integer.parseInt(itsLoopPause.getText());
-          if (looppause<0 || looppause>10000) throw new Exception();
+          if (looppause<0 || looppause>10000) {
+            throw new Exception();
+          }
         } catch (Exception e) {
           JOptionPane.showMessageDialog(this,
             "The entry for Loop Pause couldn't\n"+
@@ -345,16 +335,25 @@ implements ActionListener, Runnable
       }
 
       //Should we show an overlay of the different map segments?
-      if (itsOverlay.isSelected()) setup.put("overlay", "true");
-      else setup.put("overlay", "false");
+      if (itsOverlay.isSelected()) {
+        setup.put("overlay", "true");
+      } else {
+        setup.put("overlay", "false");
+      }
 
       //Should we show the legend?
-      if (itsLegend.isSelected()) setup.put("legend", "true");
-      else setup.put("legend", "false");
+      if (itsLegend.isSelected()) {
+        setup.put("legend", "true");
+      } else {
+        setup.put("legend", "false");
+      }
 
       //Should we show the total number and number of cloud strikes?
-      if (itsShowTotals.isSelected()) setup.put("totals", "true");
-      else setup.put("totals", "false");
+      if (itsShowTotals.isSelected()) {
+        setup.put("totals", "true");
+      } else {
+        setup.put("totals", "false");
+      }
 
       return setup;
     }
@@ -390,20 +389,30 @@ implements ActionListener, Runnable
           itsLoopPause.setText((String)setup.get("looppause"));
         }
         temp = (String)setup.get("overlay");
-        if (temp==null || temp.equals("true")) itsOverlay.setSelected(true);
-        else itsOverlay.setSelected(false);
+        if (temp==null || temp.equals("true")) {
+          itsOverlay.setSelected(true);
+        } else {
+          itsOverlay.setSelected(false);
+        }
 
         temp = (String)setup.get("legend");
-        if (temp==null || temp.equals("true")) itsLegend.setSelected(true);
-        else itsLegend.setSelected(false);
+        if (temp==null || temp.equals("true")) {
+          itsLegend.setSelected(true);
+        } else {
+          itsLegend.setSelected(false);
+        }
 
         temp = (String)setup.get("totals");
-        if (temp==null || temp.equals("true")) itsShowTotals.setSelected(true);
-        else itsShowTotals.setSelected(false);
+        if (temp==null || temp.equals("true")) {
+          itsShowTotals.setSelected(true);
+        } else {
+          itsShowTotals.setSelected(false);
+        }
 
         temp = (String)setup.get("map");
-        if (temp==null) itsMapSelection.setSelectedIndex(0);
-        else {
+        if (temp==null) {
+          itsMapSelection.setSelectedIndex(0);
+        } else {
           for (int i=0; i<itsRealMaps.length; i++) {
             if (itsRealMaps[i].equals(temp)) {
               itsMapSelection.setSelectedIndex(i);
@@ -566,14 +575,18 @@ implements ActionListener, Runnable
             }
             getArchive(itsLoopStart, itsLoopEnd);
             itsLoopPhase = itsStrikeData.length-1;
-            if (timer!=null) timer.stop();
+            if (timer!=null) {
+              timer.stop();
+            }
             timer = new Timer(itsFrameDelay, this);
             timer.setRepeats(true);
             timer.start();
           }
           itsLoopPhase--;
           if (itsLoopPhase==0) {
-            if (timer!=null) timer.stop();
+            if (timer!=null) {
+              timer.stop();
+            }
             timer = new Timer(itsLoopPause, this);
             timer.setRepeats(false);
             timer.start();
@@ -620,7 +633,9 @@ implements ActionListener, Runnable
               }
 
               itsLoopPhase = itsStrikeData.length-1;
-              if (timer!=null) timer.stop();
+              if (timer!=null) {
+                timer.stop();
+              }
               timer = new Timer(itsFrameDelay, this);
               timer.setRepeats(true);
               timer.start();
@@ -647,7 +662,9 @@ implements ActionListener, Runnable
       }
     }
 
-    if (timer!=null) timer.stop();
+    if (timer!=null) {
+      timer.stop();
+    }
     timer = null;
   }
 
@@ -701,8 +718,12 @@ implements ActionListener, Runnable
         tstring = tstring.substring(5,tstring.lastIndexOf(":")) + " UT";
         tstring = tstring.replace('-', '/');
         g.drawString(tstring, 4, 13);
-        if (itsOverlay) drawSections(minsize, g);
-        if (itsLegend)  drawLegend(minsize, g);
+        if (itsOverlay) {
+          drawSections(minsize, g);
+        }
+        if (itsLegend) {
+          drawLegend(minsize, g);
+        }
         g.setColor(Color.red);
         //Check the uptime
         if (itsStrikeData[itsLoopPhase][19]<15) {
@@ -713,8 +734,12 @@ implements ActionListener, Runnable
         }
         g.setColor(Color.white);
       } else {
-        if (itsOverlay) drawSections(minsize, g);
-        if (itsLegend)  drawLegend(minsize, g);
+        if (itsOverlay) {
+          drawSections(minsize, g);
+        }
+        if (itsLegend) {
+          drawLegend(minsize, g);
+        }
         g.fillRect(0, 0, 75, 16);
         g.setColor(Color.white);
         g.drawString("NO DATA!!!", 4, 13);
@@ -726,10 +751,14 @@ implements ActionListener, Runnable
    * colours are graded from yellow (least intense) through orange to red
    * (most intense). */
   private Color getColor(int numstrikes) {
-    if (numstrikes==0) return Color.black;
+    if (numstrikes==0) {
+      return Color.black;
+    }
     float red = 1.0f;
     float blue = 0.0f;
-    if (numstrikes>10) numstrikes=10;
+    if (numstrikes>10) {
+      numstrikes=10;
+    }
     float green = (float)(1.0 - (numstrikes/10.0));
     return new Color(red, green, blue);
   }
@@ -739,9 +768,13 @@ implements ActionListener, Runnable
    * strike intensity. More instense lightning is shown using radial lines
    * that are spaced more closely. */
   private double getAngle(int numstrikes) {
-    if (numstrikes<3)       return (Math.PI/180.0)*8.0;
-    else if (numstrikes<8)  return (Math.PI/180.0)*4.0;
-    else return (Math.PI/180.0)*2.0;
+    if (numstrikes<3) {
+      return (Math.PI/180.0)*8.0;
+    } else if (numstrikes<8) {
+      return (Math.PI/180.0)*4.0;
+    } else {
+      return (Math.PI/180.0)*2.0;
+    }
   }
 
 
@@ -816,7 +849,9 @@ implements ActionListener, Runnable
   drawOverhead(int numstrikes, int size, Graphics g)
   {
     //don't draw anything if there are no strikes in this area
-    if (numstrikes==0) return;
+    if (numstrikes==0) {
+      return;
+    }
 
     int radius9km = (int)(9.0*size/112.0);
     g.setColor(getColor(numstrikes));
@@ -841,7 +876,9 @@ implements ActionListener, Runnable
   drawOuterOctant(int octant, int numstrikes, int size, Graphics g)
   {
     //don't draw anything if there are no strikes in this area
-    if (numstrikes==0) return;
+    if (numstrikes==0) {
+      return;
+    }
 
     g.setColor(getColor(numstrikes));
 
@@ -876,7 +913,9 @@ implements ActionListener, Runnable
   drawInnerOctant(int octant, int numstrikes, int size, Graphics g)
   {
     //don't draw anything if there are no strikes in this area
-    if (numstrikes==0) return;
+    if (numstrikes==0) {
+      return;
+    }
 
     g.setColor(getColor(numstrikes));
 
@@ -921,7 +960,9 @@ implements ActionListener, Runnable
   void
   actionPerformed(ActionEvent e)
   {
-    if (itsShowLatest) System.err.println("Time to get the latest lightning data");
+    if (itsShowLatest) {
+      System.err.println("Time to get the latest lightning data");
+    }
     synchronized (this) { this.notifyAll(); }
   }
 
@@ -942,18 +983,24 @@ implements ActionListener, Runnable
       e.printStackTrace();
       return null;
     }
-    if (newdata==null) return null;
+    if (newdata==null) {
+      return null;
+    }
     AbsTime tstamp = null;
     for (int i=0; i<20; i++) {
       PointData pd = (PointData)newdata.get(i);
-      if (pd==null) return null;
+      if (pd==null) {
+        return null;
+      }
       Number n = null;
       if (pd.getData() instanceof Number) {
         n = (Number)pd.getData();
       } else if (pd.getData() instanceof RelTime) {
         n = new Integer((int)(((RelTime)pd.getData()).getValue()/60000000));
       }
-      if (n==null) return null;
+      if (n==null) {
+        return null;
+      }
       strikes[i] = n.intValue();
       if (tstamp==null) {
         tstamp=pd.getTimestamp();
@@ -997,12 +1044,15 @@ implements ActionListener, Runnable
           if (first) {
             first = false;
             itsStrikeData = new int[thisdata.size()][];
-            for (int j=0; j<thisdata.size(); j++)
+            for (int j=0; j<thisdata.size(); j++) {
               itsStrikeData[j] = new int[20];
+            }
             itsStrikeTimes = new AbsTime[thisdata.size()];
             for (int j=0; j<thisdata.size(); j++) {
               AbsTime thistime = ((PointData)(thisdata.get(j))).getTimestamp();
-              if (thistime==null) throw new Exception();
+              if (thistime==null) {
+                throw new Exception();
+              }
               itsStrikeTimes[thisdata.size()-j-1] = thistime;
             }
           }
@@ -1015,7 +1065,9 @@ implements ActionListener, Runnable
               n = new Integer((int)(((RelTime)((PointData)(thisdata.get(j))).getData()).getValue()/60000000));
             }
 
-            if (n==null) throw new Exception();
+            if (n==null) {
+              throw new Exception();
+            }
             itsStrikeData[thisdata.size()-j-1][i] = n.intValue();
           }
         }
@@ -1057,7 +1109,9 @@ implements ActionListener, Runnable
           return false;
         }
         //the copy of the setup held by the frame is now incorrect
-        if (itsFrame instanceof MonFrame) ((MonFrame)itsFrame).itsSetup=null;
+        if (itsFrame instanceof MonFrame) {
+          ((MonFrame)itsFrame).itsSetup=null;
+        }
 
 /*	String mapname = (String)setup.get("map");
 	if (mapname==null || mapname.equals("") || mapname.equals("none")) {
@@ -1069,16 +1123,25 @@ implements ActionListener, Runnable
 	}*/
 
         String temp = (String)setup.get("legend");
-        if (temp==null || temp.equals("true")) itsLegend = true;
-        else itsLegend = false;
+        if (temp==null || temp.equals("true")) {
+          itsLegend = true;
+        } else {
+          itsLegend = false;
+        }
 
         temp = (String)setup.get("overlay");
-        if (temp==null || temp.equals("true")) itsOverlay = true;
-        else itsOverlay = false;
+        if (temp==null || temp.equals("true")) {
+          itsOverlay = true;
+        } else {
+          itsOverlay = false;
+        }
 
         temp = (String)setup.get("totals");
-        if (temp==null || temp.equals("true")) itsShowTotals = true;
-        else itsShowTotals = false;
+        if (temp==null || temp.equals("true")) {
+          itsShowTotals = true;
+        } else {
+          itsShowTotals = false;
+        }
 
 
         temp = (String)setup.get("mode");

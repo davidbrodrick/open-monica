@@ -213,7 +213,9 @@ implements PointListener, Runnable, TableCellRenderer
       add(new JScrollPane(itsMainPanel), BorderLayout.CENTER);
 
       //Display the current setup on the GUI
-      if (itsInitialSetup!=null) showSetup(itsInitialSetup);
+      if (itsInitialSetup!=null) {
+        showSetup(itsInitialSetup);
+      }
     }
 
     /** Called when some GUI elements are selected by the user. */
@@ -274,8 +276,9 @@ implements PointListener, Runnable, TableCellRenderer
       if (points.size()>0) {
 	p += points.get(0);
 	//Then add rest of point names with a delimiter
-	for (int i=1; i<points.size(); i++)
-	  p += ":" + points.get(i);
+	for (int i=1; i<points.size(); i++) {
+    p += ":" + points.get(i);
+  }
       }
       ss.put("points", p);
 
@@ -312,7 +315,9 @@ implements PointListener, Runnable, TableCellRenderer
       if (itsLimit.isSelected()) {
 	try {
 	  int dummy = Integer.parseInt(itsMaxRows.getText());
-	  if (dummy<=0) throw new Exception();
+	  if (dummy<=0) {
+      throw new Exception();
+    }
 	} catch (Exception e) {
 	  JOptionPane.showMessageDialog(this,
 					"The field for maximum number of rows\n" +
@@ -337,7 +342,9 @@ implements PointListener, Runnable, TableCellRenderer
         int dummy = 10;
 	try {
 	  dummy = Integer.parseInt(itsRowInterval.getText());
-	  if (dummy<=0) throw new Exception();
+	  if (dummy<=0) {
+      throw new Exception();
+    }
 	} catch (Exception e) {
 	  JOptionPane.showMessageDialog(this,
 					"The field that specifies how many seconds\n" +
@@ -399,7 +406,9 @@ implements PointListener, Runnable, TableCellRenderer
 	}
 	AbsTime start = AbsTime.factory(date);
 	ss.put("start", ""+start.getValue());
-      } else return null;
+      } else {
+        return null;
+      }
 
       return ss;
     }
@@ -523,8 +532,9 @@ implements PointListener, Runnable, TableCellRenderer
       String p = (String)setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
       Vector points = new Vector(stp.countTokens());
-      while (stp.hasMoreTokens())
-	points.add(stp.nextToken());
+      while (stp.hasMoreTokens()) {
+        points.add(stp.nextToken());
+      }
 
       itsPointSelector.setSelections(points);
     }
@@ -703,7 +713,9 @@ implements PointListener, Runnable, TableCellRenderer
       }
 
       //the copy of the setup held by the frame is now incorrect
-      if (itsFrame instanceof MonFrame) ((MonFrame)itsFrame).itsSetup=null;
+      if (itsFrame instanceof MonFrame) {
+        ((MonFrame)itsFrame).itsSetup=null;
+      }
 
       //If currently real-time then unsubscribe from any points
       if (itsRealTime && itsPoints!=null && itsPoints.size()>0) {
@@ -795,15 +807,20 @@ implements PointListener, Runnable, TableCellRenderer
       String p = (String)setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
       Vector points = new Vector(stp.countTokens());
-      while (stp.hasMoreTokens())
-	points.add(stp.nextToken());
+      while (stp.hasMoreTokens()) {
+        points.add(stp.nextToken());
+      }
 
       itsPoints = points;
 
       TableColumn column = itsTable.getColumnModel().getColumn(0);
       int extra = 0;
-      if (!itsNoMS) extra+=30;
-      if (!itsNoDate) extra+=70;
+      if (!itsNoMS) {
+        extra+=30;
+      }
+      if (!itsNoDate) {
+        extra+=70;
+      }
       column.setPreferredWidth(100+extra);
       column.setMaxWidth(250+extra);
       column.setMinWidth(100);
@@ -919,8 +936,11 @@ implements PointListener, Runnable, TableCellRenderer
 	p.print(", ");
 	Object o = row.get(c);
 	if (o!=null) {
-	  if (o instanceof Angle) p.print(((Angle)o).toString(Angle.Format.DEGREES));
-          else p.print(o.toString());
+	  if (o instanceof Angle) {
+      p.print(((Angle)o).toString(Angle.Format.DEGREES));
+    } else {
+      p.print(o.toString());
+    }
 	}
       }
       p.println();
@@ -954,13 +974,17 @@ implements PointListener, Runnable, TableCellRenderer
 
       while (true) {
 	lastrow = getNextRow(lastrow);
-	if (lastrow==null) break;
+	if (lastrow==null) {
+    break;
+  }
 	newrows.add(lastrow);
       }
 
       //Limit the number of rows, if requested by the user
       if (itsLimitRows) {
-	while (newrows.size()>itsMaxRows) newrows.remove(0);
+	while (newrows.size()>itsMaxRows) {
+    newrows.remove(0);
+  }
       }
       //We're finished processing the new data
       itsRows = newrows;
@@ -981,13 +1005,17 @@ implements PointListener, Runnable, TableCellRenderer
       res = new Vector(itsPoints.size()+1);
 
       AbsTime lasttime = null;
-      if (prevrow!=null) lasttime = (AbsTime)prevrow.get(0);
+      if (prevrow!=null) {
+        lasttime = (AbsTime)prevrow.get(0);
+      }
 
       AbsTime nexttime = null;
       if (itsFirstRow) {
 	//Next row will correspond to the next update of column 1
 	Vector v = (Vector)itsData.get(0);
-	if (v==null || v.size()==0) return null;
+	if (v==null || v.size()==0) {
+    return null;
+  }
 	for (int i=0; i<v.size(); i++) {
 	  PointData pd = (PointData)v.get(i);
 	  AbsTime thistime = pd.getTimestamp();
@@ -1001,7 +1029,9 @@ implements PointListener, Runnable, TableCellRenderer
 	AbsTime earliest = null;
 	for (int i=0; i<itsData.size(); i++) {
 	  Vector v = (Vector)itsData.get(i);
-	  if (v==null || v.size()==0) continue;
+	  if (v==null || v.size()==0) {
+      continue;
+    }
 	  for (int j=0; j<v.size(); j++) {
 	    PointData pd = (PointData)v.get(j);
 	    AbsTime thistime = pd.getTimestamp();
@@ -1011,7 +1041,9 @@ implements PointListener, Runnable, TableCellRenderer
 	    }
 	  }
 	}
-	if (earliest==null) return null; //No data to be displayed!
+	if (earliest==null) {
+    return null; //No data to be displayed!
+  }
 	nexttime = earliest;
       } else {
 	//Next row is controlled by user-defined time interval
@@ -1022,21 +1054,30 @@ implements PointListener, Runnable, TableCellRenderer
 	  AbsTime earliest = null;
 	  for (int i=0; i<itsData.size(); i++) {
 	    Vector v = (Vector)itsData.get(i);
-	    if (v==null || v.size()==0) continue;
+	    if (v==null || v.size()==0) {
+        continue;
+      }
 	    PointData pd = (PointData)v.get(0);
 	    AbsTime thistime = pd.getTimestamp();
-	    if (earliest==null || thistime.isBefore(earliest))
-	      earliest = thistime;
+	    if (earliest==null || thistime.isBefore(earliest)) {
+        earliest = thistime;
+      }
 	  }
-	  if (earliest==null) return null; //No data to be displayed!
+	  if (earliest==null) {
+      return null; //No data to be displayed!
+    }
 	  nexttime = earliest;
 	}
 	if (itsRealTime) {
 	  AbsTime now = new AbsTime();
-	  if (now.isBefore(nexttime)) return null;
+	  if (now.isBefore(nexttime)) {
+      return null;
+    }
 	} else {
 	  AbsTime cutoff = itsStartTime.add(itsPeriod);
-	  if (cutoff.isBefore(nexttime)) return null;
+	  if (cutoff.isBefore(nexttime)) {
+      return null;
+    }
 	}
       }
 
@@ -1065,9 +1106,13 @@ implements PointListener, Runnable, TableCellRenderer
 	  }
 	}
 	//If there was no data then add a blank cell
-	if (res.size()!=i+2) res.add(null);
+	if (res.size()!=i+2) {
+    res.add(null);
+  }
       }
-      if (!founddata) res = null;
+      if (!founddata) {
+        res = null;
+      }
 
       if (itsHideIncomplete) {
 	for (int i=1; i<res.size(); i++) {
@@ -1086,12 +1131,15 @@ implements PointListener, Runnable, TableCellRenderer
 	    break;
 	  }
 	}
-	if (keepit) break;
-	else {
+	if (keepit) {
+    break;
+  } else {
 	  //System.err.println("These two are identical:\n" + res + "\n" + prevrow);
 	  prevrow=res;
 	}
-      } else break;
+      } else {
+        break;
+      }
     }
 
     if (itsSparse && prevrow!=null) {
@@ -1114,31 +1162,53 @@ implements PointListener, Runnable, TableCellRenderer
   /** Compare two objects to see if they are "the same".
    * @return True if objects the same, False if they are different. */
   protected boolean compare(Object o1, Object o2) {
-    if (o1==null && o2==null) return true;
-    if (o1==null || o2==null) return false;
+    if (o1==null && o2==null) {
+      return true;
+    }
+    if (o1==null || o2==null) {
+      return false;
+    }
     if (o1 instanceof String && o2 instanceof String) {
-      if (((String)o1).equals((String)o2)) return true;
-      else return false;
+      if (((String)o1).equals((String)o2)) {
+        return true;
+      } else {
+        return false;
+      }
     }
     if (o1 instanceof Number && o2 instanceof Number) {
-      if (((Number)o1).doubleValue()==((Number)o2).doubleValue()) return true;
-      else return false;
+      if (((Number)o1).doubleValue()==((Number)o2).doubleValue()) {
+        return true;
+      } else {
+        return false;
+      }
     }
     if (o1 instanceof Angle && o2 instanceof Angle) {
-      if (((Angle)o1).getValue()==((Angle)o2).getValue()) return true;
-      else return false;
+      if (((Angle)o1).getValue()==((Angle)o2).getValue()) {
+        return true;
+      } else {
+        return false;
+      }
     }
     if (o1 instanceof AbsTime && o2 instanceof AbsTime) {
-      if (((AbsTime)o1).getValue()==((AbsTime)o2).getValue()) return true;
-      else return false;
+      if (((AbsTime)o1).getValue()==((AbsTime)o2).getValue()) {
+        return true;
+      } else {
+        return false;
+      }
     }
     if (o1 instanceof RelTime && o2 instanceof RelTime) {
-      if (((RelTime)o1).getValue()==((RelTime)o2).getValue()) return true;
-      else return false;
+      if (((RelTime)o1).getValue()==((RelTime)o2).getValue()) {
+        return true;
+      } else {
+        return false;
+      }
     }
     if (o1 instanceof Boolean && o2 instanceof Boolean) {
-      if (((Boolean)o1).booleanValue()==((Boolean)o2).booleanValue()) return true;
-      else return false;
+      if (((Boolean)o1).booleanValue()==((Boolean)o2).booleanValue()) {
+        return true;
+      } else {
+        return false;
+      }
     }
     return false;
   }
@@ -1159,7 +1229,9 @@ implements PointListener, Runnable, TableCellRenderer
     Vector alldata = new Vector();
     for (int i=0; i<itsPoints.size(); i++) {
       Vector v = MonClientUtil.getServer().getPointData((String)itsPoints.get(i), start, end);
-      if (v==null) v = new Vector();
+      if (v==null) {
+        v = new Vector();
+      }
       alldata.add(v);
       //System.err.println("Got " + v.size() + " data for " + itsPoints.get(i));
     }
@@ -1181,12 +1253,20 @@ implements PointListener, Runnable, TableCellRenderer
 
     public Object getValueAt(int row, int column)
     {
-      if (row>=itsRows.size()) return "";
-      if (!itsReverse) row=itsRows.size()-row-1;
+      if (row>=itsRows.size()) {
+        return "";
+      }
+      if (!itsReverse) {
+        row=itsRows.size()-row-1;
+      }
       Vector r = (Vector)itsRows.get(row);
-      if (column>=r.size()) return "";
+      if (column>=r.size()) {
+        return "";
+      }
       Object data = r.get(column);
-      if (data==null) return "";
+      if (data==null) {
+        return "";
+      }
       if (column==0 && (itsNoDate || itsNoMS)) {
         //timestamp, might need manipulation
         Date thisdate = ((AbsTime)data).getAsDate();
@@ -1242,10 +1322,13 @@ implements PointListener, Runnable, TableCellRenderer
 				int row, int column)
   {
     Component res = null;
-    if (value==null) return null;
+    if (value==null) {
+      return null;
+    }
 
-    if (value instanceof Component) res = (Component)value;
-    else {
+    if (value instanceof Component) {
+      res = (Component)value;
+    } else {
       res = new JLabel(value.toString());
     }
 

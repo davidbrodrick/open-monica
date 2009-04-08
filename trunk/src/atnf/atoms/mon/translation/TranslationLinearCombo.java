@@ -11,7 +11,6 @@ package atnf.atoms.mon.translation;
 
 import java.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
 import atnf.atoms.mon.util.*;
 
 /**
@@ -59,8 +58,9 @@ extends Translation
       //Then the name of the point
       String name = init[i+1];
       //Substitute the name of our source if the $1 macro was used
-      if (name.indexOf("$1") > -1)
-	name = MonitorUtils.replaceTok(name, parent.getSource());
+      if (name.indexOf("$1") > -1) {
+        name = MonitorUtils.replaceTok(name, parent.getSource());
+      }
       itsPoints.add(name);
       itsCoeffs.add(coef);
     }
@@ -73,7 +73,9 @@ extends Translation
   translate(PointData data)
   {
     //Precondition
-    if (data==null) return null;
+    if (data==null) {
+      return null;
+    }
 
     //save the new value
     itsValues.put(data.getSource()+"."+data.getName(), data.getData());

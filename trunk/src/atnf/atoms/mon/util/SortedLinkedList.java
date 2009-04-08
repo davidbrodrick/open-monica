@@ -9,7 +9,6 @@
 package atnf.atoms.mon.util;
 
 import java.util.*;
-import java.lang.*;
 
 /** Simple linked list class which uses a Comparator to sort the nodes.
  * Most operations are completed in linear time in the worst case.
@@ -61,7 +60,9 @@ SortedLinkedList
   void
   add(Object o)
   {
-    if (o==null) return;
+    if (o==null) {
+      return;
+    }
 
     ListNode newnode = new ListNode(o);
     if (itsHead==null) {
@@ -128,8 +129,11 @@ SortedLinkedList
   Object
   first()
   {
-    if (itsHead==null) return null;
-    else return itsHead.data;
+    if (itsHead==null) {
+      return null;
+    } else {
+      return itsHead.data;
+    }
   }
 
 
@@ -165,7 +169,9 @@ SortedLinkedList
   boolean
   isEmpty()
   {
-    if (itsHead==null) return true;
+    if (itsHead==null) {
+      return true;
+    }
     assert itsSize>0;
     return false;
   }

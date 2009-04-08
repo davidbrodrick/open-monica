@@ -9,10 +9,7 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 
 /** Implementation of <i>TranslationDualListen</i> which calculates the
  * numerical difference between two different monitor points.

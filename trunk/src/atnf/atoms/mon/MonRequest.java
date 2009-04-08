@@ -25,12 +25,12 @@ implements Serializable
    public static final int GETPOINT = 1;
    public static final int SETPOINT = 2;
    public static final int GETPOINTNAMES = 3;
-   public static final int GETSOURCES = 4;
+   //public static final int GETSOURCES = 4;
    /** Get list of <i>debugging</i> sources which should be ignored. */
    //public static final int GETIGNORESOURCES = 5;
    public static final int ADDPOINT = 6;
    public static final int GETKEY = 7;
-   public static final int GETPOINTNAMES_SHORT = 8;
+   //public static final int GETPOINTNAMES_SHORT = 8;
    public static final int GETALLPOINTS = 9;
    /** Get all saved setups for client-side classes. */
    public static final int GETALLSETUPS = 10;

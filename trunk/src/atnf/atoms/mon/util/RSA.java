@@ -33,7 +33,9 @@ public class RSA
     BigInteger m = (p.subtract(BigInteger.ONE))
                    .multiply(q.subtract(BigInteger.ONE));
     e = new BigInteger("3");
-    while(m.gcd(e).intValue() > 1) e = e.add(new BigInteger("2"));
+    while(m.gcd(e).intValue() > 1) {
+      e = e.add(new BigInteger("2"));
+    }
     d = e.modInverse(m);
   }
 
@@ -81,7 +83,9 @@ public class RSA
     BigInteger m = (p.subtract(BigInteger.ONE))
                    .multiply(q.subtract(BigInteger.ONE));
     e = new BigInteger("3");
-    while(m.gcd(e).intValue() > 1) e = e.add(new BigInteger("2"));
+    while(m.gcd(e).intValue() > 1) {
+      e = e.add(new BigInteger("2"));
+    }
     d = e.modInverse(m);
   }
 

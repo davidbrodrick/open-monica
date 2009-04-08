@@ -13,7 +13,6 @@ import atnf.atoms.mon.client.MonitorClientCustom;
 import atnf.atoms.mon.SavedSetup;
 
 import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 
 /**
@@ -86,7 +85,9 @@ extends SaveSetupFrame
     String[] setupnames = MonClientUtil.getSetupNames("atnf.atoms.mon.gui.MonFrame");
     boolean alreadyexists = false;
     for (int i=0; i<setupnames.length; i++) {
-      if (setupnames[i].startsWith(firstcomponent)) alreadyexists=true;
+      if (setupnames[i].startsWith(firstcomponent)) {
+        alreadyexists=true;
+      }
     }
     if (!alreadyexists) {
       String[] options = {"Continue", "Cancel"};
@@ -104,7 +105,9 @@ extends SaveSetupFrame
 					   null,     //don't use a custom Icon
 					   options,  //the titles of buttons
 					   "Cancel"); //default button title
-      if (n==1) return false;
+      if (n==1) {
+        return false;
+      }
     }
     try {
       if (itsUser.getText().equals("") || itsPass.getPassword().equals("")) {

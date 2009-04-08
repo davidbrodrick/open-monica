@@ -70,7 +70,9 @@ implements PointListener, ActionListener
       add(new JScrollPane(itsMainPanel), BorderLayout.CENTER);
 
       //Display the current setup on the GUI
-      if (itsInitialSetup!=null) showSetup(itsInitialSetup);
+      if (itsInitialSetup!=null) {
+        showSetup(itsInitialSetup);
+      }
     }
 
     /** Return the current setup, as determined by the GUI controls.
@@ -92,8 +94,9 @@ implements PointListener, ActionListener
       if (points.size()>0) {
         p += points.get(0);
         //Then add rest of point names with a delimiter
-        for (int i=1; i<points.size(); i++)
+        for (int i=1; i<points.size(); i++) {
           p += ":" + points.get(i);
+        }
       }
       ss.put("points", p);
 
@@ -147,8 +150,11 @@ implements PointListener, ActionListener
 
       String s=(String)setup.get("inertia");
       if (s!=null) {
-        if (s.equals("true")) itsStaleBad.setSelected(true);
-        else itsStaleBad.setSelected(false);
+        if (s.equals("true")) {
+          itsStaleBad.setSelected(true);
+        } else {
+          itsStaleBad.setSelected(false);
+        }
       }
     }
   }
@@ -254,7 +260,9 @@ implements PointListener, ActionListener
           wasupdated=true;
         }
       }
-      if (wasupdated) fireTableStructureChanged();
+      if (wasupdated) {
+        fireTableStructureChanged();
+      }
     }
 
     /** Remove the given point from the table and return its name. */
@@ -295,7 +303,9 @@ implements PointListener, ActionListener
     fireTableStructureChanged()
     {
       super.fireTableStructureChanged();
-      if (itsTable!=null) setSizes();
+      if (itsTable!=null) {
+        setSizes();
+      }
     }
     
     /** Return the number of rows in the table. */
@@ -304,8 +314,11 @@ implements PointListener, ActionListener
     getRowCount()
     {
       synchronized (itsPoints) {
-        if (itsPoints==null) return 0;
-        else return itsPoints.size();
+        if (itsPoints==null) {
+          return 0;
+        } else {
+          return itsPoints.size();
+        }
       }
     }
 
@@ -323,9 +336,13 @@ implements PointListener, ActionListener
     getColumnName(int column)
     {
       String res = null;
-      if (column==0) res = "Value";
-      else if (column==1) res = "Point";
-      else if (column==2) res = "Source";
+      if (column==0) {
+        res = "Value";
+      } else if (column==1) {
+        res = "Point";
+      } else if (column==2) {
+        res = "Source";
+      }
       return res;
     }
 
@@ -361,17 +378,20 @@ implements PointListener, ActionListener
     {
       Component res = null;
       synchronized (itsPoints) {
-        if (value==null) return null;
+        if (value==null) {
+          return null;
+        }
       
         String pointname = (String)itsPoints.get(row);
         PointData pd = (PointData)itsValues.get(pointname);
         PointMonitor pm = DataMaintainer.getPointFromMap(pointname);
-        PointLimit limits = pm.getLimits();
-        if (pd==null || limits==null || limits.checkLimits(pd)) {
+        if (pd==null || pm.checkLimits(pd)) {
           res=new JLabel(value.toString());
         } else {
           res=new JLabel(value.toString());
-          if (res instanceof JComponent) ((JComponent)res).setOpaque(true);
+          if (res instanceof JComponent) {
+            ((JComponent)res).setOpaque(true);
+          }
           res.setForeground(Color.red);
           res.setBackground(Color.yellow);
         }
@@ -395,8 +415,7 @@ implements PointListener, ActionListener
           String pointname=(String)itsPoints.get(i);
           PointData pd = (PointData)itsValues.get(pointname);
           PointMonitor pm = DataMaintainer.getPointFromMap(pointname);
-          PointLimit limits = pm.getLimits();
-          if (pd==null || !limits.checkLimits(pd)) {
+          if (pd==null || !pm.checkLimits(pd)) {
             return true;
           }
         }
@@ -614,8 +633,9 @@ implements PointListener, ActionListener
       //Get the list of points to be monitored
       String p = (String)setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
-      while (stp.hasMoreTokens())
+      while (stp.hasMoreTokens()) {
         itsPoints.add(stp.nextToken());
+      }
       DataMaintainer.subscribe(itsPoints, this);
       itsSizeLabel.setText("This watchdog is monitoring " + itsPoints.size() + " points");
       
@@ -628,8 +648,11 @@ implements PointListener, ActionListener
       //See whether unavailable data is to be treated as an alarm condition
       String s = (String)setup.get("stale");
       if (s!=null) {
-        if (s.equals("false")) itsStaleOK=true;
-        else itsStaleOK=false;
+        if (s.equals("false")) {
+          itsStaleOK=true;
+        } else {
+          itsStaleOK=false;
+        }
       }
     } catch (final Exception e) {
       e.printStackTrace();
@@ -671,8 +694,9 @@ implements PointListener, ActionListener
     if (itsPoints.size()>0) {
       p += itsPoints.get(0);
       //Then add rest of point names with a delimiter
-      for (int i=1; i<itsPoints.size(); i++)
+      for (int i=1; i<itsPoints.size(); i++) {
         p += ":" + itsPoints.get(i);
+      }
     }
     ss.put("points", p);
 
@@ -699,24 +723,28 @@ implements PointListener, ActionListener
         PointMonitor pm = DataMaintainer.getPointFromMap(fullname);
         long age = (new AbsTime()).getValue() - newval.getTimestamp().getValue();
         long period = pm.getPeriod();
-        PointLimit limits = pm.getLimits();
         if (newval.isValid() && (period==0 || age<5*period)) {
-          if (limits!=null) {
             //Get alarm counter for this point
             Integer icount = (Integer)itsAlarmCounts.get(fullname);
             int count=0;
-            if (icount!=null) count=icount.intValue();
+            if (icount!=null) {
+              count=icount.intValue();
+            }
             //Check if current update is in alarm state
-            if (limits.checkLimits(newval)) {
+            if (pm.checkLimits(newval)) {
               //Value is currently okay
-              if (count>0) count--;
+              if (count>0) {
+                count--;
+              }
               if (count==0) {
                 //Was in alarm state but now okay, remove from table
                 itsActiveModel.removePoint(fullname);
               }
             } else {
               //Value is in alarm state
-              if (count<=itsInertia) count++;
+              if (count<=itsInertia) {
+                count++;
+              }
               if (count==itsInertia) {
                 //Ensure alarm is triggered if point is not ignored
                 if (itsActiveModel.getPoints().indexOf(fullname)==-1 &&
@@ -726,11 +754,6 @@ implements PointListener, ActionListener
               }
             }
             itsAlarmCounts.put(fullname, new Integer(count));
-          } else {
-            //Has current data and can't be in alarm state so remove any alarm
-            //which may have been set if data was previously stale
-            itsActiveModel.removePoint(fullname);
-          }
         } else {
           //Point is invalid or data is stale
           if (!itsStaleOK) {
@@ -799,7 +822,9 @@ implements PointListener, ActionListener
       sleep.sleep(); //Clips start of clip without this
       clip.start();
       //Wait until clip is finished then release the sound card 
-      while (clip.isActive()) Thread.yield();
+      while (clip.isActive()) {
+        Thread.yield();
+      }
       clip.drain();
       sleep.sleep(); //Clips end of clip without this
       clip.close();

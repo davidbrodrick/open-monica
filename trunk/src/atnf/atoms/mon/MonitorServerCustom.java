@@ -11,11 +11,9 @@ package atnf.atoms.mon;
 import atnf.atoms.util.*;
 import atnf.atoms.time.*;
 import atnf.atoms.mon.util.*;
-import atnf.atoms.mon.archiver.*;
 import java.io.*;
 import java.util.*;
 import java.net.*;
-import java.util.zip.*;
 
 /**
  * Provides network access to the server using a custom encoding scheme based
@@ -90,7 +88,9 @@ implements Runnable
   getData(MonRequest req)
   {
     //Sanity check
-    if (req==null || req.Args==null || req.Args.length<1) return null;
+    if (req==null || req.Args==null || req.Args.length<1) {
+      return null;
+    }
 
     if (req.Args.length==1) {
       if (req.Args[0] instanceof String) {
@@ -99,7 +99,9 @@ implements Runnable
       } else if (req.Args[0] instanceof Vector) {
         //Latest data for a batch of points
         Vector arg = (Vector)req.Args[0];
-        if (arg==null || arg.size()==0) return null;
+        if (arg==null || arg.size()==0) {
+          return null;
+        }
         Vector res = new Vector(arg.size());
         //Get the latest value for each
         for (int i=0; i<arg.size(); i++) {
@@ -161,73 +163,34 @@ implements Runnable
   PointData
   getPointNames(MonRequest req)
   {
-    if (req == null) return null;
+    if (req == null) {
+      return null;
+    }
     // All names, no filtering
-    if (req.Args == null || req.Args.length == 0) return new PointData(MonitorMap.getPointNames());
+    if (req.Args == null || req.Args.length == 0) {
+      return new PointData(MonitorMap.getPointNames());
+    }
     // Get by source
     return new PointData(MonitorMap.getPointNames((String)req.Args[0]));
   }
-
-
-  public
-  PointData
-  getPointNamesShort(MonRequest req)
-  {
-    if (req == null) return null;
-    // All names, no filtering
-    if (req.Args == null || req.Args.length == 0) return new PointData(MonitorMap.getPointNamesShort());
-    // Get by source
-    return new PointData(MonitorMap.getPointNamesShort((String)req.Args[0]));
-  }
-
-
-  /** Return source names for all, a single, or multiple, point names. */
-  public
-  PointData
-  getSources(MonRequest req)
-  {
-    if (req == null) return null;
-    
-    if (req.Args == null || req.Args.length == 0) {
-      //All sources
-      return new PointData(MonitorMap.getSources());
-    } else if (req.Args[0] instanceof String) {
-      //Sources for a single point
-      return new PointData(MonitorMap.getSources((String)req.Args[0]));
-    } else if (req.Args[0] instanceof Vector) {
-      //Sources for multiple points
-      Vector points = (Vector)req.Args[0];
-      if (points==null || points.size()==0) return null;
-      Vector res = new Vector(points.size());
-      for (int i=0; i<points.size(); i++) {
-        if (points.get(i)!=null && points.get(i) instanceof String) {
-          String[] sources = MonitorMap.getSources((String)points.get(i));
-          if (sources==null || sources.length==0) res.add(null);
-          else res.add(sources);
-        } else res.add(null);
-      }
-      return new PointData(res);
-    } else {
-      //Argument was not understood
-      return null;
-    }
-  }
-
 
   public
   PointData
   addPoint(MonRequest req)
   {
     //Preconditions
-    if (req==null || req.Args==null || req.Args.length<3) return null;
+    if (req==null || req.Args==null || req.Args.length<3) {
+      return null;
+    }
 
-    ArrayList points = PointInteraction.parseLine((String)req.Args[0]);
+    ArrayList points = PointMonitor.parseLine((String)req.Args[0]);
 
     //Decrypt and check the users credentials
     String username = MonitorMap.decrypt((String)req.Args[1]);
     String password = MonitorMap.decrypt((String)req.Args[2]);
-    if (!atnf.atoms.mon.util.Authenticator.check(username, password))
+    if (!atnf.atoms.mon.util.Authenticator.check(username, password)) {
       return null;
+    }
 
     //Log a message
     MonitorMap.logger.information("" + username + "@" +
@@ -245,12 +208,16 @@ implements Runnable
   PointData
   getPoint(MonRequest req)
   {
-    if (req == null || req.Args == null || req.Args.length < 1) return null;
+    if (req == null || req.Args == null || req.Args.length < 1) {
+      return null;
+    }
 
     if (req.Args[0] instanceof Vector) {
       //Batch of points were requested
       Vector arg = (Vector)req.Args[0];
-      if (arg==null || arg.size()==0) return null;
+      if (arg==null || arg.size()==0) {
+        return null;
+      }
 
       Vector res = new Vector(arg.size());
       for (int i=0; i< arg.size(); i++) {
@@ -285,13 +252,16 @@ implements Runnable
   setPoint(MonRequest req)
   {
     //preconditions
-    if (req==null || req.Args==null || req.Args.length<4) return null;
+    if (req==null || req.Args==null || req.Args.length<4) {
+      return null;
+    }
 
     //Decrypt and check the users credentials
     String username = MonitorMap.decrypt((String)req.Args[2]);
     String password = MonitorMap.decrypt((String)req.Args[3]);
-    if (!atnf.atoms.mon.util.Authenticator.check(username, password))
+    if (!atnf.atoms.mon.util.Authenticator.check(username, password)) {
       return null;
+    }
 
     System.err.println("MonitorClientCustom:setPoint: UNIMPLEMENTED!");
     return new PointData(new Boolean(true));
@@ -314,35 +284,39 @@ implements Runnable
   PointData
   getTransaction(MonRequest req)
   {
-    if (req == null || req.Args == null || req.Args.length != 1) return null;
+    if (req == null || req.Args == null || req.Args.length != 1) {
+      return null;
+    }
 
     if (req.Args[0] instanceof Vector) {
       //Batch of points were requested
       Vector arg = (Vector)req.Args[0];
-      if (arg==null || arg.size()==0) return null;
+      if (arg==null || arg.size()==0) {
+        return null;
+      }
 
       Vector res = new Vector(arg.size());
       for (int i=0; i< arg.size(); i++) {
-        PointInteraction pm = MonitorMap.getPointInteraction((String)arg.get(i));
+        PointMonitor pm = MonitorMap.getPointMonitor((String)arg.get(i));
         if (pm==null) {
           //Wasn't found
           res.add(null);
         } else {
-          res.add(pm.getTransactionString());
+          res.add(pm.getInputTransactionString());
         }
       }
       return new PointData(res);
     } else if (req.Args[0] instanceof String) {
       //Single point was requested
-      PointInteraction pm = MonitorMap.getPointInteraction((String)req.Args[0]);
+      PointMonitor pm = MonitorMap.getPointMonitor((String)req.Args[0]);
       if (pm==null) {
         //Wasn't found
         return null;
       }
       System.err.println("Got request for Transaction:");
       System.err.println("pm=" + pm);
-      System.err.println("trans=" + pm.getTransactionString());
-      return new PointData(pm.getTransactionString());
+      System.err.println("trans=" + pm.getInputTransactionString());
+      return new PointData(pm.getInputTransactionString());
     } else {
       System.err.println("MonitorServerCustom:getTransaction: Unexpected Argument...");
       return null;
@@ -358,16 +332,20 @@ implements Runnable
   PointData
   getTranslations(MonRequest req)
   {
-    if (req == null || req.Args == null || req.Args.length != 1) return null;
+    if (req == null || req.Args == null || req.Args.length != 1) {
+      return null;
+    }
 
     if (req.Args[0] instanceof Vector) {
       //Batch of points were requested
       Vector arg = (Vector)req.Args[0];
-      if (arg==null || arg.size()==0) return null;
+      if (arg==null || arg.size()==0) {
+        return null;
+      }
 
       Vector res = new Vector(arg.size());
       for (int i=0; i< arg.size(); i++) {
-        PointInteraction pm = MonitorMap.getPointInteraction((String)arg.get(i));
+        PointMonitor pm = MonitorMap.getPointMonitor((String)arg.get(i));
         if (pm==null) {
           //Wasn't found
           res.add(null);
@@ -378,7 +356,7 @@ implements Runnable
       return new PointData(res);
     } else if (req.Args[0] instanceof String) {
       //Single point was requested
-      PointInteraction pm = MonitorMap.getPointInteraction((String)req.Args[0]);
+      PointMonitor pm = MonitorMap.getPointMonitor((String)req.Args[0]);
       if (pm==null) {
         return null;
       }
@@ -408,14 +386,17 @@ implements Runnable
   addSetup(MonRequest req)
   {
     //preconditions
-    if (req==null || req.Args==null || req.Args.length<3) return null;
+    if (req==null || req.Args==null || req.Args.length<3) {
+      return null;
+    }
 
     //Decrypt and check the users credentials
     String username = MonitorMap.decrypt((String)req.Args[0]);
     System.err.println("DECRYPTED USERNAME = " + username);
     String password = MonitorMap.decrypt((String)req.Args[1]);
-    if (!atnf.atoms.mon.util.Authenticator.check(username, password))
+    if (!atnf.atoms.mon.util.Authenticator.check(username, password)) {
       return null;
+    }
 
     //Retrieve the SavedSetup and add it to the system
     SavedSetup setup = (SavedSetup)req.Args[2];
@@ -486,23 +467,6 @@ implements Runnable
   {
     MonRequest req = null;
     try {
-
-/*       // Failed GZIP technique, only use if compressing large chunks
-         GZIPOutputStream gout = new GZIPOutputStream(socket.getOutputStream());
-	 output = new ObjectOutputStream(gout);
-	 output.flush();
-	 gout.finish();
-         GZIPInputStream gin = new GZIPInputStream(socket.getInputStream());
-	 input = new ObjectInputStream(gin);
-*/
-/*       // Compression - good for large data, bad for small - CPU intensive
-         CompressedOutputStream cos = new CompressedOutputStream(socket.getOutputStream());      
-	 output = new ObjectOutputStream(cos);
-	 output.flush();
-         CompressedInputStream cis = new CompressedInputStream(socket.getInputStream());
-	 input = new ObjectInputStream(cis);
-*/
-      // No compression but still fairly efficient
       itsOutput = new ObjectOutputStream(itsSocket.getOutputStream());
       itsOutput.flush();
       itsInput = new ObjectInputStream(itsSocket.getInputStream());
@@ -524,15 +488,9 @@ implements Runnable
       break;
       case MonRequest.SETPOINT:      res = setPoint(req);
       break;
-      case MonRequest.GETPOINTNAMES: res = getPointNames(req);
-      break;
-      case MonRequest.GETSOURCES:    res = getSources(req);
-      break;
       case MonRequest.ADDPOINT:      res = addPoint(req);
       break;
       case MonRequest.GETKEY:        res = getPublicKey();
-      break;
-      case MonRequest.GETPOINTNAMES_SHORT: res = getPointNamesShort(req);
       break;
       case MonRequest.GETALLPOINTS:  res = getAllPoints();
       break;
@@ -544,11 +502,16 @@ implements Runnable
       break;
       case MonRequest.GETTRANSLATION: res = getTranslations(req);
       break;
+      case MonRequest.GETPOINTNAMES: res = getPointNames(req);
+      break;      
       default: System.err.println("MonitorServerCustom: Invalid request");
       }
       try {
-	if (res != null && res instanceof PointData) itsOutput.writeObject(res);
-	else itsOutput.writeObject(new PointData(null));
+	if (res != null && res instanceof PointData) {
+    itsOutput.writeObject(res);
+  } else {
+    itsOutput.writeObject(new PointData(null));
+  }
 	itsOutput.flush();
 	itsOutput.reset(); //Stops memory leak
       } catch (java.net.SocketException e) {
@@ -586,7 +549,9 @@ implements Runnable
 	    //Await a new client connection
 	    Socket soc = ss.accept();
 	    //Got a new client connection, spawn a server to service it
-	    if (soc!=null) new MonitorServerCustom(soc);
+	    if (soc!=null) {
+        new MonitorServerCustom(soc);
+      }
 	  }
 	  catch (IOException ie) {}
 	}

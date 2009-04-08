@@ -7,11 +7,9 @@
 
 package atnf.atoms.mon.datasource;
 
-import java.util.StringTokenizer;
-import java.util.HashMap;
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.transaction.TransactionStrings;
+import atnf.atoms.mon.transaction.*;
 
 /**
  * Reads data from a DS1820 based temperature sensor board, initially
@@ -72,7 +70,8 @@ extends DataSourceASCIISocket
   parseData(PointMonitor requestor)
   throws Exception
   {
-    TransactionStrings thistrans=(TransactionStrings)requestor.getTransaction();
+    //Get the Transaction which associates the point with us
+    TransactionStrings thistrans=(TransactionStrings)getMyTransactions(requestor.getInputTransactions()).get(0);
 
     //The Transaction should contain a numeric channel id
     if (thistrans.getNumStrings()<1) {
@@ -126,18 +125,24 @@ extends DataSourceASCIISocket
             String[] tokens=line.split(" ");
 	    
             //Check correct number of tokens in string
-            if (tokens.length!=2) continue;
+            if (tokens.length!=2) {
+              continue;
+            }
 
             //Get sensor id number
             int thissensor;
             try {
               thissensor=Integer.parseInt(tokens[0]);
             } catch (Exception f) {continue;}
-            if (thissensor<1 || thissensor>theirNumSensors) continue;
+            if (thissensor<1 || thissensor>theirNumSensors) {
+              continue;
+            }
             thissensor--;
 						
             //Parse float
-            if (tokens[1].indexOf(".")==-1) continue;
+            if (tokens[1].indexOf(".")==-1) {
+              continue;
+            }
             Float thistemp;
             try {
               thistemp=new Float(tokens[1]);

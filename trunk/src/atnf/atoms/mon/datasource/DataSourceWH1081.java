@@ -7,7 +7,6 @@
 
 package atnf.atoms.mon.datasource;
 
-import java.util.*;
 import java.io.*;
 import atnf.atoms.time.RelTime;
 import atnf.atoms.mon.*;
@@ -145,22 +144,39 @@ extends DataSource
       line = stdInput.readLine();
       String wind_dir_temp=line.substring(20,line.length()).trim();
       double wdir;
-      if (wind_dir_temp.equals("N")) wdir=0;
-      else if (wind_dir_temp.equals("NNE")) wdir=22.5;
-      else if (wind_dir_temp.equals("NE"))  wdir=45.0;
-      else if (wind_dir_temp.equals("ENE")) wdir=67.5;
-      else if (wind_dir_temp.equals("E"))   wdir=90.0;
-      else if (wind_dir_temp.equals("ESE")) wdir=112.5;
-      else if (wind_dir_temp.equals("SE"))  wdir=135.0;
-      else if (wind_dir_temp.equals("SSE")) wdir=157.5;
-      else if (wind_dir_temp.equals("S"))   wdir=180.0;
-      else if (wind_dir_temp.equals("SSW")) wdir=202.5;
-      else if (wind_dir_temp.equals("SW"))  wdir=225.0;
-      else if (wind_dir_temp.equals("WSW")) wdir=247.5;
-      else if (wind_dir_temp.equals("W"))   wdir=270.0;
-      else if (wind_dir_temp.equals("WNW")) wdir=295.2;
-      else if (wind_dir_temp.equals("NW"))  wdir=315.0;
-      else wdir=337.5;
+      if (wind_dir_temp.equals("N")) {
+        wdir=0;
+      } else if (wind_dir_temp.equals("NNE")) {
+        wdir=22.5;
+      } else if (wind_dir_temp.equals("NE")) {
+        wdir=45.0;
+      } else if (wind_dir_temp.equals("ENE")) {
+        wdir=67.5;
+      } else if (wind_dir_temp.equals("E")) {
+        wdir=90.0;
+      } else if (wind_dir_temp.equals("ESE")) {
+        wdir=112.5;
+      } else if (wind_dir_temp.equals("SE")) {
+        wdir=135.0;
+      } else if (wind_dir_temp.equals("SSE")) {
+        wdir=157.5;
+      } else if (wind_dir_temp.equals("S")) {
+        wdir=180.0;
+      } else if (wind_dir_temp.equals("SSW")) {
+        wdir=202.5;
+      } else if (wind_dir_temp.equals("SW")) {
+        wdir=225.0;
+      } else if (wind_dir_temp.equals("WSW")) {
+        wdir=247.5;
+      } else if (wind_dir_temp.equals("W")) {
+        wdir=270.0;
+      } else if (wind_dir_temp.equals("WNW")) {
+        wdir=295.2;
+      } else if (wind_dir_temp.equals("NW")) {
+        wdir=315.0;
+      } else {
+        wdir=337.5;
+      }
       res[6]=new Float(wdir);
       line = stdInput.readLine();
       line = stdInput.readLine();
@@ -181,7 +197,9 @@ extends DataSource
       } else {
         //Compare all elements except rain
         for (int i=0; i<theirNumElements; i++) {
-          if (i==theirRainElement) continue;
+          if (i==theirRainElement) {
+            continue;
+          }
           if (itsLastData[i].floatValue()!=res[i].floatValue()) {
             datachanged=true;
             break;

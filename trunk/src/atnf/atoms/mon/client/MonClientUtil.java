@@ -16,7 +16,6 @@ import javax.swing.tree.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.gui.*;
 import atnf.atoms.mon.util.*;
-import atnf.atoms.util.*;
 
 /**
  * MonClientUtil is a client-side class which contains various methods to
@@ -45,16 +44,11 @@ public class MonClientUtil
   /** Short descriptive name of the user-selected server. */
   private static String theirServerName;
 
-  /** Records if we have downloaded the list of available SavedSetups
-   * from the network server. Normally this will be done at class load time
-   * but if the network server is unavailable at that time then we have
-   * no option but to delay the operation until the server is available. */
-  private static boolean theirHasGotServerSetups;
-
+  /** Cached copy of monitor point name list */
+  private static String[] theirPointNameCache;
 
   /** Initialise stuff. */
   static {
-    theirHasGotServerSetups = false;
     String host = null;
     Vector chosenserver = null;
 
@@ -75,7 +69,9 @@ public class MonClientUtil
       try {
         //Get the list of server definitions
         InputStream res = MonClientUtil.class.getClassLoader().getResourceAsStream("monitor-servers.txt");
-        if (res==null) throw new Exception();
+        if (res==null) {
+          throw new Exception();
+        }
         BufferedReader serversfile = new BufferedReader(new InputStreamReader(res));
         int linecounter=0;
         int def=-1;
@@ -83,8 +79,9 @@ public class MonClientUtil
           String thisline=serversfile.readLine();
           linecounter++;
 
-          if (thisline.startsWith("#") || thisline.trim().equals(""))
-          continue;
+          if (thisline.startsWith("#") || thisline.trim().equals("")) {
+            continue;
+          }
 
           if (thisline.startsWith("default")) {
             //This line specifies the default server to use
@@ -148,6 +145,7 @@ public class MonClientUtil
       theirSetups = new Hashtable();
       addServerSetups(); //Get all SavedSetups from server
       addLocalSetups();  //Also load any which have been saved locally
+      cachePointNames(); //Cache the list of points available on the server
     } catch (Exception e) {
       if (headless.equals("true")) {
         System.err.println("MonClientUtil: ERROR: Couldn't connect to server. Goodbye.");
@@ -199,14 +197,9 @@ public class MonClientUtil
   MonitorClientCustom
   getServer()
   {
-    if (!theirServer.isConnected())
+    if (!theirServer.isConnected()) {
       try { theirServer.connect(); } catch (Exception e) { }
-
-    if (theirHasGotServerSetups==false) {
-      //Still need to load setups from server
-      addServerSetups();
     }
-
     return theirServer;
   }
 
@@ -218,10 +211,10 @@ public class MonClientUtil
   {
     theirServer = new MonitorClientCustom(newserver);
 
-    if (!theirServer.isConnected())
+    if (!theirServer.isConnected()) {
       try { theirServer.connect(); } catch (Exception e) { }
+    }
 
-    theirHasGotServerSetups=false;
     theirSetups = new Hashtable();
     //Need to load setups from server
     addServerSetups();
@@ -229,25 +222,90 @@ public class MonClientUtil
     addLocalSetups();  
   }
 
+  
+  /** Cache the list of points available from the server. */
+  private static
+  void
+  cachePointNames()
+  {    
+    try {
+      if (!theirServer.isConnected()) {
+        try { theirServer.connect(); } catch (Exception e) { }
+      }
+      theirPointNameCache = theirServer.getPointNames();
+    } catch (Exception e) {
+      System.err.println("MonClientUtil.cachePointNames: ERROR communicating with server. Cannot continue!");
+      System.exit(1);
+    }
+  }
+  
+  /** Return the cached list of all point names. */
+  public static
+  String[]
+  getAllPoints()
+  {
+    return theirPointNameCache;
+  }
 
+  /** Return the names of all sources for each of the given points.
+   * The return Vector will be of the same length as the argument Vector. Each
+   * entry will be an array of Strings or possibly <tt>null</tt>.
+   * @param names Vector containing String names for the points.
+   * @return Vector containing an array of names for each requested point. */
+  public static 
+  Vector
+  getSources(Vector points)
+  {
+    if (points==null || points.size()==0) {
+      return null;
+    }
+    
+    Vector res = new Vector(points.size());
+    for (int i=0; i<points.size(); i++) {
+      if (points.get(i)!=null && points.get(i) instanceof String) {
+        String searchname=(String)points.get(i);
+        Vector match = new Vector();
+        for (int j=0; j<theirPointNameCache.length; j++) {
+          String thispoint=theirPointNameCache[j];
+          int doti = thispoint.indexOf(".");
+          String source = thispoint.substring(0, doti);
+          String thisname = thispoint.substring(doti+1, thispoint.length());
+          if (thisname.equals(searchname)) {
+            match.add(source);
+          }
+        }
+        if (match.size()==0) {
+          res.add(null);
+        } else {
+          res.add(match);
+        }
+      } else {
+        res.add(null);
+      }
+    }
+    return res;
+  }
+    
   /** Download all the SavedSetups which are available on the server
    * and add them to our collection. */
   public static
   void
   addServerSetups()
   {
-    if (!theirServer.isConnected())
+    if (!theirServer.isConnected()) {
       try { theirServer.connect(); } catch (Exception e) { }
+    }
 
     if (theirServer.isConnected()) {
       SavedSetup[] setups = theirServer.getAllSetups();
-      theirHasGotServerSetups = true;
       if (setups!=null && setups.length>0) {
         System.err.println("MonClientUtil:addServerSetups: Loaded "
                            + setups.length + " setups from server");
         //Convert to Vector form
         Vector v = new Vector(setups.length);
-        for (int i=0; i<setups.length; i++) v.add(setups[i]);
+        for (int i=0; i<setups.length; i++) {
+          v.add(setups[i]);
+        }
         mergeSetups(v);
       } else {
         System.err.println("MonClientUtil:addServerSetups: None available");
@@ -300,7 +358,9 @@ public class MonClientUtil
   void
   mergeSetups(Vector setups)
   {
-    if (setups==null || setups.size()==0) return;
+    if (setups==null || setups.size()==0) {
+      return;
+    }
 
     for (int i=0; i<setups.size(); i++) {
       SavedSetup thissetup = (SavedSetup)setups.get(i);
@@ -370,11 +430,15 @@ public class MonClientUtil
 
     //Get the container of all setups for the required class
     Hashtable setups = (Hashtable)theirSetups.get(c);
-    if (setups==null) return null;
+    if (setups==null) {
+      return null;
+    }
 
     Set keyset = setups.keySet();
     Object[] setupnames = keyset.toArray();
-    if (setupnames==null || setupnames.length==0) return null;
+    if (setupnames==null || setupnames.length==0) {
+      return null;
+    }
 
     for (int i=0; i<setupnames.length; i++) {
       String name = (String)setupnames[i];
@@ -393,7 +457,9 @@ public class MonClientUtil
   {
     //Get the container of all setups for the required class
     Hashtable setups = (Hashtable)theirSetups.get(c);
-    if (setups==null) return new String[0];
+    if (setups==null) {
+      return new String[0];
+    }
 
     Object[] allnames = setups.keySet().toArray();
     String[] res = new String[setups.size()];
@@ -414,7 +480,9 @@ public class MonClientUtil
   {
     //Get the container of all setups for the required class
     Hashtable setups = (Hashtable)theirSetups.get(c);
-    if (setups==null) return null;
+    if (setups==null) {
+      return null;
+    }
     return (SavedSetup)setups.get(name);
   }
 
@@ -444,7 +512,9 @@ public class MonClientUtil
   getSetupMenu(String c)
   {
     TreeUtil res = getSetupTreeUtil(c);
-    if (res==null) return null;
+    if (res==null) {
+      return null;
+    }
     return res.getMenus();
   }
 
@@ -461,7 +531,9 @@ public class MonClientUtil
   getSetupMenu(String c, JMenu menu)
   {
     TreeUtil res = getSetupTreeUtil(c);
-    if (res==null) return;
+    if (res==null) {
+      return;
+    }
     res.getMenus(menu);
   }
 
@@ -479,7 +551,9 @@ public class MonClientUtil
   getSetupMenu(String c, ActionListener listener)
   {
     TreeUtil res = getSetupTreeUtil(c);
-    if (res==null) return null;
+    if (res==null) {
+      return null;
+    }
     res.addActionListener(listener);
     return res.getMenus();
   }
@@ -498,7 +572,9 @@ public class MonClientUtil
   getSetupMenu(String c, ActionListener listener, JMenu parent)
   {
     TreeUtil res = getSetupTreeUtil(c);
-    if (res==null) return;
+    if (res==null) {
+      return;
+    }
     res.addActionListener(listener);
     res.getMenus(parent);
   }
@@ -661,7 +737,9 @@ public class MonClientUtil
               int targeti;
               for (targeti=0; targeti<tempNode.getChildCount(); targeti++) {
                 TreeNode bNode = tempNode.getChildAt(targeti);
-                if (bNode.isLeaf() || (bNode.toString().compareToIgnoreCase(myTok)>0 && !bNode.toString().equals("favourites"))) break;
+                if (bNode.isLeaf() || (bNode.toString().compareToIgnoreCase(myTok)>0 && !bNode.toString().equals("favourites"))) {
+                  break;
+                }
               }
               tempNode.insert(aNode, targeti);
             }
@@ -670,7 +748,9 @@ public class MonClientUtil
             int targeti;
             for (targeti=0; targeti<tempNode.getChildCount(); targeti++) {
               TreeNode bNode = tempNode.getChildAt(targeti);
-              if (bNode.isLeaf() && bNode.toString().compareToIgnoreCase(myTok)>0) break;
+              if (bNode.isLeaf() && bNode.toString().compareToIgnoreCase(myTok)>0) {
+                break;
+              }
             }
             tempNode.insert(aNode, targeti);
           }

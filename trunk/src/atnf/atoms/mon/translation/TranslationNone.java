@@ -7,10 +7,7 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
-import java.lang.reflect.*;
 
 /**
  * Translation that does nothing but return the argument.

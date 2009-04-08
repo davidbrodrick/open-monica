@@ -10,13 +10,11 @@ package atnf.atoms.mon.gui.monpanel;
 
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.gui.*;
-import atnf.atoms.mon.client.*;
 import atnf.atoms.time.*;
 
 import java.util.Vector;
 import java.util.StringTokenizer;
 import javax.swing.*;
-import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.PrintStream;
@@ -82,7 +80,9 @@ extends MonPanel
       add(new JScrollPane(itsMainPanel), BorderLayout.CENTER);
 
       //Display the current setup on the GUI
-      if (itsInitialSetup!=null) showSetup(itsInitialSetup);
+      if (itsInitialSetup!=null) {
+        showSetup(itsInitialSetup);
+      }
     }
 
     /** Return the current setup, as determined by the GUI controls.
@@ -104,8 +104,9 @@ extends MonPanel
       if (points.size()>0) {
         p += points.get(0);
         //Then add rest of point names with a delimiter
-        for (int i=1; i<points.size(); i++)
+        for (int i=1; i<points.size(); i++) {
           p += ":" + points.get(i);
+        }
       }
       ss.put("points", p);
 
@@ -115,8 +116,9 @@ extends MonPanel
       if (sources.size()>0) {
         s += sources.get(0);
         //Then add rest of point names with a delimiter
-        for (int i=1; i<sources.size(); i++)
+        for (int i=1; i<sources.size(); i++) {
           s += ":" + sources.get(i);
+        }
       }
       ss.put("sources", s);
 
@@ -142,14 +144,16 @@ extends MonPanel
       String p = (String)setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
       Vector points = new Vector(stp.countTokens());
-      while (stp.hasMoreTokens())
+      while (stp.hasMoreTokens()) {
         points.add(stp.nextToken());
+      }
 
       String s = (String)setup.get("sources");
       StringTokenizer sts = new StringTokenizer(s, ":");
       Vector sources = new Vector(sts.countTokens());
-      while (sts.hasMoreTokens())
+      while (sts.hasMoreTokens()) {
         sources.add(sts.nextToken());
+      }
 
       itsPointSelector.setSelections(points);
       itsSourceChooser.setSelections(sources);
@@ -234,20 +238,24 @@ extends MonPanel
       }
 
       //the copy of the setup held by the frame is now incorrect
-      if (itsFrame instanceof MonFrame) ((MonFrame)itsFrame).itsSetup=null;
+      if (itsFrame instanceof MonFrame) {
+        ((MonFrame)itsFrame).itsSetup=null;
+      }
 
       ///BUT WHAT DO THESE DO IF THERE ARE NO TOKENS?
       String p = (String)setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
       Vector points = new Vector(stp.countTokens());
-      while (stp.hasMoreTokens())
+      while (stp.hasMoreTokens()) {
         points.add(stp.nextToken());
+      }
 
       String s = (String)setup.get("sources");
       StringTokenizer sts = new StringTokenizer(s, ":");
       Vector sources = new Vector(sts.countTokens());
-      while (sts.hasMoreTokens())
+      while (sts.hasMoreTokens()) {
         sources.add(sts.nextToken());
+      }
 
       //Configure our table to use the new setup
       itsModel.set(points, sources);
@@ -292,8 +300,9 @@ extends MonPanel
     if (points.size()>0) {
       p += points.get(0);
       //Then add rest of point names with a delimiter
-      for (int i=1; i<points.size(); i++)
+      for (int i=1; i<points.size(); i++) {
         p += ":" + points.get(i);
+      }
     }
     ss.put("points", p);
 
@@ -303,8 +312,9 @@ extends MonPanel
     if (sources.size()>0) {
       s += sources.get(0);
       //Then add rest of point names with a delimiter
-      for (int i=1; i<sources.size(); i++)
+      for (int i=1; i<sources.size(); i++) {
         s += ":" + sources.get(i);
+      }
     }
     ss.put("sources", s);
 
@@ -350,31 +360,4 @@ extends MonPanel
 
 
   public String getLabel() { return null; }
-
-  /** Basic test application. */
-  public static void main(String[] argv) {
-    JFrame frame = new JFrame("ATPointTable Test App");
-//    frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
-
-/*    SavedSetup seemon = new SavedSetup("temp",
-				       "atnf.atoms.mon.gui.monpanel.ATPointTable",
-				       "true:3:site.seemon.Lock1:site.seemon.Lock2:site.seemon.Lock3:1:seemon");
-
-    ATPointTable pt = new ATPointTable();
-    pt.loadSetup(seemon);
-//    frame.getContentPane().add(pt);
-    frame.setContentPane(pt);
-
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.pack();
-    frame.setVisible(true);
-*/
-/*    try {
-      RelTime sleepy = RelTime.factory(15000000l);
-      sleepy.sleep();
-    } catch (Exception e) { e.printStackTrace(); }
-
-    SavedSetup ss = pt.getSetup();
-    pt.loadSetup(ss);*/
-  }
 }

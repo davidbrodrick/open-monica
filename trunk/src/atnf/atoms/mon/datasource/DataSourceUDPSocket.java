@@ -8,7 +8,6 @@
 package atnf.atoms.mon.datasource;
 
 import java.net.*;
-import java.io.*;
 import atnf.atoms.mon.*;
 
 /**
@@ -98,7 +97,9 @@ extends DataSource
   disconnect()
   throws Exception
   {
-    if (itsSocket!=null) itsSocket.close();
+    if (itsSocket!=null) {
+      itsSocket.close();
+    }
     itsSocket = null;
     itsConnected  = false;
   }
@@ -120,7 +121,9 @@ extends DataSource
   throws Exception
   {
     //Precondition
-    if (points==null || points.length==0 || !itsConnected) return;
+    if (points==null || points.length==0 || !itsConnected) {
+      return;
+    }
 
     Object[] buf = points;
     try {
@@ -129,7 +132,9 @@ extends DataSource
         PointMonitor pm = (PointMonitor)buf[i];
         o = parseData(pm);
         //Count successful transactions
-        if (o!=null) itsNumTransactions += buf.length;
+        if (o!=null) {
+          itsNumTransactions += buf.length;
+        }
         //Fire the new data off for this point
         pm.firePointEvent(new PointEvent(this,
            new PointData(pm.getName(), pm.getSource(), o), true));

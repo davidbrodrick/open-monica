@@ -8,14 +8,9 @@
 
 package atnf.atoms.mon.datasource;
 
-import java.io.*;
 import java.util.*;
-import java.net.*;
-
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
-import atnf.atoms.mon.transaction.*;
 
 /**
  * DataSource to retrieve and process data from a Vaisala TSS928 lightning
@@ -68,7 +63,9 @@ extends DataSourceASCIISocket
       itsReader.readLine();
     } catch (Exception e) {
       try {
-        if (itsSocket!=null) itsSocket.close();
+        if (itsSocket!=null) {
+          itsSocket.close();
+        }
       } catch (Exception f) { }
       itsSocket = null;
       itsReader = null;
@@ -87,7 +84,9 @@ extends DataSourceASCIISocket
    parseData(PointMonitor requestor)
    throws Exception
    {
-     if (!itsConnected) throw new Exception("Not connected to lightning detector");
+     if (!itsConnected) {
+      throw new Exception("Not connected to lightning detector");
+    }
 
      itsWriter.write("A\r\n");
      String line1 = itsReader.readLine();
@@ -104,52 +103,70 @@ extends DataSourceASCIISocket
 
      StringTokenizer st = new StringTokenizer(line1);
      String tok = st.nextToken();
-     if (!tok.equals("NEAR:")) return null;
+     if (!tok.equals("NEAR:")) {
+      return null;
+    }
      //Strikes, Near, North
      tok = st.nextToken();
-     if (!tok.equals("N")) return null;
+     if (!tok.equals("N")) {
+      return null;
+    }
      Integer i = new Integer(st.nextToken());
      res.put("NEAR-N", i);
      numnear+=i.intValue();
      //Strikes, Near, North East
      tok = st.nextToken();
-     if (!tok.equals("NE")) return null;
+     if (!tok.equals("NE")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("NEAR-NE", i);
      numnear+=i.intValue();
      //Strikes, Near, East
      tok = st.nextToken();
-     if (!tok.equals("E")) return null;
+     if (!tok.equals("E")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("NEAR-E", i);
      numnear+=i.intValue();
      //Strikes, Near, South East
      tok = st.nextToken();
-     if (!tok.equals("SE")) return null;
+     if (!tok.equals("SE")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("NEAR-SE", i);
      numnear+=i.intValue();
      //Strikes, Near, South
      tok = st.nextToken();
-     if (!tok.equals("S")) return null;
+     if (!tok.equals("S")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("NEAR-S", i);
      numnear+=i.intValue();
      //Strikes, Near, South West
      tok = st.nextToken();
-     if (!tok.equals("SW")) return null;
+     if (!tok.equals("SW")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("NEAR-SW", i);
      numnear+=i.intValue();
      //Strikes, Near, West
      tok = st.nextToken();
-     if (!tok.equals("W")) return null;
+     if (!tok.equals("W")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("NEAR-W", i);
      numnear+=i.intValue();
      //Strikes, Near, North West
      tok = st.nextToken();
-     if (!tok.equals("NW")) return null;
+     if (!tok.equals("NW")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("NEAR-NW", i);
      numnear+=i.intValue();
@@ -157,52 +174,70 @@ extends DataSourceASCIISocket
 
      st = new StringTokenizer(line2);
      tok = st.nextToken();
-     if (!tok.equals("DIST:")) return null;
+     if (!tok.equals("DIST:")) {
+      return null;
+    }
      //Strikes, Distant, North
      tok = st.nextToken();
-     if (!tok.equals("N")) return null;
+     if (!tok.equals("N")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("DIST-N", i);
      numfar+=i.intValue();
      //Strikes, Distant, North East
      tok = st.nextToken();
-     if (!tok.equals("NE")) return null;
+     if (!tok.equals("NE")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("DIST-NE", i);
      numfar+=i.intValue();
      //Strikes, Distant, East
      tok = st.nextToken();
-     if (!tok.equals("E")) return null;
+     if (!tok.equals("E")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("DIST-E", i);
      numfar+=i.intValue();
      //Strikes, Distant, South East
      tok = st.nextToken();
-     if (!tok.equals("SE")) return null;
+     if (!tok.equals("SE")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("DIST-SE", i);
      numfar+=i.intValue();
      //Strikes, Distant, South
      tok = st.nextToken();
-     if (!tok.equals("S")) return null;
+     if (!tok.equals("S")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("DIST-S", i);
      numfar+=i.intValue();
      //Strikes, Distant, South West
      tok = st.nextToken();
-     if (!tok.equals("SW")) return null;
+     if (!tok.equals("SW")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("DIST-SW", i);
      numfar+=i.intValue();
      //Strikes, Distant, West
      tok = st.nextToken();
-     if (!tok.equals("W")) return null;
+     if (!tok.equals("W")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("DIST-W", i);
      numfar+=i.intValue();
      //Strikes, Distant, North West
      tok = st.nextToken();
-     if (!tok.equals("NW")) return null;
+     if (!tok.equals("NW")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("DIST-NW", i);
      numfar+=i.intValue();
@@ -211,47 +246,74 @@ extends DataSourceASCIISocket
      st = new StringTokenizer(line3);
      //Overhead strikes
      tok = st.nextToken();
-     if (!tok.equals("OVHD")) return null;
+     if (!tok.equals("OVHD")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      int ovhd = i.intValue();
      res.put("OVHD", i);
      //Cloud strikes
      tok = st.nextToken();
-     if (!tok.equals("CLOUD")) return null;
+     if (!tok.equals("CLOUD")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("CLOUD", i);
      //Total flashes
      tok = st.nextToken();
-     if (!tok.equals("TOTAL")) return null;
+     if (!tok.equals("TOTAL")) {
+      return null;
+    }
      i = new Integer(st.nextToken());
      res.put("TOTAL", i);
      //Result of self-test
      tok = st.nextToken();
-     if (tok.equals("P")) res.put("SLFTST", "PASS");
-     else if (tok.equals("F")) res.put("SLFTST", "FAIL");
-     else return null;
+     if (tok.equals("P")) {
+      res.put("SLFTST", "PASS");
+    } else if (tok.equals("F")) {
+      res.put("SLFTST", "FAIL");
+    } else {
+      return null;
+    }
      //Status code
      tok = st.nextToken();
      tok = (tok.replace('H', ' ')).trim();
      int status = Integer.parseInt(tok, 16);
-     if (status==0) res.put("STATUS", "OK");
-     else {
+     if (status==0) {
+      res.put("STATUS", "OK");
+    } else {
        //We can decode the error using the table on page 29 of the manual
        String error = "";
-       if ((status&1)!=0)  error += "input voltage failure, ";
-       if ((status&2)!=0)  error += "reference voltage failure, ";
-       if ((status&4)!=0)  error += "optical 5V failure, ";
-       if ((status&8)!=0)  error += "digital 5V failure, ";
-       if ((status&16)!=0) error += "analog 5V failure, ";
-       if ((status&32)!=0) error += "internal temperature failure, ";
-       if ((status&64)!=0) error += "self-test B signal failure";
+       if ((status&1)!=0) {
+        error += "input voltage failure, ";
+      }
+       if ((status&2)!=0) {
+        error += "reference voltage failure, ";
+      }
+       if ((status&4)!=0) {
+        error += "optical 5V failure, ";
+      }
+       if ((status&8)!=0) {
+        error += "digital 5V failure, ";
+      }
+       if ((status&16)!=0) {
+        error += "analog 5V failure, ";
+      }
+       if ((status&32)!=0) {
+        error += "internal temperature failure, ";
+      }
+       if ((status&64)!=0) {
+        error += "self-test B signal failure";
+      }
        res.put("STATUS", error);
      }
      //Internal temperature
      i = new Integer(st.nextToken());
      res.put("TEMP", i);
      tok = st.nextToken();
-     if (!tok.equals("C")) return null;
+     if (!tok.equals("C")) {
+      return null;
+    }
      //total strikes since last self-test
      i = new Integer(st.nextToken());
      res.put("TOTSLFTST", i);
@@ -279,13 +341,21 @@ extends DataSourceASCIISocket
        line4 = itsReader.readLine();
      }
      st = new StringTokenizer(line4);
-     if (!st.nextToken().equals("D")) return null;
+     if (!st.nextToken().equals("D")) {
+      return null;
+    }
      int d = Integer.parseInt(st.nextToken());
-     if (!st.nextToken().equals("H")) return null;
+     if (!st.nextToken().equals("H")) {
+      return null;
+    }
      int h = Integer.parseInt(st.nextToken());
-     if (!st.nextToken().equals("M")) return null;
+     if (!st.nextToken().equals("M")) {
+      return null;
+    }
      int m = Integer.parseInt(st.nextToken());
-     if (!st.nextToken().equals("S")) return null;
+     if (!st.nextToken().equals("S")) {
+      return null;
+    }
      int s = Integer.parseInt(st.nextToken());
      //get uptime as seconds
      long uptime = s + 60*m + 3600*h + 86400*d;
@@ -295,11 +365,17 @@ extends DataSourceASCIISocket
 
      int j = 1*numfar + 10*numnear + 45*ovhd;
      res.put("WEIGHTED_THREAT", new Integer(j));
-     if (j<22) j=0;       //All OK
-     else if (j<52)  j=1; //Warn of storms
-     else if (j<102) j=2; //Suggest starting gensets
-     else if (j<202) j=3; //Start gensets
-     else j=4;            //Storm stow
+     if (j<22) {
+      j=0;       //All OK
+    } else if (j<52) {
+      j=1; //Warn of storms
+    } else if (j<102) {
+      j=2; //Suggest starting gensets
+    } else if (j<202) {
+      j=3; //Start gensets
+    } else {
+      j=4;            //Storm stow
+    }
      res.put("STORM_THREAT", new Integer(j));
 
      return res;
@@ -334,6 +410,8 @@ extends DataSourceASCIISocket
      }
      System.exit(0);
 
-     while (true);
+     while (true) {
+      ;
+    }
    }
 }

@@ -11,7 +11,6 @@ package atnf.atoms.mon;
 import java.util.*;
 import java.io.*;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.util.NamedObject;
 
@@ -153,10 +152,16 @@ implements NamedObject, Comparable
   toString()
   {
     String res = "{";
-    if (itsClass!=null && !itsClass.equals("")) res += itsClass + "`";
-    else res += "null`";
-    if (itsName!=null && !itsName.equals("")) res += itsName + "`";
-    else res += "null`";
+    if (itsClass!=null && !itsClass.equals("")) {
+      res += itsClass + "`";
+    } else {
+      res += "null`";
+    }
+    if (itsName!=null && !itsName.equals("")) {
+      res += itsName + "`";
+    } else {
+      res += "null`";
+    }
 
     res += size();
 
@@ -167,8 +172,11 @@ implements NamedObject, Comparable
 	          + "`" + escape((String)me.getValue());
       res += temp;
     }
-    if (size()>0) res += "`}";
-    else res += "}";
+    if (size()>0) {
+      res += "`}";
+    } else {
+      res += "}";
+    }
     return res;
   }
 
@@ -190,9 +198,13 @@ implements NamedObject, Comparable
     }
     //Expect "{class`name`size`key1`value1`}"
     String cls = st.nextToken().substring(1).trim();
-    if (cls.equals("null")) cls = null;
+    if (cls.equals("null")) {
+      cls = null;
+    }
     String name = st.nextToken().trim();
-    if (name.equals("null")) name = "";
+    if (name.equals("null")) {
+      name = "";
+    }
     int size = Integer.parseInt(st.nextToken().trim());
     SavedSetup mps = new SavedSetup(name, cls, size);
 
@@ -224,8 +236,11 @@ implements NamedObject, Comparable
     Object[] cargv = {};
     //Find the c'tor with no arguments
     Constructor ctor = theclass.getConstructor(cargc);
-    if (ctor==null) return null;
-    else return ctor.newInstance(cargv);
+    if (ctor==null) {
+      return null;
+    } else {
+      return ctor.newInstance(cargv);
+    }
   }
 
 
@@ -264,8 +279,12 @@ implements NamedObject, Comparable
   boolean
   checkClass(Object test)
   {
-    if (test==null) return false;
-    if (!itsClass.equals(test.getClass().getName())) return false;
+    if (test==null) {
+      return false;
+    }
+    if (!itsClass.equals(test.getClass().getName())) {
+      return false;
+    }
     return true;
   }
 
@@ -278,8 +297,12 @@ implements NamedObject, Comparable
   boolean
   checkClass(String classname)
   {
-    if (classname==null) return false;
-    if (!itsClass.equals(classname)) return false;
+    if (classname==null) {
+      return false;
+    }
+    if (!itsClass.equals(classname)) {
+      return false;
+    }
     return true;
   }
 
@@ -307,8 +330,11 @@ implements NamedObject, Comparable
   String
   getName(int i)
   {
-    if (i==0) return itsName;
-    else return null;
+    if (i==0) {
+      return itsName;
+    } else {
+      return null;
+    }
   }
 
 
@@ -367,13 +393,17 @@ implements NamedObject, Comparable
 
     //Pre-process the file, exit if empty
     String[] lines = MonitorUtils.parseFile(setupfile);
-    if (lines==null) return res;
+    if (lines==null) {
+      return res;
+    }
 
     //Try to parse the lines one at a time
     for (int i=0; i<lines.length; i++) {
       try {
 	SavedSetup tempsetup = fromString(lines[i]);
-	if (tempsetup!=null) res.add(tempsetup);
+	if (tempsetup!=null) {
+    res.add(tempsetup);
+  }
       } catch (Exception e) {
 	System.err.println("ERROR PARSING SavedSetup (" + i
 			   + "): " + e.getMessage());

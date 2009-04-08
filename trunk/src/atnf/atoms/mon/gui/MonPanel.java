@@ -8,8 +8,6 @@
 
 package atnf.atoms.mon.gui;
 
-import atnf.atoms.mon.gui.monpanel.*;
-import atnf.atoms.mon.client.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.mon.SavedSetup;
 
@@ -18,7 +16,6 @@ import javax.swing.JFrame;
 import java.util.Vector;
 import java.lang.reflect.Constructor;
 import java.io.*;
-import java.net.URL;
 
 
 /**
@@ -79,7 +76,9 @@ extends JPanel
 	    try {
 	      Constructor ctor = c.getConstructor((Class[])null);
 	      temp = ctor.newInstance((Object[])null);
-              if (temp instanceof MonPanel) ((MonPanel)temp).vaporise();
+              if (temp instanceof MonPanel) {
+                ((MonPanel)temp).vaporise();
+              }
               System.err.println("OK for " + classes[i]);
 	    } catch (Exception e) {
 	      e.printStackTrace();
@@ -114,7 +113,9 @@ extends JPanel
   MonPanel
   getMonPanel(int index)
   {
-    if (index<0 || index>=theirClasses.size()) return null;
+    if (index<0 || index>=theirClasses.size()) {
+      return null;
+    }
 
     MonPanel res = null;
     try {
@@ -150,9 +151,13 @@ extends JPanel
   getNames()
   {
     int numnames = theirNames.size();
-    if (numnames==0) return null;
+    if (numnames==0) {
+      return null;
+    }
     String[] res = new String[numnames];
-    for (int i=0; i<numnames; i++) res[i] = (String)theirNames.get(i);
+    for (int i=0; i<numnames; i++) {
+      res[i] = (String)theirNames.get(i);
+    }
     return res;
   }
 
@@ -165,8 +170,9 @@ extends JPanel
   getName(Class c)
   {
     for (int i=0; i<theirClasses.size(); i++) {
-      if (((Class)theirClasses.get(i)).getName().equals(c.getName()))
-	return (String)theirNames.get(i);
+      if (((Class)theirClasses.get(i)).getName().equals(c.getName())) {
+        return (String)theirNames.get(i);
+      }
     }
     return null;
   }
@@ -179,8 +185,11 @@ extends JPanel
   String
   getName(int i)
   {
-    if (i>=0 && i<theirNames.size()) return (String)theirNames.get(i);
-    else return null;
+    if (i>=0 && i<theirNames.size()) {
+      return (String)theirNames.get(i);
+    } else {
+      return null;
+    }
   }
 
 
@@ -191,8 +200,11 @@ extends JPanel
   Class
   getClass(int i)
   {
-    if (i>=0 && i<theirClasses.size()) return (Class)theirClasses.get(i);
-    else return null;
+    if (i>=0 && i<theirClasses.size()) {
+      return (Class)theirClasses.get(i);
+    } else {
+      return null;
+    }
   }
 
 
@@ -204,8 +216,9 @@ extends JPanel
   getClass(String name)
   {
     for (int i=0; i<theirNames.size(); i++) {
-      if (((String)theirNames.get(i)).equals(name))
-	return (Class)theirClasses.get(i);
+      if (((String)theirNames.get(i)).equals(name)) {
+        return (Class)theirClasses.get(i);
+      }
     }
     return null;
   }
@@ -303,9 +316,11 @@ extends JPanel
   boolean
   checkString(String s)
   {
-    if (s.indexOf("`")!=-1)
+    if (s.indexOf("`")!=-1) {
       return false;
-    else return true;
+    } else {
+      return true;
+    }
   }
 
 }

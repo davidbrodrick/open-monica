@@ -1412,7 +1412,9 @@ implements
   public Date getAsDate()
   {
     // Nope, shouldn't do that
-    if (isASAP() || isNEVER()) return null;
+    if (isASAP() || isNEVER()) {
+      return null;
+    }
      
     // The value of 3506716800000000L is the BAT as at midnight on
     // 1-Jan-1970, which is the base of the time that the system
@@ -1810,10 +1812,12 @@ implements
   compareTo(Object obj)
   {
     if (obj instanceof AbsTime) {
-      if (((AbsTime)obj).getValue() < itsValue)
-	return 1;
-      if (((AbsTime)obj).getValue() > itsValue)
-	return -1;
+      if (((AbsTime)obj).getValue() < itsValue) {
+        return 1;
+      }
+      if (((AbsTime)obj).getValue() > itsValue) {
+        return -1;
+      }
       return 0;
     } else {
       System.err.println("AbsTime: compareTo: UNKNOWN TYPE!");

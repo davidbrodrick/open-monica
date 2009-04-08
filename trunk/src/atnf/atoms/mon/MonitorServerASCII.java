@@ -10,12 +10,10 @@ package atnf.atoms.mon;
 
 import atnf.atoms.time.*;
 import atnf.atoms.mon.util.*;
-import atnf.atoms.mon.archiver.*;
 import atnf.atoms.mon.limit.*;
 import java.io.*;
 import java.util.*;
 import java.net.*;
-import java.util.zip.*;
 
 /**
  * Provides a simple ASCII interface for clients to obtain monitor data.
@@ -224,7 +222,9 @@ implements Runnable
 
       //Get data between the specified times
       Vector data = PointBuffer.getPointData(mpname, starttime, endtime, 0);
-      if (data==null) data = new Vector();
+      if (data==null) {
+        data = new Vector();
+      }
 
       //Tell the client how many samples we are going to send
       int numdata = data.size();
@@ -278,7 +278,9 @@ implements Runnable
       //Get data between specified time and now
       AbsTime now = new AbsTime();
       Vector data = PointBuffer.getPointData(mpname, sincetime, now, 0);
-      if (data==null) data = new Vector();
+      if (data==null) {
+        data = new Vector();
+      }
 
       //Tell the client how many samples we are going to send
       int numdata = data.size();
@@ -479,12 +481,8 @@ implements Runnable
               //No current data for this monitor point
               itsWriter.println(pointname + "\t?\t?\t?\t?");
             } else {
-              PointLimit pl = pm.getLimits();
               boolean limits = true;
-              if (pl!=null) {
-                //If this point has a limit checker then check latest value
-                limits = pl.checkLimits(pd);
-              }
+              limits = pm.checkLimits(pd);
               String units = pm.getUnits();
               if (units==null || units=="") {
                 units="?";
@@ -529,7 +527,9 @@ implements Runnable
           //Await a new client connection
           Socket soc = ss.accept();
           //Got a new client connection, spawn a server to service it
-          if (soc!=null) new MonitorServerASCII(soc);
+          if (soc!=null) {
+            new MonitorServerASCII(soc);
+          }
         }
           catch (IOException ie) {}
         }

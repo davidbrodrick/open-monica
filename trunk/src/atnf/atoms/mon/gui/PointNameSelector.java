@@ -17,7 +17,6 @@ import atnf.atoms.mon.util.*;
  * particular monitor points without regard to their sources.
  *
  * @author David Brodrick
- * @version $Id: PointNameSelector.java,v 1.5 2006/09/14 00:34:48 bro764 Exp $
  * @see PointSourceSelector
  */
 public class PointNameSelector
@@ -45,14 +44,19 @@ extends TreeItemSelector
   buildTree()
   {
     if (theirPointNames==null) {
-      theirPointNames = MonClientUtil.getServer().getPointNamesShort();
+      theirPointNames = MonClientUtil.getAllPoints();
     }
 
     itsTreeUtil = new TreeUtil("Points");
 
     if (theirPointNames!=null) {
       for (int i=0; i<theirPointNames.length; i++) {
-	itsTreeUtil.addNode(theirPointNames[i], theirPointNames[i]);
+        //We are only interested in the name, not source, component
+        int doti = theirPointNames[i].indexOf(".");
+        String name = theirPointNames[i].substring(doti+1);
+        if (itsTreeUtil.getNode(name)==null) {
+          itsTreeUtil.addNode(name, name);
+        }
       }
     }
   }

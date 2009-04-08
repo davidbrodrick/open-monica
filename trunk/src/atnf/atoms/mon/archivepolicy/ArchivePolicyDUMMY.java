@@ -6,7 +6,6 @@
 
 package atnf.atoms.mon.archivepolicy;
 
-import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 
 public class ArchivePolicyDUMMY extends ArchivePolicy

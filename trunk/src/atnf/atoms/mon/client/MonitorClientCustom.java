@@ -11,7 +11,6 @@ package atnf.atoms.mon.client;
 import java.net.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.transaction.*;
-import atnf.atoms.mon.translation.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
 import java.io.*;
@@ -46,14 +45,6 @@ MonitorClientCustom
   protected ObjectInputStream itsIn = null;
   /** Output stream used for sending requests/data to the server. */
   protected ObjectOutputStream itsOut = null;
-
-  /*
-   protected static GZIPOutputStream itsGout = null;
-   protected static GZIPInputStream itsGin = null;
-   protected static CompressedOutputStream itsCos = null;
-   protected static CompressedInputStream itsCis = null;
-*/
-
 
   /** Create new instance connected to the given server on the default port.
    * @param server Hostname of the server to connect to. */
@@ -119,7 +110,9 @@ MonitorClientCustom
   throws Exception
   {
     itsConnecting = true;
-    if (itsSocket!=null) itsSocket.close();
+    if (itsSocket!=null) {
+      itsSocket.close();
+    }
     itsSocket = null;
     itsIn     = null;
     itsOut    = null;
@@ -183,8 +176,11 @@ MonitorClientCustom
   toString()
   {
     String res = itsServer + ":" + itsPort + "(";
-    if (isConnected()) res += "connected)";
-    else res += "disconnected)";
+    if (isConnected()) {
+      res += "connected)";
+    } else {
+      res += "disconnected)";
+    }
     return res;
   }
 
@@ -199,7 +195,9 @@ MonitorClientCustom
     try {
       //If we're not connected, try to connect
       if (!itsConnected) {
-        if (itsConnecting) return null; //Really, we'd like to wait
+        if (itsConnecting) {
+          return null; //Really, we'd like to wait
+        }
         try { connect(); } catch (Exception j) {return null;}
       }
 
@@ -254,7 +252,9 @@ MonitorClientCustom
   {
     MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{points});
     PointData res = makeRequest(req);
-    if (res==null || res.getData()==null) return null;
+    if (res==null || res.getData()==null) {
+      return null;
+    }
     return (Vector)res.getData();
   }
 
@@ -276,12 +276,16 @@ MonitorClientCustom
     while (true) {
       MonRequest req=new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart, end});
       PointData data=makeRequest(req);
-      if (data==null || data.getData()==null) break;
+      if (data==null || data.getData()==null) {
+        break;
+      }
       Vector thisres=(Vector)(MonitorUtils.decompress((byte[])(data.getData())));
       res.addAll(thisres);
       thisstart=((PointData)(thisres.get(thisres.size()-1))).getTimestamp().add(RelTime.factory(1));
     }
-    if (res.size()==0) res=null;
+    if (res.size()==0) {
+      res=null;
+    }
     return res;
   }
 
@@ -307,12 +311,16 @@ MonitorClientCustom
     while (true) {
       MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart, end, new Integer(sample_rate)});
       PointData data=makeRequest(req);
-      if (data==null || data.getData()==null) break;
+      if (data==null || data.getData()==null) {
+        break;
+      }
       Vector thisres=(Vector)(MonitorUtils.decompress((byte[])(data.getData())));
       res.addAll(thisres);
       thisstart=((PointData)(thisres.get(thisres.size()-1))).getTimestamp().add(RelTime.factory(1));
     }
-    if (res.size()==0) res=null;
+    if (res.size()==0) {
+      res=null;
+    }
     return res;
   }
 
@@ -347,7 +355,9 @@ MonitorClientCustom
     MonRequest req = new MonRequest(MonRequest.GETPOINT,
 				    new Object[]{point});
     PointData res = makeRequest(req);
-    if (res==null) return null;
+    if (res==null) {
+      return null;
+    }
     return (String)res.getData();
   }
 
@@ -367,7 +377,9 @@ MonitorClientCustom
     MonRequest req = new MonRequest(MonRequest.GETPOINT,
 				    new Object[]{points});
     PointData res = makeRequest(req);
-    if (res==null || res.getData()==null) return null;
+    if (res==null || res.getData()==null) {
+      return null;
+    }
     return (Vector)res.getData();
   }
 
@@ -383,7 +395,9 @@ MonitorClientCustom
     MonRequest req = new MonRequest(MonRequest.GETTRANSACTION,
 				    new Object[]{point});
     PointData res = makeRequest(req);
-    if (res==null || res.getData()==null) return null;
+    if (res==null || res.getData()==null) {
+      return null;
+    }
     String transstr = (String)res.getData();
     return Transaction.factory(null, transstr);
   }
@@ -400,7 +414,9 @@ MonitorClientCustom
     MonRequest req = new MonRequest(MonRequest.GETTRANSACTION,
 				    new Object[]{points});
     PointData res = makeRequest(req);
-    if (res==null || res.getData()==null) return null;
+    if (res==null || res.getData()==null) {
+      return null;
+    }
     Vector strvec = (Vector)res.getData();
     Vector transvec = new Vector(points.size());
     for (int i=0; i<points.size(); i++) {
@@ -420,7 +436,9 @@ MonitorClientCustom
     MonRequest req = new MonRequest(MonRequest.GETTRANSLATION,
 				    new Object[]{point});
     PointData res = makeRequest(req);
-    if (res==null || res.getData()==null) return null;
+    if (res==null || res.getData()==null) {
+      return null;
+    }
     return (String)res.getData();
   }
 
@@ -436,7 +454,9 @@ MonitorClientCustom
     MonRequest req = new MonRequest(MonRequest.GETTRANSLATION,
 				    new Object[]{points});
     PointData res = makeRequest(req);
-    if (res==null || res.getData()==null) return null;
+    if (res==null || res.getData()==null) {
+      return null;
+    }
     return (Vector)res.getData();
   }
 
@@ -450,7 +470,9 @@ MonitorClientCustom
     //Ask the server to send us its current public key and modulus
     MonRequest req = new MonRequest(MonRequest.GETKEY, null);
     PointData res = makeRequest(req);
-    if (res==null || res.getData()==null) return null;
+    if (res==null || res.getData()==null) {
+      return null;
+    }
 
     //Get the public key and modulus
     String[] a = (String[])res.getData();
@@ -478,7 +500,9 @@ MonitorClientCustom
       Object[] args = new Object[]{point,new_init,enc_name,enc_pass};
       MonRequest req = new MonRequest(MonRequest.SETPOINT, args);
       PointData res = makeRequest(req);
-      if (res.getData() instanceof Boolean && ((Boolean)res.getData()).booleanValue()) return true;
+      if (res.getData() instanceof Boolean && ((Boolean)res.getData()).booleanValue()) {
+        return true;
+      }
       retries--;
     }
     return false;
@@ -519,7 +543,9 @@ MonitorClientCustom
       Object[] args = new Object[]{init,enc_name,enc_pass};
       MonRequest req = new MonRequest(MonRequest.ADDPOINT, args);
       PointData res = makeRequest(req);
-      if (res.getData() instanceof Boolean && ((Boolean)res.getData()).booleanValue()) return true;
+      if (res.getData() instanceof Boolean && ((Boolean)res.getData()).booleanValue()) {
+        return true;
+      }
       retries--;
     }
     return false;
@@ -531,10 +557,11 @@ MonitorClientCustom
   FakeMonitor
   makeFakeMonitor(String init)
   {
-    // Use the PointInteraction to make the point
-    ArrayList al = PointInteraction.parseLine(init, false);
+    ArrayList al = PointMonitor.parseLine(init, false);
     // Check
-    if (al == null || al.size() < 1) return null;
+    if (al == null || al.size() < 1) {
+      return null;
+    }
     // Only want one point
     return (FakeMonitor)al.get(0);
   }
@@ -554,20 +581,11 @@ MonitorClientCustom
   getPointNames(String filter)
   {
     MonRequest req;
-    if (filter == null) req = new MonRequest(MonRequest.GETPOINTNAMES, null);
-    else req = new MonRequest(MonRequest.GETPOINTNAMES, new Object[]{filter});
-    PointData res = makeRequest(req);
-    return (String[])res.getData();
-  }
-
-
-  public 
-  String[]
-  getPointNamesShort(String filter)
-  {
-    MonRequest req;
-    if (filter == null) req = new MonRequest(MonRequest.GETPOINTNAMES_SHORT, null);
-    else req = new MonRequest(MonRequest.GETPOINTNAMES_SHORT, new Object[]{filter});
+    if (filter == null) {
+      req = new MonRequest(MonRequest.GETPOINTNAMES, null);
+    } else {
+      req = new MonRequest(MonRequest.GETPOINTNAMES, new Object[]{filter});
+    }
     PointData res = makeRequest(req);
     return (String[])res.getData();
   }
@@ -581,80 +599,15 @@ MonitorClientCustom
     return getPointNames(null);
   }
 
-
-  public 
-  String[]
-  getPointNamesShort()
-  {
-    return getPointNamesShort(null);
-  }
-
-
-  /** Get complete list of data sources operating on the server. */
-  public 
-  String[]
-  getSources()
-  {
-    MonRequest req = new MonRequest(MonRequest.GETSOURCES, null);
-    PointData res = makeRequest(req);
-    return (String[])res.getData();
-  }
-
-
-  /** Return the names of all sources known by the system.
-   * @return Array of all source names. */
-  public 
-  String[]
-  getAllSources()
-  {
-    MonRequest req = new MonRequest(MonRequest.GETSOURCES, null);
-    PointData res = makeRequest(req);
-    if (res == null) return null;
-    return (String[])res.getData();
-  }
-
-
-  /** Return the names of all sources for the given point.
-   * @param name Name of the point of interest.
-   * @return Array of all sources for the nominated point. */
-  public 
-  String[]
-  getSources(String name)
-  {
-    MonRequest req = new MonRequest(MonRequest.GETSOURCES, new Object[]{name});
-    PointData res = makeRequest(req);
-    if (res == null) return null;
-    return (String[])res.getData();
-  }
-
-
-  /** Return the names of all sources for each of the given points.
-   * This is basically just a batched version of <i>getSources(String)</i>
-   * to speed things up when we're interested in many points/sources. The
-   * return Vector will be of the same length as the argument Vector. Each
-   * entry will be an array of Strings or possibly <tt>null</tt>.
-   * @param names Vector containing String names for the points.
-   * @return Vector containing an array of names for each requested point. */
-  public 
-  Vector
-  getSources(Vector names)
-  {
-    if (names==null || names.size()==0) return null;
-
-    MonRequest req = new MonRequest(MonRequest.GETSOURCES, new Object[]{names});
-    PointData res = makeRequest(req);
-    if (res == null) return null;
-    return (Vector)res.getData();
-  }
-
-
   public 
   String[]
   getAllPoints()
   {
     MonRequest req = new MonRequest(MonRequest.GETALLPOINTS, null);
     PointData res = makeRequest(req);
-    if (res == null) return null;
+    if (res == null) {
+      return null;
+    }
     return (String[])MonitorUtils.decompress((byte[])res.getData());
   }
 
@@ -667,7 +620,9 @@ MonitorClientCustom
   {
     MonRequest req = new MonRequest(MonRequest.GETALLSETUPS, null);
     PointData res = makeRequest(req);
-    if (res == null) return null;
+    if (res == null) {
+      return null;
+    }
     return (SavedSetup[])MonitorUtils.decompress((byte[])res.getData());
   }
 
@@ -703,7 +658,9 @@ MonitorClientCustom
       PointData res = makeRequest(req);
       //Check if the Page was added OK
       if (res.getData() instanceof Boolean &&
-          ((Boolean)res.getData()).booleanValue()) return true;
+          ((Boolean)res.getData()).booleanValue()) {
+        return true;
+      }
       retries--;
     }
     return false;

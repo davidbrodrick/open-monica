@@ -9,10 +9,8 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 
 /**
  * Calculate the difference between successive monitor point values.
@@ -61,9 +59,11 @@ extends Translation
 
     //Get the new value as a double
     double dval;
-    if (val instanceof Number) dval = ((Number)val).doubleValue();
-    else if (val instanceof Angle) dval = ((Angle)val).getValue();
-    else {
+    if (val instanceof Number) {
+      dval = ((Number)val).doubleValue();
+    } else if (val instanceof Angle) {
+      dval = ((Angle)val).getValue();
+    } else {
       System.err.println("TranslationDelta: " + itsParent.getLongName() +
 			 ": Got NON-NUMERIC data!");
       return new PointData(itsParent.getName(), itsParent.getSource());

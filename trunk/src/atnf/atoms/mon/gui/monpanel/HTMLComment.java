@@ -9,32 +9,11 @@
 package atnf.atoms.mon.gui.monpanel;
 
 import atnf.atoms.mon.gui.*;
-import atnf.atoms.mon.client.*;
-import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.SavedSetup;
-import atnf.atoms.mon.util.MonitorTimer;
-import atnf.atoms.time.*;
-import atnf.atoms.util.*;
-
-import java.util.Vector;
-import java.util.Date;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
-import java.awt.image.*;
-import java.lang.Number;
-import java.text.SimpleDateFormat;
 import java.io.PrintStream;
-
-import org.jfree.chart.*;
-import org.jfree.chart.axis.*;
-import org.jfree.chart.event.*;
-import org.jfree.chart.plot.*;
-import org.jfree.chart.renderer.*;
-import org.jfree.data.time.*;
-import org.jfree.data.*;
 
 
 /**
@@ -115,8 +94,11 @@ implements ActionListener
       super.actionPerformed(e);
       String cmd = e.getActionCommand();
       if (cmd.equals("popup")) {
-	if (itsPopupMode.isSelected()) itsButtonLabel.setEnabled(true);
-	else itsButtonLabel.setEnabled(false);
+	if (itsPopupMode.isSelected()) {
+    itsButtonLabel.setEnabled(true);
+  } else {
+    itsButtonLabel.setEnabled(false);
+  }
       }
     }
 
@@ -142,7 +124,9 @@ implements ActionListener
       SavedSetup setup = new SavedSetup("temp",
                              "atnf.atoms.mon.gui.monpanel.HTMLComment");
       String temp = itsText.getText();
-      if (temp.equals("")) temp=" ";
+      if (temp.equals("")) {
+        temp=" ";
+      }
       setup.put("comment", temp);
       if (itsPopupMode.isSelected()) {
 	setup.put("popup", "true");
@@ -171,7 +155,9 @@ implements ActionListener
 	  itsPopupMode.setSelected(true);
 	  itsButtonLabel.setEnabled(true);
 	  temp = (String)setup.get("label");
-	  if (temp==null) temp = "Click Here For More Info";
+	  if (temp==null) {
+      temp = "Click Here For More Info";
+    }
           itsButtonLabel.setText(temp);
 	}
       } catch (Exception e) {
@@ -286,7 +272,9 @@ implements ActionListener
 	setMinimumSize(new Dimension(50,20));
 	setMaximumSize(new Dimension(2000,25));
 	text = (String)setup.get("label");
-        if (text==null) text = "Click Here for More Info";
+        if (text==null) {
+          text = "Click Here for More Info";
+        }
 	itsLaunchButton.setText(text);
 	add(itsLaunchButton);
       } else {

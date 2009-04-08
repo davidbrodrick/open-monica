@@ -8,14 +8,11 @@
 
 package atnf.atoms.mon.apps;
 
-import java.io.*;
 import java.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
 import atnf.atoms.mon.archiver.*;
 import atnf.atoms.mon.client.*;
 import atnf.atoms.time.*;
-import atnf.atoms.util.*;
 
 /**
  * Connects to a MoniCA server and requests bulk data from it's archive,

@@ -1,7 +1,6 @@
 package atnf.atoms.mon.translation;
 
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
 import atnf.atoms.util.Angle;
 import org.nfunk.jep.*;
 import java.lang.reflect.Array;
@@ -54,7 +53,9 @@ extends Translation
    PointData
    translate(PointData data)
    {
-     if (data==null) return null;
+     if (data==null) {
+      return null;
+    }
      if (data.getData()==null) {
       //Return a null result
       return new PointData(itsParent.getName(), itsParent.getSource());
@@ -62,9 +63,12 @@ extends Translation
 
      Object dataCopy = data.getData();
       if (!(dataCopy instanceof Number) && !(dataCopy instanceof Angle)) {
-	if (dataCopy instanceof Object[]) return new PointData(itsParent.getName(), itsParent.getSource(),
-							       data.getTimestamp(), translateArray((Object[])dataCopy));
-	else return null;
+	if (dataCopy instanceof Object[]) {
+    return new PointData(itsParent.getName(), itsParent.getSource(),
+    						       data.getTimestamp(), translateArray((Object[])dataCopy));
+  } else {
+    return null;
+  }
       }
       // Really atrocious solution, but I believe its fast
       if (dataCopy instanceof Angle) {
@@ -74,12 +78,19 @@ extends Translation
       }
       Object resData = null;
       double resNum = itsParser.getValue();
-      if (dataCopy instanceof Byte) resData = new Byte((byte)resNum);
-      else if (dataCopy instanceof Short) resData = new Short((short)resNum);
-      else if (dataCopy instanceof Long) resData = new Long((long)resNum);
-      else if (dataCopy instanceof Integer) resData = new Integer((int)resNum);
-      else if (dataCopy instanceof Float) resData = new Float((float)resNum);
-      else resData = new Double((double)resNum);
+      if (dataCopy instanceof Byte) {
+        resData = new Byte((byte)resNum);
+      } else if (dataCopy instanceof Short) {
+        resData = new Short((short)resNum);
+      } else if (dataCopy instanceof Long) {
+        resData = new Long((long)resNum);
+      } else if (dataCopy instanceof Integer) {
+        resData = new Integer((int)resNum);
+      } else if (dataCopy instanceof Float) {
+        resData = new Float((float)resNum);
+      } else {
+        resData = new Double(resNum);
+      }
 
       return new PointData(itsParent.getName(), itsParent.getSource(),
 			   data.getTimestamp(), data.getRaw(), resData);
@@ -96,12 +107,19 @@ extends Translation
       for (int i = 0; i < data.length; i++) {
          itsParser.addVariable("x", ((Number)data[i]).doubleValue());
 	 double res = itsParser.getValue();
-	 if (data[0] instanceof Byte) resData[i] = new Byte((byte)res);
-	 else if (data[0] instanceof Short) resData[i] = new Short((short)res);
-	 else if (data[0] instanceof Long) resData[i] = new Long((long)res);
-	 else if (data[0] instanceof Integer) resData[i] = new Integer((int)res);
-	 else if (data[0] instanceof Float) resData[i] = new Float((float)res);
-	 else resData[i] = new Double((double)res);
+	 if (data[0] instanceof Byte) {
+    resData[i] = new Byte((byte)res);
+  } else if (data[0] instanceof Short) {
+    resData[i] = new Short((short)res);
+  } else if (data[0] instanceof Long) {
+    resData[i] = new Long((long)res);
+  } else if (data[0] instanceof Integer) {
+    resData[i] = new Integer((int)res);
+  } else if (data[0] instanceof Float) {
+    resData[i] = new Float((float)res);
+  } else {
+    resData[i] = new Double(res);
+  }
       }
       return resData;
    }

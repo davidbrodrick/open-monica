@@ -11,8 +11,6 @@ package atnf.atoms.mon.translation;
 
 import java.util.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
 
 /**

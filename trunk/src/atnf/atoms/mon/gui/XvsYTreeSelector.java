@@ -19,7 +19,6 @@ import javax.swing.border.*;
 import java.util.Vector;
 
 import atnf.atoms.mon.client.*;
-import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
 
 /**
@@ -169,10 +168,11 @@ implements ActionListener
 
     //Convert data
     int maxlen = 0;
-    if (itsXSelected.size()>itsYSelected.size())
-        maxlen = itsXSelected.size();
-    else
-        maxlen = itsYSelected.size();
+    if (itsXSelected.size()>itsYSelected.size()) {
+      maxlen = itsXSelected.size();
+    } else {
+      maxlen = itsYSelected.size();
+    }
 
     Object[][] values = new Object[maxlen][3];
     for (int i=0; i<itsXSelected.size(); i++) {
@@ -220,15 +220,21 @@ implements ActionListener
 
     if (cmd.equals("AddX")) {
       TreePath[] selection = itsTree.getSelectionPaths();
-      if (selection==null || selection.length==0) return;
+      if (selection==null || selection.length==0) {
+        return;
+      }
       for (int i=0; i<selection.length; i++) {
 	Object[] path = selection[i].getPath();
 
-	if (path==null || path.length<2 || !((DefaultMutableTreeNode)(selection[i].getLastPathComponent())).isLeaf()) continue;
+	if (path==null || path.length<2 || !((DefaultMutableTreeNode)(selection[i].getLastPathComponent())).isLeaf()) {
+    continue;
+  }
         String thispath = "";
 	for (int j=1; j<path.length; j++) {
 	  thispath += path[j];
-	  if (j!=path.length-1) thispath+=".";
+	  if (j!=path.length-1) {
+      thispath+=".";
+    }
 	}
         String username = (String)itsTreeUtil.getNodeObject(thispath);
 	itsXSelected.add(username);
@@ -237,7 +243,9 @@ implements ActionListener
       itsTree.getSelectionModel().clearSelection();
     } else if (cmd.equals("RemoveX")) {
       ListSelectionModel sm = itsTable.getSelectionModel();
-      if (sm.isSelectionEmpty()) return;
+      if (sm.isSelectionEmpty()) {
+        return;
+      }
       int i=0; int j=0;
       while (i<itsXSelected.size()) {
 	if (sm.isSelectedIndex(j)) {
@@ -250,15 +258,21 @@ implements ActionListener
       recomputeTable();
     } else if (cmd.equals("AddY")) {
       TreePath[] selection = itsTree.getSelectionPaths();
-      if (selection==null || selection.length==0) return;
+      if (selection==null || selection.length==0) {
+        return;
+      }
       for (int i=0; i<selection.length; i++) {
 	Object[] path = selection[i].getPath();
 
-	if (path==null || path.length<2 || !((DefaultMutableTreeNode)(selection[i].getLastPathComponent())).isLeaf()) continue;
+	if (path==null || path.length<2 || !((DefaultMutableTreeNode)(selection[i].getLastPathComponent())).isLeaf()) {
+    continue;
+  }
         String thispath = "";
 	for (int j=1; j<path.length; j++) {
 	  thispath += path[j];
-	  if (j!=path.length-1) thispath+=".";
+	  if (j!=path.length-1) {
+      thispath+=".";
+    }
 	}
         String username = (String)itsTreeUtil.getNodeObject(thispath);
 	itsYSelected.add(username);
@@ -267,7 +281,9 @@ implements ActionListener
       itsTree.getSelectionModel().clearSelection();
     } else if (cmd.equals("RemoveY")) {
       ListSelectionModel sm = itsTable.getSelectionModel();
-      if (sm.isSelectionEmpty()) return;
+      if (sm.isSelectionEmpty()) {
+        return;
+      }
       int i=0; int j=0;
       while (i<itsYSelected.size()) {
 	if (sm.isSelectedIndex(j)) {
@@ -297,7 +313,7 @@ implements ActionListener
     //Might be better off having a cached copy of the point names
     //this could be implemented through MonClientUtil
     String[] points = MonClientUtil.getServer().getPointNames();
-    if (points!=null && points.length>0)
+    if (points!=null && points.length>0) {
       for (int i=0; i<points.length; i++) {
         int firstdot = points[i].indexOf(".");
 	String source = points[i].substring(0, firstdot);
@@ -305,6 +321,7 @@ implements ActionListener
         String newname = point + "." + source;
 	itsTreeUtil.addNode(newname, points[i]);
       }
+    }
   }
 
 
@@ -335,9 +352,11 @@ implements ActionListener
   fireChangeEvent(ChangeEvent ce)
   {
     Object[] listeners = itsListeners.getListenerList();
-    for (int i = 0; i < listeners.length; i +=2)
-      if (listeners[i] == ChangeListener.class)
-	((ChangeListener)listeners[i+1]).stateChanged(ce);
+    for (int i = 0; i < listeners.length; i +=2) {
+      if (listeners[i] == ChangeListener.class) {
+        ((ChangeListener)listeners[i+1]).stateChanged(ce);
+      }
+    }
   }
 
 
@@ -366,8 +385,11 @@ implements ActionListener
   void
   setXSelections(Vector v)
   {
-    if (v==null || v.size()==0) itsXSelected.clear();
-    else itsXSelected = (Vector)v.clone();
+    if (v==null || v.size()==0) {
+      itsXSelected.clear();
+    } else {
+      itsXSelected = (Vector)v.clone();
+    }
     recomputeTable();
     fireChangeEvent(new ChangeEvent(this));
   }
@@ -378,8 +400,11 @@ implements ActionListener
   void
   setYSelections(Vector v)
   {
-    if (v==null || v.size()==0) itsYSelected.clear();
-    else itsYSelected = (Vector)v.clone();
+    if (v==null || v.size()==0) {
+      itsYSelected.clear();
+    } else {
+      itsYSelected = (Vector)v.clone();
+    }
     recomputeTable();
     fireChangeEvent(new ChangeEvent(this));
   }

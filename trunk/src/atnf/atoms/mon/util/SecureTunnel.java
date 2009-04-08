@@ -49,7 +49,7 @@ public class SecureTunnel{
     }
   
     String passwd;
-    JTextField passwordField=(JTextField)new JPasswordField(20);
+    JTextField passwordField=new JPasswordField(20);
 
     public String getPassphrase(){ return null; }
 

@@ -6,8 +6,7 @@
 
 package atnf.atoms.mon.transaction;
 
-import java.util.*;
-import atnf.atoms.mon.PointInteraction;
+import atnf.atoms.mon.PointMonitor;
 
 public class TransactionNONE
 extends Transaction
@@ -15,7 +14,7 @@ extends Transaction
   protected static String itsArgs[] = new String[]{"Transaction - Loopback",
   "NONE"};
 
-  public TransactionNONE(PointInteraction parent, String specifics)
+  public TransactionNONE(PointMonitor parent, String specifics)
   {
     super(parent, specifics);
     setChannel("NONE");
