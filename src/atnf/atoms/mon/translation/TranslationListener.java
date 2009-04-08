@@ -58,8 +58,8 @@ implements PointListener, ActionListener
   /** Names of the points we are listening to. */
   protected String[] itsNames;
   
-  /** Reference to the points we are listeneing to. */
-  protected PointInteraction[] itsPoints;
+  /** Reference to the points we are listening to. */
+  protected PointMonitor[] itsPoints;
   
   /** Latest updates for the points we are listening to. */
   protected PointData[] itsValues;
@@ -92,7 +92,7 @@ implements PointListener, ActionListener
         throw new Exception();
       }
       itsNames = new String[itsNumPoints];
-      itsPoints = new PointInteraction[itsNumPoints];
+      itsPoints = new PointMonitor[itsNumPoints];
       itsValues = new PointData[itsNumPoints];
         
       for (int i=0; i<itsNumPoints; i++) {

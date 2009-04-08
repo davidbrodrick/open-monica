@@ -128,6 +128,7 @@ extends MonitorPolicy
        System.err.println("Translation: Error Creating Translation!!");
        System.err.println("\tFor Monitor Point: " + parent.getName());
        System.err.println("\tFor Translation:   " + arg);
+       System.err.println("\tException: " + e);
        //substitute a no-op translation instead, dunno if it is best course
        //of action but at least system keeps running..
        result = new TranslationNone(parent, new String[]{});
