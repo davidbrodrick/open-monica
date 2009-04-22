@@ -272,6 +272,6 @@ extends ExternalSystem
   void
   main(String[] argv)
   {
-    EPICS epics = new EPICS(null);
+    new EPICS(null);
   }
 }

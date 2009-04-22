@@ -73,7 +73,6 @@ extends PointArchiver
   {
     try {
       //Find the right directory and get a listing of the files
-      String compressFile = null;
       String path = getDir(pm);
       String fileName = path+FSEP+getDateTimeNow();
       File myDir = new File(path);
@@ -171,7 +170,7 @@ extends PointArchiver
   Vector
   extract(PointDescription pm, AbsTime start, AbsTime end)
   {
-    AbsTime starttime = new AbsTime();
+    //AbsTime starttime = new AbsTime();
     Vector res = new Vector(1000,8000);
     //Get the archive directory for the given point
     String dir = getDir(pm);
@@ -188,8 +187,8 @@ extends PointArchiver
         break;
       }
     }
-    AbsTime endtime = new AbsTime();
-    RelTime diff = Time.diff(endtime, starttime);
+    //AbsTime endtime = new AbsTime();
+    //RelTime diff = Time.diff(endtime, starttime);
     //System.err.println("Request for " + pm.getName() + " took "
     //                   + (diff.getValue()/1000) + " ms for "
     //                   + res.size() + " records");

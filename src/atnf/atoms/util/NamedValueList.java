@@ -2861,8 +2861,6 @@ implements
     int index;
     // The required data type.
     Class type;
-    // The component type of the array.
-    Class cType;
 
     // Check that <code>key</code> is not null.
     if(key == null) {

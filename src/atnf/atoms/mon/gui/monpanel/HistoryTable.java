@@ -1374,7 +1374,7 @@ implements PointListener, Runnable, TableCellRenderer
 
   /** Basic test application. */
   public static void main(String[] argv) {
-    JFrame frame = new JFrame("HistoryTable Test App");
+//    JFrame frame = new JFrame("HistoryTable Test App");
 //    frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
 
 /*    SavedSetup seemon = new SavedSetup("temp",
