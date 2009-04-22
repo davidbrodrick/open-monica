@@ -101,15 +101,6 @@ extends ExternalSystem
   }
 
 
-  /** Dummy getData method. */
-  protected
-  void
-  getData(Object[] points)
-  throws Exception
-  {
-  }
-  
-  
   /** Nested threaded class to connect Channels as the IOCs and monitor points become available. */
   protected class ChannelConnector
   extends Thread {

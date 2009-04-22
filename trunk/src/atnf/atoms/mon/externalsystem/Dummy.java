@@ -26,14 +26,9 @@ extends ExternalSystem
    
   protected
   void
-  getData(Object[] points)
+  getData(PointDescription[] points)
   throws Exception
   {
-    //Precondition
-    if (points==null || points.length==0) {
-      return;
-    }
-
     Object[] buf = null;
     for (int i=0; i<buf.length; i++) {
       PointDescription pm = (PointDescription)buf[i];

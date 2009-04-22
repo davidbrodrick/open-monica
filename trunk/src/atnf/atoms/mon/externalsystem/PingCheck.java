@@ -31,16 +31,11 @@ extends ExternalSystem
   /** Ping the relevant servers and return the status. */
   protected
   void
-  getData(Object[] points)
+  getData(PointDescription[] points)
   throws Exception
   {
-    //Precondition
-    if (points==null) {
-      return;
-    }
-
     for (int i=0; i<points.length; i++) {
-      PointDescription pm = (PointDescription)points[i];
+      PointDescription pm = points[i];
       String host = ((TransactionStrings)getMyTransactions(pm.getInputTransactions()).get(0)).getString();
       boolean canping = false;
       try {

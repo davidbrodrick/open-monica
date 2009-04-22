@@ -66,17 +66,12 @@ extends ExternalSystem
   /** Assign random values to queued monitor points. */
   protected
   void
-  getData(Object[] points)
+  getData(PointDescription[] points)
   throws Exception
   {
-    if (points==null || points.length==0) {
-      //No data to collect
-      return;
-    }
-    
     //Fire new data to each point
     for (int i=0; i<points.length; i++) {
-      PointDescription pm = (PointDescription)(points[i]);
+      PointDescription pm = points[i];
       Float newdata = new Float(itsRandom.nextFloat());
       PointData pd = new PointData(pm.getName(), pm.getSource(), newdata);
       PointEvent pe = new PointEvent(pm, pd, true);

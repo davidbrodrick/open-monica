@@ -29,7 +29,7 @@ import atnf.atoms.mon.transaction.*;
  * @author Le Cuong Nguyen
  * @version $Id: ExternalSystem.java,v 1.8 2005/11/22 00:43:13 bro764 Exp $
  **/
-public abstract
+public
 class ExternalSystem
 implements Runnable
 {
@@ -313,17 +313,22 @@ implements Runnable
     * method. It needs to fire PointEvent's for each monitor point once
     * the new data has been collected.
     * @param points The points that need collecting right now. */
-   protected abstract
+   protected
    void
-   getData(Object[] points)
-   throws Exception;
+   getData(PointDescription[] points)
+   throws Exception
+   {
+     for (int i=0; i<points.length; i++) {
+       System.err.println("ExternalSystem (" + itsName + "): Unsupported monitor request from " + points[i].getFullName());
+     }
+   }
 
    public
    void
-   putData(PointDescription pm, PointData pd)
+   putData(PointDescription desc, PointData pd)
    throws Exception
    {
-     System.err.println("ExternalSystem (" + itsName + "): Unsupported control request from " + pm.getFullName());
+     System.err.println("ExternalSystem (" + itsName + "): Unsupported control request from " + desc.getFullName());
    }
    
    /** Initialise all the DataSources declared in a file.
@@ -405,7 +410,9 @@ implements Runnable
          thesepoints = itsPoints.headSet(cutoff);
        }
        if (!thesepoints.isEmpty()) {
-         Object[] parray = thesepoints.toArray();
+         Object[] o = thesepoints.toArray();
+         PointDescription[] parray = new PointDescription[o.length];
+         for (int i=0; i<o.length; i++) parray[i]=(PointDescription)o[i];
          if (itsConnected && parray!=null && parray.length>0) {
            try {
              //Call the sub-class specific method to do the real work

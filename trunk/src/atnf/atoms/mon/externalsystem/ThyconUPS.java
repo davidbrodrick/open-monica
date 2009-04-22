@@ -551,13 +551,9 @@ extends ExternalSystem
 
    public 
    void
-   getData(Object[] points)
+   getData(PointDescription[] points)
    throws Exception
    {
-     //Precondition
-     if (points==null || points.length==0) {
-      return;
-    }
      //Increment transaction counter
      itsNumTransactions += points.length;
 
@@ -587,7 +583,7 @@ extends ExternalSystem
 
      //Fire off the new data
      for (int i=0; i<points.length; i++) {
-       PointDescription pm = (PointDescription)points[i];
+       PointDescription pm = points[i];
        PointData pd = new PointData(pm.getName(), pm.getSource(), newdata);
        pm.firePointEvent(new atnf.atoms.mon.PointEvent(this, pd, true));
      }
