@@ -7,8 +7,9 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.util.*;
-import atnf.atoms.mon.*;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.util.Angle;
 
 /**
  * Translation to limit the number of decimal places in a floating point

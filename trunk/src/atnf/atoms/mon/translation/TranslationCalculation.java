@@ -9,8 +9,9 @@
 
 package atnf.atoms.mon.translation;
 
-import org.nfunk.jep.*;
-import atnf.atoms.mon.*;
+import org.nfunk.jep.JEP;
+
+import atnf.atoms.mon.PointDescription;
 
 /**
  * Calculate an output value which is a function one of one or more listened-to

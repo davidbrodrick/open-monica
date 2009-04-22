@@ -9,10 +9,17 @@
 
 package atnf.atoms.mon.translation;
 
-import java.awt.event.*;
-import atnf.atoms.mon.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import atnf.atoms.mon.MonitorMap;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.mon.PointEvent;
+import atnf.atoms.mon.PointListener;
+import atnf.atoms.mon.util.MonitorTimer;
+import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.time.AbsTime;
-import atnf.atoms.mon.util.*;
 
 /**
  * Generic base-class for Translations which need to listen to the values

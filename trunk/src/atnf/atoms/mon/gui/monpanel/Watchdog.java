@@ -9,7 +9,6 @@
 package atnf.atoms.mon.gui.monpanel;
 
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.limit.*;
 import atnf.atoms.mon.gui.*;
 import atnf.atoms.mon.client.*;
 import atnf.atoms.time.*;

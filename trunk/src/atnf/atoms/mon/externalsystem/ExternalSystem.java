@@ -347,8 +347,10 @@ implements Runnable
              }
              Class newes;
              try {
+               //Might be fully qualified name
                newes = Class.forName(className);
              } catch (Exception e) {
+               //Not fully qualified - so try defaule package
                newes = Class.forName("atnf.atoms.mon.externalsystem." + className);
              }
              Constructor con = newes.getConstructor(new Class[]{String[].class});

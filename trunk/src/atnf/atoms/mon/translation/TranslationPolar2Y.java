@@ -9,8 +9,8 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.util.Angle;
 
 /**
  * Listen to two points which represent the magnitude and angle of a vector

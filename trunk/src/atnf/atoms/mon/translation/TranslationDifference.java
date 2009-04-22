@@ -9,7 +9,7 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
+import atnf.atoms.mon.PointDescription;
 
 /** Implementation of <i>TranslationDualListen</i> which calculates the
  * numerical difference between two different monitor points.

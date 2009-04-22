@@ -8,7 +8,9 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
+import atnf.atoms.mon.MonitorMap;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
 
 
 /**

@@ -9,9 +9,8 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
-import atnf.atoms.mon.util.*;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
 
 /**
  * Call the String.split() method to turn the input string into an array of 

@@ -8,8 +8,8 @@
 
 package atnf.atoms.mon.util;
 
-import java.net.*;
-import java.io.*;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.Vector;
 
 /**

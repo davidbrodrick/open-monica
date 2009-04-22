@@ -8,7 +8,8 @@
 
 package atnf.atoms.mon.util;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.Vector;
 
 /** Simple linked list class which uses a Comparator to sort the nodes.
  * Most operations are completed in linear time in the worst case.

@@ -12,7 +12,6 @@ import javax.swing.Timer;
 import java.awt.event.ActionListener;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
-import atnf.atoms.mon.limit.*;
 import atnf.atoms.time.AbsTime;
 
 /**

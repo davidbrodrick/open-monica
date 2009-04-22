@@ -327,7 +327,6 @@ implements ActionListener
   void
   export(PrintStream p)
   {
-    final String rcsid = "$Id: HTMLComment.java,v 1.2 2005/10/05 04:40:35 bro764 Exp $";
   }
 
   /** Nested class that shows the HTML text in a popup window. */

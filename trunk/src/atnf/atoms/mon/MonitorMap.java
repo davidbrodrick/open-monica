@@ -35,9 +35,6 @@ public class MonitorMap
 
    private static TreeMap itsSources = new TreeMap();
 
-   /** Holds list of sources which we should normally ignore. */
-   private static Vector itsIgnoreSources = new Vector();
-
    /** System logger. */
    public static final Logger logger = new Logger("MoniCA");
 

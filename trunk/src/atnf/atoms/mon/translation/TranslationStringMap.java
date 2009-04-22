@@ -9,8 +9,10 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
-import atnf.atoms.mon.*;
+import java.util.HashMap;
+
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
 
 /**
  * Map between input strings and an output strings. Init arguments must be in

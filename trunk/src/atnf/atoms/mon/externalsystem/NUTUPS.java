@@ -12,7 +12,6 @@ import java.util.Vector;
 
 import atnf.atoms.mon.MonitorMap;
 import atnf.atoms.mon.PointDescription;
-import atnf.atoms.mon.transaction.Transaction;
 import atnf.atoms.mon.transaction.TransactionStrings;
 
 /**

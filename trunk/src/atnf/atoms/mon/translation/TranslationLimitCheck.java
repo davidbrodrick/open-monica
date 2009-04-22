@@ -8,9 +8,11 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
-import atnf.atoms.mon.*;
-import atnf.atoms.mon.limit.*;
+import java.util.HashMap;
+
+import atnf.atoms.mon.MonitorMap;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
 import atnf.atoms.time.AbsTime;
 
 /**

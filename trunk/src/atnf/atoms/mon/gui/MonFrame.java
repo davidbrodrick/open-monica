@@ -936,7 +936,7 @@ implements ActionListener
     System.err.println("###" + now.toString(AbsTime.Format.UTC_STRING)
 		       + ": Dumping screenshot to \"" + filename + "\"");
     try {
-      Dump dumper = new PNGDump();
+      PNGDump dumper = new PNGDump();
       dumper.dumpComponent(new File(filename), itsMainPanel);
     } catch (Exception e) {
       return false;

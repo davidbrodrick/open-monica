@@ -9,10 +9,8 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
-import java.awt.event.*;
-import atnf.atoms.mon.*;
-import atnf.atoms.mon.limit.PointLimit;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
 
 /**
  * Class which can block the point from updating if other points are

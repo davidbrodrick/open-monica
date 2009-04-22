@@ -9,9 +9,12 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
-import atnf.atoms.mon.*;
-import atnf.atoms.time.*;
+import java.util.Vector;
+
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.time.AbsTime;
+import atnf.atoms.time.RelTime;
 
 /**
  * Find the peak of a numeric input over a specified period of time.

@@ -9,7 +9,7 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
+import atnf.atoms.mon.PointDescription;
 
 /**
  * Calculate water vapour pressure in kiloPascals by listening to two other
