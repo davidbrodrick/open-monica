@@ -117,23 +117,17 @@ extends ExternalSystem
   /** Collect data and fire events to queued monitor points. */
   protected
   void
-  getData(Object[] points)
+  getData(PointDescription[] points)
   throws Exception
   {
-    //Precondition
-    if (points==null || points.length==0 || !itsConnected) {
-      return;
-    }
-
-    Object[] buf = points;
     try {
-      for (int i=0; i<buf.length; i++) {
+      for (int i=0; i<points.length; i++) {
         Object o = null;
-        PointDescription pm = (PointDescription)buf[i];
+        PointDescription pm = points[i];
         o = parseData(pm);
         //Count successful transactions
         if (o!=null) {
-          itsNumTransactions += buf.length;
+          itsNumTransactions += points.length;
         }
         //Fire the new data off for this point
         pm.firePointEvent(new PointEvent(this,

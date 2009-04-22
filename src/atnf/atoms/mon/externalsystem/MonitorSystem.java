@@ -41,7 +41,7 @@ extends ExternalSystem
   /** Get the latest information. */
   protected
   void
-  getData(Object[] points)
+  getData(PointDescription[] points)
   throws Exception
   {
     Object[] buf = points;

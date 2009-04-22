@@ -1,4 +1,3 @@
-// Copyright (C) CSIRO Australia Telescope National Facility
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public License
@@ -62,15 +61,6 @@ extends ASCIISocket
     return null;
   }
   
-  /** Data is pushed, so this method is redundant in this class. */
-  protected
-  void
-  getData(Object[] points)
-  throws Exception
-  {
-    return;
-  }
-
   /** UPS version currently used in ATCA antennas. */
   public
   HashMap

@@ -152,14 +152,9 @@ extends ExternalSystem
   /** Collect data and fire events to queued monitor points. */
   protected
   void
-  getData(Object[] points)
+  getData(PointDescription[] points)
   throws Exception
   {
-    //Precondition
-    if (points==null || points.length==0 || !itsConnected) {
-      return;
-    }
-
     Object[] buf = points;
     try {
       for (int i=0; i<buf.length; i++) {
