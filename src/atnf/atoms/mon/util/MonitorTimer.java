@@ -17,7 +17,6 @@ public class MonitorTimer implements Runnable
    private long itsPeriod;
    private long itsStarted;
    private EventListenerList itsListeners = new EventListenerList();
-   private static Thread itsThread = null;
    private MonitorTimer itsNextTimer = null;
    private MonitorTimer itsLastTimer = null;
    private static MonitorTimer itsFirstTimer = null;

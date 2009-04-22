@@ -37,24 +37,6 @@ class DUTC
 {
 
   /**
-   * The RCS id.
-   */
-  final public static
-  String RCSID = "$Id: DUTC.java,v 1.9 2005/12/06 03:35:56 wie017 Exp $";
-
-  /**
-   * The last ut day (MJD) requested
-   */
-   private static 
-   int lastUTday = 0;
-
-  /**
-   * The delta utc value on lastUTday
-   */
-   private static
-   int dutc = 0;
-
-  /**
    * The UTC dates (in MJD days) and amount of the leap second
    */
    private static

@@ -220,12 +220,6 @@ implements
   AbsTime NEVER = new AbsTime(true);
 
   /**
-   * Represents the most significant bit of a <code>long</code>.
-   */
-  final private static
-  long MSB = 0x8000000000000000L;
-
-  /**
    * The special value used to represent <code>ASAP</code>.
    */
   final static

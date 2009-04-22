@@ -143,6 +143,6 @@ public class SecureTunnel{
   }
 
   public final static void main(String[] argv) {
-    SecureTunnel st = new SecureTunnel("xbones", "nelle", 8050, 8050);
+    new SecureTunnel("xbones", "nelle", 8050, 8050);
   }
 }

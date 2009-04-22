@@ -154,7 +154,7 @@ public class MonClientUtil
         boolean connected=false;
         if (chosenserver.get(2)!=null) {
           try {
-            SecureTunnel st = new SecureTunnel((String)chosenserver.get(1),
+            new SecureTunnel((String)chosenserver.get(1),
                                   (String)chosenserver.get(2),
                                   8050, 8050);
 

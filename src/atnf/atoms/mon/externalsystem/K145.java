@@ -101,7 +101,6 @@ extends ASCIISocket
   {
     public void	run()
     {
-      boolean firstread=true;
       while (true) {
         //If we're not connected then try to reconnect
         if (!itsConnected) {
@@ -111,7 +110,6 @@ extends ASCIISocket
               try { RelTime.factory(5000000).sleep(); } catch (Exception f) {}
               continue;
             }
-            firstread=true;
           } catch (Exception e) {
             //Sleep for a while then try again
             try { RelTime.factory(5000000).sleep(); } catch (Exception f) {}
