@@ -5,7 +5,7 @@
 // of the License, or (at your option) any later version.
 //
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
@@ -28,15 +28,15 @@ import atnf.atoms.mon.*;
  *
  * @author David Brodrick
  **/
-public class DataSourceASCIILine
-extends DataSourceASCIISocket
+public class ASCIILine
+extends ASCIISocket
 {
   /** Name of the monitor point to fire updates for. */
   protected String itsMonitorPoint;
   
   
   /** Constructor, expects host:port:timeout_ms:point_name arguments. */  
-  public DataSourceASCIILine(String[] args)
+  public ASCIILine(String[] args)
   {
     super(args);
 
@@ -109,13 +109,13 @@ extends DataSourceASCIISocket
             if (pm!=null) {
               pm.firePointEvent(new PointEvent(this, pd, true));
             } else {
-              System.err.println("DataSourceASCIILine: " + itsMonitorPoint + 
+              System.err.println("ASCIILine: " + itsMonitorPoint + 
                                  " WAS NOT FOUND!");
             }  
           }
         } catch (Exception e) {
           e.printStackTrace();
-          System.err.println("DataSourceASCIILine:DataReader.run (" + itsHostName 
+          System.err.println("ASCIILine:DataReader.run (" + itsHostName 
                              + ":" + itsPort + "): " + e.getClass());
           try { disconnect(); } catch (Exception f) { }
         }
@@ -131,7 +131,7 @@ extends DataSourceASCIISocket
        System.err.println("Missing argument: Needs IP:port of the server");
        System.exit(1);
      }
-     DataSourceASCIILine al = new DataSourceASCIILine(argv[0].split(":"));
+     ASCIILine al = new ASCIILine(argv[0].split(":"));
 
      try {
        al.connect();

@@ -6,7 +6,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import java.util.Vector;
 
@@ -24,8 +24,8 @@ import atnf.atoms.mon.transaction.TransactionStrings;
  * @author David Brodrick
  * @version $Id: $
  **/
-class DataSourceNUTUPS
-extends DataSourceASCIISocket
+class NUTUPS
+extends ASCIISocket
 {
   /** Have we discovered what UPSs the server provides yet? */
   private boolean itsDiscovery = false;
@@ -35,7 +35,7 @@ extends DataSourceASCIISocket
   /** Constructor.
    * @param args
    */
-  public DataSourceNUTUPS(String[] args)
+  public NUTUPS(String[] args)
   {
     super(args);
     
@@ -43,7 +43,7 @@ extends DataSourceASCIISocket
       connect();
       discoverUPS();
     } catch (Exception e) { 
-      System.err.println("DataSourceNUTUPS:constructor: " + e.getClass());
+      System.err.println("NUTUPS:constructor: " + e.getClass());
     }
   }
 
@@ -54,7 +54,7 @@ extends DataSourceASCIISocket
   {
     try {
       if (!itsConnected) {
-        System.err.println("DataSourceNUTUPS: Could not connect to discover UPSs");
+        System.err.println("NUTUPS: Could not connect to discover UPSs");
         return;
       }
     
@@ -62,14 +62,14 @@ extends DataSourceASCIISocket
       itsWriter.write("LIST UPS\n");
       String line=itsReader.readLine();
       if (!line.equals("BEGIN LIST UPS")) {
-        System.err.println("DataSourceNUTUPS:discoverUPS: parse error listing UPSs");
+        System.err.println("NUTUPS:discoverUPS: parse error listing UPSs");
         return;
       }
       line=itsReader.readLine();
       while (!line.equals("END LIST UPS")) {
         //Make sure this line is a new UPS description
         if (!line.startsWith("UPS ")) {
-          System.err.println("DataSourceNUTUPS:discoverUPS: expected UPS: " + line);
+          System.err.println("NUTUPS:discoverUPS: expected UPS: " + line);
           continue;
         }
         //Get the name of this UPS
@@ -79,7 +79,7 @@ extends DataSourceASCIISocket
       }
       
       if (upsnames.size()==0) {
-        System.err.println("DataSourceNUTUPS:discoverUPS: No UPSs defined on " + itsHostName);
+        System.err.println("NUTUPS:discoverUPS: No UPSs defined on " + itsHostName);
         return;
       }
 
@@ -90,14 +90,14 @@ extends DataSourceASCIISocket
         itsWriter.write("LIST VAR " + thisname + "\n");
         line=itsReader.readLine();
         if (!line.equals("BEGIN LIST VAR " + thisname)) {
-          System.err.println("DataSourceNUTUPS:discoverUPS: parse error listing VARs for " + thisname);
+          System.err.println("NUTUPS:discoverUPS: parse error listing VARs for " + thisname);
           continue;
         } 
         line=itsReader.readLine();
         while (!line.equals("END LIST VAR " + thisname)) {
           //Make sure this line is a new variable description
           if (!line.startsWith("VAR " + thisname + " ")) {
-            System.err.println("DataSourceNUTUPS:discoverUPS: expected VAR: " + line);
+            System.err.println("NUTUPS:discoverUPS: expected VAR: " + line);
             continue;
           }
           //Get the name of this VAR
@@ -105,14 +105,14 @@ extends DataSourceASCIISocket
           line=itsReader.readLine();
         }
         if (upsvars.size()==0) {
-          System.err.println("DataSourceNUTUPS:discoverUPS: No Variables defined for " + thisname);
+          System.err.println("NUTUPS:discoverUPS: No Variables defined for " + thisname);
           continue;
         }
         
-        //Since we have data, add ourselves as another DataSource
-        if (getDataSource("NUTUPS"+itsHostName+thisname)==null) {
-          System.err.println("Adding DataSource: NUTUPS"+itsHostName+thisname);
-          addDataSource("NUTUPS"+itsHostName+thisname, this);
+        //Since we have data, add ourselves as another ExternalSystem
+        if (getExternalSystem("NUTUPS"+itsHostName+thisname)==null) {
+          System.err.println("Adding ExternalSystem: NUTUPS"+itsHostName+thisname);
+          addExternalSystem("NUTUPS"+itsHostName+thisname, this);
         }
         
         //We got the list of this UPSs variables, now get info about each one
@@ -121,7 +121,7 @@ extends DataSourceASCIISocket
           itsWriter.write("GET DESC " + thisname + " " + thisvar + "\n");
           line=itsReader.readLine();
           if (!line.startsWith("DESC " + thisname + " " + thisvar)) {
-            System.err.println("DataSourceNUTUPS:discoverUPS: expected DESC: " + line);
+            System.err.println("NUTUPS:discoverUPS: expected DESC: " + line);
             continue;
           }
           String thisdesc=line.split("\"")[1];
@@ -159,7 +159,7 @@ extends DataSourceASCIISocket
         }
       }
     } catch (Exception e) {
-      System.err.println("DataSourceNUTUPS:discoverUPS: " + e.getClass());
+      System.err.println("NUTUPS:discoverUPS: " + e.getClass());
       e.printStackTrace();
     }  
   }
@@ -179,7 +179,7 @@ extends DataSourceASCIISocket
     itsWriter.write("GET VAR " + ts.getString(0) + " " + ts.getString(1) + "\n");
     String line = itsReader.readLine();
     if (!line.startsWith("VAR " + ts.getString(0) + " ")) {
-      System.err.println("DataSourceNUTUPS:discoverUPS: expected value");//, got: " + line);
+      System.err.println("NUTUPS:discoverUPS: expected value");//, got: " + line);
       return null;
     }
     //System.out.println(line);
@@ -225,6 +225,6 @@ extends DataSourceASCIISocket
     fullargs[0]="nutups";
     fullargs[1]=args[0];
     fullargs[2]=args[1];
-    DataSourceNUTUPS ups = new DataSourceNUTUPS(fullargs);
+    NUTUPS ups = new NUTUPS(fullargs);
   }
 }

@@ -5,7 +5,7 @@
 // of the License, or (at your option) any later version.
 //
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.transaction.*;
@@ -19,10 +19,10 @@ import java.net.*;
  * @author David Brodrick
  * @version $Id: $
  **/
-class DataSourcePingCheck
-extends DataSource
+class PingCheck
+extends ExternalSystem
 {
-  public DataSourcePingCheck(String[] args)
+  public PingCheck(String[] args)
   {
     super("pingcheck");
   }
@@ -48,13 +48,13 @@ extends DataSource
         canping = address.isReachable(10000);
       }
       catch (UnknownHostException e) {
-        System.err.println("DataSourcePingCheck: Unknown host \"" + host + "\"");
+        System.err.println("PingCheck: Unknown host \"" + host + "\"");
       }
       catch (IOException e) {
-        System.err.println("DataSourcePingCheck: Timeout for host \"" + host + "\"");
+        System.err.println("PingCheck: Timeout for host \"" + host + "\"");
       }
 
-      //Increment the transaction counter for this DataSource
+      //Increment the transaction counter for this ExternalSystem
       itsNumTransactions++;
 
       //Fire off the updated value for this monitor point

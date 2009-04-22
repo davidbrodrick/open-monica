@@ -5,7 +5,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import java.util.*;
 import atnf.atoms.mon.*;
@@ -18,7 +18,7 @@ import atnf.atoms.mon.*;
  * <P>All updates are achived but this and some other behaviour aspects should
  * be made into options.
  *
- * The DataSource takes the following arguments:
+ * The ExternalSystem takes the following arguments:
  * <ul>
  * <li> Number of points to create.
  * <li> Minimum update interval (seconds).
@@ -27,8 +27,8 @@ import atnf.atoms.mon.*;
  *
  * @author David Brodrick
  **/
-public class DataSourceSimulator
-extends DataSource
+public class Simulator
+extends ExternalSystem
 {
   /** Random number generator. */
   private Random itsRandom = new Random();
@@ -36,7 +36,7 @@ extends DataSource
   /** Total number of simulators running. */
   private static int theirPopulation = 0;
   
-  public DataSourceSimulator(String[] args)
+  public Simulator(String[] args)
   {
     super("simulator"+theirPopulation);
     
@@ -44,7 +44,7 @@ extends DataSource
     int minseconds = Integer.parseInt(args[1]);
     int maxseconds = Integer.parseInt(args[2]);
 
-    System.out.println("DataSourceSimulator: Will create " + numpoints + " dummy points");
+    System.out.println("Simulator: Will create " + numpoints + " dummy points");
     
     for (int i=0; i<numpoints; i++) {
       String[] names = {"dummy."+i};

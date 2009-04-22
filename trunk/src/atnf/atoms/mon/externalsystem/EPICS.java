@@ -5,7 +5,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import java.io.*;
 import java.util.*;
@@ -24,8 +24,8 @@ import gov.aps.jca.event.*;
  * @author David Brodrick
  * @version $Id: $
  **/
-public class DataSourceEPICS
-extends DataSource
+public class EPICS
+extends ExternalSystem
 {
   /** JCA context. */
   Context itsContext = null;
@@ -36,11 +36,11 @@ extends DataSource
   /** Mapping between PV names and Channels. */
   HashMap itsChannelMap = new HashMap();
 
-  public DataSourceEPICS(String[] args)
+  public EPICS(String[] args)
   {
     //Try to read the list of points to monitor
-    InputStream mapfile = DataSourceEPICS.class.getClassLoader().getResourceAsStream(args[0]);
-    System.err.println("DataSourceEPICS: Point map is " + mapfile);
+    InputStream mapfile = EPICS.class.getClassLoader().getResourceAsStream(args[0]);
+    System.err.println("EPICS: Point map is " + mapfile);
     try {
       BufferedReader reader = new BufferedReader(new InputStreamReader(mapfile));
       while (reader.ready()) {
@@ -50,14 +50,14 @@ extends DataSource
         }
         StringTokenizer st=new StringTokenizer(thisline);
         if (st.countTokens()!=2) {
-          MonitorMap.logger.warning("DataSourceEPICS: Parse error with line \"" + thisline + "\" of " + mapfile);
+          MonitorMap.logger.warning("EPICS: Parse error with line \"" + thisline + "\" of " + mapfile);
           continue;
         }
         itsPVPointMap.put(st.nextToken(), st.nextToken());
       }
       reader.close();
     } catch (Exception e) {
-      MonitorMap.logger.error("DataSourceEPICS: Could not read PV/point map " + mapfile);
+      MonitorMap.logger.error("EPICS: Could not read PV/point map " + mapfile);
     }
 
     //Get the JCALibrary instance.
@@ -66,7 +66,7 @@ extends DataSource
       //Create context with default configuration values.
       itsContext=jca.createContext(JCALibrary.CHANNEL_ACCESS_JAVA);
     } catch (Exception e) {
-      MonitorMap.logger.error("DataSourceEPICS: Constructor: " + e.getClass() + " " + e.getMessage());
+      MonitorMap.logger.error("EPICS: Constructor: " + e.getClass() + " " + e.getMessage());
     }
 
     //Create thread to connect channels
@@ -74,9 +74,9 @@ extends DataSource
       ChannelConnector connector = new ChannelConnector();
       connector.start();
     } catch (Exception e) {
-      MonitorMap.logger.error("DataSourceEPICS: Constructor: Connecting Channels: " + e.getClass() + " " + e.getMessage());
+      MonitorMap.logger.error("EPICS: Constructor: Connecting Channels: " + e.getClass() + " " + e.getMessage());
     }
-    MonitorMap.logger.checkpoint("DataSourceEPICS: Initialised with \"" + itsPVPointMap.size() + "\" monitor points");
+    MonitorMap.logger.checkpoint("EPICS: Initialised with \"" + itsPVPointMap.size() + "\" monitor points");
   }
 
 
@@ -136,7 +136,7 @@ extends DataSource
               itsContext.pendIO(5.0);
             } catch (Exception e) {
               //Failed to connect: IOC probably isn't running yet
-              System.err.println("DataSourceEPICS: Connecting Channel: " + thispv + e.getClass() + " " + e.getMessage());
+              System.err.println("EPICS: Connecting Channel: " + thispv + e.getClass() + " " + e.getMessage());
               thischan.destroy();
               continue;
             }
@@ -149,8 +149,8 @@ extends DataSource
             //Keep this association
             itsChannelMap.put(thispv, thischan);
           } catch (Exception e) {
-            System.err.println("DataSourceEPICS: Connecting Channel " + thispv + ": " + e.getClass() + " " + e.getMessage());
-            MonitorMap.logger.error("DataSourceEPICS: Connecting Channel " + thispv + ": " + e.getClass() + " " + e.getMessage());
+            System.err.println("EPICS: Connecting Channel " + thispv + ": " + e.getClass() + " " + e.getMessage());
+            MonitorMap.logger.error("EPICS: Connecting Channel " + thispv + ": " + e.getClass() + " " + e.getMessage());
           }
         }
         
@@ -198,7 +198,7 @@ extends DataSource
           processDBR(dbr);
         }
       } catch (Exception e) {
-        System.err.println("DataSourceEPICS:MonUpdater: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
+        System.err.println("EPICS:MonUpdater: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
       }
     }
     
@@ -219,8 +219,8 @@ extends DataSource
           itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
         }
       } catch (Exception e) {
-        System.err.println("DataSourceEPICS:monitorChanged: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
-        MonitorMap.logger.warning("DataSourceEPICS: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
+        System.err.println("EPICS:monitorChanged: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
+        MonitorMap.logger.warning("EPICS: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
       }
     }    
     
@@ -253,8 +253,8 @@ extends DataSource
           } else if (dbr.getType()==DBRType.ENUM) {
             newval=new Integer(((short[])rawval)[i]);
           } else {
-            System.err.println("DataSourceEPICS:processDBR: " + itsPV + ": Unhandled DBR type: " + dbr.getType());
-            MonitorMap.logger.warning("DataSourceEPICS: " + itsPV + ": Unhandled DBR type: " + dbr.getType());
+            System.err.println("EPICS:processDBR: " + itsPV + ": Unhandled DBR type: " + dbr.getType());
+            MonitorMap.logger.warning("EPICS: " + itsPV + ": Unhandled DBR type: " + dbr.getType());
           }
 
           //System.out.println(itsPV + "\t" + newval);
@@ -269,8 +269,8 @@ extends DataSource
           }
         }
       } catch (Exception e) {
-        System.err.println("DataSourceEPICS:processDBR: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
-        MonitorMap.logger.warning("DataSourceEPICS: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
+        System.err.println("EPICS:processDBR: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
+        MonitorMap.logger.warning("EPICS: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
         e.printStackTrace();
       }
     }
@@ -281,6 +281,6 @@ extends DataSource
   void
   main(String[] argv)
   {
-    DataSourceEPICS epics = new DataSourceEPICS(null);
+    EPICS epics = new EPICS(null);
   }
 }

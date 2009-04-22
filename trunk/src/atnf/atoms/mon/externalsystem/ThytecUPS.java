@@ -5,7 +5,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import java.util.HashMap;
 import atnf.atoms.time.RelTime;
@@ -24,7 +24,7 @@ import atnf.atoms.mon.*;
  * </ul>
  *
  * <P>Here is an example string for the monitor-sources.txt:<BR>
- * <tt>DataSourceThytecUPS ca06ups:7001:ca06.power.ups.antenna.alldata</tt>
+ * <tt>ThytecUPS ca06ups:7001:ca06.power.ups.antenna.alldata</tt>
  *
  * <P>The specified monitor point will receive updates with a HashMap which
  * contains all of the data extracted from the UPS. You can then define
@@ -32,17 +32,17 @@ import atnf.atoms.mon.*;
  * individual pieces of data by using TranslationNV's.
  *
  * @author David Brodrick
- * @version $Id: DataSourceThytecUPS.java,v 1.1 2008/03/02 22:58:47 bro764 Exp $
+ * @version $Id: ThytecUPS.java,v 1.1 2008/03/02 22:58:47 bro764 Exp $
  **/
-public class DataSourceThytecUPS
-extends DataSourceASCIISocket
+public class ThytecUPS
+extends ASCIISocket
 {
   /** Name of the monitor point we fire updates to */
   private String itsMonitorPointName=null;
   /** Monitor point we fire updates to */
   private PointDescription itsMonitorPoint=null;
 
-  public DataSourceThytecUPS(String[] args)
+  public ThytecUPS(String[] args)
   {
     super(args);
 

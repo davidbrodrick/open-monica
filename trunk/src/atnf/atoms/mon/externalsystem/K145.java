@@ -5,7 +5,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
@@ -30,7 +30,7 @@ import atnf.atoms.mon.transaction.*;
  *
  * <P>The constructor requires <i>hostname:port</i> arguments. For
  * instance your monitor-sources.txt file might contain:<BR>
- * <tt>atnf.atoms.mon.datasource.DataSourceK145 localhost:1234</tt>
+ * <tt>atnf.atoms.mon.externalsystem.K145 localhost:1234</tt>
  *
  * <P>The monitor points for the four sensors then need to use a
  * TransactionString with the channel set to <i>hostname:port</i> and
@@ -40,8 +40,8 @@ import atnf.atoms.mon.transaction.*;
  * @author David Brodrick
  * @version $Id: $
  **/
-public class DataSourceK145
-extends DataSourceASCIISocket
+public class K145
+extends ASCIISocket
 {
   /** Number of sensors that a K145 kit supports. */
   private final static int theirNumSensors = 4;
@@ -54,7 +54,7 @@ extends DataSourceASCIISocket
   private AbsTime[] itsTimes = new AbsTime[theirNumSensors];
 
   /** Constructor, expects host:port[:timeout] argument. */  
-  public DataSourceK145(String[] args)
+  public K145(String[] args)
   {
     super(args);
 
@@ -75,11 +75,11 @@ extends DataSourceASCIISocket
 
     //The Transaction should contain a numeric channel id
     if (thistrans.getNumStrings()<1) {
-      throw new Exception("DataSourceK145: Not enough arguments in Transaction");
+      throw new Exception("K145: Not enough arguments in Transaction");
     }
     int thischan=Integer.parseInt(thistrans.getString(0));
     if (thischan<1 || thischan>theirNumSensors) {
-      throw new Exception("DataSourceK145: Illegal sensor number requested");
+      throw new Exception("K145: Illegal sensor number requested");
     }
 
     //Return null if data is stale
@@ -153,7 +153,7 @@ extends DataSourceASCIISocket
             itsTimes[thissensor]=new AbsTime();
           }
         } catch (Exception e) {
-          System.err.println("DataSourceK145:DataReader.run (" + itsHostName 
+          System.err.println("K145:DataReader.run (" + itsHostName 
                              + ":" + itsPort + "): " + e.getClass());
           try { disconnect(); } catch (Exception f) { }
         }
@@ -175,7 +175,7 @@ extends DataSourceASCIISocket
      fullargs[0]=args[0];
      fullargs[1]=args[1];
      
-     DataSourceK145 k145 = new DataSourceK145(fullargs);
+     K145 k145 = new K145(fullargs);
 
      try {
        k145.connect();

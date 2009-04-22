@@ -5,7 +5,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import java.net.*;
 import java.io.*;
@@ -45,10 +45,10 @@ import atnf.atoms.mon.*;
  * }</tt>
  *
  * @author David Brodrick
- * @version $Id: DataSourceASCIISocket.java,v 1.4 2008/03/12 01:36:14 bro764 Exp $
+ * @version $Id: ASCIISocket.java,v 1.4 2008/03/12 01:36:14 bro764 Exp $
  **/
-public abstract class DataSourceASCIISocket
-extends DataSource
+public abstract class ASCIISocket
+extends ExternalSystem
 {
   /** The socket used for communicating with the remote service. */
   protected Socket itsSocket = null;
@@ -65,7 +65,7 @@ extends DataSource
   protected int itsTimeout = 5000;
 
   /** Argument must include host:port and optionally :timeout_ms */
-  public DataSourceASCIISocket(String[] args)
+  public ASCIISocket(String[] args)
   {
     super(args[0]+":"+args[1]);
     itsHostName=args[0];
@@ -177,7 +177,7 @@ extends DataSource
     } catch (Exception e) {
       //Probably a comms error.
       disconnect();
-      System.err.println("DataSourceASCIISocket: " + e.getClass() + ": " + e.getMessage());
+      System.err.println("ASCIISocket: " + e.getClass() + ": " + e.getMessage());
       e.printStackTrace();
       MonitorMap.logger.error(e.getMessage());
     }

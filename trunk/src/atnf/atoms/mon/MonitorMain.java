@@ -9,7 +9,8 @@ package atnf.atoms.mon;
 
 import java.util.*;
 import java.io.*;
-import atnf.atoms.mon.datasource.*;
+
+import atnf.atoms.mon.externalsystem.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.mon.archiver.*;
 
@@ -42,7 +43,7 @@ MonitorMain
       System.err.println("ERROR: Failed to find monitor-sources.txt configuration file");
       System.exit(1);
     }
-    DataSource.init(new InputStreamReader(datasourcefile));
+    ExternalSystem.init(new InputStreamReader(datasourcefile));
 
     //Create all the points
     InputStream pointsfile = MonitorMain.class.getClassLoader().getResourceAsStream("monitor-points.txt");
@@ -80,7 +81,7 @@ MonitorMain
     new MonitorServerASCII();
 
     //Start the data collection
-    DataSource.startAll();
+    ExternalSystem.startAll();
 
     //Start archive thread
     ((Thread)pa).start();

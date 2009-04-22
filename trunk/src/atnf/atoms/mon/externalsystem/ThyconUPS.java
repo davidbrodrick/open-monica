@@ -6,7 +6,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import java.io.*;
 import java.util.*;
@@ -20,8 +20,8 @@ import atnf.atoms.mon.*;
  * @author David Brodrick
  * @version $Id: $
  **/
-class DataSourceThyconUPS
-extends DataSource
+class ThyconUPS
+extends ExternalSystem
 {
   /** The socket connection to the serial/ethernet converter. */
   private Socket itsSocket = null;
@@ -53,7 +53,7 @@ extends DataSource
   /** Constructor.
    * @param args
    */
-  public DataSourceThyconUPS(String[] args)
+  public ThyconUPS(String[] args)
   {
     super(args[0]+":"+args[1]);
 
@@ -74,8 +74,8 @@ extends DataSource
       itsReader = new BufferedReader(new InputStreamReader(itsSocket.getInputStream()));
       itsWriter = new PrintStream(itsSocket.getOutputStream());
 
-      System.err.println("DataSourceThyconUPS: Connected to " + itsHost);
-      MonitorMap.logger.information("DataSourceThyconUPS: Connected to "
+      System.err.println("ThyconUPS: Connected to " + itsHost);
+      MonitorMap.logger.information("ThyconUPS: Connected to "
 				    + itsHost);
       //Reset the transaction counter
       itsNumTransactions = 0;
@@ -88,7 +88,7 @@ extends DataSource
       itsSocket = null;
       itsReader = null;
       itsConnected  = false;
-      System.err.println("DataSourceThyconUPS: Couldn't Connect: "
+      System.err.println("ThyconUPS: Couldn't Connect: "
 			 + e.getMessage());
     }
     return itsConnected;
@@ -101,7 +101,7 @@ extends DataSource
   disconnect()
   throws Exception
   {
-    System.err.println("DataSourceThyconUPS: Lost Connection");
+    System.err.println("ThyconUPS: Lost Connection");
     itsConnected = false;
     if (itsSocket!=null) {
       itsSocket.close();
@@ -609,7 +609,7 @@ extends DataSource
      fullargs[2]=args[1];
      fullargs[3]="30000";
      
-     DataSourceThyconUPS ups = new DataSourceThyconUPS(fullargs);
+     ThyconUPS ups = new ThyconUPS(fullargs);
 
 
      try {

@@ -14,9 +14,9 @@ import atnf.atoms.mon.util.MonitorUtils;
 /**
  * Generic transaction for DataSources which require strings to retrieve the
  * relevant data. The first string argument for the Transaction must be the
- * channel/protocol that corresponds to the appropriate DataSource. Any
+ * channel/protocol that corresponds to the appropriate ExternalSystem. Any
  * subsequent arguments are arbitrary strings that are made available for
- * use by the DataSource.
+ * use by the ExternalSystem.
  *
  * @author David Brodrick
  * @version $Id: $
@@ -40,7 +40,7 @@ extends Transaction
     if (tokens[1].indexOf("$1")!=-1) {
       tokens[1]=MonitorUtils.replaceTok(tokens[1], parent.getSource());
     }
-    //Set the channel (used to determine which DataSource to use)
+    //Set the channel (used to determine which ExternalSystem to use)
     setChannel(tokens[1]);
 
     //Add the remaining strings to our list

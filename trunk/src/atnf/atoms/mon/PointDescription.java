@@ -15,7 +15,7 @@ import atnf.atoms.time.*;
 import atnf.atoms.util.*;
 import atnf.atoms.mon.translation.*;
 import atnf.atoms.mon.transaction.*;
-import atnf.atoms.mon.datasource.*;
+import atnf.atoms.mon.externalsystem.*;
 import atnf.atoms.mon.archivepolicy.*;
 import atnf.atoms.mon.archiver.*;
 import atnf.atoms.mon.limit.*;
@@ -771,16 +771,16 @@ implements ActionListener, NamedObject, Comparable
         for (int i=0; i<itsOutputTransactions.length; i++) {
           Transaction thistransaction = itsOutputTransactions[i];
           if (!(thistransaction instanceof TransactionNONE)) {
-            //Find the DataSource responsible for handling this control operation
-            DataSource ds = DataSource.getDataSource(thistransaction.getChannel());
+            //Find the ExternalSystem responsible for handling this control operation
+            ExternalSystem ds = ExternalSystem.getExternalSystem(thistransaction.getChannel());
             if (ds==null) {
-              System.err.println("PointDescription (" + getFullName() + "): No DataSource for output Transaction channel " + thistransaction.getChannel());
+              System.err.println("PointDescription (" + getFullName() + "): No ExternalSystem for output Transaction channel " + thistransaction.getChannel());
             } else {
-              System.err.println("PointDescription.firePointEvent (" + getFullName() + "): Using DataSource " + ds.getName() + " for output");
+              System.err.println("PointDescription.firePointEvent (" + getFullName() + "): Using ExternalSystem " + ds.getName() + " for output");
               try {
                 ds.putData(this, data);
               } catch (Exception e) {
-                System.err.println("DataSource " + ds.getName() + " threw exception \"" + e + "\" for " + getFullName());
+                System.err.println("ExternalSystem " + ds.getName() + " threw exception \"" + e + "\" for " + getFullName());
               }
             }
           }
