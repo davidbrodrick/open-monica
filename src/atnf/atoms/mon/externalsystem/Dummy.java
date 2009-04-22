@@ -6,7 +6,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import atnf.atoms.time.AbsTime;
 import atnf.atoms.mon.*;
@@ -14,12 +14,12 @@ import atnf.atoms.mon.*;
 /**
  * Used to simulate a data
  * @author Le Cuong Nguyen
- * @version $Id: DataSourceDummy.java,v 1.2 2004/11/19 01:21:46 bro764 Exp $
+ * @version $Id: Dummy.java,v 1.2 2004/11/19 01:21:46 bro764 Exp $
  **/
-class DataSourceDummy
-extends DataSource
+class Dummy
+extends ExternalSystem
 {
-  public DataSourceDummy(String[] args)
+  public Dummy(String[] args)
   {
     super(args[0]);
   }

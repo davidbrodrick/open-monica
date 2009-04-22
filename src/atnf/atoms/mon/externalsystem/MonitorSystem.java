@@ -6,7 +6,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import java.util.HashMap;
 import atnf.atoms.mon.*;
@@ -28,12 +28,12 @@ import atnf.atoms.time.*;
  * @author Le Cuong Nguyen
  * @author David Brodrick
  */
-class DataSourceMonitorSystem
-extends DataSource
+class MonitorSystem
+extends ExternalSystem
 {
   /** Constructor */
   public
-  DataSourceMonitorSystem(String[] tokens)
+  MonitorSystem(String[] tokens)
   {
     super("MonitorSystem");
   }
@@ -65,7 +65,7 @@ extends DataSource
                                     res), true));
       }
     } catch (Exception e) {
-      System.err.println("DataSourceMonitorSystem: " + e);     
+      System.err.println("MonitorSystem: " + e);     
     }
   }
 }

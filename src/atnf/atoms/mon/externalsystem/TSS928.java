@@ -6,14 +6,14 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import java.util.*;
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 
 /**
- * DataSource to retrieve and process data from a Vaisala TSS928 lightning
+ * ExternalSystem to retrieve and process data from a Vaisala TSS928 lightning
  * detector. This expects the unit is connected to a device or program which
  * allows two directional communications over a socket.<BR>
  *
@@ -23,8 +23,8 @@ import atnf.atoms.mon.*;
  *
  * @author David Brodrick
  **/
-class DataSourceTSS928
-extends DataSourceASCIISocket
+class TSS928
+extends ASCIISocket
 {
    /** Rotation correction for orientation of detector. */
    private float itsRotation=0.0f;
@@ -32,7 +32,7 @@ extends DataSourceASCIISocket
    /** Constructor.
     * @param args
     */
-   public DataSourceTSS928(String[] args)
+   public TSS928(String[] args)
    {
      super(args);
      
@@ -41,7 +41,7 @@ extends DataSourceASCIISocket
        try {
          itsRotation=Float.parseFloat(args[3]);
        } catch (Exception e) {
-         System.err.println("DataSourceTSS928: Error parsing rotation argument!");
+         System.err.println("TSS928: Error parsing rotation argument!");
        }
      }
    }
@@ -70,7 +70,7 @@ extends DataSourceASCIISocket
       itsSocket = null;
       itsReader = null;
       itsConnected  = false;
-      System.err.println("DataSourceTSS928: Couldn't Connect: "
+      System.err.println("TSS928: Couldn't Connect: "
                          + e.getMessage());
     }
     return itsConnected;
@@ -398,7 +398,7 @@ extends DataSourceASCIISocket
      fullargs[1]=args[0];
      fullargs[2]=args[1];
      fullargs[3]="10000";
-     DataSourceTSS928 bang = new DataSourceTSS928(args);
+     TSS928 bang = new TSS928(args);
 
      try {
        bang.connect();

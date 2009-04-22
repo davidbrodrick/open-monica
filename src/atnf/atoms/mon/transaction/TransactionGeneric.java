@@ -12,7 +12,7 @@ import atnf.atoms.mon.PointDescription;
 /**
  * Set the channel to be the provided argument string, so that we don't
  * need to define a new Transaction class for channels which don't actually
- * have DataSource specific fields.
+ * have ExternalSystem specific fields.
  *
  * @author David Brodrick
  * @version $Id: TransactionGeneric.java,v 1.1 2008/03/12 01:36:35 bro764 Exp $

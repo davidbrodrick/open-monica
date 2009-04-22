@@ -5,7 +5,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import java.io.*;
 import atnf.atoms.time.RelTime;
@@ -37,8 +37,8 @@ import atnf.atoms.mon.*;
  * @author David Brodrick
  * @version $Id: $
  **/
-public class DataSourceWH1081
-extends DataSource
+public class WH1081
+extends ExternalSystem
 {
   /** The number of elements in the data array we produce. */
   private static final int theirNumElements = 9;
@@ -58,7 +58,7 @@ extends DataSource
   /** The last valid data we collected. */
   private Float[] itsLastData = null;
   
-  public DataSourceWH1081(String[] args)
+  public WH1081(String[] args)
   {
     super("wh1081");
   }
@@ -102,7 +102,7 @@ extends DataSource
 
       String err = stdError.readLine();
       if (err!=null) {
-        System.err.println("DataSourceWH1081: " + err);
+        System.err.println("WH1081: " + err);
         return null;
       }
         
@@ -114,21 +114,21 @@ extends DataSource
       line = stdInput.readLine();
       res[1]=new Float(line.substring(20,line.length()).trim());
       if (res[1].floatValue()<0 || res[1].floatValue()>100) {
-        System.err.println("DataSourceWH1081: Invalid data..");
+        System.err.println("WH1081: Invalid data..");
         throw new Exception("Outside humidity out of range");
       }
       line = stdInput.readLine();
       res[2]=new Float(line.substring(20,line.length()).trim());
       //Check for invalid values
       if (res[2].floatValue()>80 || res[2].floatValue()<-20) {
-        System.err.println("DataSourceWH1081: Invalid data..");
+        System.err.println("WH1081: Invalid data..");
         throw new Exception("Inside temperature out of range");
       }
       line = stdInput.readLine();
       res[3]=new Float(line.substring(20,line.length()).trim());
       //Check for invalid values
       if (res[3].floatValue()>80 || res[3].floatValue()<-20) {
-        System.err.println("DataSourceWH1081: Invalid data..");
+        System.err.println("WH1081: Invalid data..");
         throw new Exception("Outside temperature out of range");
       }
       line = stdInput.readLine();
@@ -138,7 +138,7 @@ extends DataSource
       //If avg wind exceeds gust then the message is corrupted
       if (res[4].floatValue()>res[5].floatValue() ||
           res[4].floatValue()>162 || res[5].floatValue()>162) {
-        System.err.println("DataSourceWH1081: Invalid data..");
+        System.err.println("WH1081: Invalid data..");
         throw new Exception("Wind data is invalid");        
       }
       line = stdInput.readLine();
@@ -214,13 +214,13 @@ extends DataSource
         itsLastInterval=interval;
         itsLastHistory=history;   
       } else {
-        //System.err.println("DataSourceWH1081: repeated data.");
+        //System.err.println("WH1081: repeated data.");
         return null;
       }
 
       if (itsLastRain==null || thisrain.floatValue()<itsLastRain.floatValue()) {
         //Impossible to tell how much rain since the last reading
-        System.err.println("DataSourceWH1081: Rainfall has reset.");
+        System.err.println("WH1081: Rainfall has reset.");
         res=null;
       } else {
         res[8]=new Float(10*(thisrain.floatValue()-itsLastRain.floatValue()));
@@ -228,7 +228,7 @@ extends DataSource
       itsLastRain=thisrain;
       itsLastData=res;
     } catch (Exception e) {          
-      System.err.println("DataSourceWH1081: " + e.getClass());
+      System.err.println("WH1081: " + e.getClass());
       return null;
     }
     
@@ -237,7 +237,7 @@ extends DataSource
   
   /** Simple test program. */
   public static final void main(String[] args) {
-    DataSourceWH1081 ds=new DataSourceWH1081(null);
+    WH1081 ds=new WH1081(null);
     while (true) {
       Float[] newdata=ds.getNewWeather();
       if (newdata==null) {

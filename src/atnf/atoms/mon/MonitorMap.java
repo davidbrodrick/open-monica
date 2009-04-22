@@ -17,7 +17,7 @@ package atnf.atoms.mon;
 import java.util.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.mon.archiver.*;
-import atnf.atoms.mon.datasource.*;
+import atnf.atoms.mon.externalsystem.*;
 import atnf.atoms.mon.transaction.*;
 import atnf.atoms.util.*;
 
@@ -58,18 +58,18 @@ public class MonitorMap
       itsPoints.put(pm.getLongName(), new TreeSet());
     }
      ((TreeSet)itsPoints.get(pm.getLongName())).add(pm.getSource());
-     //If the Transaction is not null, assign to appropriate DataSource
+     //If the Transaction is not null, assign to appropriate ExternalSystem
      Transaction[] transactions=pm.getInputTransactions();
      for (int i=0; i<transactions.length; i++) {
        Transaction t = transactions[i];
        if (t!=null && !t.getChannel().equals("NONE")) {
-         DataSource ds = DataSource.getDataSource(t.getChannel());
+         ExternalSystem ds = ExternalSystem.getExternalSystem(t.getChannel());
          if (ds!=null) {
            ds.addPoint(pm);
            //System.err.println("MonitorMap:addPointMonitor: OK for "
            //     	    + pm + " (" + t.getChannel() + ")");
          } else {
-           System.err.println("MonitorMap:addPointMonitor: No DataSource for "
+           System.err.println("MonitorMap:addPointMonitor: No ExternalSystem for "
                               + pm + " (" + t.getChannel() + ")");
          }
        }

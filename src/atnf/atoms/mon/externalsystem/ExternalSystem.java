@@ -6,7 +6,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import java.util.*;
 import java.io.*;
@@ -17,20 +17,20 @@ import atnf.atoms.time.*;
 import atnf.atoms.mon.transaction.*;
 
 /**
- * DataSource is the base class for objects which bring new information
+ * ExternalSystem is the base class for objects which bring new information
  * into the system. Each Datasource has a thread which schedules and manages
  * the collection of the monitor points which have been assigned to it.
- * DataSource sub-classes use the information from a Transaction object in
+ * ExternalSystem sub-classes use the information from a Transaction object in
  * order to collect the appropriate information for a particular monitor
  * point. This sub-class specific behavior is realised by implementing the
  * <i>getData</i> method.
  *
  * @author David Brodrick
  * @author Le Cuong Nguyen
- * @version $Id: DataSource.java,v 1.8 2005/11/22 00:43:13 bro764 Exp $
+ * @version $Id: ExternalSystem.java,v 1.8 2005/11/22 00:43:13 bro764 Exp $
  **/
 public abstract
-class DataSource
+class ExternalSystem
 implements Runnable
 {
   /** Comparator to compare PointMonitors and/or AbsTimes. We need
@@ -49,7 +49,7 @@ implements Runnable
       } else if (o==null) {
         return 0;
       } else {
-         System.err.println("DataSource: TimeComp: compare: UNKNOWN TYPE ("
+         System.err.println("ExternalSystem: TimeComp: compare: UNKNOWN TYPE ("
                             + o.getClass() + ")");
          return 0;
       }
@@ -96,7 +96,7 @@ implements Runnable
   /** Records if we're currently connected to the remote source. */
   protected boolean itsConnected = false;
 
-  /** Keep track of how many transactions we've done. Each DataSource
+  /** Keep track of how many transactions we've done. Each ExternalSystem
    * sub-class should probably zero this field whenever we reconnect to the
    * remote source. */
   protected long itsNumTransactions = 0;
@@ -104,56 +104,56 @@ implements Runnable
   /** Flag to indicate if thread should continue running. */
   protected boolean itsKeepRunning = true;
 
-  /** Static map of all DataSources. */
-  protected static HashMap theirDataSources = new HashMap();
+  /** Static map of all ExternalSystems. */
+  protected static HashMap theirExternalSystems = new HashMap();
 
-  /** Add a DataSource with the given unique channel description. */
+  /** Add a ExternalSystem with the given unique channel description. */
   public static
   void
-  addDataSource(String name, DataSource source)
+  addExternalSystem(String name, ExternalSystem source)
   {
-    theirDataSources.put(name, source);
+    theirExternalSystems.put(name, source);
   }
 
-  /** Get the DataSource with the specified channel description. */
+  /** Get the ExternalSystem with the specified channel description. */
   public static
-  DataSource
-  getDataSource(String name)
+  ExternalSystem
+  getExternalSystem(String name)
   {
-    return (DataSource)theirDataSources.get(name);
+    return (ExternalSystem)theirExternalSystems.get(name);
   }
 
-   public DataSource(String name)
+   public ExternalSystem(String name)
    {
      itsName = name;
-     addDataSource(name, this);
+     addExternalSystem(name, this);
    }
    
-   public DataSource()
+   public ExternalSystem()
    {
    }
    
 
-   /** Start all DataSource collection threads. */
+   /** Start all ExternalSystem collection threads. */
    public static
    void
    startAll()
    {
-     Object[] ds = theirDataSources.values().toArray();
+     Object[] ds = theirExternalSystems.values().toArray();
      for (int i=0; i<ds.length; i++) {
-       ((DataSource)ds[i]).startCollection();
+       ((ExternalSystem)ds[i]).startCollection();
      }
    }
 
 
-   /** Stop all DataSource collection threads. */
+   /** Stop all ExternalSystem collection threads. */
    public static
    void
    stopAll()
    {
-     Object[] ds = theirDataSources.values().toArray();
+     Object[] ds = theirExternalSystems.values().toArray();
      for (int i=0; i<ds.length; i++) {
-       ((DataSource)ds[i]).stopCollection();
+       ((ExternalSystem)ds[i]).stopCollection();
      }
    }
 
@@ -164,7 +164,7 @@ implements Runnable
    startCollection()
    {
      itsKeepRunning = true;
-     itsThread = new Thread(this,"DataSource " + itsName);
+     itsThread = new Thread(this,"ExternalSystem " + itsName);
      itsThread.setDaemon(true);
      itsThread.start();
    }
@@ -213,7 +213,7 @@ implements Runnable
    }
 
 
-   /** Return the "name" encapsulating our source and DataSource type. */
+   /** Return the "name" encapsulating our source and ExternalSystem type. */
    public
    String
    getName()
@@ -222,7 +222,7 @@ implements Runnable
    }
 
 
-   /** Get the number of Transactions performed by this DataSource. */
+   /** Get the number of Transactions performed by this ExternalSystem. */
    public
    long
    getNumTransactions()
@@ -233,7 +233,7 @@ implements Runnable
    }
 
 
-   /** Get the number of points allocated to this DataSource. */
+   /** Get the number of points allocated to this ExternalSystem. */
    public
    int
    getNumPoints()
@@ -295,7 +295,7 @@ implements Runnable
      }
    }
 
-   /** Return any Transactions which are associated with this DataSource. */
+   /** Return any Transactions which are associated with this ExternalSystem. */
    protected
    Vector
    getMyTransactions(Transaction[] transactions)
@@ -323,11 +323,11 @@ implements Runnable
    putData(PointDescription pm, PointData pd)
    throws Exception
    {
-     System.err.println("DataSource (" + itsName + "): Unsupported control request from " + pm.getFullName());
+     System.err.println("ExternalSystem (" + itsName + "): Unsupported control request from " + pm.getFullName());
    }
    
    /** Initialise all the DataSources declared in a file.
-    * @param fileName The file to parse for DataSource declarations. */
+    * @param fileName The file to parse for ExternalSystem declarations. */
    public static
    void
    init(Reader sourcefile)
@@ -345,20 +345,17 @@ implements Runnable
                //Split the arguments into an array at each colon
                classArgs = tok.nextToken().split(":");
              }
-             Class datasource;
+             Class newes;
              try {
-               //Try to find class by assuming argument is full class name
-               datasource = Class.forName(className);
-             } catch (Exception g) {
-               //Supplied name was not a full path
-               //Look in atnf.atoms.mon.datasource package
-               datasource = Class.forName("atnf.atoms.mon.datasource.DataSource" + className);
+               newes = Class.forName(className);
+             } catch (Exception e) {
+               newes = Class.forName("atnf.atoms.mon.externalsystem." + className);
              }
-             Constructor con = datasource.getConstructor(new Class[]{String[].class});
+             Constructor con = newes.getConstructor(new Class[]{String[].class});
              con.newInstance(new Object[]{classArgs});
            } catch (Exception f) {
-             MonitorMap.logger.error("DataSource: Cannot Initialise " + lines[i]);
-             System.err.println("DataSource: Cannot Initialise \"" + lines[i] + "\" defined on line " 
+             MonitorMap.logger.error("ExternalSystem: Cannot Initialise " + lines[i]);
+             System.err.println("ExternalSystem: Cannot Initialise \"" + lines[i] + "\" defined on line " 
                                 + (i+1) + ": " + f + f.getMessage());
              f.printStackTrace();
            }
@@ -366,7 +363,7 @@ implements Runnable
        }
      } catch (Exception e) {
        e.printStackTrace();
-       MonitorMap.logger.error("DataSource: Cannot Initialise DataSources");
+       MonitorMap.logger.error("ExternalSystem: Cannot Initialise DataSources");
      }
    }
 
@@ -393,7 +390,7 @@ implements Runnable
              itsPoints.wait();
            }
          } catch (Exception e) {
-           System.err.println("DataSource::run: " + e.getMessage());
+           System.err.println("ExternalSystem::run: " + e.getMessage());
            e.printStackTrace();
            continue;
          }
@@ -446,7 +443,7 @@ implements Runnable
            waittime.sleep();
          }
        } catch (Exception e) {
-         System.err.println("DataSource::run(): " + e.getMessage());
+         System.err.println("ExternalSystem::run(): " + e.getMessage());
          e.printStackTrace();
        }
      }

@@ -14,11 +14,11 @@ import java.io.Serializable;
 /**
  * Transaction objects are basically used to collect the raw information
  * for each monitor point. Most Transaction sub-classes store device-specific
- * "address" information for use by the corresponding <code>DataSource</code>.
- * The DataSource knows how to use this information to retrieve the
+ * "address" information for use by the corresponding <code>ExternalSystem</code>.
+ * The ExternalSystem knows how to use this information to retrieve the
  * specific piece of information required for this monitor point. Other
  * Transaction sub-classes may collect information without use of a
- * DataSource, for instance by listening for updates to other monitor points.
+ * ExternalSystem, for instance by listening for updates to other monitor points.
  *
  * @author Le Cuong Nguyen
  * @author David Brodrick
@@ -114,7 +114,7 @@ implements Serializable
     //subclass to instantiate.
     String type = arg.substring(0, arg.indexOf("-"));
     if (type == "" || type == null || type.length() < 1) {
-      type = "DUMMY";
+      type = "NONE";
     }
     
     try {
@@ -131,7 +131,7 @@ implements Serializable
     } catch (Exception e) {
       System.err.println("ERROR in Transaction.factory for " + parent.getName());
       System.err.println("\tUNABLE TO FIND CONSTRUCTOR FOR CLASS " + type);
-      System.err.println("\tSubstituting class DUMMY rather than crash...");
+      System.err.println("\tSubstituting class NONE rather than crash...");
       result = new TransactionNONE(parent, "");
     }
 

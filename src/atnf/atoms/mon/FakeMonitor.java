@@ -167,7 +167,7 @@ public class FakeMonitor extends PointDescription
 
      //Check to see if we collected the same data twice. If we did this
      //might be because: the point has stopped being monitored (eg because
-     //the DataSource has lost it's connection to the source), we were just
+     //the ExternalSystem has lost it's connection to the source), we were just
      //unlucky and our timing was slightly off, or because the period
      //of the point has changed.
       boolean duplicateCollection = false;
@@ -186,7 +186,7 @@ public class FakeMonitor extends PointDescription
 
       if (itsPeriod > 0) {
         if (!data.isValid()) {
-          //No valid data found, the DataSource is probably disconnected
+          //No valid data found, the ExternalSystem is probably disconnected
           //from the source, so just wait for a while and try again
           itsNextEpoch = new AbsTime().getValue() + itsPeriod;
         } else if (duplicateCollection) {

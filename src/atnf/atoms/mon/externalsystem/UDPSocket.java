@@ -5,7 +5,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import java.net.*;
 import atnf.atoms.mon.*;
@@ -20,8 +20,8 @@ import atnf.atoms.mon.*;
  * @author David Brodrick
  * @version $Id: $
  **/
-public abstract class DataSourceUDPSocket
-extends DataSource
+public abstract class UDPSocket
+extends ExternalSystem
 {
   /** The socket used for communicating with the remote service. */
   protected DatagramSocket itsSocket = null;
@@ -32,7 +32,7 @@ extends DataSource
   /** Read timeout period, in ms. */
   protected int itsTimeout = 5000;
 
-  public DataSourceUDPSocket(String[] args)
+  public UDPSocket(String[] args)
   {
     super(args[0]);
     
@@ -142,7 +142,7 @@ extends DataSource
     } catch (Exception e) {
       //Probably a comms error.
       disconnect();
-      System.err.println("DataSourceUDPSocket: " + e.getClass() + ": " + e.getMessage());
+      System.err.println("UDPSocket: " + e.getClass() + ": " + e.getMessage());
       e.printStackTrace();
       MonitorMap.logger.error(e.getMessage());
     }

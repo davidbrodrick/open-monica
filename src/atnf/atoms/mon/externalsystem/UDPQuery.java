@@ -5,7 +5,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.datasource;
+package atnf.atoms.mon.externalsystem;
 
 import java.net.*;
 import atnf.atoms.mon.*;
@@ -33,13 +33,13 @@ import atnf.atoms.mon.transaction.*;
  *
  * The name of the resulting channel will take the format
  * <tt>hostname-port</tt>, you will need to use this in the Transaction
- * for any points which will use this DataSource.
+ * for any points which will use this ExternalSystem.
  *
  * @author David Brodrick
  * @version $Id: $
  **/
-public class DataSourceUDPQuery
-extends DataSourceUDPSocket
+public class UDPQuery
+extends UDPSocket
 {
   /** Address of the remote host. */
   protected InetAddress itsRemoteHost;
@@ -48,7 +48,7 @@ extends DataSourceUDPSocket
   protected int itsRemotePort;
   
   /** constructor. */
-  public DataSourceUDPQuery(String args[])
+  public UDPQuery(String args[])
   {
     super(new String[]{args[0]+"-"+args[1]});
     
@@ -56,7 +56,7 @@ extends DataSourceUDPSocket
       itsRemoteHost=InetAddress.getByName(args[0]);
       itsRemotePort=Integer.parseInt(args[1]);
     } catch (Exception e) {
-      System.err.println("DataSourceUDPQuery: Error parsing arguments:");
+      System.err.println("UDPQuery: Error parsing arguments:");
       e.printStackTrace();
     }
     
@@ -65,7 +65,7 @@ extends DataSourceUDPSocket
       try {
         itsTimeout=Integer.parseInt(args[2]);
       } catch (Exception e) {
-        System.err.println("DataSourceUDPQuery (" + itsRemoteHost + ":" +
+        System.err.println("UDPQuery (" + itsRemoteHost + ":" +
                            itsRemotePort + "): Error parsing timeout argument");
       }    
     }
