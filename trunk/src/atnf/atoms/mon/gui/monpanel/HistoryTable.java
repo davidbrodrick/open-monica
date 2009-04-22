@@ -365,7 +365,7 @@ implements PointListener, Runnable, TableCellRenderer
 
       //Check that the numeric period field and save it, if okay
       try {
-	double foo = Double.parseDouble(itsPeriod.getText());
+	      Double.parseDouble(itsPeriod.getText());
       } catch (Exception e) {
 	JOptionPane.showMessageDialog(this,
 				      "The field for the Data Time Span must contain\n" +

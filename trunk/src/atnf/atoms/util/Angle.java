@@ -1009,10 +1009,6 @@ implements
   {
     // The string to build the result into.
     String res = null;
-    // The value in degrees.
-    double degs;
-    // The number of hours.
-    double hours;
     // The value in its object wrapper.
     Double itsValueObj = new Double(itsValue);
 
@@ -1278,42 +1274,6 @@ implements
   {
     // Make a new Angle of the correct value.
     return (new Angle(Math.atan(x)));
-  }
-
-  /**
-   * Convert a number from degrees to radians.
-   *
-   * @param a
-   *  A number of degrees.
-   *
-   * @return
-   *  The value of <code>A</code> in radians.
-   */
-  private static
-  double
-  cvtDegToRad(
-    double a
-  )
-  {
-    return (a * RADS_PER_DEG);
-  }
-
-  /**
-   * Convert a number of radians to degrees.
-   *
-   * @param a
-   *  A number of radians.
-   *
-   * @return
-   *  The value of <code>a</code> in degrees.
-   */
-  private static
-  double
-  cvtRadToDeg(
-    double a
-  )
-  {
-    return (a * DEGS_PER_RAD);
   }
 
   /**

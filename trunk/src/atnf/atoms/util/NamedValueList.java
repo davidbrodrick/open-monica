@@ -1684,16 +1684,6 @@ implements
   {
     // The property keys.
     Object[] keys = props.keySet().toArray();
-    // The string constructor.
-    Constructor constructor;
-
-    // Find the string constructor.
-    try {
-      constructor = String.class.getConstructor(new Class[] {String.class});
-    }
-    catch(Exception e) {
-      constructor = null;
-    }
 
     // Sort the keys.
     Arrays.sort(keys);
