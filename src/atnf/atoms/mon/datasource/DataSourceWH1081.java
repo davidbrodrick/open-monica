@@ -79,7 +79,7 @@ extends DataSource
     
     //Fire new data to each point
     for (int i=0; i<points.length; i++) {
-      PointMonitor pm = (PointMonitor)(points[i]);
+      PointDescription pm = (PointDescription)(points[i]);
       PointData pd = new PointData(pm.getName(), pm.getSource(), newdata);
       PointEvent pe = new PointEvent(pm, pd, true);
       pm.firePointEvent(pe);

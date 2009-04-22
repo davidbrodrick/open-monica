@@ -35,7 +35,7 @@ extends Translation
   protected static String[] itsArgs = new String[]{"Dew Point",
   "what goes here"};
 
-  public TranslationDewPoint(PointMonitor parent, String[] init)
+  public TranslationDewPoint(PointDescription parent, String[] init)
   {
     super(parent, init);
   }

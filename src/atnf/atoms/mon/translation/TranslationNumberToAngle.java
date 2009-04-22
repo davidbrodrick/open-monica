@@ -35,7 +35,7 @@ extends Translation
   protected Angle.Format itsFormat = Angle.Format.RADIANS;
 
   public
-  TranslationNumberToAngle(PointMonitor parent, String[] init)
+  TranslationNumberToAngle(PointDescription parent, String[] init)
   {
     super(parent, init);
     if (init.length > 0) {

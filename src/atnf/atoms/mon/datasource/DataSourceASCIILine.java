@@ -50,7 +50,7 @@ extends DataSourceASCIISocket
   /** Data is pushed, so this method is redundant in this class. */
   public
   Object
-  parseData(PointMonitor requestor)
+  parseData(PointDescription requestor)
   throws Exception
   {
     return null;
@@ -105,7 +105,7 @@ extends DataSourceASCIISocket
             
             //Present this new line to the monitor point
             PointData pd=new PointData(itsMonitorPoint, new AbsTime(), line);
-            PointMonitor pm=MonitorMap.getPointMonitor(itsMonitorPoint);
+            PointDescription pm=MonitorMap.getPointMonitor(itsMonitorPoint);
             if (pm!=null) {
               pm.firePointEvent(new PointEvent(this, pd, true));
             } else {

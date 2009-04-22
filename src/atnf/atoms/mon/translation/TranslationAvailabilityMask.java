@@ -30,7 +30,7 @@ TranslationAvailabilityMask
 extends TranslationListener
 {
   public
-  TranslationAvailabilityMask(PointMonitor parent, String[] init)
+  TranslationAvailabilityMask(PointDescription parent, String[] init)
   {
     super(parent, init);
   }

@@ -29,7 +29,7 @@ public class PointBuffer
   /** Allocate buffer storage space for the new monitor point. */
   private static
   void
-  newPoint(PointMonitor pm)
+  newPoint(PointDescription pm)
   {
     synchronized(bufferTable) {
       //Add new key/storage to the hash
@@ -45,7 +45,7 @@ public class PointBuffer
    * @param data The new data for the given point. */
   public static
   void
-  updateData(PointMonitor pm, PointData data)
+  updateData(PointDescription pm, PointData data)
   {
     if (data!=null && data.getData()!=null) {
       synchronized(bufferTable) {
@@ -80,7 +80,7 @@ public class PointBuffer
   PointData
   getPointData(String point)
   {
-    PointMonitor pm = MonitorMap.getPointMonitor(point);
+    PointDescription pm = MonitorMap.getPointMonitor(point);
     if (pm==null) {
       return null;
     }
@@ -97,7 +97,7 @@ public class PointBuffer
   getPointData(String name,
                String source)
   {
-    PointMonitor pm = MonitorMap.getPointMonitor(source+"."+name);
+    PointDescription pm = MonitorMap.getPointMonitor(source+"."+name);
     return getPointData(pm);
   }
 
@@ -107,7 +107,7 @@ public class PointBuffer
    * @return Latest data for the specified point. */
   public static
   PointData
-  getPointData(PointMonitor pm)
+  getPointData(PointDescription pm)
   {
     synchronized(bufferTable) {
       if (pm==null) {
@@ -138,7 +138,7 @@ public class PointBuffer
    *         <tt>null</tt> will be returned if no data were found. */
   public static
   Vector
-  getPointData(PointMonitor pm,
+  getPointData(PointDescription pm,
                AbsTime start_time,
                AbsTime end_time,
                int maxsamples)
@@ -256,7 +256,7 @@ public class PointBuffer
                int sample_rate)
   {
     //Try to get the specified point and check if it was found
-    PointMonitor pm = MonitorMap.getPointMonitor(point);
+    PointDescription pm = MonitorMap.getPointMonitor(point);
     if (pm==null) {
       return null;
     }
@@ -280,7 +280,7 @@ public class PointBuffer
                String source,
                AbsTime timestamp)
   {
-    PointMonitor pm = MonitorMap.getPointMonitor(source+"."+name);
+    PointDescription pm = MonitorMap.getPointMonitor(source+"."+name);
     if (timestamp.isASAP()) {
       return getBufferData(pm);
     }
@@ -303,7 +303,7 @@ public class PointBuffer
                AbsTime timestamp)
   {
     //Try to get the specified point and check if it was found
-    PointMonitor pm = MonitorMap.getPointMonitor(point);
+    PointDescription pm = MonitorMap.getPointMonitor(point);
     if (pm==null) {
       return null;
     }
@@ -325,7 +325,7 @@ public class PointBuffer
                 AbsTime timestamp)
   {
     //Try to get the specified point and check if it was found
-    PointMonitor pm = MonitorMap.getPointMonitor(point);
+    PointDescription pm = MonitorMap.getPointMonitor(point);
     if (pm==null) {
       return null;
     }
@@ -372,7 +372,7 @@ public class PointBuffer
                AbsTime timestamp)
   {
     //Try to get the specified point and check if it was found
-    PointMonitor pm = MonitorMap.getPointMonitor(point);
+    PointDescription pm = MonitorMap.getPointMonitor(point);
     if (pm==null) {
       return null;
     }
@@ -414,7 +414,7 @@ public class PointBuffer
    * @return Latest data for the specified point. */
   public static
   PointData
-  getPointDataBlock(PointMonitor pm)
+  getPointDataBlock(PointDescription pm)
   {
     synchronized(bufferTable) {
       blockOn(pm);
@@ -433,7 +433,7 @@ public class PointBuffer
    *                will be returned if no data were found. */
   public static
   Vector
-  getPointDataBuffer(PointMonitor pm,
+  getPointDataBuffer(PointDescription pm,
                      AbsTime start_time,
                      AbsTime end_time)
   {
@@ -467,7 +467,7 @@ public class PointBuffer
    *         if no data were found in the memory buffer. */
   public static
   Vector
-  getBufferData(PointMonitor pm)
+  getBufferData(PointDescription pm)
   {
     return (Vector)bufferTable.get(pm);
   }
@@ -481,7 +481,7 @@ public class PointBuffer
    * @return Vector of all buffer data. */
   public static
   Vector
-  getBufferDataBlock(PointMonitor pm)
+  getBufferDataBlock(PointDescription pm)
   {
     synchronized(bufferTable) {
       blockOn(pm);
@@ -494,7 +494,7 @@ public class PointBuffer
    * @param pm The point to wait on. */
   public static
   void
-  blockOn(PointMonitor pm)
+  blockOn(PointDescription pm)
   {
     synchronized(bufferTable) {
       while (bufferTable.get(pm) == null) {

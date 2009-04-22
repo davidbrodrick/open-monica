@@ -60,7 +60,7 @@ extends Translation
 
   /** Base-class constructor. */
   public
-  TranslationDualListen(PointMonitor parent, String[] init)
+  TranslationDualListen(PointDescription parent, String[] init)
   {
     super(parent, init);
     if (init==null||init.length<2) {

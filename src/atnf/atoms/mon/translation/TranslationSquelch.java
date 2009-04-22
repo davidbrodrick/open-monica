@@ -38,7 +38,7 @@ extends Translation
   private double itsSquelchOutput;
 
   public
-  TranslationSquelch(PointMonitor parent, String[] init)
+  TranslationSquelch(PointDescription parent, String[] init)
   {
     super(parent, init);
 

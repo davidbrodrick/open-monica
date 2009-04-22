@@ -40,7 +40,7 @@ import atnf.atoms.mon.*;
  *
  * <P><tt>
  * if (my_data_key.equals("temperature")) {<BR>
- * &nbsp PointMonitor pm=MonitorMap.getPointMonitor("gizmo.temperature");<BR>
+ * &nbsp PointDescription pm=MonitorMap.getPointMonitor("gizmo.temperature");<BR>
  * &nbsp pm.firePointEvent(new PointEvent(this, new PointData(pm.getName(), pm.getSource(), my_data_value), true));<BR>
  * }</tt>
  *
@@ -145,7 +145,7 @@ extends DataSource
    * provides different kinds of data to different monitor points. */
   public abstract
   Object
-  parseData(PointMonitor requestor)
+  parseData(PointDescription requestor)
   throws Exception;
 
 
@@ -164,7 +164,7 @@ extends DataSource
     try {
       for (int i=0; i<buf.length; i++) {
         Object o = null;
-        PointMonitor pm = (PointMonitor)buf[i];
+        PointDescription pm = (PointDescription)buf[i];
         o = parseData(pm);
         //Count successful transactions
         if (o!=null) {

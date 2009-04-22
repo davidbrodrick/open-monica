@@ -175,7 +175,7 @@ extends DataSource
     /** The name part of the monitor point name. */
     String itsName = null;
     /** The monitor point instance itself. */
-    PointMonitor itsMonitorPoint = null;
+    PointDescription itsMonitorPoint = null;
     /** Channel which connects us to the point. */
     Channel itsChannel = null;
      

@@ -43,7 +43,7 @@ extends TranslationListener
   JEP itsParser = new JEP();
 
   public
-  TranslationCalculation(PointMonitor parent, String[] init)
+  TranslationCalculation(PointDescription parent, String[] init)
   {
     super(parent, init);
 

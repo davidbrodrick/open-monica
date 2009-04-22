@@ -60,7 +60,7 @@ extends Translation
       "Avoid Group Delay", "java.lang.Boolean",
       "Output Interval", "java.lang.Long:"};
 
-  public TranslationMean(PointMonitor parent, String[] init)
+  public TranslationMean(PointDescription parent, String[] init)
   {
     super(parent, init);
 

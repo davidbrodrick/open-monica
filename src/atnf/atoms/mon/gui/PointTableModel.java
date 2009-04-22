@@ -210,17 +210,17 @@ implements PointListener, TableCellRenderer
    * @return The monitor point structure for the specified row, or null if
    *  no point is displayed in the specified row. */
   public
-  PointMonitor
+  PointDescription
   getPointForRow(int row)
   {
-    PointMonitor res = null;
+    PointDescription res = null;
     if (row>=0 && row<getRowCount()) {
       String pname = (String)itsPoints.get(row);
       if (pname!=null && !pname.equals("")) {
 	//Not all sources may have this point, so brute force it until
         //we find a source which has the required point. Pretty dumb.
 	for (int s=0; s<itsSources.size(); s++) {
-	  PointMonitor temp = null;
+	  PointDescription temp = null;
 	  temp = DataMaintainer.getPointFromMap(pname,
 						(String)itsSources.get(s));
 	  if (temp!=null) {
@@ -243,10 +243,10 @@ implements PointListener, TableCellRenderer
    * @return The monitor point structure for the specified cell, or null if
    *  no point is displayed in the specified cell. */
   public
-  PointMonitor
+  PointDescription
   getPoint(int row, int column)
   {
-    PointMonitor res = null;
+    PointDescription res = null;
     if (row>=0 && row<getRowCount() && column>0 && column<getColumnCount()-1) {
       String pname = (String)itsPoints.get(row);
       if (pname!=null && !pname.equals("")) {
@@ -355,7 +355,7 @@ implements PointListener, TableCellRenderer
     String source = getSourceForColumn(column);
     if (column==0) {
       //Point name was requested
-      PointMonitor pm = getPointForRow(row);
+      PointDescription pm = getPointForRow(row);
       if (pm!=null) {
         res = pm.getLongDesc();
         if (res==null || res.equals("")) {
@@ -366,12 +366,12 @@ implements PointListener, TableCellRenderer
     } else if (column==getColumnCount()-1) {
       //Units were requested
       res = "";
-      PointMonitor pm = getPointForRow(row);
+      PointDescription pm = getPointForRow(row);
       if (pm!=null && pm.getUnits()!=null) {
         res = new JLabel(pm.getUnits());
       }
     } else {
-      PointMonitor pm = getPointForRow(row);
+      PointDescription pm = getPointForRow(row);
       PointData pd = DataMaintainer.getBuffer(source + "." + pname);
       if (pd!=null && pm!=null) {
         long age = (new AbsTime()).getValue() - pd.getTimestamp().getValue();
@@ -399,17 +399,17 @@ implements PointListener, TableCellRenderer
   {
     String res = null;
     if (column==0) {
-      PointMonitor pm = getPointForRow(row);
+      PointDescription pm = getPointForRow(row);
       if (pm!=null) {
         res = pm.getName();
       }
     } else if (column == getColumnCount()-1) {
-      PointMonitor pm = getPointForRow(row);
+      PointDescription pm = getPointForRow(row);
       if (pm!=null) {
         res = "Units for " + pm.getLongDesc();
       }
     } else {
-      PointMonitor pm = getPoint(row, column);
+      PointDescription pm = getPoint(row, column);
       if (pm!=null) {
         String desc = pm.getLongDesc();
         if (desc==null || desc.equals("")) {
@@ -462,7 +462,7 @@ implements PointListener, TableCellRenderer
     }
 
     //Check if this monitor point defines it's limits
-    PointMonitor pm = getPoint(row, column);
+    PointDescription pm = getPoint(row, column);
     if (pm!=null) {
       //Limits are defined, get the raw data and check it
       PointData pd = DataMaintainer.getBuffer(pm.getSource() + "." +
@@ -525,7 +525,7 @@ implements PointListener, TableCellRenderer
 
     //Print table data
     for (int i=0; i<itsPoints.size(); i++) {
-      PointMonitor pm = getPointForRow(i);
+      PointDescription pm = getPointForRow(i);
       if (pm==null) {
         continue; //Blank row
       }

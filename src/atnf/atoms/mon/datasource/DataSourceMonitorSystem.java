@@ -51,7 +51,7 @@ extends DataSource
       itsNumTransactions += buf.length;
 
       for (int i=0; i<buf.length; i++) {
-        PointMonitor pm = (PointMonitor)buf[i];
+        PointDescription pm = (PointDescription)buf[i];
         HashMap res = new HashMap();
 
         //Get the actual data

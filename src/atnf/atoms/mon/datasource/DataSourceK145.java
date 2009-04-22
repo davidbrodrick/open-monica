@@ -67,7 +67,7 @@ extends DataSourceASCIISocket
    * monitor point's TransactionString. */
   public
   Object
-  parseData(PointMonitor requestor)
+  parseData(PointDescription requestor)
   throws Exception
   {
     //Get the Transaction which associates the point with us

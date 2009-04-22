@@ -43,7 +43,7 @@ extends TranslationDualListen
   protected AbsTime itsEpoch = null;
 
   public
-  TranslationSynch(PointMonitor parent, String[] init)
+  TranslationSynch(PointDescription parent, String[] init)
   {
     super(parent, init);
   }

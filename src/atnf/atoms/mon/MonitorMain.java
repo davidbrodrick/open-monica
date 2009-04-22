@@ -50,10 +50,10 @@ MonitorMain
       System.err.println("ERROR: Failed to find monitor-points.txt configuration file");
       System.exit(1);
     }
-    ArrayList points = PointMonitor.parseFile(new InputStreamReader(pointsfile));
+    ArrayList points = PointDescription.parseFile(new InputStreamReader(pointsfile));
     for (int i=0; i<points.size(); i++) {
       //Tell the point which archiver to use - for now there's only one
-      ((PointMonitor)points.get(i)).setArchiver(pa);
+      ((PointDescription)points.get(i)).setArchiver(pa);
     }
 
     //Create a thread to update the encryption key occasionally

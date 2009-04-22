@@ -36,7 +36,7 @@ extends DataSource
 
     Object[] buf = null;
     for (int i=0; i<buf.length; i++) {
-      PointMonitor pm = (PointMonitor)buf[i];
+      PointDescription pm = (PointDescription)buf[i];
       pm.firePointEvent(new PointEvent(this, new
          PointData(pm.getName(), pm.getSource(),
          AbsTime.factory(), null), true));

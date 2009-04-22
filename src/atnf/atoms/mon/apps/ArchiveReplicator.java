@@ -107,8 +107,8 @@ class ArchiveReplicator
     //CREATE MONITOR POINT OBJECTS FOR EACH POINT
     Vector points = new Vector(defstrings.size());
     for (int i=0; i<defstrings.size(); i++) {
-      PointMonitor newpoint=itsServer.makeFakeMonitor((String)defstrings.get(i));
-      //PointMonitor newpoint=(PointMonitor)(PointInteraction.parsePoints((String)defstrings.get(i))[0]);
+      PointDescription newpoint=itsServer.makeFakeMonitor((String)defstrings.get(i));
+      //PointDescription newpoint=(PointDescription)(PointInteraction.parsePoints((String)defstrings.get(i))[0]);
       if (newpoint==null) {
         System.err.println("#ERROR: Creating \"" + pointnames.get(i) + "\"");
         System.exit(1);
@@ -120,7 +120,7 @@ class ArchiveReplicator
     long totalrecords=0;
     AbsTime downloadend=new AbsTime();
     for (int pointnum=0; pointnum<points.size(); pointnum++) {
-      PointMonitor thispoint=(PointMonitor)points.get(pointnum);
+      PointDescription thispoint=(PointDescription)points.get(pointnum);
       String thisname=(String)pointnames.get(pointnum);
       //IF POINT IS NOT TO BE ARCHIVED THEN DON't ARCHIVE IT
       String[] archivepols=((FakeMonitor)thispoint).getArchiveString();

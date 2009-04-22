@@ -40,19 +40,19 @@ public class DataMaintainer implements Runnable, PointListener {
             + evt.getPointData().getName(), evt.getPointData());
       }
       // Schedule again
-      addPointMonitor((PointMonitor) source);
+      addPointMonitor((PointDescription) source);
     } else if (evt == null) {
       // Schedule again
-      addPointMonitor((PointMonitor) source);
+      addPointMonitor((PointDescription) source);
     }
   }
 
   /** Schedules a point */
-  protected void addPointMonitor(PointMonitor pm) {
+  protected void addPointMonitor(PointDescription pm) {
     long nextExec = pm.getNextEpoch();
     synchronized (itsPoints) {
       for (int i = 0; i < itsPoints.size(); i++) {
-        if (((PointMonitor) itsPoints.get(i)).getNextEpoch() >= nextExec) {
+        if (((PointDescription) itsPoints.get(i)).getNextEpoch() >= nextExec) {
           itsPoints.add(i, pm);
           itsPoints.notifyAll();
           return;
@@ -63,7 +63,7 @@ public class DataMaintainer implements Runnable, PointListener {
     }
   }
 
-  public void addPointMonitor(PointMonitor pm, boolean init) {
+  public void addPointMonitor(PointDescription pm, boolean init) {
     if (init) {
       pm.addPointListener(this);
     }
@@ -72,16 +72,16 @@ public class DataMaintainer implements Runnable, PointListener {
 
   /*
    * public void addPointMonitor(Vector points) { for (int i = 0; i <
-   * points.size(); i++) if (points.elementAt(i) instanceof PointMonitor)
-   * addPointMonitor((PointMonitor)points.elementAt(i), true); }
+   * points.size(); i++) if (points.elementAt(i) instanceof PointDescription)
+   * addPointMonitor((PointDescription)points.elementAt(i), true); }
    * 
    * public void addPointMonitor(ArrayList points) { for (int i = 0; i <
-   * points.size(); i++) if (points.get(i) instanceof PointMonitor)
-   * addPointMonitor((PointMonitor)points.get(i), true); }
+   * points.size(); i++) if (points.get(i) instanceof PointDescription)
+   * addPointMonitor((PointDescription)points.get(i), true); }
    */
 
   /** Unschedules a point. */
-  public void removePointMonitor(PointMonitor pm) {
+  public void removePointMonitor(PointDescription pm) {
     synchronized (itsPoints) {
       itsPoints.remove(pm);
       itsPoints.notifyAll();
@@ -113,7 +113,7 @@ public class DataMaintainer implements Runnable, PointListener {
             continue;
           }
           // Parse the string so we can build the point
-          ArrayList al = PointMonitor.parseLine(pm, false);
+          ArrayList al = PointDescription.parseLine(pm, false);
           Object[] obj = al.toArray();
           for (int j = 0; j < obj.length; j++) {
             String[] names = ((FakeMonitor) obj[j]).getAllNames();
@@ -146,7 +146,7 @@ public class DataMaintainer implements Runnable, PointListener {
         return;
       }
       // Parse the string so we can build the point
-      ArrayList al = PointMonitor.parseLine(pm, false);
+      ArrayList al = PointDescription.parseLine(pm, false);
       Object[] obj = al.toArray();
       for (int i = 0; i < obj.length; i++) {
         String[] names = ((FakeMonitor) obj[i]).getAllNames();
@@ -286,7 +286,7 @@ public class DataMaintainer implements Runnable, PointListener {
       try {
         synchronized (itsPoints) {
           if (itsPoints.size() > 0) {
-            PointMonitor pm = (PointMonitor) itsPoints.get(0);
+            PointDescription pm = (PointDescription) itsPoints.get(0);
             nextTime = AbsTime.factory(pm.getNextEpoch());// -10000);
           }
         }

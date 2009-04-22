@@ -57,7 +57,7 @@ implements PointListener, ActionListener
   protected String[] itsNames;
   
   /** Reference to the points we are listening to. */
-  protected PointMonitor[] itsPoints;
+  protected PointDescription[] itsPoints;
   
   /** Latest updates for the points we are listening to. */
   protected PointData[] itsValues;
@@ -73,7 +73,7 @@ implements PointListener, ActionListener
 
   /** Base-class constructor. */
   public
-  TranslationListener(PointMonitor parent, String[] init)
+  TranslationListener(PointDescription parent, String[] init)
   {
     super(parent, init);
     if (init==null||init.length<1) {
@@ -90,7 +90,7 @@ implements PointListener, ActionListener
         throw new Exception();
       }
       itsNames = new String[itsNumPoints];
-      itsPoints = new PointMonitor[itsNumPoints];
+      itsPoints = new PointDescription[itsNumPoints];
       itsValues = new PointData[itsNumPoints];
         
       for (int i=0; i<itsNumPoints; i++) {

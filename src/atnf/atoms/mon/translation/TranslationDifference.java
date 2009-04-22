@@ -27,7 +27,7 @@ extends TranslationDualListen
   "MonitorPoint 2", "java.lang.String"};
 
   public
-  TranslationDifference(PointMonitor parent, String[] init)
+  TranslationDifference(PointDescription parent, String[] init)
   {
     super(parent, init);
   }

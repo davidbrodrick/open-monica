@@ -81,7 +81,7 @@ extends DataSourceASCIISocket
     * use as data. */
    public
    Object
-   parseData(PointMonitor requestor)
+   parseData(PointDescription requestor)
    throws Exception
    {
      if (!itsConnected) {

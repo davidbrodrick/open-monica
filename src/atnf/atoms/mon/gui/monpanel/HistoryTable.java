@@ -1333,7 +1333,7 @@ implements PointListener, Runnable, TableCellRenderer
     }
 
     //Check if this monitor point defines it's limits
-/*    PointMonitor pm = getPoint(row, column);
+/*    PointDescription pm = getPoint(row, column);
     if (pm!=null) {
       //Limits are defined, get the raw data and check it
       PointData pd = DataMaintainer.getBuffer(pm.getSource() + "." +

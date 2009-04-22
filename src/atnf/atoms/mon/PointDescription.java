@@ -28,7 +28,7 @@ import atnf.atoms.mon.util.*;
  * @author Le Cuong Nguyen
  * @author David Brodrick
  */
-public class PointMonitor 
+public class PointDescription 
 implements ActionListener, NamedObject, Comparable
 {
   /**
@@ -142,7 +142,7 @@ implements ActionListener, NamedObject, Comparable
       try {
         itsPeriod = Long.parseLong(newperiod);
       } catch (Exception e) {
-        MonitorMap.logger.error("PointMonitor: (" + getName()
+        MonitorMap.logger.error("PointDescription: (" + getName()
             + "): setPeriod: " + e.getMessage());
         itsPeriod = -1; // Better than doing nothing..
       }
@@ -392,11 +392,11 @@ implements ActionListener, NamedObject, Comparable
     **/  
    public int compareTo(Object obj)
    {
-     if (obj instanceof PointMonitor) {
-       if (((PointMonitor)obj).getNextEpoch() < getNextEpoch()) {
+     if (obj instanceof PointDescription) {
+       if (((PointDescription)obj).getNextEpoch() < getNextEpoch()) {
         return 1;
       }
-       if (((PointMonitor)obj).getNextEpoch() > getNextEpoch()) {
+       if (((PointDescription)obj).getNextEpoch() > getNextEpoch()) {
         return -1;
       }
        return 0;
@@ -534,7 +534,7 @@ implements ActionListener, NamedObject, Comparable
    * points defined there. The returned array may be null if the line
    * does not define any active sources for the point.
    */
-  public static PointMonitor[]
+  public static PointDescription[]
   parsePoints(String line)
   {
     line = line.trim();
@@ -542,7 +542,7 @@ implements ActionListener, NamedObject, Comparable
       //Comment line
       return null;
     } else {
-      return PointMonitor.parsePoints(line);
+      return PointDescription.parsePoints(line);
     }
   }
 
@@ -621,7 +621,7 @@ implements ActionListener, NamedObject, Comparable
 
       for (int i = 0; i < pointSourceArray.length; i++) {
          result.add((real) ?
-           PointMonitor.factory(pointNameArray, pointLongDesc, pointUnits,
+           PointDescription.factory(pointNameArray, pointLongDesc, pointUnits,
            pointSourceArray[i], pointInputArray, pointOutputArray,
            pointTranslateArray, pointLimitsArray,
            pointArchiveArray, pointPeriod, pointEnabledArray[i]
@@ -661,11 +661,11 @@ implements ActionListener, NamedObject, Comparable
       return result;
   }
   /** Construct a new monitor point from the given fields. */
-  public static PointMonitor factory(String[] names, String longDesc,
+  public static PointDescription factory(String[] names, String longDesc,
       String units, String source, String[] inputs, String[] outputs,
       String[] translate, String[] limits, String[] archive, String period,
       boolean enabled) {
-    PointMonitor result = new PointMonitor();
+    PointDescription result = new PointDescription();
     result.setNames(names);
     result.setLongDesc(longDesc);
     result.setUnits(units);
@@ -723,7 +723,7 @@ implements ActionListener, NamedObject, Comparable
             // Apply the next translation
             data = itsTranslations[i].translate(data);
           } catch (Throwable e) {
-            System.err.println("PointMonitor:firePointevent: Translation Error:"
+            System.err.println("PointDescription:firePointevent: Translation Error:"
                     + e.getMessage());
             System.err.println("\tPOINT = " + getSource() + "."
                 + getName());
@@ -774,9 +774,9 @@ implements ActionListener, NamedObject, Comparable
             //Find the DataSource responsible for handling this control operation
             DataSource ds = DataSource.getDataSource(thistransaction.getChannel());
             if (ds==null) {
-              System.err.println("PointMonitor (" + getFullName() + "): No DataSource for output Transaction channel " + thistransaction.getChannel());
+              System.err.println("PointDescription (" + getFullName() + "): No DataSource for output Transaction channel " + thistransaction.getChannel());
             } else {
-              System.err.println("PointMonitor.firePointEvent (" + getFullName() + "): Using DataSource " + ds.getName() + " for output");
+              System.err.println("PointDescription.firePointEvent (" + getFullName() + "): Using DataSource " + ds.getName() + " for output");
               try {
                 ds.putData(this, data);
               } catch (Exception e) {

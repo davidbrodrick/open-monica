@@ -31,7 +31,7 @@ extends Translation
     "Translation using equation", "EQ",
     "Equation, use X as independent variable", "java.lang.String"};
 
-   public TranslationEQ(PointMonitor parent, String[] init)
+   public TranslationEQ(PointDescription parent, String[] init)
    {
      super(parent, init);
 

@@ -27,7 +27,7 @@ extends Translation
    "NV", "Name in NamedValue", "java.lang.String"};
    
    public
-   TranslationNV(PointMonitor parent, String[] init)
+   TranslationNV(PointDescription parent, String[] init)
    {
      super(parent, init);
      if (init.length!=1) {

@@ -71,7 +71,7 @@ implements ActionListener
   protected Timer itsTimer = null;
 
   public
-  TransactionLimitCheck(PointMonitor parent, String specifics)
+  TransactionLimitCheck(PointDescription parent, String specifics)
   {
     super(parent, specifics);
     setChannel("NONE"); //Set the channel type - not used for us
@@ -157,7 +157,7 @@ implements ActionListener
     //Check the current values of each monitor point
     for (int i=0; i<itsPoints.length; i++) {
       //Get point info and the latest data
-      PointMonitor pm = MonitorMap.getPointMonitor(itsPoints[i]);
+      PointDescription pm = MonitorMap.getPointMonitor(itsPoints[i]);
       PointData pd = PointBuffer.getPointData(itsPoints[i]);
       if (pm==null || pd==null) {
 	vals[i] = null;

@@ -43,7 +43,7 @@ extends TranslationDualListen
   };
    
   public
-  TranslationSpecificHumidity(PointMonitor parent, String[] init)
+  TranslationSpecificHumidity(PointDescription parent, String[] init)
   {
     super(parent, init);
   }

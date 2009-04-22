@@ -8,7 +8,7 @@
 package atnf.atoms.mon.transaction;
 
 import java.util.*;
-import atnf.atoms.mon.PointMonitor;
+import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.util.MonitorUtils;
 
 /**
@@ -29,7 +29,7 @@ extends Transaction
 
   protected static String itsArgs[] = new String[]{"", "", "", ""};
 
-  public TransactionStrings(PointMonitor parent, String specifics)
+  public TransactionStrings(PointDescription parent, String specifics)
   {
     super(parent, specifics);
 

@@ -40,7 +40,7 @@ extends Translation
   double[] itsCoeffs = null;
 
   public
-  TranslationPolynomial(PointMonitor parent, String[] init)
+  TranslationPolynomial(PointDescription parent, String[] init)
   {
     super(parent, init);
 
