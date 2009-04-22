@@ -456,8 +456,6 @@ implements ActionListener, Runnable
   private boolean itsShowLatest = true;
   /** Running mode for displaying a real-time loop. */
   private boolean itsShowLoop = false;
-  /** Running mode for displaying a loop from the archive. */
-  private boolean itsArchiveLoop = false;
 
   /** Time span for the real-time loop. */
   private RelTime itsLoopSpan = null;
@@ -484,10 +482,6 @@ implements ActionListener, Runnable
    * clockwise from North. The final two points are the total number of
    * dtected strikes and then the number of cloud strikes. */
   private Vector itsPointNames = new Vector(20);
-
-  /** Fully rendered output image. */
-  private Image itsImage = null;
-
 
   /** C'tor. */
   public
@@ -1148,16 +1142,13 @@ implements ActionListener, Runnable
         if (temp.equals("latest")) {
           itsShowLatest = true;
           itsShowLoop = false;
-          itsArchiveLoop = false;
         } else {
           if (temp.equals("realtimeloop")) {
             itsShowLoop = true;
-            itsArchiveLoop = false;
             itsShowLatest = false;
             int nummins = Integer.parseInt((String)setup.get("loopspan"));
             itsLoopSpan = RelTime.factory(nummins*60000000l);
           } else if (temp.equals("archiveloop")) {
-            itsArchiveLoop = true;
             itsShowLoop = false;
             itsShowLatest = false;
             itsLoopStart = AbsTime.factory(Long.parseLong((String)setup.get("loopstart")));

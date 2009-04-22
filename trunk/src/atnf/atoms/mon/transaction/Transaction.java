@@ -9,7 +9,6 @@ package atnf.atoms.mon.transaction;
 
 import java.lang.reflect.*;
 import atnf.atoms.mon.*;
-import java.io.Serializable;
 
 /**
  * Transaction objects are basically used to collect the raw information
@@ -27,7 +26,6 @@ import java.io.Serializable;
 public abstract class
 Transaction
 extends MonitorPolicy
-implements Serializable
 {
   /** The Point this Transaction is associated with. */
   protected PointDescription itsParent = null;

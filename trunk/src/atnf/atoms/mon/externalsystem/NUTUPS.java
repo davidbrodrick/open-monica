@@ -26,8 +26,6 @@ import atnf.atoms.mon.transaction.TransactionStrings;
 class NUTUPS
 extends ASCIISocket
 {
-  /** Have we discovered what UPSs the server provides yet? */
-  private boolean itsDiscovery = false;
   /** The place in the tree where we create our monitor points. */
   private String itsTreeBase = "ups";
   
