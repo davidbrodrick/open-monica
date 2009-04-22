@@ -7,10 +7,12 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
+import java.lang.reflect.Constructor;
 
-import java.lang.reflect.*;
+import atnf.atoms.mon.MonitorPolicy;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.mon.util.MonitorUtils;
 
 
 /**

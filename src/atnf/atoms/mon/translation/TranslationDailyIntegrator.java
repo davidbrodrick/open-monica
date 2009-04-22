@@ -9,9 +9,12 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
-import atnf.atoms.mon.*;
-import atnf.atoms.time.*;
+import java.util.Calendar;
+import java.util.TimeZone;
+
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.time.AbsTime;
 
 /**
  * Integrate every update of the input and reset once per day at the specified

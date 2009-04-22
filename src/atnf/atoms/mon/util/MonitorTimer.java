@@ -7,8 +7,10 @@
  **/
 package atnf.atoms.mon.util;
 
-import java.awt.event.*;
-import javax.swing.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.event.EventListenerList;
 
 public class MonitorTimer implements Runnable
 {

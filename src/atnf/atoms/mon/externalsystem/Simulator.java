@@ -54,7 +54,7 @@ extends ExternalSystem
       String[] arch = {"-"}; //{"COUNTER-1"};
       
       int period = minseconds + itsRandom.nextInt(maxseconds-minseconds);
-      PointDescription newpoint=PointDescription.factory(names, "Dummy " + i,
+      PointDescription.factory(names, "Dummy " + i,
                    "", "sim"+theirPopulation, transaction, null,
                    translation, empty, arch, "" + period + "000000", true);
     }

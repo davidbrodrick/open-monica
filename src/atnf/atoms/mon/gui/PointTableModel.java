@@ -10,7 +10,6 @@ package atnf.atoms.mon.gui;
 
 import atnf.atoms.mon.client.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.limit.*;
 import atnf.atoms.time.*;
 
 import javax.swing.table.AbstractTableModel;
@@ -374,8 +373,6 @@ implements PointListener, TableCellRenderer
       PointDescription pm = getPointForRow(row);
       PointData pd = DataMaintainer.getBuffer(source + "." + pname);
       if (pd!=null && pm!=null) {
-        long age = (new AbsTime()).getValue() - pd.getTimestamp().getValue();
-        long period = pm.getPeriod();
         if (pd.isValid()) {
           res = pd.getData();
         } else {

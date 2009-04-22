@@ -7,9 +7,11 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
-import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
+import java.util.HashMap;
+
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.util.NamedValueList;
 
 /**
  * Returns a particular entry from a NamedValueList or HashMap.

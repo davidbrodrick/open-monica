@@ -7,7 +7,8 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
 
 /**
  * Translation which sets the numeric value to a specified level if the 

@@ -8,11 +8,8 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
-
-import java.lang.Float;
-import java.lang.Double;
-import java.lang.Integer;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
 
 
 /**

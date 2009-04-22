@@ -9,7 +9,8 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
 
 /**
  * Calculate dew point by translating a measurement of water vapour pressure.

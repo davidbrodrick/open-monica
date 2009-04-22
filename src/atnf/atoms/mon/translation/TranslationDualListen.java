@@ -9,8 +9,9 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.mon.util.MonitorUtils;
 
 /**
  * Generic base-class for Translations which need to listen to the values

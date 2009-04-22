@@ -9,7 +9,8 @@
 
 package atnf.atoms.mon.util;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 /** Check if a username and password are valid on the system.
  * Currently a basic implementation that uses JPAM, if available.

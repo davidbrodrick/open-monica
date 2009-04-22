@@ -1,9 +1,12 @@
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
-import atnf.atoms.util.Angle;
-import org.nfunk.jep.*;
 import java.lang.reflect.Array;
+
+import org.nfunk.jep.JEP;
+
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.util.Angle;
 
 /**
  * Translation class using a mathematical expression.

@@ -9,7 +9,7 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
+import atnf.atoms.mon.PointDescription;
 
 /**
  * Listens to two monitor points with synchronously updating values and

@@ -9,8 +9,9 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.util.Angle;
 
 /**
  * Calculate the difference between successive monitor point values.

@@ -2,9 +2,21 @@
 
 package atnf.atoms.mon.util;
 
-import com.jcraft.jsch.*;
-import java.awt.*;
-import javax.swing.*;
+import java.awt.Container;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.UIKeyboardInteractive;
+import com.jcraft.jsch.UserInfo;
 
 public class SecureTunnel{
   public SecureTunnel(String server, String gateway, int lport, int rport){

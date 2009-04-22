@@ -8,9 +8,9 @@
 
 package atnf.atoms.mon.translation;
 
-import atnf.atoms.mon.*;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
 import atnf.atoms.util.Angle;
-import java.lang.Number;
 
 
 /**

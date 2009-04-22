@@ -9,10 +9,13 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.*;
-import atnf.atoms.mon.*;
-import atnf.atoms.util.*;
-import atnf.atoms.time.*;
+import java.util.Vector;
+
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.time.AbsTime;
+import atnf.atoms.time.RelTime;
+import atnf.atoms.util.Angle;
 
 /**
  * Calculate the mean value of a monitor point over time.
