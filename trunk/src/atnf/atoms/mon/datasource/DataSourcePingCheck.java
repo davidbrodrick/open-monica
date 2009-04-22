@@ -40,7 +40,7 @@ extends DataSource
     }
 
     for (int i=0; i<points.length; i++) {
-      PointMonitor pm = (PointMonitor)points[i];
+      PointDescription pm = (PointDescription)points[i];
       String host = ((TransactionStrings)getMyTransactions(pm.getInputTransactions()).get(0)).getString();
       boolean canping = false;
       try {

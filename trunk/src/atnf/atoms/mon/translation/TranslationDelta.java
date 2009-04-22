@@ -38,7 +38,7 @@ extends Translation
   protected static String[] itsArgs = new String[]{"Translation Delta",
   "Delta"};
    
-  public TranslationDelta(PointMonitor parent, String[] init)
+  public TranslationDelta(PointDescription parent, String[] init)
   {
     super(parent, init);
   }

@@ -44,7 +44,7 @@ public class MonitorMap
    /** Handles RSA encryption of user/password pairs. */
    private static RSA itsRSA = new RSA(1024);
 
-   public static synchronized void addPointMonitor(PointMonitor pm)
+   public static synchronized void addPointMonitor(PointDescription pm)
    {
      String[] names = pm.getFullNames();
      for (int i = 0; i < names.length; i++) {
@@ -79,9 +79,9 @@ public class MonitorMap
      }
    }
    
-   public static synchronized PointMonitor getPointMonitor(String hash)
+   public static synchronized PointDescription getPointMonitor(String hash)
    {
-      return (PointMonitor)itsPointMap.get(hash);
+      return (PointDescription)itsPointMap.get(hash);
    }
    
    /** Specify the archiver to be used for archiving all data. */
@@ -199,7 +199,7 @@ public class MonitorMap
       Iterator i = uniquePoints.iterator();
       TreeSet points = new TreeSet();
       while (i.hasNext()) {
-        points.add(((PointMonitor)i.next()).getStringEquiv());
+        points.add(((PointDescription)i.next()).getStringEquiv());
       }
       return MonitorUtils.toStringArray(points.toArray());
    }

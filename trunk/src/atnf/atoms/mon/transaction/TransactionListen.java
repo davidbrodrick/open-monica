@@ -26,7 +26,7 @@ implements PointListener, ActionListener
   "foo", "Arg1", "mp", "Arg2", "mp"};
 
   /** Reference to each of the monitor points we listen to. */
-  protected PointMonitor[] itsPoints = null;
+  protected PointDescription[] itsPoints = null;
 
   /** The names of the monitor points we need to listen to. */
   protected String[] itsNames = null;
@@ -34,7 +34,7 @@ implements PointListener, ActionListener
   /** Timer used when listened-to points haven't been created yet. */
   protected MonitorTimer itsTimer = null;
 
-  public TransactionListen(PointMonitor parent, String specifics)
+  public TransactionListen(PointDescription parent, String specifics)
   {
     //Call parent-class constructor
     super(parent, specifics);
@@ -50,7 +50,7 @@ implements PointListener, ActionListener
     } else {
       //We got some arguments, so try to make use of them
       itsNames = args;
-      itsPoints = new PointMonitor[args.length];
+      itsPoints = new PointDescription[args.length];
       for (int i=0; i<args.length; i++) {
         //If the point has $1 source name macro, then expand it
         if (args[i].indexOf("$1") > -1) {

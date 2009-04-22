@@ -39,7 +39,7 @@ extends TranslationDualListen
     "Relative Humidity (%)", "java.lang.String"};
 
   public
-  TranslationVapourPressure(PointMonitor parent, String[] init)
+  TranslationVapourPressure(PointDescription parent, String[] init)
   {
     super(parent, init);
   }

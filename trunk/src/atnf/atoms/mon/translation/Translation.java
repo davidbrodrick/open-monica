@@ -73,7 +73,7 @@ extends MonitorPolicy
 //implements PointListener, ActionListener
 {
    protected String[] itsInit = null;
-   protected PointMonitor itsParent = null;
+   protected PointDescription itsParent = null;
 //   protected MonitorTimer itsTimer = new MonitorTimer(20, this);
    
    /** Override this. Use format fullname, shortname, argname, argtype, argname, argtype, ...
@@ -81,7 +81,7 @@ extends MonitorPolicy
    protected static String itsArgs[] = new String[]{"Translation",""};
    
    protected
-   Translation(PointMonitor parent, String[] init)
+   Translation(PointDescription parent, String[] init)
    {
       itsInit = init;
       itsParent = parent;
@@ -90,11 +90,11 @@ extends MonitorPolicy
    }
 
 
-   // Needs a reference back to parent in order to inform that PointMonitor
+   // Needs a reference back to parent in order to inform that PointDescription
    // that data has been translated
    public static
    Translation
-   factory(PointMonitor parent, String arg)
+   factory(PointDescription parent, String arg)
    {
      //Enable use of "null" keyword
      if (arg.equalsIgnoreCase("null")) {
@@ -117,11 +117,11 @@ extends MonitorPolicy
        Constructor Translation_con;
        try {
          //Try to find class by assuming argument is full class name
-         Translation_con = Class.forName(type).getConstructor(new Class[]{PointMonitor.class,String[].class});
+         Translation_con = Class.forName(type).getConstructor(new Class[]{PointDescription.class,String[].class});
        } catch (Exception f) {
          //Supplied name was not a full path
          //Look in atnf.atoms.mon.translation package
-         Translation_con = Class.forName("atnf.atoms.mon.translation.Translation"+type).getConstructor(new Class[]{PointMonitor.class,String[].class});
+         Translation_con = Class.forName("atnf.atoms.mon.translation.Translation"+type).getConstructor(new Class[]{PointDescription.class,String[].class});
        }
        result = (Translation)(Translation_con.newInstance(new Object[]{parent,transArgs}));
      } catch (Exception e) {

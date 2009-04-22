@@ -40,7 +40,7 @@ extends DataSourceASCIISocket
   /** Name of the monitor point we fire updates to */
   private String itsMonitorPointName=null;
   /** Monitor point we fire updates to */
-  private PointMonitor itsMonitorPoint=null;
+  private PointDescription itsMonitorPoint=null;
 
   public DataSourceThytecUPS(String[] args)
   {
@@ -56,7 +56,7 @@ extends DataSourceASCIISocket
   /** Data is pushed, so this method is redundant in this class. */
   public
   Object
-  parseData(PointMonitor requestor)
+  parseData(PointDescription requestor)
   throws Exception
   {
     return null;

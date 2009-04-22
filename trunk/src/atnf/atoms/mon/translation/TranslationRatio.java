@@ -29,7 +29,7 @@ extends TranslationSynch
     "Divisor point", "java.lang.String"};
 
   public
-  TranslationRatio(PointMonitor parent, String[] init)
+  TranslationRatio(PointDescription parent, String[] init)
   {
     super(parent, init);
   }

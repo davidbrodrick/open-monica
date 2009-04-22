@@ -10,6 +10,8 @@
 package atnf.atoms.mon.translation;
 
 import atnf.atoms.mon.*;
+import atnf.atoms.util.*;
+import atnf.atoms.mon.util.*;
 
 /**
  * Call the String.split() method to turn the input string into an array of 
@@ -29,7 +31,7 @@ extends Translation
   protected static String[] itsArgs = new String[]{"Translation String to Array",
   "String2Array"};
 
-  public TranslationStringToArray(PointMonitor parent, String[] init)
+  public TranslationStringToArray(PointDescription parent, String[] init)
   {
     super(parent, init);
     if (init!=null && init.length>=1) {
@@ -44,9 +46,7 @@ extends Translation
   translate(PointData data)
   {
     //preconditions
-    if (data==null) {
-      return null;
-    }
+    if (data==null) return null;
     Object val = data.getData();
 
     //If we got null-data then throw a null-data result
@@ -55,9 +55,13 @@ extends Translation
     }
 
     //Get input value as a string
-    String strval = val.toString();
+    String strval = val.toString().trim();
     //Split string
     String[] resstrings = strval.split(itsRegexp);
+    //Trim each String
+    for (int i=0; i<resstrings.length; i++) {
+      resstrings[i]=resstrings[i].trim();
+    }
     //Generate output
     PointData res = new PointData(itsParent.getName(), itsParent.getSource(),
                                   data.getTimestamp(), resstrings);

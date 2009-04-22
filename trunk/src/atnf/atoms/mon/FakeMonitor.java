@@ -12,11 +12,11 @@ import atnf.atoms.mon.limit.*;
 import atnf.atoms.time.*;
 
 /**
- * Just like a PointMonitor, only not.
+ * Just like a PointDescription, only not.
  *
  * @author Le Cuong Nguyen
  **/
-public class FakeMonitor extends PointMonitor
+public class FakeMonitor extends PointDescription
 {
    String[] itsArchiveString = null;
    String itsLimitsString = "";

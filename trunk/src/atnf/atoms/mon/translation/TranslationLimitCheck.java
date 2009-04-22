@@ -50,7 +50,7 @@ extends Translation
 
 
   public
-  TranslationLimitCheck(PointMonitor parent, String[] init)
+  TranslationLimitCheck(PointDescription parent, String[] init)
   {
     super(parent, init);
 
@@ -76,7 +76,7 @@ extends Translation
     //Get the name of the monitor point that this data comes from
     String dsrc = data.getSource() + "." + data.getName();
     //Get the monitor point object that this data comes from
-    PointMonitor pm = MonitorMap.getPointMonitor(dsrc);
+    PointDescription pm = MonitorMap.getPointMonitor(dsrc);
     if (pm==null) {
       System.err.println("TranslationLimitCheck: pm IS NULL!!");
       return null;

@@ -7,7 +7,7 @@
 
 package atnf.atoms.mon.transaction;
 
-import atnf.atoms.mon.PointMonitor;
+import atnf.atoms.mon.PointDescription;
 
 /**
  * Set the channel to be the provided argument string, so that we don't
@@ -22,7 +22,7 @@ extends Transaction
 {
   protected static String itsArgs[] = new String[]{"", ""};
 
-  public TransactionGeneric(PointMonitor parent, String specifics)
+  public TransactionGeneric(PointDescription parent, String specifics)
   {
     super(parent, specifics);
     specifics = specifics.replace('\"','\0').trim();

@@ -183,7 +183,7 @@ implements Runnable
       return null;
     }
 
-    ArrayList points = PointMonitor.parseLine((String)req.Args[0]);
+    ArrayList points = PointDescription.parseLine((String)req.Args[0]);
 
     //Decrypt and check the users credentials
     String username = MonitorMap.decrypt((String)req.Args[1]);
@@ -221,7 +221,7 @@ implements Runnable
 
       Vector res = new Vector(arg.size());
       for (int i=0; i< arg.size(); i++) {
-        PointMonitor pm = MonitorMap.getPointMonitor((String)arg.get(i));
+        PointDescription pm = MonitorMap.getPointMonitor((String)arg.get(i));
         if (pm==null) {
           //Wasn't found
           res.add(null);
@@ -232,7 +232,7 @@ implements Runnable
       return new PointData(res);
     } else if (req.Args[0] instanceof String) {
       //Single point was requested
-      PointMonitor pm = MonitorMap.getPointMonitor((String)req.Args[0]);
+      PointDescription pm = MonitorMap.getPointMonitor((String)req.Args[0]);
       if (pm==null) {
         //Wasn't found
         System.err.println("MonitorServerCustom:getPoint: NO POINT \""
@@ -297,7 +297,7 @@ implements Runnable
 
       Vector res = new Vector(arg.size());
       for (int i=0; i< arg.size(); i++) {
-        PointMonitor pm = MonitorMap.getPointMonitor((String)arg.get(i));
+        PointDescription pm = MonitorMap.getPointMonitor((String)arg.get(i));
         if (pm==null) {
           //Wasn't found
           res.add(null);
@@ -308,7 +308,7 @@ implements Runnable
       return new PointData(res);
     } else if (req.Args[0] instanceof String) {
       //Single point was requested
-      PointMonitor pm = MonitorMap.getPointMonitor((String)req.Args[0]);
+      PointDescription pm = MonitorMap.getPointMonitor((String)req.Args[0]);
       if (pm==null) {
         //Wasn't found
         return null;
@@ -345,7 +345,7 @@ implements Runnable
 
       Vector res = new Vector(arg.size());
       for (int i=0; i< arg.size(); i++) {
-        PointMonitor pm = MonitorMap.getPointMonitor((String)arg.get(i));
+        PointDescription pm = MonitorMap.getPointMonitor((String)arg.get(i));
         if (pm==null) {
           //Wasn't found
           res.add(null);
@@ -356,7 +356,7 @@ implements Runnable
       return new PointData(res);
     } else if (req.Args[0] instanceof String) {
       //Single point was requested
-      PointMonitor pm = MonitorMap.getPointMonitor((String)req.Args[0]);
+      PointDescription pm = MonitorMap.getPointMonitor((String)req.Args[0]);
       if (pm==null) {
         return null;
       }

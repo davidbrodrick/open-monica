@@ -37,7 +37,7 @@ extends TranslationDualListen
   private boolean itsDegrees=false;  
 
   public
-  TranslationPolar2Y(PointMonitor parent, String[] init)
+  TranslationPolar2Y(PointDescription parent, String[] init)
   {
     super(parent, init);
     

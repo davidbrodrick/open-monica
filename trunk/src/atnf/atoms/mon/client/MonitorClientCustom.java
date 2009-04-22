@@ -557,7 +557,7 @@ MonitorClientCustom
   FakeMonitor
   makeFakeMonitor(String init)
   {
-    ArrayList al = PointMonitor.parseLine(init, false);
+    ArrayList al = PointDescription.parseLine(init, false);
     // Check
     if (al == null || al.size() < 1) {
       return null;

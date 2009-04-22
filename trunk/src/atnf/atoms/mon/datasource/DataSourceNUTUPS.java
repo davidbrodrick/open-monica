@@ -11,7 +11,7 @@ package atnf.atoms.mon.datasource;
 import java.util.Vector;
 
 import atnf.atoms.mon.MonitorMap;
-import atnf.atoms.mon.PointMonitor;
+import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.transaction.Transaction;
 import atnf.atoms.mon.transaction.TransactionStrings;
 
@@ -141,7 +141,7 @@ extends DataSourceASCIISocket
           if (!MonitorMap.checkPointName(thisname+"."+pointnames[0])) {
             final String[] nullarray = {"-"};
             String[] transaction = {"Strings-\"NUTUPS" + itsHostName + "\"\"" + thisname + "\"\"" + thisvar + "\""};
-            PointMonitor mp = PointMonitor.factory(pointnames,
+            PointDescription mp = PointDescription.factory(pointnames,
                thisdesc,
                "", //Units
                thisname,
@@ -169,7 +169,7 @@ extends DataSourceASCIISocket
    * provides different kinds of data to different monitor points. */
   public synchronized
   Object
-  parseData(PointMonitor requestor)
+  parseData(PointDescription requestor)
   throws Exception
   {
     TransactionStrings ts = (TransactionStrings)getMyTransactions(requestor.getInputTransactions()).get(0);

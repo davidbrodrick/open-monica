@@ -36,7 +36,7 @@ extends Translation
   protected static String[] itsArgs = new String[]{"Translation Variance",
   "Variance", "Time Range", "java.lang.String"};
 
-  public TranslationVariance(PointMonitor parent, String[] init)
+  public TranslationVariance(PointDescription parent, String[] init)
   {
     super(parent, init);
 

@@ -30,7 +30,7 @@ extends Translation
   "Array", "Array index to return", "java.lang.Integer"};
    
   public
-  TranslationArray(PointMonitor parent, String[] init)
+  TranslationArray(PointDescription parent, String[] init)
   {
     super(parent, init);
     if (init.length!=1) {

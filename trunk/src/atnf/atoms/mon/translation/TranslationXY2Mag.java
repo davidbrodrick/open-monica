@@ -28,7 +28,7 @@ extends TranslationDualListen
   protected static String[] itsArgs = new String[]{};
   
   public
-  TranslationXY2Mag(PointMonitor parent, String[] init)
+  TranslationXY2Mag(PointDescription parent, String[] init)
   {
     super(parent, init);
   }

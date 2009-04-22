@@ -33,7 +33,7 @@ extends Translation
   protected short itsOffset = 0;
 
   public
-  TranslationAdd16(PointMonitor parent, String[] init)
+  TranslationAdd16(PointDescription parent, String[] init)
   {
     super(parent, init);
     //Parse offset from the argument string

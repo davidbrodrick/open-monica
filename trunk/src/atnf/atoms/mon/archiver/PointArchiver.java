@@ -41,7 +41,7 @@ extends Thread
     * @param data Vector of data to be archived. */
    protected abstract
    void
-   saveNow(PointMonitor pm, Vector data);
+   saveNow(PointDescription pm, Vector data);
 
 
    /** Extract data from the archive with no undersampling.
@@ -51,7 +51,7 @@ extends Thread
     * @return Vector containing all data for the point over the time range. */
    public abstract
    Vector
-   extract(PointMonitor pm, AbsTime start, AbsTime end);
+   extract(PointDescription pm, AbsTime start, AbsTime end);
 
 
    /** Return the last update which preceeds the specified time.
@@ -61,7 +61,7 @@ extends Thread
     * @return PointData for preceeding update or null if none found. */
    public abstract
    PointData
-   getPreceeding(PointMonitor pm, AbsTime ts);
+   getPreceeding(PointDescription pm, AbsTime ts);
 
 
    /** Return the first update which follows the specified time.
@@ -71,7 +71,7 @@ extends Thread
     * @return PointData for following update or null if none found. */
    public abstract
    PointData
-   getFollowing(PointMonitor pm, AbsTime ts);
+   getFollowing(PointDescription pm, AbsTime ts);
 
 
    /** Main loop for the archiving thread. */
@@ -84,9 +84,9 @@ extends Thread
        Enumeration keys = itsBuffer.keys();
        while (keys.hasMoreElements()) {
          Vector bData = null;
-         PointMonitor pm = null;
+         PointDescription pm = null;
          synchronized(itsBuffer) {
-           pm = (PointMonitor)keys.nextElement();
+           pm = (PointDescription)keys.nextElement();
            if (pm == null) {
             continue;
           }
@@ -129,7 +129,7 @@ extends Thread
     * @param data The data to save to disk */
    public
    void
-   archiveData(PointMonitor pm, PointData data)
+   archiveData(PointDescription pm, PointData data)
    {
      synchronized(itsBuffer) {
        //Ensure this point has a storage buffer allocated
@@ -154,7 +154,7 @@ extends Thread
      synchronized(itsBuffer) {
        Enumeration keys = itsBuffer.keys();
        while (keys.hasMoreElements()) {
-         PointMonitor pm = (PointMonitor)keys.nextElement();
+         PointDescription pm = (PointDescription)keys.nextElement();
          if (pm == null) {
           continue;
         }
@@ -175,7 +175,7 @@ extends Thread
     * @param data The Vector of data to save to disk */
    public 
    void 
-   archiveData(PointMonitor pm, Vector data)
+   archiveData(PointDescription pm, Vector data)
    {
      synchronized(itsBuffer) {
        //Ensure this point has a storage buffer allocated

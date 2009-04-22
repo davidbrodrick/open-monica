@@ -22,7 +22,7 @@ extends Transaction
   protected static String itsArgs[] = new String[]{"Transaction - Lightning",
   "Lightning"};
 
-  public TransactionLightning(PointMonitor parent, String specifics)
+  public TransactionLightning(PointDescription parent, String specifics)
   {
     super(parent, specifics);
 

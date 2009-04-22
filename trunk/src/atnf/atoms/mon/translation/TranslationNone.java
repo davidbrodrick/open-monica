@@ -21,7 +21,7 @@ extends Translation
   protected static String itsArgs[] = new String[]{"Translation - None",""};
 
   public
-  TranslationNone(PointMonitor parent, String[] init)
+  TranslationNone(PointDescription parent, String[] init)
   {
     super(parent, init);
   }

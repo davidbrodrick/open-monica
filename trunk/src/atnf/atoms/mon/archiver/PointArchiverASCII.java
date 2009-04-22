@@ -69,7 +69,7 @@ extends PointArchiver
    * @param data Vector of data to be archived. */
   protected
   void
-  saveNow(PointMonitor pm, Vector data)
+  saveNow(PointDescription pm, Vector data)
   {
     try {
       //Find the right directory and get a listing of the files
@@ -169,7 +169,7 @@ extends PointArchiver
    * @return Vector containing all data for the point over the time range. */
   public
   Vector
-  extract(PointMonitor pm, AbsTime start, AbsTime end)
+  extract(PointDescription pm, AbsTime start, AbsTime end)
   {
     AbsTime starttime = new AbsTime();
     Vector res = new Vector(1000,8000);
@@ -204,7 +204,7 @@ extends PointArchiver
    * @return PointData for preceeding update or null if none found. */
   public
   PointData
-  getPreceeding(PointMonitor pm, AbsTime ts)
+  getPreceeding(PointDescription pm, AbsTime ts)
   {
     //Get the archive directory for the given point
     String dir = getDir(pm);
@@ -247,7 +247,7 @@ extends PointArchiver
    * @return PointData for following update or null if none found. */
   public
   PointData
-  getFollowing(PointMonitor pm, AbsTime ts)
+  getFollowing(PointDescription pm, AbsTime ts)
   {
     //Get the archive directory for the given point
     String dir = getDir(pm);
@@ -304,7 +304,7 @@ extends PointArchiver
   /** Recover the PointData from a line of ASCII text. */
   protected
   PointData
-  getPDForString(PointMonitor pm, String data)
+  getPDForString(PointDescription pm, String data)
   {
     PointData res = null;
     StringTokenizer st = new StringTokenizer(data, "\t");
@@ -650,14 +650,14 @@ extends PointArchiver
   /** Load data within the given time range from the file.
    * @param res Vector which holds the loaded data.
    * @param fname Full path to the file to load data from.
-   * @param pm PointMonitor we are reconstructing data for.
+   * @param pm PointDescription we are reconstructing data for.
    * @param pname Name of the monitor point we are loading.
    * @param start The earliest time of interest, null to ignore.
    * @param end The most recent time of interest, null to ignore. */
   private
   void
   loadFile(Vector res, 
-           PointMonitor pm,
+           PointDescription pm,
            String fname,
            AbsTime start,
            AbsTime end)
@@ -879,7 +879,7 @@ extends PointArchiver
    * @return Name of appropriate archive directory. */
   public static
   String
-  getDir(PointMonitor pm)
+  getDir(PointDescription pm)
   {
     String tempname = pm.getName();
     tempname = tempname.replace('.', FSEP);

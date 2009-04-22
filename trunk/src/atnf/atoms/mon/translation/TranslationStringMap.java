@@ -31,7 +31,7 @@ extends Translation
   protected static String[] itsArgs = new String[]{"Translation String Map",
   "String Map"};
 
-  public TranslationStringMap(PointMonitor parent, String[] init)
+  public TranslationStringMap(PointDescription parent, String[] init)
   {
     super(parent, init);
 

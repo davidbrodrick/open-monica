@@ -40,7 +40,7 @@ extends Translation
   private double itsNumPlaces;
 
   public
-  TranslationNumDecimals(PointMonitor parent, String[] init)
+  TranslationNumDecimals(PointDescription parent, String[] init)
   {
     super(parent, init);
 

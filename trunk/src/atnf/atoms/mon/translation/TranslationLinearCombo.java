@@ -49,7 +49,7 @@ extends Translation
 
   /** Base-class constructor. */
   public
-  TranslationLinearCombo(PointMonitor parent, String[] init)
+  TranslationLinearCombo(PointDescription parent, String[] init)
   {
     super(parent, init);
     for (int i=0; i<init.length; i+=2) {

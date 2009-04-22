@@ -38,7 +38,7 @@ extends Translation
     "String", "Value to show when bool is True",
     "String", "Value to show when bool is False"};
 
-  public TranslationBoolMap(PointMonitor parent, String[] init)
+  public TranslationBoolMap(PointDescription parent, String[] init)
   {
     super(parent, init);
 

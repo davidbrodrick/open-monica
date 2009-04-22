@@ -42,18 +42,16 @@ extends Translation
 
 
   public
-  TranslationStringToNumber(PointMonitor parent, String[] init)
+  TranslationStringToNumber(PointDescription parent, String[] init)
   {
     super(parent, init);
     if (init.length > 0) {
       itsNumericTypeName  = init[0];
-      if (init.length > 1) {
+      if (init.length > 1)
         itsRadix = Integer.parseInt(init[1]);
-      }
-    } else {
-      System.err.println("ERROR: TranslationStringToNumber (for " + itsParent.getName()
-        + "): Expect 1 or 2 Arguments.. got " + init.length);
-    }
+    } else
+        System.err.println("ERROR: TranslationStringToNumber (for " + itsParent.getName()
+			    + "): Expect 1 or 2 Arguments.. got " + init.length);
   }
 
 
@@ -63,9 +61,8 @@ extends Translation
   translate(PointData data)
   {
     //Ensure there is raw data for us to translate!
-    if (data==null || data.getData()==null || itsNumericTypeName==null) {
+    if (data==null || data.getData()==null || itsNumericTypeName==null) 
       return null;
-    }
 
     Number num = null;
     PointData res = null;
@@ -73,17 +70,17 @@ extends Translation
     Object d = data.getData();
     
     if (d instanceof String) {
+      d = ((String)d).trim();
       try {
-      if (itsNumericTypeName.equalsIgnoreCase("Float")) {
+      if (itsNumericTypeName.equalsIgnoreCase("Float"))
         num = Float.valueOf((String)d);
-      } else if (itsNumericTypeName.equalsIgnoreCase("Double")) {
+      else if (itsNumericTypeName.equalsIgnoreCase("Double"))
         num = Double.valueOf((String)d);
-      } else if (itsNumericTypeName.equalsIgnoreCase("Integer")) {
-        if (itsRadix != 0) {
+      else if (itsNumericTypeName.equalsIgnoreCase("Integer")) {
+        if (itsRadix != 0)
           num = Integer.valueOf((String)d, itsRadix);
-        } else {
+        else
           num = Integer.valueOf((String)d);
-        }
       }
       } catch (NumberFormatException e) {  
                //System.err.println("ERROR: TranslationStringToNumber: (for " 
@@ -93,10 +90,9 @@ extends Translation
       res = new PointData(data.getName(), data.getSource(),
 			data.getTimestamp(), data.getRaw(),
 			num);
-    } else {
-      System.err.println("ERROR: TranslationStringToNumber: (for " 
+    } else
+       System.err.println("ERROR: TranslationStringToNumber: (for " 
                           + data.getName() + "): EXPECT String got " + data.getClass());
-    }
 
     return res;
   }

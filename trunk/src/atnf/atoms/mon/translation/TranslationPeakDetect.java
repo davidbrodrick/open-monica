@@ -34,7 +34,7 @@ extends Translation
       "Translation Peak Detect", "PeakDetect",
       "Time Range", "java.lang.String"};
 
-  public TranslationPeakDetect(PointMonitor parent, String[] init)
+  public TranslationPeakDetect(PointDescription parent, String[] init)
   {
     super(parent, init);
 

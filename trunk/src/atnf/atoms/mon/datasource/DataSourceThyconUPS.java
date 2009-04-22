@@ -587,7 +587,7 @@ extends DataSource
 
      //Fire off the new data
      for (int i=0; i<points.length; i++) {
-       PointMonitor pm = (PointMonitor)points[i];
+       PointDescription pm = (PointDescription)points[i];
        PointData pd = new PointData(pm.getName(), pm.getSource(), newdata);
        pm.firePointEvent(new atnf.atoms.mon.PointEvent(this, pd, true));
      }

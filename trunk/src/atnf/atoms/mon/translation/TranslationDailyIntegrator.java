@@ -47,7 +47,7 @@ extends Translation
       "Translation Daily Integrator", "DailyIntegrator",
       "Time Range", "java.lang.String"};
 
-  public TranslationDailyIntegrator(PointMonitor parent, String[] init)
+  public TranslationDailyIntegrator(PointDescription parent, String[] init)
   {
     super(parent, init);
 

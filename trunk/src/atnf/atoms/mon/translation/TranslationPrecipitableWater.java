@@ -36,7 +36,7 @@ extends TranslationDualListen
     "Relative Humidity (%)", "java.lang.String"};
 
   public
-  TranslationPrecipitableWater(PointMonitor parent, String[] init)
+  TranslationPrecipitableWater(PointDescription parent, String[] init)
   {
     super(parent, init);
   }

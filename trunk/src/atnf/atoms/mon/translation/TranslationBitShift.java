@@ -39,7 +39,7 @@ extends Translation
   protected int itsNumShift = 0;
 
   public
-  TranslationBitShift(PointMonitor parent, String[] init)
+  TranslationBitShift(PointDescription parent, String[] init)
   {
     super(parent, init);
     //Parse scale and offset from the argument strings

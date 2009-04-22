@@ -39,7 +39,7 @@ extends TranslationDualListen
   private boolean itsDegrees=false;  
 
   public
-  TranslationXY2Angle(PointMonitor parent, String[] init)
+  TranslationXY2Angle(PointDescription parent, String[] init)
   {
     super(parent, init);
     

@@ -54,7 +54,7 @@ extends DataSource
       String[] arch = {"-"}; //{"COUNTER-1"};
       
       int period = minseconds + itsRandom.nextInt(maxseconds-minseconds);
-      PointMonitor newpoint=PointMonitor.factory(names, "Dummy " + i,
+      PointDescription newpoint=PointDescription.factory(names, "Dummy " + i,
                    "", "sim"+theirPopulation, transaction, null,
                    translation, empty, arch, "" + period + "000000", true);
     }
@@ -76,7 +76,7 @@ extends DataSource
     
     //Fire new data to each point
     for (int i=0; i<points.length; i++) {
-      PointMonitor pm = (PointMonitor)(points[i]);
+      PointDescription pm = (PointDescription)(points[i]);
       Float newdata = new Float(itsRandom.nextFloat());
       PointData pd = new PointData(pm.getName(), pm.getSource(), newdata);
       PointEvent pe = new PointEvent(pm, pd, true);

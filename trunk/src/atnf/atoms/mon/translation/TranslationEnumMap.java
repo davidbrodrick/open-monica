@@ -33,7 +33,7 @@ extends Translation
   protected static String[] itsArgs = new String[]{"Translation Enum Map",
   "Enum Map"};
 
-  public TranslationEnumMap(PointMonitor parent, String[] init)
+  public TranslationEnumMap(PointDescription parent, String[] init)
   {
     super(parent, init);
 

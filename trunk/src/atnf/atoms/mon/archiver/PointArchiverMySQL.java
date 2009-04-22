@@ -62,7 +62,7 @@ extends PointArchiver
    * @param data Vector of data to be archived. */
   protected
   void
-  saveNow(PointMonitor pm, Vector alldata)
+  saveNow(PointDescription pm, Vector alldata)
   {
     String table = getTableName(pm);
 		
@@ -120,7 +120,7 @@ extends PointArchiver
    * @return Vector containing all data for the point over the time range. */
   public
   Vector
-  extract(PointMonitor pm, AbsTime start, AbsTime end)
+  extract(PointDescription pm, AbsTime start, AbsTime end)
   {
     try {
       //Can't do anything if the server is not running
@@ -175,7 +175,7 @@ extends PointArchiver
    * @return PointData for preceeding update or null if none found. */
   public
   PointData
-  getPreceeding(PointMonitor pm, AbsTime ts)
+  getPreceeding(PointDescription pm, AbsTime ts)
   {
     try {
       //Can't do anything if the server is not running
@@ -221,7 +221,7 @@ extends PointArchiver
    * @return PointData for following update or null if none found. */
   public
   PointData
-  getFollowing(PointMonitor pm, AbsTime ts)
+  getFollowing(PointDescription pm, AbsTime ts)
   {
     try {
       //Can't do anything if the server is not running
@@ -267,7 +267,7 @@ extends PointArchiver
    * @return PointData representing the data. null if error. */
   protected
   PointData
-  getPointDataForRow(PointMonitor pm, ResultSet rs)
+  getPointDataForRow(PointDescription pm, ResultSet rs)
   {
     PointData res=null;
     try {
@@ -355,7 +355,7 @@ extends PointArchiver
    * @return String containing SQL table name. */
   protected
   String
-  getTableName(PointMonitor pm)
+  getTableName(PointDescription pm)
   {
     String name = pm.getSource() + "$" + pm.getName();
     //Translate characters which conflict with SQL syntax

@@ -75,7 +75,7 @@ extends DataSourceUDPSocket
   /** Do the query and return the result. */
   public
   Object
-  parseData(PointMonitor requestor)
+  parseData(PointDescription requestor)
   throws Exception
   {
     try {

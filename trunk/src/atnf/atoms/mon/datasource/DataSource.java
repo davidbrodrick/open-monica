@@ -42,8 +42,8 @@ implements Runnable
     private
     long
     getTimeStamp(Object o) {
-      if (o instanceof PointMonitor) {
-        return ((PointMonitor)o).getNextEpoch();
+      if (o instanceof PointDescription) {
+        return ((PointDescription)o).getNextEpoch();
       } else if (o instanceof AbsTime) {
         return ((AbsTime)o).getValue();
       } else if (o==null) {
@@ -248,7 +248,7 @@ implements Runnable
     * @param p The point to start monitoring. */
    public
    void
-   addPoint(PointMonitor p)
+   addPoint(PointDescription p)
    {
      synchronized(itsPoints) {
        //if (itsName.indexOf("servo")!=-1) System.err.println("datasource: Adding " + p + " (" + itsPoints.size() + ")");
@@ -287,7 +287,7 @@ implements Runnable
     * @param p The point to stop monitoring. */
    public
    void
-   removePoint(PointMonitor p)
+   removePoint(PointDescription p)
    {
      synchronized(itsPoints) {
        itsPoints.remove(p);
@@ -320,7 +320,7 @@ implements Runnable
 
    public
    void
-   putData(PointMonitor pm, PointData pd)
+   putData(PointDescription pm, PointData pd)
    throws Exception
    {
      System.err.println("DataSource (" + itsName + "): Unsupported control request from " + pm.getFullName());
@@ -419,7 +419,7 @@ implements Runnable
            //Points are scheduled for collection but we're not connected.
            //Fire null-data events for those points since old data is stale
            for (int i=0; i<parray.length; i++) {
-             PointMonitor pm = (PointMonitor)parray[i];
+             PointDescription pm = (PointDescription)parray[i];
              pm.firePointEvent(new PointEvent(this,
                                    new PointData(pm.getName(),
                                    pm.getSource()),
@@ -437,7 +437,7 @@ implements Runnable
 
        //We may need to wait before we collect the next point.
        try {
-         PointMonitor headpoint = (PointMonitor)itsPoints.first();
+         PointDescription headpoint = (PointDescription)itsPoints.first();
          AbsTime nextTime = headpoint.getNextEpoch_AbsTime();
          AbsTime timenow = AbsTime.factory();
          if (nextTime.isAfter(timenow)) {
