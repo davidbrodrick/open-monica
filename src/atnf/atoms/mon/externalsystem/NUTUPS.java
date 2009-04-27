@@ -140,6 +140,7 @@ extends ASCIISocket
             String[] transaction = {"Strings-\"NUTUPS" + itsHostName + "\"\"" + thisname + "\"\"" + thisvar + "\""};
             PointDescription mp = PointDescription.factory(pointnames,
                thisdesc,
+               thisdesc,
                "", //Units
                thisname,
                transaction,

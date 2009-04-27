@@ -88,7 +88,8 @@ public class FakeMonitor extends PointDescription
    public static
    FakeMonitor
    Fakefactory(String[] names,
-	       String longDesc,
+	       String longdesc,
+         String shortdesc,
 	       String units,
 	       String source,
 	       String[] inputs,
@@ -101,7 +102,8 @@ public class FakeMonitor extends PointDescription
    {
       FakeMonitor result = new FakeMonitor();
       result.setNames(names);
-      result.setLongDesc(longDesc);
+      result.setLongDesc(longdesc);
+      result.setShortDesc(shortdesc);
       result.setUnits(units);
       result.setSource(source);
       result.setTranslationString(translate);
