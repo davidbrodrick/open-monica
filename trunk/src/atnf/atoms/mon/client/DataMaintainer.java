@@ -70,16 +70,6 @@ public class DataMaintainer implements Runnable, PointListener {
     addPointMonitor(pm);
   }
 
-  /*
-   * public void addPointMonitor(Vector points) { for (int i = 0; i <
-   * points.size(); i++) if (points.elementAt(i) instanceof PointDescription)
-   * addPointMonitor((PointDescription)points.elementAt(i), true); }
-   * 
-   * public void addPointMonitor(ArrayList points) { for (int i = 0; i <
-   * points.size(); i++) if (points.get(i) instanceof PointDescription)
-   * addPointMonitor((PointDescription)points.get(i), true); }
-   */
-
   /** Unschedules a point. */
   public void removePointMonitor(PointDescription pm) {
     synchronized (itsPoints) {
