@@ -20,7 +20,6 @@ import atnf.atoms.time.AbsTime;
  *
  * @author Le Cuong Nguyen
  * @author David Brodrick
- * @version $Id: PointArchiver.java,v 1.9 2009/01/09 02:34:53 bro764 Exp bro764 $
  */
 public abstract
 class PointArchiver
@@ -34,8 +33,22 @@ extends Thread
     * a very large request.
     * Obtained from the property <tt>ArchiveMaxRecords</tt> */
    protected static final int MAXNUMRECORDS = Integer.parseInt(MonitorConfig.getProperty("ArchiveMaxRecords", "50000"));
-   
 
+   /** Constructor. */
+   protected PointArchiver()
+   {
+     OldDataPurger purger = new OldDataPurger(this);
+     purger.start();
+   }
+   
+   
+   /** Purge all data for the given point that is older than the specified age in days.
+    * @param point The point whos data we wish to purge. */
+   protected abstract
+   void
+   purgeOldData(PointDescription point);
+
+   
    /** Abstract method to do the actual archiving.
     * @param pm The point whos data we wish to archive.
     * @param data Vector of data to be archived. */
@@ -195,5 +208,51 @@ extends Thread
    name()
    {
       return "PointArchiver";
+   }
+   
+   /** Class to purge old data from the archive periodically. */
+   private class OldDataPurger extends Thread {
+     /** The archiver we are responsible for purging. */
+     private PointArchiver itsOwner;
+     
+     OldDataPurger(PointArchiver owner)
+     {
+       super();
+       itsOwner = owner;
+     }
+     
+     /** Loops forever purging data then sleeping. */
+     public
+     void
+     run()
+     {           
+       try {
+         //Sleep before first purge cycle to allow system to initialise
+         RelTime.factory(120000000l).sleep();
+       } catch (Exception e) {}
+       
+       while (true) {
+         AbsTime start = new AbsTime();
+         
+         //Loop through each point in the system, purging it if appropriate
+         String[] allnames = MonitorMap.getPointNames();
+         for (int i=0; i<allnames.length; i++) {
+           PointDescription point = MonitorMap.getPointDescription(allnames[i]);   
+           if (point==null) {
+             System.err.println("PointArchiver:OldDataPurger: Point " + allnames[i] + " Doesn't Exist!");
+           } else if (point.getArchiver()==itsOwner && point.getArchiveLongevity()>0) {
+             itsOwner.purgeOldData(point);
+           }
+           try {
+             //Short sleep so as not to hog resources
+             RelTime.factory(250000l).sleep();
+           } catch (Exception e) {}
+         }
+         //Sleep until next time we need to purge
+         try {
+           AbsTime.factory(start.getValue()+86400000000l).sleep();
+         } catch (Exception e) {}
+       }
+     }
    }
 }                                                          

@@ -18,8 +18,6 @@ import atnf.atoms.time.*;
  **/
 public class FakeMonitor extends PointDescription
 {
-   String[] itsArchiveString = null;
-   String itsLimitsString = "";
    protected static final int MAXTIMES = 255;
    protected long[] itsLastTimestamps = new long[MAXTIMES];
    protected int itsTimestampPos = 0;
@@ -68,23 +66,7 @@ public class FakeMonitor extends PointDescription
       return itsDelay;
    }
       
-   public void
-   setArchiveString(String[] archive)
-   {
-      itsArchiveString = archive;
-   }
-   
-   public String[]
-   getArchiveString()
-   {
-      return itsArchiveString;
-   }
-
-   public void setEnabled(boolean enabled)
-   {
-      itsEnabled = enabled;
-   }
-      
+  
    public static
    FakeMonitor
    Fakefactory(String[] names,
@@ -98,6 +80,7 @@ public class FakeMonitor extends PointDescription
 	       String[] limits,
 	       String[] archive,
 	       String period,
+         String archivelife,
 	       boolean enabled)
    {
       FakeMonitor result = new FakeMonitor();
@@ -116,6 +99,7 @@ public class FakeMonitor extends PointDescription
       }
       result.setLimits(limitsa);
       result.setArchiveString(archive);
+      result.setArchiveLongevity(archivelife);
       result.setPeriod(period);
       result.setEnabled(enabled);
       //MonitorMap.addPointMonitor(result);
@@ -300,51 +284,5 @@ public class FakeMonitor extends PointDescription
 	 }
        }
      }
-   }
-
-   public String getStringEquiv()
-   {
-      StringBuffer res = new StringBuffer();
-      res.append('M');
-      res.append(' ');
-      if (itsNames.length > 1) {
-         res.append('{');
-	 for (int i = 0; i < itsNames.length - 1; i++) {
-    res.append(itsNames[i]+",");
-  }
-	 res.append(itsNames[itsNames.length-1]+"}");
-      } else {
-        res.append(itsNames[0]);
-      }
-      res.append(' ');
-      res.append('"');
-      res.append(itsLongDesc);
-      res.append('"');
-      res.append(' ');
-      res.append('"'); //Was short description..
-      res.append('"'); //..now empty field for backwards compat
-      res.append(' ');
-      res.append(itsSource);
-      res.append(' ');
-      res.append(itsEnabled ? 'T' : 'F');
-      res.append(' ');
-      res.append(itsInputTransactionString);
-      res.append(' ');
-      res.append(itsTranslationString);
-      res.append(' ');
-      res.append(itsLimitsString);
-      res.append(' ');
-      if (itsArchiveString.length > 1) {
-        res.append('{');
-        for (int i = 0; i < itsArchiveString.length - 1; i++) {
-          res.append(itsArchiveString[i]+",");
-        }
-          res.append(itsArchiveString[itsArchiveString.length-1]+"}");
-      } else {
-        res.append(itsArchiveString[0]);
-      }
-      res.append(' ');
-      res.append(itsPeriod);
-      return res.toString();
    }
 }

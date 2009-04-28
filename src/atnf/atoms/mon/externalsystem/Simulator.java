@@ -56,7 +56,7 @@ extends ExternalSystem
       int period = minseconds + itsRandom.nextInt(maxseconds-minseconds);
       PointDescription.factory(names, "Dummy " + i, "Dummy" + i,
                    "", "sim"+theirPopulation, transaction, null,
-                   translation, empty, arch, "" + period + "000000", true);
+                   translation, empty, arch, "" + period + "000000", "-1", true);
     }
     
     //Increase the record of the number of simulators created
