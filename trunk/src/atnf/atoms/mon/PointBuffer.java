@@ -80,7 +80,7 @@ public class PointBuffer
   PointData
   getPointData(String point)
   {
-    PointDescription pm = MonitorMap.getPointMonitor(point);
+    PointDescription pm = MonitorMap.getPointDescription(point);
     if (pm==null) {
       return null;
     }
@@ -97,7 +97,7 @@ public class PointBuffer
   getPointData(String name,
                String source)
   {
-    PointDescription pm = MonitorMap.getPointMonitor(source+"."+name);
+    PointDescription pm = MonitorMap.getPointDescription(source+"."+name);
     return getPointData(pm);
   }
 
@@ -256,7 +256,7 @@ public class PointBuffer
                int sample_rate)
   {
     //Try to get the specified point and check if it was found
-    PointDescription pm = MonitorMap.getPointMonitor(point);
+    PointDescription pm = MonitorMap.getPointDescription(point);
     if (pm==null) {
       return null;
     }
@@ -280,7 +280,7 @@ public class PointBuffer
                String source,
                AbsTime timestamp)
   {
-    PointDescription pm = MonitorMap.getPointMonitor(source+"."+name);
+    PointDescription pm = MonitorMap.getPointDescription(source+"."+name);
     if (timestamp.isASAP()) {
       return getBufferData(pm);
     }
@@ -303,7 +303,7 @@ public class PointBuffer
                AbsTime timestamp)
   {
     //Try to get the specified point and check if it was found
-    PointDescription pm = MonitorMap.getPointMonitor(point);
+    PointDescription pm = MonitorMap.getPointDescription(point);
     if (pm==null) {
       return null;
     }
@@ -325,7 +325,7 @@ public class PointBuffer
                 AbsTime timestamp)
   {
     //Try to get the specified point and check if it was found
-    PointDescription pm = MonitorMap.getPointMonitor(point);
+    PointDescription pm = MonitorMap.getPointDescription(point);
     if (pm==null) {
       return null;
     }
@@ -372,7 +372,7 @@ public class PointBuffer
                AbsTime timestamp)
   {
     //Try to get the specified point and check if it was found
-    PointDescription pm = MonitorMap.getPointMonitor(point);
+    PointDescription pm = MonitorMap.getPointDescription(point);
     if (pm==null) {
       return null;
     }

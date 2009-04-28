@@ -38,10 +38,10 @@ extends PointArchiver
   /** The connection to the MySQL server. */  
   protected Connection itsConnection = null;
   
-  /** The RUL to connect to the server/database. */
+  /** The URL to connect to the server/database. */
   protected String itsURL = "jdbc:mysql://localhost/MoniCA?user=monica&tcpRcvBuf=100000";
   
-  
+
   /** Constructor. */
   public
   PointArchiverMySQL()
@@ -55,7 +55,41 @@ extends PointArchiver
       itsConnection=null;
     }
   }
-  
+
+  /** Purge all data for the given point that is older than the specified age in days.
+   * @param point The point whos data we wish to purge. */
+  protected
+  void
+  purgeOldData(PointDescription point)
+  {
+    if (point.getArchiveLongevity()<=0) return;
+    
+    String table = getTableName(point);
+    Statement stmt = null;
+    
+    try {
+      //Can't do anything if the server is not running
+      if (!checkConnection()) {
+        return;
+      }
+      
+      //Build and execute the data request
+      long purgetime = (new AbsTime()).getValue()-point.getArchiveLongevity()*86400000000l;
+      String cmd = "DELETE from " + table + " WHERE ts<" + purgetime + ";";
+      synchronized (itsConnection) {
+        stmt = itsConnection.createStatement();
+        stmt.execute(cmd);
+      }
+      stmt.close();
+      
+    } catch (Exception e) {
+      System.err.println("PointArchiverMySQL:purgeOldData: " + e.getMessage());
+      try {
+        if (stmt!=null) stmt.close();
+      } catch (Exception f) {}
+    }    
+  }
+
   
   /** Method to do the actual archiving.
    * @param pm The point whos data we wish to archive.

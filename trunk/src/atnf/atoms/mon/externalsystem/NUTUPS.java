@@ -149,6 +149,7 @@ extends ASCIISocket
                limits,
                archivepolicy,
                "5000000",
+               "-1",
                true);
         	  if (mp!=null) {
               MonitorMap.addPointMonitor(mp);

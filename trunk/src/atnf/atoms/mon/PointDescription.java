@@ -80,9 +80,15 @@ implements ActionListener, NamedObject, Comparable
 
   /** The policies that define when to archive this point. */
   protected ArchivePolicy[] itsArchive = null;
+  
+  /** String representation of the archive policies. */
+  protected String itsArchiveString = null;
 
   /** The archiver used to store data for this point. */
   protected PointArchiver itsArchiver = null;
+  
+  /** The number of days to keep archived data, or -1 for indefinitely. */
+  protected int itsArchiveLongevity = -1;
 
   protected EventListenerList itsPLList = new EventListenerList();
 
@@ -113,11 +119,6 @@ implements ActionListener, NamedObject, Comparable
   }
 
   /** Set the update interval. */
-  public void setPeriod(long newperiod) {
-    itsPeriod = newperiod;
-  }
-
-  /** Set the update interval. */
   public void setPeriod(String newperiod) {
     if (newperiod.equalsIgnoreCase("null") || newperiod.trim().equals("-")) {
       itsPeriod = -1;
@@ -128,6 +129,36 @@ implements ActionListener, NamedObject, Comparable
         MonitorMap.logger.error("PointDescription: (" + getName()
             + "): setPeriod: " + e.getMessage());
         itsPeriod = -1; // Better than doing nothing..
+      }
+    }
+  }
+  
+  /** Get the archive longevity. This is the period in days to keep archived data, or -1
+   * for indefinitely. */
+  public int getArchiveLongevity()
+  {
+    return itsArchiveLongevity;
+  }
+  
+  /** Set the archive longevity. This is the period in days to keep archived data, or -1
+   * for indefinitely. */
+  public void setArchiveLongevity(int length)
+  {
+    itsArchiveLongevity=length;
+  }  
+
+  /** Set the archive longevity. This is the period in days to keep archived data, or "-1"
+   * or "null" or "-" to archive indefinitely. */
+  public void setArchiveLongevity(String newperiod) {
+    if (newperiod.equalsIgnoreCase("null") || newperiod.trim().equals("-")) {
+      itsArchiveLongevity = -1;
+    } else {
+      try {
+        itsArchiveLongevity = Integer.parseInt(newperiod);
+      } catch (Exception e) {
+        MonitorMap.logger.error("PointDescription: (" + getName()
+            + "): setArchiveLongevity: " + e.getMessage());
+        itsPeriod = -1;
       }
     }
   }
@@ -250,7 +281,7 @@ implements ActionListener, NamedObject, Comparable
     } else {
       itsTranslationString = "{";
       for (int i=0; i<translations.length-1; i++) {
-  itsTranslationString += translations[i] + ",";
+        itsTranslationString += translations[i] + ",";
       }
       itsTranslationString += translations[translations.length-1] + "}";
     }
@@ -445,6 +476,35 @@ implements ActionListener, NamedObject, Comparable
     itsArchive = archive;
   }
 
+  /** Set the string representation of the archive policies. */
+  public void
+  setArchiveString(String archive)
+  {
+     itsArchiveString = archive;
+  }
+
+  /** Set the string representation of the archive policies. */
+  public void setArchiveString(String[] archive) {
+    if (archive == null || archive.length == 0) {
+      itsArchiveString = null;
+    } else if (archive.length == 1) {
+      itsArchiveString = archive[0];
+    } else {
+      itsArchiveString = "{";
+      for (int i = 0; i < archive.length - 1; i++) {
+        itsArchiveString += archive[i] + ",";
+      }
+      itsArchiveString += archive[archive.length - 1] + "}";
+    }
+  }
+ 
+  /** Get the string representation of the archive policies. */
+  public String
+  getArchiveString()
+  {
+     return itsArchiveString;
+  }
+  
   /**
    * Return the time when this monitor point was last sampled. If the monitor
    * point hasn't yet been sampled "NEVER" is returned.
@@ -585,10 +645,17 @@ implements ActionListener, NamedObject, Comparable
   }
 
   public static ArrayList parseLine(String line, boolean real) {
+    //Number of tokens we expect for each point definition
+    final int NUMTOKENS = 13;
+    
     ArrayList result = new ArrayList();
     try {
       // Extract appropriate information and make point/s
-      String[] toks = MonitorUtils.getTokens(line);      
+      String[] toks = MonitorUtils.getTokens(line);
+      if (toks.length!=NUMTOKENS) {
+        return null;
+      }
+      
       String[] pointNameArray = getTokens(toks[0]);
       String pointLongDesc = toks[1];
       String pointShortDesc = toks[2];
@@ -601,6 +668,7 @@ implements ActionListener, NamedObject, Comparable
       String[] pointLimitsArray = getTokens(toks[9]);
       String[] pointArchiveArray = getTokens(toks[10]);
       String pointPeriod = toks[11];
+      String archiveLife = toks[12];
 
       boolean[] pointEnabledArray = parseBoolean(pointEnabled);
       if (pointEnabled.length() < pointSourceArray.length) {
@@ -616,12 +684,12 @@ implements ActionListener, NamedObject, Comparable
           result.add(PointDescription.factory(pointNameArray, pointLongDesc,
               pointShortDesc, pointUnits, pointSourceArray[i], pointInputArray,
               pointOutputArray, pointTranslateArray, pointLimitsArray,
-              pointArchiveArray, pointPeriod, pointEnabledArray[i]));
+              pointArchiveArray, pointPeriod, archiveLife, pointEnabledArray[i]));
         } else {
           result.add(FakeMonitor.Fakefactory(pointNameArray, pointLongDesc,
               pointShortDesc, pointUnits, pointSourceArray[i], pointInputArray,
               pointOutputArray, pointTranslateArray, pointLimitsArray,
-              pointArchiveArray, pointPeriod, pointEnabledArray[i]));
+              pointArchiveArray, pointPeriod, archiveLife, pointEnabledArray[i]));
         }
       }
 
@@ -659,7 +727,7 @@ implements ActionListener, NamedObject, Comparable
   /** Construct a new monitor point from the given fields. */
   public static PointDescription factory(String[] names, String longdesc, String shortdesc, 
       String units, String source, String[] inputs, String[] outputs,
-      String[] translate, String[] limits, String[] archive, String period,
+      String[] translate, String[] limits, String[] archive, String period, String archivelife,
       boolean enabled) {
     PointDescription result = new PointDescription();
     result.setNames(names);
@@ -700,6 +768,10 @@ implements ActionListener, NamedObject, Comparable
       archives[i] = ArchivePolicy.factory(archive[i]);
     }
     result.setArchive(archives);
+    result.setArchiveString(archive);
+    
+    result.setArchiveLongevity(archivelife);
+    
     result.setPeriod(period);
     result.setEnabled(enabled);
     MonitorMap.addPointMonitor(result);
@@ -803,8 +875,17 @@ implements ActionListener, NamedObject, Comparable
    * @param archiver
    *          The PointArchiver to be used.
    */
-  public void setArchiver(PointArchiver archiver) {
+  public void setArchiver(PointArchiver archiver) 
+  {
     itsArchiver = archiver;
+  }
+
+  /**
+   * Return the PointArchiver which archives data for this point.
+   */
+  public PointArchiver getArchiver() 
+  {
+    return itsArchiver;
   }
 
   /**
@@ -847,19 +928,12 @@ implements ActionListener, NamedObject, Comparable
     res.append(' ');
     res.append(itsLimitsString);
     res.append(' ');
-    if (itsArchive.length > 1) {
-      // Write out a set of ArchivePolicies
-      res.append('{');
-      for (int i = 0; i < itsArchive.length - 1; i++) {
-        res.append(itsArchive[i].getStringEquiv() + ",");
-      }
-      res.append(itsArchive[itsArchive.length - 1].getStringEquiv().trim()
-          + "}");
-    } else {
-      res.append(itsArchive[0].getStringEquiv());
-    }
+    res.append(itsArchiveString);
     res.append(' ');
     res.append(itsPeriod);
+    res.append(' ');
+    res.append(itsArchiveLongevity);
+    
     return res.toString();
   }
 

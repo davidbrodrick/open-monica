@@ -216,7 +216,7 @@ implements PointListener, ActionListener
     //Try to find any points that are still missing
     for (int i=0; i<itsNumPoints; i++) {
       if (itsPoints[i]==null) {
-        itsPoints[i] = MonitorMap.getPointMonitor(itsNames[i]);
+        itsPoints[i] = MonitorMap.getPointDescription(itsNames[i]);
         if (itsPoints[i]==null) {
           //Still couldn't find the point, perhaps it doesn't exist?!
           stillmissing = true;

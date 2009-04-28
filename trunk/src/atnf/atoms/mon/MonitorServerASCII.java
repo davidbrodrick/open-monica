@@ -308,7 +308,7 @@ implements Runnable
       int numpoints = Integer.parseInt(tempstr);
       for (int i=0; i<numpoints; i++) {
         String pointname = itsReader.readLine().trim();
-        PointDescription pm = MonitorMap.getPointMonitor(pointname);
+        PointDescription pm = MonitorMap.getPointDescription(pointname);
         if (pm==null) {
           itsWriter.println("?");
         } else {
@@ -470,7 +470,7 @@ implements Runnable
         String pointname = itsReader.readLine().trim();
         //Make sure the monitor point name is valid
         if (MonitorMap.checkPointName(pointname)) {
-          PointDescription pm = MonitorMap.getPointMonitor(pointname);
+          PointDescription pm = MonitorMap.getPointDescription(pointname);
           if (pm==null) {
             //Invalid monitor point requested
             itsWriter.println("? Named point doesn't exist");

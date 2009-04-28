@@ -76,7 +76,7 @@ public class MonitorMap
      }
    }
    
-   public static synchronized PointDescription getPointMonitor(String hash)
+   public static synchronized PointDescription getPointDescription(String hash)
    {
       return (PointDescription)itsPointMap.get(hash);
    }
@@ -110,7 +110,7 @@ public class MonitorMap
       return res;
    }
 
-   /** Check if the specified monitor point exists */
+   /** Check if the specified point exists */
    public static
    boolean
    checkPointName(String name)

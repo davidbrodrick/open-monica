@@ -58,11 +58,22 @@ extends PointArchiver
   PointArchiverASCII()
   {
     super();
+    
     if (!theirTempDir.isDirectory()) {
       theirTempDir.mkdirs();
     }
   }
 
+  /** Purge all data for the given point that is older than the specified age in days.
+   * @param point The point whos data we wish to purge. */
+  protected
+  void
+  purgeOldData(PointDescription point)
+  {
+    if (point.getArchiveLongevity()<0) return;
+    
+    System.err.println("PointArchiverASCII.purgeOldData: NOT YET IMPLEMENTED!");
+  }
 
   /** Method to do the actual archiving.
    * @param pm The point whos data we wish to archive.

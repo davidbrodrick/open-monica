@@ -220,7 +220,7 @@ extends ASCIISocket
                   //If we got new data then fire it off
                   if (newdata!=null) {
                     if (itsMonitorPoint==null) {
-                      itsMonitorPoint=MonitorMap.getPointMonitor(itsMonitorPointName);
+                      itsMonitorPoint=MonitorMap.getPointDescription(itsMonitorPointName);
                       if (itsMonitorPoint==null) {
                         MonitorMap.logger.error("MoniCA: ThytecUPS: No monitor point " + itsMonitorPointName);
                         System.err.println("#############MoniCA: ThytecUPS: No monitor point " + itsMonitorPointName);

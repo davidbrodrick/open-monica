@@ -123,8 +123,8 @@ class ArchiveReplicator
       PointDescription thispoint=(PointDescription)points.get(pointnum);
       String thisname=(String)pointnames.get(pointnum);
       //IF POINT IS NOT TO BE ARCHIVED THEN DON't ARCHIVE IT
-      String[] archivepols=((FakeMonitor)thispoint).getArchiveString();
-      if (archivepols.length==1 && (archivepols[0].equals("-") || archivepols[0].equals("NONE"))) {
+      String archivepols=((FakeMonitor)thispoint).getArchiveString();
+      if (archivepols==null || archivepols.equals("-") || archivepols.equals("NONE")) {
         System.out.println("#Skipping non-archived point \"" + thisname + "\"");
         continue;
       }

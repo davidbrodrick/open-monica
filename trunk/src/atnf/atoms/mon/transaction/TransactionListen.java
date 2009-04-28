@@ -58,7 +58,7 @@ implements PointListener, ActionListener
         }
 
         //Check that the point exists for the named source
-        itsPoints[i] = MonitorMap.getPointMonitor(args[i]);
+        itsPoints[i] = MonitorMap.getPointDescription(args[i]);
         if (itsPoints[i]==null) {
           //Either point name is wrong or point hasn't been created yet
           //Start timer which will try again shortly
@@ -114,7 +114,7 @@ implements PointListener, ActionListener
     //Try to fill out any point names that are still missing
     for (int i=0; i<itsPoints.length; i++) {
       if (itsPoints[i]==null) {
-        itsPoints[i] = MonitorMap.getPointMonitor(itsNames[i]);
+        itsPoints[i] = MonitorMap.getPointDescription(itsNames[i]);
         if (itsPoints[i]==null) {
           //Still couldn't find the point, perhaps it doesn't exist?!
           stillmissing = true;
