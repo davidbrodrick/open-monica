@@ -300,13 +300,8 @@ extends PointArchiver
   getStringForPD(PointData pd)
   {
     Object data = pd.getData();
-    Object raw = pd.getRaw();
     String res = pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t";
     res += getStringForObject(data);
-    //If the 'raw' data field is populated then write it out also
-    if (data!=raw && raw!=null) {
-      res += getStringForObject(raw);
-    }
     return res;
   }
 
@@ -341,22 +336,7 @@ extends PointArchiver
       System.err.println(e.getMessage());
       return null;
     }
-    //Parse the "raw" data field if this information was recorded
-    Object d2 = null;
-    if (st.countTokens()>1) {
-      type = st.nextToken();
-      dstr = st.nextToken();
-      try {
-        d2 = getObjectForString(type, dstr);
-      } catch (Exception e) {
-        System.err.println(e.getMessage());
-        return null;
-      }
-      res = new PointData(pm.getName(), pm.getSource(), ts, d2, d1);
-    } else {
-      //No raw data field
-      res = new PointData(pm.getName(), pm.getSource(), ts, d1);
-    }
+    res = new PointData(pm.getName(), pm.getSource(), ts, d1);
     return res;
   }
 

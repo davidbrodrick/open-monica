@@ -68,7 +68,6 @@ extends Translation
       return new PointData(data.getName(),
 			   data.getSource(),
 			   data.getTimestamp(),
-			   data.getRaw(),
 			   s);
     } else {
       //We can only translate Numbers using this class

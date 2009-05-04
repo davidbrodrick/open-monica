@@ -54,9 +54,6 @@ public class PointBuffer
           //New point, add it to the table
           newPoint(pm);
           buf = (Vector)bufferTable.get(pm);
-        } else {
-          //Existing point, update sequence number
-          data.setSequence(((PointData)buf.lastElement()).getSequence()+1);
         }
 
         //Ensure the buffer hasn't grown too large

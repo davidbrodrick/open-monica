@@ -73,7 +73,7 @@ extends Translation
     Angle newangle = Angle.factory(arg, itsFormat);
     
     PointData res = new PointData(data.getName(), data.getSource(),
-                                  data.getTimestamp(), data.getRaw(), newangle);
+                                  data.getTimestamp(), newangle);
 
     return res;
   }

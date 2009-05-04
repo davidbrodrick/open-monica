@@ -24,80 +24,16 @@ public class PointData implements Serializable
   /** The translated real-world data value. */
   private Object itsData = null;
 
-  /** The pre-translation raw data value. */
-  private Object itsRaw = null;
-
   /** Name of the monitor point that we contain data for. */
   private String itsName = null;
 
   /** Name of the source from which this data were collected. */
   private String itsSource = null;
-
-  /** The sequence number for this data. The sequence number is incremented
-   * by the monitor server/data collector each time a new value is
-   * read for the point. */
-  private int itsSequence = 0;
    
   public
   PointData()
   {
   }
-
-  public
-  PointData(String name,
-	    String source,
-	    AbsTime timestamp,
-	    Object raw,
-	    Object data,
-	    int sequence)
-  {
-    itsName = name;
-    itsSource = source;
-    itsTimestamp = timestamp;
-    itsRaw = raw;
-    itsData = data;
-    itsSequence = sequence;
-  }
-
-  public
-  PointData(String name,
-	    String source,
-	    AbsTime timestamp,
-	    Object raw,
-	    Object data)
-  {
-    itsName = name;
-    itsSource = source;
-    itsTimestamp = timestamp;
-    itsRaw = raw;
-    itsData = data;
-  }
-
-
-  public
-  PointData(String name,
-	    String source,
-	    AbsTime timestamp,
-	    Object data,
-	    int sequence)
-  {
-    itsName = name;
-    itsSource = source;
-    itsTimestamp = timestamp;
-    itsData = data;
-    itsRaw = data;
-    itsSequence = sequence;
-  }
-
-
-   public PointData(String name, AbsTime timestamp, Object data, int sequence)
-   {
-      itsName = name;
-      itsTimestamp = timestamp;
-      itsData = data;
-      itsRaw = data;
-      itsSequence = sequence;
-   }
 
    public PointData(String name, String source,
 		    AbsTime timestamp, Object data)
@@ -106,16 +42,13 @@ public class PointData implements Serializable
      itsSource = source;
      itsTimestamp = timestamp;
      itsData = data;
-     itsRaw = data;
    }
-
 
    public PointData(String name, AbsTime timestamp, Object data)
    {
      itsName = name;
      itsTimestamp = timestamp;
      itsData = data;
-     itsRaw = data;
    }
 
    public PointData(String name, String source, AbsTime timestamp)
@@ -124,7 +57,6 @@ public class PointData implements Serializable
      itsSource = source;
      itsTimestamp = timestamp;
      itsData = null;
-     itsRaw = null;
    }
 
    public PointData(String name, String source)
@@ -182,22 +114,6 @@ public class PointData implements Serializable
      itsData = data;
    }
 
-   /** Specify the raw data value to be stored. */
-   public
-   void
-   setRaw(Object raw)
-   {
-     itsRaw = raw;
-   }
-
-   /** Specify the sequence number for this data value. */
-   public
-   void
-   setSequence(int sequence)
-   {
-     itsSequence = sequence;
-   }
-
    /** Get the name of the monitor point for which we hold data. */
    public
    String
@@ -222,37 +138,12 @@ public class PointData implements Serializable
      return itsTimestamp;
    }
 
-  /** Get the raw data stored by this PointData. The raw value is the
-   * original value of this point prior to value translation. */
-   public
-   Object
-   getRaw()
-   {
-     if (itsRaw!=null) {
-      return itsRaw;
-    } else {
-      return itsData;
-    }
-   }
-
    /** Get the actual translated data stored by this PointData. */
    public
    Object
    getData()
    {
      return itsData;
-   }
-
-   /** Get the sequence number for this value. The sequence number is
-    * incremented by the monitor server/data collector each time a new
-    * value is collected for the monitor point. The sequence number will
-    * be useful for checking to see if a client is updating too infrequently
-    * and is consequently failing to collect every data value. */
-   public
-   int
-   getSequence()
-   {
-      return itsSequence;
    }
 
    /** Check if the data field contains valid data. This simply checks to see
@@ -277,6 +168,6 @@ public class PointData implements Serializable
    {
      return "{" + getSource() + "." + getName() + " "
        + getTimestamp().toString(AbsTime.Format.UTC_STRING)
-       + " " + getSequence() + " " + getRaw() + " -> " + getData() + "}";
+       + " -> " + getData() + "}";
    }
 }

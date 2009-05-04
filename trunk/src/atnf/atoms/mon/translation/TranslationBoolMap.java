@@ -93,8 +93,6 @@ extends Translation
     //Create return structure with right details
     PointData res = new PointData(itsParent.getName(), itsParent.getSource());
     res.setData(resd);
-    //Preserve the original data value
-    res.setRaw(data.getRaw());
 
     return res;
   }

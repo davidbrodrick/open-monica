@@ -163,13 +163,6 @@ public class FakeMonitor extends PointDescription
       }
       itsLastTimestamp = lastTimestamp;
 
-      if (data.getSequence() - itsSequence > 1 && itsSequence > -1) {
-	System.err.println(data.getSource() + "." + data.getName() +
-			   " was out of sequence");
-      }
-      itsSequence = data.getSequence();
-
-
       if (itsPeriod > 0) {
         if (!data.isValid()) {
           //No valid data found, the ExternalSystem is probably disconnected
@@ -195,25 +188,8 @@ public class FakeMonitor extends PointDescription
         }
       } else {
          // Non-predefined period
-         // Check the sequences - invalidate data if sequence not met
-         boolean seq = true;
-         if (data.getSequence() - itsSequence > 1 && itsSequence > -1) {
-             seq = false;
-         }
-         itsSequence = data.getSequence();
 
-         // Data is invalid
-         //if (duplicateCollection || seq == false) {
-         if (seq == false) {
-           System.err.println("Sequence was invalid");
-           itsNextEpoch += getDelay() + 50000;
-           fireEvents(pe);
-           itsCollecting = false;
-           return;
-         }
-	 
-         // Data is valid
-         setDelay(500000);
+        setDelay(500000);
          itsLastTimestamps[itsTimestampPos] = lastTimestamp;
          itsTimestampPos++;
 
