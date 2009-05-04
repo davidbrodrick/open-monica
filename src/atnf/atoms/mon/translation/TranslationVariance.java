@@ -83,12 +83,10 @@ extends Translation
     //Create result - set "raw" data field to null
     if (((PointData)itsBuffer.get(0)).getData() instanceof Angle) {
       return new PointData(itsParent.getName(), itsParent.getSource(),
-                           data.getTimestamp(),
-                           null, Angle.factory(v, Angle.Format.RADIANS));
+                           data.getTimestamp(), Angle.factory(v, Angle.Format.RADIANS));
     } else {
       return new PointData(itsParent.getName(), itsParent.getSource(),
-                           data.getTimestamp(),
-                           null, new Double(v));
+                           data.getTimestamp(), new Double(v));
     }
   }
 

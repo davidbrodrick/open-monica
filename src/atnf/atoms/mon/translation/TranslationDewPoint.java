@@ -57,8 +57,6 @@ extends Translation
 				  itsParent.getSource());
     //Call the calculation method and save result
     res.setData(doCalculations(data.getData()));
-    //Save Raw reference
-    res.setRaw(data.getRaw());
 
     return res;
   }

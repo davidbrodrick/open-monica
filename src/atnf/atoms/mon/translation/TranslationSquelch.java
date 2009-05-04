@@ -86,7 +86,7 @@ extends Translation
     PointData res = new PointData(itsParent.getName(),
 				  itsParent.getSource(),
 				  data.getTimestamp(),
-				  data.getRaw(), null);
+				  null);
 
     Object newval = null;
 

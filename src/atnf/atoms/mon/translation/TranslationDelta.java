@@ -97,9 +97,6 @@ extends Translation
     //Record the current value for use next time
     itsPreviousValue = new Double(dval);
 
-    //Clear the "raw data" field since it doesn't apply to us
-    res.setRaw(null);
-
     return res;
   }
 

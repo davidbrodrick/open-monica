@@ -163,11 +163,10 @@ extends Translation
     //Produce the result. Set raw field to null.
     if (((PointData)itsBuffer.get(0)).getData() instanceof Angle) {
       return new PointData(itsParent.getName(), itsParent.getSource(),
-			   tstamp, null,
-			   Angle.factory(m, Angle.Format.RADIANS));
+			   tstamp, Angle.factory(m, Angle.Format.RADIANS));
     } else {
       return new PointData(itsParent.getName(), itsParent.getSource(),
-			   tstamp, null, new Double(m));
+			   tstamp, new Double(m));
     }
   }
 

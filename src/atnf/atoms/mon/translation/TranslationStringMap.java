@@ -82,8 +82,6 @@ extends Translation
     PointData res = new PointData(itsParent.getName(), itsParent.getSource());
     //Call the sub-class method with possibly null value and save result
     res.setData(newstr);
-    //Preserve the original data value
-    res.setRaw(val);
 
     return res;
   }

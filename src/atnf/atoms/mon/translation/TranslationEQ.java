@@ -79,24 +79,10 @@ extends Translation
       } else {
 	itsParser.addVariable("x",((Number)data.getData()).doubleValue());
       }
-      Object resData = null;
       double resNum = itsParser.getValue();
-      if (dataCopy instanceof Byte) {
-        resData = new Byte((byte)resNum);
-      } else if (dataCopy instanceof Short) {
-        resData = new Short((short)resNum);
-      } else if (dataCopy instanceof Long) {
-        resData = new Long((long)resNum);
-      } else if (dataCopy instanceof Integer) {
-        resData = new Integer((int)resNum);
-      } else if (dataCopy instanceof Float) {
-        resData = new Float((float)resNum);
-      } else {
-        resData = new Double(resNum);
-      }
 
       return new PointData(itsParent.getName(), itsParent.getSource(),
-			   data.getTimestamp(), data.getRaw(), resData);
+			   data.getTimestamp(), new Double(resNum));
    }
 
 

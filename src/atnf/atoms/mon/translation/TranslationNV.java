@@ -75,13 +75,6 @@ extends Translation
      //Keep the time-stamp of the parent point rather than use "now"
      res.setTimestamp(data.getTimestamp());
 
-     //Remove the reference to the raw data. Most translations won't do this
-     //but it is appropriate here because:
-     //*NVL data is likely to be high-level to start with, so we don't need
-     // to store raw, unprocessed values anyway.
-     //*There will be huge transport and archive savings by doing this here
-     res.setRaw(null);
-
      return res;
    }
    
