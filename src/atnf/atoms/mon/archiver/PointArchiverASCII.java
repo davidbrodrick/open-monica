@@ -58,10 +58,6 @@ extends PointArchiver
   PointArchiverASCII()
   {
     super();
-    
-    if (!theirTempDir.isDirectory()) {
-      theirTempDir.mkdirs();
-    }
   }
 
   /** Purge all data for the given point that is older than the specified age in days.
@@ -729,7 +725,11 @@ extends PointArchiver
       String foo = filename.substring(filename.lastIndexOf(FSEP)+1);
       foo = foo.substring(0, foo.length()-4);
       ZipEntry ze = zip.getEntry(foo);
-      compressed = zip.getInputStream(ze);;
+      compressed = zip.getInputStream(ze);
+      if (!theirTempDir.isDirectory()) {
+        //Some systems have a tmp reaper, so need to check this directory each time 
+        theirTempDir.mkdirs();
+      }
       f = File.createTempFile("foo", ".tmp", theirTempDir);
       uncompressed = new PrintWriter(new BufferedWriter(new FileWriter(f)));
       res = f.getPath();
