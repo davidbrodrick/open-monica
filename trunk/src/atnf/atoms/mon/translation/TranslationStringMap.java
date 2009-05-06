@@ -79,9 +79,8 @@ extends Translation
     }
 
     //Create return structure with right details
-    PointData res = new PointData(itsParent.getName(), itsParent.getSource());
-    //Call the sub-class method with possibly null value and save result
-    res.setData(newstr);
+    PointData res = new PointData(itsParent.getName(), itsParent.getSource(),
+                                  data.getTimestamp(), newstr);
 
     return res;
   }

@@ -76,6 +76,7 @@ extends PointArchiver
       //Build and execute the data request
       long purgetime = (new AbsTime()).getValue()-point.getArchiveLongevity()*86400000000l;
       String cmd = "DELETE from " + table + " WHERE ts<" + purgetime + ";";
+      //System.err.println(cmd);
       synchronized (itsConnection) {
         stmt = itsConnection.createStatement();
         stmt.execute(cmd);
