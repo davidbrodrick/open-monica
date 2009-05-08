@@ -45,14 +45,12 @@ extends TranslationListener
     for (int i=0; i<itsNumPoints; i++) {
       if (itsValues[i]==null || itsValues[i].getData()==null) {
         //No valid data is available
-        System.err.println("data unavailable");
         unavailable=true;
         break;
       }
       
       if (itsPoints[i].checkLimits(itsValues[i])==false) {
         //This point is in an alarm state
-        System.err.println("data in alarm");
         unavailable=true;
         break;        
       }

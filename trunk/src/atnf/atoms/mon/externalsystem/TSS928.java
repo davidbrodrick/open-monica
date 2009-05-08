@@ -53,13 +53,19 @@ extends ASCIISocket
    connect()
    throws Exception
    {
-    try {
+     try {
       super.connect();
       //Ensure it's set to poll-only mode
       itsWriter.write("H 0\r\n");
+      itsWriter.flush();
       itsReader.readLine();
       //Ensure it's set to 15-minute strike expiry age
       itsWriter.write("J 1\r\n");
+      itsWriter.flush();      
+      itsReader.readLine();
+      //Apply rotation correction
+      itsWriter.write("L " + (int)itsRotation + "\r\n");
+      itsWriter.flush();      
       itsReader.readLine();
     } catch (Exception e) {
       try {
@@ -89,6 +95,7 @@ extends ASCIISocket
     }
 
      itsWriter.write("A\r\n");
+     itsWriter.flush();
      String line1 = itsReader.readLine();
      if (line1.startsWith("P")) {
        //It's an automatic status message, need to discard it
@@ -335,6 +342,7 @@ extends ASCIISocket
 
      //Next we do a separate command to get the system run-time
      itsWriter.write("F\r\n");
+     itsWriter.flush();
      String line4 = itsReader.readLine();
      if (line4.startsWith("P")) {
        //It's an automatic status message, need to discard it
