@@ -133,8 +133,8 @@ use vars qw(@ISA @EXPORT);
 
 @ISA    = qw( Exporter );
 @EXPORT = qw( bat2time monconnect monpoll monsince parse_tickphase current_bat 
-	       monbetween montill bat2mjd mjd2bat bat2time atca_tied);
-
+	      monbetween monpreceeding monfollowing montill 
+	      bat2mjd mjd2bat bat2time atca_tied);
 
 =item B<monconnect>
 
@@ -270,6 +270,110 @@ sub montill($$$$) {
     $mjd0-= $step;
   }
   return pop @vals; 
+}
+
+=item B<monpreceeding>
+
+  my $pointval = monpreceeding($mon, $mjd, $pointname);
+  my @pointvals = monpreceeding($mon, $mjd, @pointnames);
+
+ Calls the "monpreceeding" function, returning the last record <= a specifed time
+ for one or more monitor points. Note calling in scalar mode only the first
+ monitor point is returned.
+
+    $mon           Monitor server
+    $mjd           MJD of start of query time (double))
+    $pointname     Single monitor point
+    @pointnames    List of monitor points
+    $pointval      MonPoint object, representing the first returned monitor
+                   point
+    @pointvals     List of MonPoint objects
+
+=cut
+
+sub monpreceeding ($$@) {
+  my $mon = shift;
+  my $mjd = shift;
+  my @monpoints = @_;
+  my $npoll = scalar(@monpoints);
+
+  my $bat = mjd2bat($mjd)->as_hex;
+
+  if ($npoll==0) {
+    warn "No monitor points requested!\n";
+    return undef;
+  }
+
+  print $mon "preceeding\n";
+  print $mon "$npoll\n";
+  foreach (@monpoints) {
+    print $mon "$bat $_\n";
+  }
+
+  my @vals = ();
+
+  for (my $i=0; $i<$npoll; $i++) {
+    my $line = <$mon>;
+    push @vals, new MonPoint($line);
+  }
+
+  if (wantarray) {
+    return @vals;
+  } else {
+    return $vals[0];
+  }
+}
+
+=item B<monfollowing>
+
+  my $pointval = monfollowing($mon, $mjd, $pointname);
+  my @pointvals = monfollowing($mon, $mjd, @pointnames);
+
+ Calls the "following" function, returning the first record >= a specifed time
+ for one or more monitor points. Note calling in scalar mode only the first
+ monitor point is returned.
+
+    $mon           Monitor server
+    $mjd           MJD of start of query time (double)
+    $pointname     Single monitor point
+    @pointnames    List of monitor points
+    $pointval      MonPoint object, representing the first returned monitor
+                   point
+    @pointvals     List of MonPoint objects
+
+=cut
+
+sub monfollowing ($$@) {
+  my $mon = shift;
+  my $mjd = shift;
+  my @monpoints = @_;
+  my $npoll = scalar(@monpoints);
+
+  my $bat = mjd2bat($mjd)->as_hex;
+
+  if ($npoll==0) {
+    warn "No monitor points requested!\n";
+    return undef;
+  }
+
+  print $mon "following\n";
+  print $mon "$npoll\n";
+  foreach (@monpoints) {
+    print $mon "$bat $_\n";
+  }
+
+  my @vals = ();
+
+  for (my $i=0; $i<$npoll; $i++) {
+    my $line = <$mon>;
+    push @vals, new MonPoint($line);
+  }
+
+  if (wantarray) {
+    return @vals;
+  } else {
+    return $vals[0];
+  }
 }
 
 sub bat2time($;$$) {
