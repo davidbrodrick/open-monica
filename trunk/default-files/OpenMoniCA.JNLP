@@ -18,7 +18,7 @@
   </security>
 
   <resources>
-    <j2se version="1.4+"/>
+    <j2se version="1.5+"/>
     <jar href="open-monica.jar"/>
     <jar href="jsch-0.1.37.jar"/>
     <jar href="jfreechart-1.0.13.jar"/>
