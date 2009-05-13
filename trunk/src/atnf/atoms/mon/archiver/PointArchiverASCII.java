@@ -203,14 +203,14 @@ extends PointArchiver
   }
 
 
-  /** Return the last update which preceeds the specified time.
-   * We interpret 'preceeds' to mean data_time<=req_time.
+  /** Return the last update which precedes the specified time.
+   * We interpret 'precedes' to mean data_time<=req_time.
    * @param pm Point to extract data for.
-   * @param ts Find data preceeding this timestamp.
-   * @return PointData for preceeding update or null if none found. */
+   * @param ts Find data preceding this timestamp.
+   * @return PointData for preceding update or null if none found. */
   public
   PointData
-  getPreceeding(PointDescription pm, AbsTime ts)
+  getPreceding(PointDescription pm, AbsTime ts)
   {
     //Get the archive directory for the given point
     String dir = getDir(pm);
@@ -220,9 +220,9 @@ extends PointArchiver
       return null;
     }
     //Ensure the preceeding file is also included
-    String preceeding = getPreceedingFile(dir, (String)files.get(0));
-    if (preceeding!=null) {
-      files.insertElementAt(preceeding, 0);
+    String preceding = getPrecedingFile(dir, (String)files.get(0));
+    if (preceding!=null) {
+      files.insertElementAt(preceding, 0);
     }
     //Try to load data from each of the files
     Vector tempbuf = new Vector(1000,8000);
@@ -587,7 +587,7 @@ extends PointArchiver
    * @return Previous chronological file name, or null if none exist. */
   private
   String
-  getPreceedingFile(String dir, String fname)
+  getPrecedingFile(String dir, String fname)
   {
     //Get timestamp corresponding to argument file
     AbsTime argdate = null;
@@ -616,7 +616,7 @@ extends PointArchiver
         date = getDateTime(files[i]);
       }
       if (date==null) {
-        System.err.println("PointArchiverASCII:getPreceedingFile: Bad File Name " +
+        System.err.println("PointArchiverASCII:getPrecedingFile: Bad File Name " +
                            files[i] + " in directory " + dir);
         continue;
       }
@@ -880,7 +880,7 @@ extends PointArchiver
   public static final void main(String args[])
   {
     PointArchiverASCII paa = new PointArchiverASCII();
-    paa.getPreceedingFile("/home/ozforeca/open-monica/archive/weather/in_temp/home/", "20080709-0954.zip");
+    paa.getPrecedingFile("/home/ozforeca/open-monica/archive/weather/in_temp/home/", "20080709-0954.zip");
     /*if (args.length<1) {
       System.err.println("USAGE: Specify a file to be compressed");
       System.exit(1);

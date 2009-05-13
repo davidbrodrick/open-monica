@@ -67,14 +67,14 @@ extends Thread
    extract(PointDescription pm, AbsTime start, AbsTime end);
 
 
-   /** Return the last update which preceeds the specified time.
-    * We interpret 'preceeds' to mean data_time<=req_time.
+   /** Return the last update which precedes the specified time.
+    * We interpret 'precedes' to mean data_time<=req_time.
     * @param pm Point to extract data for.
-    * @param ts Find data preceeding this timestamp.
-    * @return PointData for preceeding update or null if none found. */
+    * @param ts Find data preceding this timestamp.
+    * @return PointData for preceding update or null if none found. */
    public abstract
    PointData
-   getPreceeding(PointDescription pm, AbsTime ts);
+   getPreceding(PointDescription pm, AbsTime ts);
 
 
    /** Return the first update which follows the specified time.

@@ -131,7 +131,7 @@ class ArchiveReplicator
       System.err.println("#Replicating \"" + thisname + "\"");
       //DETERMINE HOW FAR BACK TO COLLECT DATA FROM REMOTE SERVER
       AbsTime downloadstart=null;
-      PointData ourlast=itsNewArchive.getPreceeding(thispoint, downloadend);
+      PointData ourlast=itsNewArchive.getPreceding(thispoint, downloadend);
       if (ourlast==null) {
         downloadstart=AbsTime.factory(0l);
       } else {

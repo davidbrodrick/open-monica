@@ -117,8 +117,9 @@ implements Runnable
             state_since();
           } else if (line.equalsIgnoreCase("between")) {
             state_between();
-          } else if (line.equalsIgnoreCase("preceeding")) {
-            state_preceeding();
+          } else if (line.equalsIgnoreCase("preceding") || line.equalsIgnoreCase("preceeding")) {
+            //Original interface had spelling error
+            state_preceding();
           } else if (line.equalsIgnoreCase("following")) {
             state_following();          
           } else if (line.equalsIgnoreCase("names")) {
@@ -408,7 +409,7 @@ implements Runnable
   /** Return last update <= specified times, for specified monitor points. */
   protected
   void
-  state_preceeding()
+  state_preceding()
   {
     try {
       //First line tells us how many points are going to be specified
@@ -437,7 +438,7 @@ implements Runnable
         String pointname = st.nextToken().trim();
         if (MonitorMap.checkPointName(pointname)) {
           //All arguments look good so do the query
-          PointData pd = PointBuffer.getPreceeding(pointname, argtime);
+          PointData pd = PointBuffer.getPreceding(pointname, argtime);
           if (pd==null) {
             itsWriter.println(pointname + "\t?\t?");
           } else {
@@ -450,7 +451,7 @@ implements Runnable
       }
       itsWriter.flush();
     } catch (Exception e) {
-      System.err.println("MonitorServerASCII: preceeding: " + e.getClass());
+      System.err.println("MonitorServerASCII: preceding: " + e.getClass());
       itsRunning = false;
     }
   }
