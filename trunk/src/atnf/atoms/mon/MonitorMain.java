@@ -92,6 +92,6 @@ MonitorMain
    
   public static void main(String[] argv)
   {
-    MonitorMain monitorsystem = new MonitorMain();
+    new MonitorMain();
   }
 }

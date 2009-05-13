@@ -29,8 +29,10 @@ import java.net.URL;
 import org.jfree.chart.*;
 import org.jfree.chart.axis.*;
 import org.jfree.chart.plot.*;
-import org.jfree.chart.renderer.*;
-import org.jfree.data.*;
+import org.jfree.data.xy.XYDataItem;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.chart.renderer.xy.*;
 
 /**
  * Class for matching the time-stamps of monitor points and plotting the value
@@ -1285,22 +1287,22 @@ public class ATXYPlot extends MonPanel implements ActionListener, Runnable {
    * Contains Vectors holding AbsTimes for the last data collected for each X
    * axis point.
    */
-  private Vector itsXPointEpochs = new Vector();
+  private Vector<AbsTime> itsXPointEpochs = new Vector<AbsTime>();
 
   /** Contains Vectors containing ALL the data for each of the X points. */
-  private Vector itsXData = new Vector();
+  private Vector<Vector> itsXData = new Vector<Vector>();
 
   /** Contains Vectors holding the names for the Y axis points. */
-  private Vector itsYPointNames = new Vector();
+  private Vector<String> itsYPointNames = new Vector<String>();
 
   /**
    * Contains Vectors holding AbsTimes for the last data collected for each Y
    * axis point.
    */
-  private Vector itsYPointEpochs = new Vector();
+  private Vector<AbsTime> itsYPointEpochs = new Vector<AbsTime>();
 
   /** Contains Vectors containing ALL the data for each of the Y points. */
-  private Vector itsYData = new Vector();
+  private Vector<Vector> itsYData = new Vector<Vector>();
 
   /** Reference to our graph. */
   private JFreeChart itsGraph = null;
@@ -1444,7 +1446,7 @@ public class ATXYPlot extends MonPanel implements ActionListener, Runnable {
             x.removeElementAt(0);
           }
           // Load any new data that is available
-          Vector v = getSince((String) itsXPointNames.get(i),
+          Vector<PointData> v = getSince((String) itsXPointNames.get(i),
               (AbsTime) itsXPointEpochs.get(i));
           x.addAll(v);
         }
@@ -1463,7 +1465,7 @@ public class ATXYPlot extends MonPanel implements ActionListener, Runnable {
             }
             y.removeElementAt(0);
           }
-          Vector v = getSince((String) itsYPointNames.get(i),
+          Vector<PointData> v = getSince((String) itsYPointNames.get(i),
               (AbsTime) itsYPointEpochs.get(i));
           y.addAll(v);
         }
@@ -1790,13 +1792,13 @@ public class ATXYPlot extends MonPanel implements ActionListener, Runnable {
           renderer = new StandardXYItemRenderer(
               StandardXYItemRenderer.DISCONTINUOUS_LINES);
           ((StandardXYItemRenderer) renderer).setPlotLines(true);
-          ((StandardXYItemRenderer) renderer).setPlotShapes(false);
+//          ((StandardXYItemRenderer) renderer).setPlotShapes(false);
           // I don't actually understand what this threashold means!
           ((StandardXYItemRenderer) renderer).setGapThreshold(30.0);
         } else {
           renderer = new StandardXYItemRenderer();
           ((StandardXYItemRenderer) renderer).setPlotLines(true);
-          ((StandardXYItemRenderer) renderer).setPlotShapes(false);
+//          ((StandardXYItemRenderer) renderer).setPlotShapes(false);
         }
       } else if (temp.equals("dots")) {
         // Render with dots
@@ -1805,9 +1807,8 @@ public class ATXYPlot extends MonPanel implements ActionListener, Runnable {
         // Render with symbols
         renderer = new StandardXYItemRenderer();
         ((StandardXYItemRenderer) renderer).setPlotLines(false);
-        ((StandardXYItemRenderer) renderer).setPlotShapes(true);
-        ((StandardXYItemRenderer) renderer)
-            .setDefaultShapesFilled(Boolean.FALSE);
+        ((StandardXYItemRenderer) renderer).setBaseShapesVisible(true);
+        ((StandardXYItemRenderer) renderer).setBaseShapesFilled(false);
       } else {
         System.err.println("ATXYPlot:loadData: Unknown style \"" + temp + "\"");
         blankSetup();
@@ -2053,12 +2054,12 @@ public class ATXYPlot extends MonPanel implements ActionListener, Runnable {
       }
       // Print the header information for this series
       p.println("#" + series.getItemCount() + " data points for \""
-          + series.getName() + "\" follow.");
+          + series.getDescription() + "\" follow.");
       p.println("#X monitor point: " + itsXPointNames.get(a));
       p.println("#Y monitor point: " + itsYPointNames.get(a));
       for (int i = 0; i < series.getItemCount(); i++) {
-        p.print(series.getXValue(i) + ", ");
-        p.println(series.getYValue(i));
+        XYDataItem thisitem = series.getDataItem(i);
+        p.println(thisitem.getX() + ", "+thisitem.getY());
       }
       p.println();
     }

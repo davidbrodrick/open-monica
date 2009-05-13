@@ -32,7 +32,7 @@ import atnf.atoms.util.NamedObject;
  * @version $Id: SavedSetup.java,v 1.1 2005/07/25 01:20:56 bro764 Exp bro764 $
  */
 public class SavedSetup
-extends HashMap
+extends HashMap<String,String>
 implements NamedObject, Comparable
 {
   /** Serialized version id. */
