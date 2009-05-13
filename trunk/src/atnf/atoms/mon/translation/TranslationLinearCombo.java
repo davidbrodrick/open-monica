@@ -38,13 +38,13 @@ TranslationLinearCombo
 extends Translation
 {
   /** Names of the listened-to monitor points. */
-  private Vector itsPoints = new Vector();
+  private Vector<String> itsPoints = new Vector<String>();
 
   /** Coefficients for each listened-to point. */
-  private Vector itsCoeffs = new Vector();
+  private Vector<Float> itsCoeffs = new Vector<Float>();
 
   /** Contains the latest updates for each monitor point. */
-  private HashMap itsValues = new HashMap();
+  private HashMap<String,Object> itsValues = new HashMap<String,Object>();
 
   protected static String[] itsArgs = new String[]{"Linear Combo",
   "Listens to other points and numerically combines them"};

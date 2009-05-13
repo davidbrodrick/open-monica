@@ -12,11 +12,11 @@ import atnf.atoms.time.*;
  */
 
 public class DataMaintainer implements Runnable, PointListener {
-  protected ArrayList itsPoints = new ArrayList();
+  protected ArrayList<PointDescription> itsPoints = new ArrayList<PointDescription>();
 
-  protected static Hashtable itsNames = new Hashtable();
+  protected static Hashtable<String,Object> itsNames = new Hashtable<String,Object>();
 
-  protected static Hashtable itsBuffer = new Hashtable();
+  protected static Hashtable<String,PointData> itsBuffer = new Hashtable<String,PointData>();
 
   protected static Thread itsCollector;
 
@@ -78,8 +78,8 @@ public class DataMaintainer implements Runnable, PointListener {
     }
   }
 
-  public static void subscribe(Vector points, PointListener pl) {
-    Vector realarg = new Vector();
+  public static void subscribe(Vector<String> points, PointListener pl) {
+    Vector<String> realarg = new Vector<String>();
     for (int i = 0; i < points.size(); i++) {
       String pname = (String) points.get(i);
       if (itsNames.get(pname) == null) {
@@ -208,8 +208,8 @@ public class DataMaintainer implements Runnable, PointListener {
 
   public void run() {
     while (itsRunning) {
-      Vector getpoints = new Vector();
-      Vector getnames = new Vector();
+      Vector<PointDescription> getpoints = new Vector<PointDescription>();
+      Vector<String> getnames = new Vector<String>();
 
       AbsTime nextTime = AbsTime.factory("ASAP");
       synchronized (itsPoints) {

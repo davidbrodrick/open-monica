@@ -154,7 +154,7 @@ extends PointArchiver
    * @param end Most recent time in the range of interest.
    * @return Vector containing all data for the point over the time range. */
   public
-  Vector
+  Vector<PointData>
   extract(PointDescription pm, AbsTime start, AbsTime end)
   {
     try {
@@ -164,7 +164,7 @@ extends PointArchiver
       }
 
       //Allocate result vector
-      Vector res=new Vector(5000, 10000);      
+      Vector<PointData> res=new Vector<PointData>(1000, 8000);      
       //Get the table name for this point
       String table=getTableName(pm);
     

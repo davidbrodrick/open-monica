@@ -82,7 +82,7 @@ implements NamedObject, Comparable
 
   /** Construct a new setup using the same mappings as the given Map. */
   public
-  SavedSetup(Map t)
+  SavedSetup(Map<String,String> t)
   {
     super(t);
   }
@@ -389,7 +389,7 @@ implements NamedObject, Comparable
   parseFile(Reader setupfile)
   throws Exception
   {
-    Vector res = new Vector();
+    Vector<SavedSetup> res = new Vector<SavedSetup>();
 
     //Pre-process the file, exit if empty
     String[] lines = MonitorUtils.parseFile(setupfile);

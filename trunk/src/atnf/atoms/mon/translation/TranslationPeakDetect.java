@@ -28,7 +28,7 @@ TranslationPeakDetect
 extends Translation
 {
   /** Buffer containing data. */
-  protected Vector itsBuffer = new Vector();
+  protected Vector<PointData> itsBuffer = new Vector<PointData>();
 
   /** Period to measure the peak over. */
   protected RelTime itsPeriod = RelTime.factory(-60000000l);

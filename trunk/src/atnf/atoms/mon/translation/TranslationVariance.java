@@ -31,7 +31,7 @@ TranslationVariance
 extends Translation
 {
   /** Buffer containing data. */
-  protected Vector itsBuffer = new Vector();
+  protected Vector<PointData> itsBuffer = new Vector<PointData>();
 
   /** Period to measure the variance over. */
   protected RelTime itsPeriod = null;

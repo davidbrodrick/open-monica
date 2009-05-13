@@ -26,7 +26,7 @@ class PointArchiver
 extends Thread
 {
    /** Data which has not yet been written out. */
-   protected Hashtable itsBuffer = new Hashtable();
+   protected Hashtable<PointDescription,Vector<PointData>> itsBuffer = new Hashtable<PointDescription,Vector<PointData>>();
 
    /** Max number of records to be returned in response to a single archive 
     * request. The idea is to prevent the server bogging down if there is
@@ -63,7 +63,7 @@ extends Thread
     * @param end Most recent time in the range of interest.
     * @return Vector containing all data for the point over the time range. */
    public abstract
-   Vector
+   Vector<PointData>
    extract(PointDescription pm, AbsTime start, AbsTime end);
 
 
@@ -96,7 +96,7 @@ extends Thread
      while (true) {
        Enumeration keys = itsBuffer.keys();
        while (keys.hasMoreElements()) {
-         Vector bData = null;
+         Vector<PointData> bData = null;
          PointDescription pm = null;
          synchronized(itsBuffer) {
            pm = (PointDescription)keys.nextElement();
@@ -106,7 +106,7 @@ extends Thread
            if (itsBuffer.get(pm) == null) {
             continue;
           }
-           bData = new Vector((Vector)itsBuffer.remove(pm));
+           bData = new Vector<PointData>(itsBuffer.remove(pm));
            if (bData.size() < 1) {
              //Sleep if no data to archive, otherwise may fast loop
              try {
@@ -147,10 +147,10 @@ extends Thread
      synchronized(itsBuffer) {
        //Ensure this point has a storage buffer allocated
        if (!(itsBuffer.get(pm) instanceof Vector)) {
-         itsBuffer.put(pm, new Vector());
+         itsBuffer.put(pm, new Vector<PointData>());
        }
        //Add the new data to our storage buffer
-       Vector myVec = (Vector)itsBuffer.get(pm);
+       Vector<PointData> myVec = itsBuffer.get(pm);
        myVec.add(data);
        itsBuffer.notifyAll();
      }
@@ -188,15 +188,15 @@ extends Thread
     * @param data The Vector of data to save to disk */
    public 
    void 
-   archiveData(PointDescription pm, Vector data)
+   archiveData(PointDescription pm, Vector<PointData> data)
    {
      synchronized(itsBuffer) {
        //Ensure this point has a storage buffer allocated
        if (!(itsBuffer.get(pm) instanceof Vector)) {
-         itsBuffer.put(pm, new Vector());
+         itsBuffer.put(pm, new Vector<PointData>());
        }
        //Add the new data to our storage buffer
-       Vector myVec = (Vector)itsBuffer.get(pm);
+       Vector<PointData> myVec = itsBuffer.get(pm);
        myVec.addAll(data);
        itsBuffer.notifyAll();
      }

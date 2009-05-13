@@ -23,7 +23,7 @@ import atnf.atoms.mon.archiver.PointArchiver;
 public class PointBuffer
 {
   /** Stores Vectors of past data. Keyed by PointMonitors */
-  protected static Hashtable bufferTable = new Hashtable();
+  protected static Hashtable<PointDescription,Vector<PointData>> bufferTable = new Hashtable<PointDescription,Vector<PointData>>();
 
 
   /** Allocate buffer storage space for the new monitor point. */
@@ -33,7 +33,7 @@ public class PointBuffer
   {
     synchronized(bufferTable) {
       //Add new key/storage to the hash
-      bufferTable.put(pm, new Vector(pm.getMaxBufferSize()+1));
+      bufferTable.put(pm, new Vector<PointData>(pm.getMaxBufferSize()+1));
       //Wake any waiting threads
       bufferTable.notifyAll();
     }
@@ -49,11 +49,11 @@ public class PointBuffer
   {
     if (data!=null && data.getData()!=null) {
       synchronized(bufferTable) {
-        Vector buf = (Vector)bufferTable.get(pm);
+        Vector<PointData> buf = bufferTable.get(pm);
         if (buf==null) {
           //New point, add it to the table
           newPoint(pm);
-          buf = (Vector)bufferTable.get(pm);
+          buf = bufferTable.get(pm);
         }
 
         //Ensure the buffer hasn't grown too large
@@ -141,9 +141,9 @@ public class PointBuffer
                int maxsamples)
   {
     //Get data from the memory buffer first
-    Vector bufdata = getPointDataBuffer(pm, start_time, end_time);
+    Vector<PointData> bufdata = getPointDataBuffer(pm, start_time, end_time);
     if (bufdata==null) {
-      bufdata = new Vector(); //Ensure not null
+      bufdata = new Vector<PointData>(); //Ensure not null
     }
 
     //If all data were in the memory buffer there's no point in
@@ -154,9 +154,9 @@ public class PointBuffer
 
     //OK, we need archived data as well
     PointArchiver arc = MonitorMap.getPointArchiver();
-    Vector arcdata = arc.extract(pm, start_time, end_time);
+    Vector<PointData> arcdata = arc.extract(pm, start_time, end_time);
     if (arcdata==null) {
-      arcdata = new Vector(); //Ensure not null
+      arcdata = new Vector<PointData>(); //Ensure not null
     }
     
     boolean mergebuffer=true;
@@ -202,7 +202,7 @@ public class PointBuffer
       //System.err.println("PointBuffer: Need to down-sample from " + arcdata.size() + " to " + maxsamples);
       AbsTime nextsamp = start_time;
       RelTime increment = RelTime.factory((end_time.getValue()-start_time.getValue())/maxsamples);
-      Vector newres = new Vector(maxsamples);
+      Vector<PointData> newres = new Vector<PointData>(maxsamples);
 
       int i=0;
       while (i<arcdata.size()&&nextsamp.isBeforeOrEquals(end_time)) {
@@ -439,20 +439,20 @@ public class PointBuffer
    * @return Vector of buffer data in the given time range. <tt>null</tt>
    *                will be returned if no data were found. */
   public static
-  Vector
+  Vector<PointData>
   getPointDataBuffer(PointDescription pm,
                      AbsTime start_time,
                      AbsTime end_time)
   {
     synchronized(bufferTable) {
-      Vector data = (Vector)bufferTable.get(pm);
+      Vector<PointData> data = bufferTable.get(pm);
       if (data == null) {
         return null;
       }
       if (data.size() < 1) {
         return null;
       }
-      Vector res = new Vector();
+      Vector<PointData> res = new Vector<PointData>();
       /// Should do this in a more efficient way
       res.addAll(data);
       while (res.size()>0 && ((PointData)res.firstElement()).getTimestamp().isBefore(start_time)) {

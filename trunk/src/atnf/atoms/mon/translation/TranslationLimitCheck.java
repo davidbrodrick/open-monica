@@ -47,8 +47,7 @@ extends Translation
    * value. A <tt>null</tt> entry indicates we have no valid data for that
    * point. The order of this array is the same as the <i>itsPoints</i>
    * field. */
-  //Boolean[] itsLastValues = null;
-  HashMap itsLastValues = new HashMap();
+  HashMap<String,Boolean> itsLastValues = new HashMap<String,Boolean>();
 
 
   public
