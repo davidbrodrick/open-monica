@@ -378,13 +378,11 @@ public class PointBuffer
     PointData temp = null;    
     
     //Check if the requested data is still in our memory buffer
-    boolean mustbebuffered = false;    
     synchronized(bufferTable) {
       Vector bufferdata = getBufferData(pm);
       if (bufferdata!=null && bufferdata.size()>0) {
         if (((PointData)bufferdata.get(0)).getTimestamp().isBeforeOrEquals(timestamp)) {
           //That which we seek is certainly in the buffer
-          mustbebuffered=true;
           for (int i=bufferdata.size()-1; i>=0; i--) {
             PointData pd = ((PointData)bufferdata.get(i));
             if (pd.getTimestamp().isBefore(timestamp)) {
