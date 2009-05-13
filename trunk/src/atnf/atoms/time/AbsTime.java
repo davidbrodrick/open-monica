@@ -1612,43 +1612,11 @@ implements
     } else if(args[0].equals("clock")) {
       // The current argument.
       int iArg;
-      // The requested font size.
-      int reqFont = 40;
-      // The requested background color.
-      String reqBGColor = null;
-      // The requested foreground color.
-      String reqFGColor = null;
 
       // Parse the command line options.
       iArg = 1;
       while(iArg < args.length) {
-        if(args[iArg].equals("-bg")) {
-          iArg++;
-          if(iArg >= args.length) {
-            usage();
-          }
-          reqBGColor = args[iArg];
-          iArg++;
-        }
-        else if(args[iArg].equals("-f")) {
-          iArg++;
-          if(iArg >= args.length) {
-            usage();
-          }
-          reqFont = Integer.parseInt(args[iArg]);
-          iArg++;
-        }
-        else if(args[iArg].equals("-fg")) {
-          iArg++;
-          if(iArg >= args.length) {
-            usage();
-          }
-          reqFGColor = args[iArg];
-          iArg++;
-        }
-        else {
-          usage();
-        }
+        usage();
       }
 
       // Make the clock.

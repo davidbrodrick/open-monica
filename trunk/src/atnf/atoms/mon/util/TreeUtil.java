@@ -27,8 +27,8 @@ public class TreeUtil implements ActionListener, TreeSelectionListener
    
    // Should really do this with an object encompassing the nodes and data
    // with only on map. But this is easier...
-   protected Hashtable itsMap = new Hashtable();
-   protected Hashtable itsTreeMap = new Hashtable();
+   protected Hashtable<String,Object> itsMap = new Hashtable<String,Object>();
+   protected Hashtable<String,Object> itsTreeMap = new Hashtable<String,Object>();
 
    public static final int TREE = 7654;
    public static final int MENU = 7655;
@@ -59,7 +59,6 @@ public class TreeUtil implements ActionListener, TreeSelectionListener
    {
       itsMap.put(name, obj);
       DefaultMutableTreeNode tempNode = itsRootNode;
-      JMenuItem tempMenu = itsRootMenu;
       StringTokenizer tok = new StringTokenizer(name, ".");
       String currentName = null;
       while (tok.hasMoreTokens()) {
@@ -106,11 +105,6 @@ public class TreeUtil implements ActionListener, TreeSelectionListener
       }
    }
 
-   public void addChildNode(DefaultMutableTreeNode parent, String name, Object obj)
-   {
-      String realName = parent.getUserObject().toString() + "." + name;
-   }
- 
    public void addChildNode(DefaultMutableTreeNode parent, String name)
    {
       String realName = parent.getUserObject().toString() + "." + name;

@@ -481,7 +481,7 @@ implements ActionListener, Runnable
    * outer octants clockwise from North and then the 8 inner octants
    * clockwise from North. The final two points are the total number of
    * dtected strikes and then the number of cloud strikes. */
-  private Vector itsPointNames = new Vector(20);
+  private Vector<String> itsPointNames = new Vector<String>(20);
 
   /** C'tor. */
   public
