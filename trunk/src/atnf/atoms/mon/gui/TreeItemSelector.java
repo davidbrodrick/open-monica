@@ -93,7 +93,7 @@ public abstract class TreeItemSelector extends JPanel implements ActionListener 
       public void mousePressed(MouseEvent e) {
         int selRow = itsTree.getRowForLocation(e.getX(), e.getY());
         TreePath selPath = itsTree.getPathForLocation(e.getX(), e.getY());
-        if (((TreeNode)(selPath.getLastPathComponent())).isLeaf()) {
+        if (selPath!=null && selPath.getLastPathComponent()!=null && ((TreeNode)(selPath.getLastPathComponent())).isLeaf()) {
           if (selRow != -1) {
             if (e.getClickCount() == 2) {
               itsAddBut.doClick();
