@@ -20,7 +20,7 @@
   <!-- Compile the java classes -->
   <target name="compile">
     <mkdir dir="${output}"/>
-    <javac destdir="${output}" debug="true">            
+    <javac destdir="${output}" debug="true" target="1.5">            
       <src path="${src}"/>            
       <classpath refid="3rdParty"/>
     </javac>
