@@ -43,7 +43,7 @@ TranslationMean
 extends Translation
 {
   /** Buffer containing data. */
-  protected Vector itsBuffer = new Vector();
+  protected Vector<PointData> itsBuffer = new Vector<PointData>();
 
   /** Period to measure the mean over. */
   protected RelTime itsPeriod = null;

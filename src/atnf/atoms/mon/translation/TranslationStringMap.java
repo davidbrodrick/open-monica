@@ -28,7 +28,7 @@ TranslationStringMap
 extends Translation
 {
   /** Contains the mapping from inputs to outputs. */
-  protected HashMap itsMappings = new HashMap();
+  protected HashMap<String,String> itsMappings = new HashMap<String,String>();
 
   protected static String[] itsArgs = new String[]{"Translation String Map",
   "String Map"};

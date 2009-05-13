@@ -174,11 +174,11 @@ extends PointArchiver
    * @param end Most recent time in the range of interest.
    * @return Vector containing all data for the point over the time range. */
   public
-  Vector
+  Vector<PointData>
   extract(PointDescription pm, AbsTime start, AbsTime end)
   {
     //AbsTime starttime = new AbsTime();
-    Vector res = new Vector(1000,8000);
+    Vector<PointData> res = new Vector<PointData>(1000,8000);
     //Get the archive directory for the given point
     String dir = getDir(pm);
 
@@ -215,7 +215,7 @@ extends PointArchiver
     //Get the archive directory for the given point
     String dir = getDir(pm);
     //Get any the archive files relevant to the period of interest
-    Vector files = getFiles(dir, ts, ts);
+    Vector<String> files = getFiles(dir, ts, ts);
     if (files==null || files.size()==0) {
       return null;
     }
@@ -225,7 +225,7 @@ extends PointArchiver
       files.insertElementAt(preceding, 0);
     }
     //Try to load data from each of the files
-    Vector tempbuf = new Vector(1000,8000);
+    Vector<PointData> tempbuf = new Vector<PointData>(1000,8000);
     for (int i=0; i<files.size(); i++) {
       loadFile(tempbuf, pm, dir+FSEP+files.get(i), null, null);
     }
@@ -258,7 +258,7 @@ extends PointArchiver
     //Get the archive directory for the given point
     String dir = getDir(pm);
     //Get any the archive files relevant to the period of interest
-    Vector files = getFiles(dir, ts, ts);
+    Vector<String> files = getFiles(dir, ts, ts);
     if (files==null || files.size()==0) {
       return null;
     }
@@ -269,7 +269,7 @@ extends PointArchiver
     }
     
     //Try to load data from each of the files
-    Vector tempbuf = new Vector(1000,8000);
+    Vector<PointData> tempbuf = new Vector<PointData>(1000,8000);
     for (int i=0; i<files.size(); i++) {
       loadFile(tempbuf, pm, dir+FSEP+files.get(i), null, null);
     }
@@ -447,11 +447,11 @@ extends PointArchiver
    * @param end Most recent time in the range of interest.
    * @return Vector containing all filenames of relevance. */
   private
-  Vector
+  Vector<String>
   getFiles(String dir, AbsTime start, AbsTime end)
   {
-    Vector res = new Vector();
-    TreeMap map = new TreeMap();
+    Vector<String> res = new Vector<String>();
+    TreeMap<Long,String> map = new TreeMap<Long,String>();
 
     //Get listing of all files in the archive dir for the given point
     ///Should use filename filter with this .list() call
@@ -642,7 +642,7 @@ extends PointArchiver
    * @param end The most recent time of interest, null to ignore. */
   private
   void
-  loadFile(Vector res, 
+  loadFile(Vector<PointData> res, 
            PointDescription pm,
            String fname,
            AbsTime start,

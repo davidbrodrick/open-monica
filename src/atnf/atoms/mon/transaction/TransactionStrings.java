@@ -25,7 +25,7 @@ public class TransactionStrings
 extends Transaction
 {
   /** The strings required to update the monitor point. */
-  Vector itsStrings = new Vector();
+  Vector<String> itsStrings = new Vector<String>();
 
   protected static String itsArgs[] = new String[]{"", "", "", ""};
 
