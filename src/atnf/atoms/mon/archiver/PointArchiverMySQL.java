@@ -203,14 +203,14 @@ extends PointArchiver
   }
 
 
-  /** Return the last update which preceeds the specified time.
-   * We interpret 'preceeds' to mean data_time<=req_time.
+  /** Return the last update which precedes the specified time.
+   * We interpret 'precedes' to mean data_time<=req_time.
    * @param pm Point to extract data for.
-   * @param ts Find data preceeding this timestamp.
-   * @return PointData for preceeding update or null if none found. */
+   * @param ts Find data preceding this timestamp.
+   * @return PointData for preceding update or null if none found. */
   public
   PointData
-  getPreceeding(PointDescription pm, AbsTime ts)
+  getPreceding(PointDescription pm, AbsTime ts)
   {
     try {
       //Can't do anything if the server is not running
@@ -243,7 +243,7 @@ extends PointArchiver
       //Finished - return the extracted data
       return res;
     } catch (Exception e) {
-      System.err.println("PointArchiverMySQL:getPreceeding: " + e.getMessage());
+      System.err.println("PointArchiverMySQL:getPreceding: " + e.getMessage());
       return null;
     }    
   }

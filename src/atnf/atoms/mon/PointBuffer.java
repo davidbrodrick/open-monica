@@ -318,8 +318,8 @@ public class PointBuffer
    * @return The data, or null if no record was found. */
   public static
   PointData
-  getPreceeding(String point,
-                AbsTime timestamp)
+  getPreceding(String point,
+               AbsTime timestamp)
   {
     //Try to get the specified point and check if it was found
     PointDescription pm = MonitorMap.getPointDescription(point);
@@ -352,7 +352,7 @@ public class PointBuffer
     if (res==null) {
       //The data is no longer buffered - need to ask the archive
       PointArchiver arc = MonitorMap.getPointArchiver();
-      res = arc.getPreceeding(pm, timestamp);
+      res = arc.getPreceding(pm, timestamp);
     }
     
     return res;
@@ -375,30 +375,42 @@ public class PointBuffer
     }
     
     PointData res = null;
+    PointData temp = null;    
     
     //Check if the requested data is still in our memory buffer
+    boolean mustbebuffered = false;    
     synchronized(bufferTable) {
       Vector bufferdata = getBufferData(pm);
-      if (bufferdata!=null && bufferdata.size()>1 && 
-          ((PointData)bufferdata.get(0)).getTimestamp().isBeforeOrEquals(timestamp)) {
-        //That which we seek is buffered
-        for (int i=bufferdata.size()-1; i>=0; i--) {
-          PointData pd = ((PointData)bufferdata.get(i));
-          if (pd.getTimestamp().isBefore(timestamp)) {
-            //Stop now
-            break;
-          } else {
-            //This record satisfies our criteria
-            res = pd;
+      if (bufferdata!=null && bufferdata.size()>0) {
+        if (((PointData)bufferdata.get(0)).getTimestamp().isBeforeOrEquals(timestamp)) {
+          //That which we seek is certainly in the buffer
+          mustbebuffered=true;
+          for (int i=bufferdata.size()-1; i>=0; i--) {
+            PointData pd = ((PointData)bufferdata.get(i));
+            if (pd.getTimestamp().isBefore(timestamp)) {
+              //Stop now
+              break;
+            } else {
+              //This record satisfies our criteria
+              res = pd;
+            }
           }
+        } else {
+          //Can't be certain it is in buffer, but might be depending on what data
+          //the archive contains.
+          temp = ((PointData)bufferdata.get(0));
         }
       } 
     }
     
     if (res==null) {
-      //The data is no longer buffered - need to ask the archive
+      //The data may not be buffered so ask the archive
       PointArchiver arc = MonitorMap.getPointArchiver();
       res = arc.getFollowing(pm, timestamp);
+      if (res==null) {
+        //Nothing from archive so oldest data in buffer is best match
+        res=temp;
+      }
     }
     
     return res;
