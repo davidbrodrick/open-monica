@@ -40,10 +40,10 @@ implements PointListener, TableCellRenderer
    * A null entry in this Vector is interpreted as indicating that
    * we should display an empty row at that position to improve the
    * layout and readability of the table. */
-  protected Vector itsPoints = new Vector();
+  protected Vector<String> itsPoints = new Vector<String>();
 
   /** Names of sources selected for display in the table. */
-  protected Vector itsSources  = new Vector();
+  protected Vector<String> itsSources  = new Vector<String>();
 
 
   public
@@ -54,7 +54,7 @@ implements PointListener, TableCellRenderer
 
 
   public
-  PointTableModel(Vector points, Vector sources)
+  PointTableModel(Vector<String> points, Vector<String> sources)
   {
     super();
     set(points, sources);
@@ -83,7 +83,7 @@ implements PointListener, TableCellRenderer
    * the points contained in the specified page. */
   public
   void
-  set(Vector points, Vector sources)
+  set(Vector<String> points, Vector<String> sources)
   {
     //First unsubscribe from the old points, if any
     if (itsPoints!=null && itsPoints.size()>0) {
@@ -113,7 +113,7 @@ implements PointListener, TableCellRenderer
         public void run() {
           //Build vector containing all point names
           ///This is pretty dumb since not all sources will have all points
-          Vector pnames = new Vector();
+          Vector<String> pnames = new Vector<String>();
           for (int i=0; i<itsPoints.size(); i++) {
             String pname = (String)itsPoints.get(i);
             if (pname==null || pname.equals("")) {
@@ -156,8 +156,6 @@ implements PointListener, TableCellRenderer
       Dimension prefsize = new Dimension(220+80+90*itsSources.size(),
 					 18*(itsPoints.size()+1));
       scroll.setPreferredSize(prefsize);
-      Dimension maxsize  = new Dimension(220+80+110*itsSources.size(),
-                                         22*(itsPoints.size()+1));
       scroll.setMaximumSize(prefsize);
       scroll.setMinimumSize(new Dimension(200,100));
 
@@ -191,11 +189,13 @@ implements PointListener, TableCellRenderer
   getRowForPoint(String pname)
   {
     int res = -1;
-    for (int p=0; p<itsPoints.size(); p++) {
-      String thiss = (String)itsPoints.get(p);
-      if (thiss!=null && thiss.equals(pname)) {
-	res = p;
-	break;
+    if (itsPoints!=null) {
+      for (int p=0; p<itsPoints.size(); p++) {
+        String thiss = (String)itsPoints.get(p);
+        if (thiss!=null && thiss.equals(pname)) {
+          res = p;
+          break;
+        }
       }
     }
     return res;
@@ -265,11 +265,13 @@ implements PointListener, TableCellRenderer
   getColumnForSource(String source)
   {
     int res = -1;
-    for (int s=0; s<itsSources.size(); s++) {
-      String thiss = (String)itsSources.get(s);
-      if (thiss!=null && thiss.equals(source)) {
-        res = s+1;
-        break;
+    if (itsSources!=null) {
+      for (int s=0; s<itsSources.size(); s++) {
+        String thiss = (String)itsSources.get(s);
+        if (thiss!=null && thiss.equals(source)) {
+          res = s+1;
+          break;
+        }
       }
     }
     return res;
@@ -546,32 +548,4 @@ implements PointListener, TableCellRenderer
       p.println(line);
     }
   }
-
-
-  public static void main(String[] argv) {
-    Vector pnames = new Vector();
-    pnames.add("site.seemon.Lock1");
-    pnames.add("site.seemon.Lock2");
-    pnames.add("site.seemon.Lock3");
-    pnames.add("ant.servo.AzSkyPos");
-    pnames.add("ant.servo.ElSkyPos");
-    Vector sources = new Vector();
-    sources.add("seemon");
-    sources.add("benchacc00");
-    sources.add("benchacc01");
-
-    PointTableModel ptm = new PointTableModel(pnames, sources);
-
-    JFrame frame = new JFrame("Demo App");
-    JTable table = new JTable(ptm);
-    table.setDefaultRenderer(Object.class, ptm);
-    JScrollPane scroll = new JScrollPane(table);
-    frame.getContentPane().add(scroll);
-    ptm.setSizes(table, scroll);
-
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.pack();
-    frame.setVisible(true);
-  }
-
 }
