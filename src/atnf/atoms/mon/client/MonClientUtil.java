@@ -356,14 +356,14 @@ public class MonClientUtil
   /** Merge the Vector of SavedSetups with our collection. */
   public static
   void
-  mergeSetups(Vector setups)
+  mergeSetups(Vector<SavedSetup> setups)
   {
     if (setups==null || setups.size()==0) {
       return;
     }
 
     for (int i=0; i<setups.size(); i++) {
-      SavedSetup thissetup = (SavedSetup)setups.get(i);
+      SavedSetup thissetup = setups.get(i);
       if (thissetup==null) {
         System.err.println("MonClientUtil:mergeSetups: Warning NULL setup");
         continue;
@@ -708,7 +708,6 @@ public class MonClientUtil
    {
       itsMap.put(name, obj);
       DefaultMutableTreeNode tempNode = itsRootNode;
-      JMenuItem tempMenu = itsRootMenu;
       StringTokenizer tok = new StringTokenizer(name, ".");
       String currentName = null;
       while (tok.hasMoreTokens()) {

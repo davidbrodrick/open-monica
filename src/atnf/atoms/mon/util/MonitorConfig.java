@@ -18,7 +18,7 @@ import java.util.HashMap;
  */
 public class MonitorConfig
 {
-   private static HashMap itsData = new HashMap();
+   private static HashMap<String,String> itsData = new HashMap<String,String>();
    private static boolean itsInit = false;
 
    /** Read the config file and cache properties. */
