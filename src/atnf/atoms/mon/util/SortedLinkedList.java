@@ -144,10 +144,7 @@ SortedLinkedList
   Vector
   headSet(Object o)
   {
-    Vector res = new Vector();
-
-    ListNode next = itsHead;
-    ListNode prev = null;
+    Vector<Object> res = new Vector<Object>();
 
     //Keep adding the head until it no longer matches
     while (itsHead!=null && itsComparator.compare(itsHead.data, o)<0) {
