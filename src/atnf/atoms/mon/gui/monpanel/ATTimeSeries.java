@@ -15,10 +15,7 @@ import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.time.*;
 import atnf.atoms.util.*;
 
-import java.util.Vector;
-import java.util.Date;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
+import java.util.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
@@ -29,8 +26,8 @@ import java.io.PrintStream;
 import org.jfree.chart.*;
 import org.jfree.chart.axis.*;
 import org.jfree.chart.plot.*;
-import org.jfree.chart.renderer.*;
 import org.jfree.data.time.*;
+import org.jfree.chart.renderer.xy.*;
 
 /**
  * Class representing a value versus time line graph. The graph can be
@@ -225,7 +222,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
 
           temp = (String) setup.get("numpoints" + number);
           int numpoints = Integer.parseInt(temp);
-          Vector points = new Vector(numpoints);
+          Vector<String> points = new Vector<String>(numpoints);
 
           temp = (String) setup.get("points" + number);
           StringTokenizer st = new StringTokenizer(temp, ":");
@@ -319,7 +316,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
     protected JLabel itsNumAxis = new JLabel("1");
 
     /** Vector which contains the setup panels for each of the axis. */
-    protected Vector itsAxis = new Vector();
+    protected Vector<AxisSetup> itsAxis = new Vector<AxisSetup>();
 
     /** Panel which contains the AxisSetup components. */
     protected JPanel itsAxisPanel = new JPanel();
@@ -818,17 +815,17 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
   private int itsNumAxis = 0;
 
   /** Contains the TimeSeries for each axis. */
-  private Vector itsData = new Vector();
+  private Vector<TimeSeriesCollection> itsData = new Vector<TimeSeriesCollection>();
 
   /** Contains Vectors holding the point names for each axis. */
-  private Vector itsPointNames = new Vector();
+  private Vector<Vector> itsPointNames = new Vector<Vector>();
 
   /**
    * Contains Vectors holding AbsTimes for the last data collected for each
    * point, for each axis. We can use this info together with the 'getSince'
    * method to ensure we don't miss any data.
    */
-  private Vector itsPointEpochs = new Vector();
+  private Vector<Vector> itsPointEpochs = new Vector<Vector>();
 
   /** Reference to our graph. */
   private JFreeChart itsGraph = null;
@@ -874,14 +871,17 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    */
   private boolean itsKeepRunning = true;
 
-  /** Timezone to display data in, or <tt>null</tt> for local time. */
+  /** Timezone string to display data in, or <tt>null</tt> for local time. */
   private String itsTimeZone = null;
+  
+  /** Actual TimeZone object to be used for display. */
+  private TimeZone itsTZ = null;
 
   /** Copy of the setup we are currently using. */
   private SavedSetup itsSetup = null;
 
   /** Timer that forces updates at the user specified frequency. */
-  private Timer itsTimer = null;
+  private javax.swing.Timer itsTimer = null;
 
   /** Max number of samples to display (0 means show all samples) */
   private int itsMaxSamps = 0;
@@ -925,7 +925,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       e.printStackTrace();
     }
 
-    itsTimer = new Timer((int) (itsUpdateInterval.getValue() / 1000), this);
+    itsTimer = new javax.swing.Timer((int) (itsUpdateInterval.getValue() / 1000), this);
     itsTimer.start();
 
     while (itsKeepRunning) {
@@ -956,7 +956,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
             for (int i = 0; i < points.size(); i++) {
               AbsTime last = (AbsTime) times.get(i);
               // Get any new data
-              Vector v = getSince((String) points.get(i), last);
+              Vector<PointData> v = getSince((String) points.get(i), last);
               // If we need to down-sample it, then do that
               if (itsMaxSamps > 1 && v != null && v.size() > 0) {
                 Vector newv = new Vector();
@@ -1153,7 +1153,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
     }
     if (data.size() > 0) {
       // Record the timestamp of the most recent data
-      ((Vector) itsPointEpochs.get(axis)).set(series, ((PointData) data
+      itsPointEpochs.get(axis).set(series, ((PointData) data
           .lastElement()).getTimestamp());
     }
   }
@@ -1176,6 +1176,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
     }
     itsData.clear();
     itsTimeZone = null;
+    itsTZ=null;
     synchronized (this) {
       this.notifyAll();
     }
@@ -1227,8 +1228,10 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       temp = (String) setup.get("timezone");
       if (temp == null) {
         itsTimeZone = null;
+        itsTZ= TimeZone.getDefault();
       } else {
         itsTimeZone = temp;
+        itsTZ= TimeZone.getTimeZone(itsTimeZone);        
         System.err.println("ATTimeSeries:loadData: Found TimeZone="
             + itsTimeZone);
       }
@@ -1290,18 +1293,10 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       temp = (String) setup.get("numaxis");
       itsNumAxis = Integer.parseInt(temp);
       // allocate new containers for data storage
-      TimeZone tz = null;
-      if (itsTimeZone != null) {
-        tz = TimeZone.getTimeZone(itsTimeZone);
-      }
       for (int i = 0; i < itsNumAxis; i++) {
         itsPointNames.add(new Vector());
         itsPointEpochs.add(new Vector());
-        if (tz == null) {
-          itsData.add(new TimeSeriesCollection());
-        } else {
-          itsData.add(new TimeSeriesCollection(tz));
-        }
+        itsData.add(new TimeSeriesCollection(itsTZ));
       }
 
       // Make new graph
@@ -1309,8 +1304,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       if (itsPeriod.getValue() > 3 * 86400000000l) {
         tunits = "Date";
       }
-      if (tz != null) {
-        tunits = tunits + " (" + tz.getDisplayName() + ")";
+      if (itsTimeZone != null) {
+        tunits = tunits + " (" + itsTZ.getDisplayName() + ")";
       }
       final JFreeChart chart = ChartFactory.createTimeSeriesChart(itsTitle,
           tunits, "Value", (TimeSeriesCollection) itsData.get(0),
@@ -1326,26 +1321,17 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
         if (i == 0) {
           newaxis = (NumberAxis) plot.getRangeAxis();
           newaxis.setLabel(axislabel);
-
           DateAxis timeaxis = (DateAxis) plot.getDomainAxis();
+          timeaxis.setTimeZone(itsTZ);
           timeaxis.setAutoRange(false);
           timeaxis.setMaximumDate((itsStart.add(itsPeriod)).getAsDate());
           timeaxis.setMinimumDate(itsStart.getAsDate());
         } else {
           newaxis = new NumberAxis(axislabel);
           newaxis.setAutoRangeIncludesZero(false);
-          // axis2.setLabelPaint(Color.red);
-          // axis2.setTickLabelPaint(Color.red);
-          plot.setSecondaryRangeAxis(i - 1, newaxis);
-          plot
-              .setSecondaryDataset(i - 1, (TimeSeriesCollection) itsData.get(i));
-          plot.mapSecondaryDatasetToRangeAxis(i - 1, new Integer(i - 1));
-
-          /*
-           * plot.setRangeAxis(i, newaxis); plot.setDataset(i,
-           * (TimeSeriesCollection)itsData.get(i));
-           * plot.mapDatasetToRangeAxis(i, i);
-           */
+          plot.setRangeAxis(i, newaxis);
+          plot.setDataset(i, (TimeSeriesCollection) itsData.get(i));
+          plot.mapDatasetToRangeAxis(i, new Integer(i));
         }
 
         // Is there a limit to the number of samples to display?
@@ -1394,13 +1380,11 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
             renderer = new StandardXYItemRenderer(
                 StandardXYItemRenderer.DISCONTINUOUS_LINES);
             ((StandardXYItemRenderer) renderer).setPlotLines(true);
-            ((StandardXYItemRenderer) renderer).setPlotShapes(false);
             // I don't actually understand what this threashold means!
             ((StandardXYItemRenderer) renderer).setGapThreshold(30.0);
           } else {
             renderer = new StandardXYItemRenderer();
             ((StandardXYItemRenderer) renderer).setPlotLines(true);
-            ((StandardXYItemRenderer) renderer).setPlotShapes(false);
           }
         } else if (temp.equals("dots")) {
           // Render with dots
@@ -1409,41 +1393,28 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           // Render with symbols
           renderer = new StandardXYItemRenderer();
           ((StandardXYItemRenderer) renderer).setPlotLines(false);
-          ((StandardXYItemRenderer) renderer).setPlotShapes(true);
-          ((StandardXYItemRenderer) renderer)
-              .setDefaultShapesFilled(Boolean.FALSE);
+          ((StandardXYItemRenderer) renderer).setBaseShapesVisible(true);
+          ((StandardXYItemRenderer) renderer).setBaseShapesFilled(false);
         } else {
           System.err.println("ATTimeSeries:loadData: Unknown style \"" + temp
               + "\"");
           blankSetup();
           return false;
         }
-        if (i == 0) {
-          plot.setRenderer(renderer);
-        } else {
-          plot.setSecondaryRenderer(i - 1, renderer);
-        }
+        plot.setRenderer(i, renderer);
 
         // Read the number of monitor points for this axis
         temp = (String) setup.get("numpoints" + i);
         int numpoints = Integer.parseInt(temp);
         temp = (String) setup.get("points" + i);
         StringTokenizer st = new StringTokenizer(temp, ":");
-        Vector thesepoints = (Vector) itsPointNames.get(i);
-        Vector thesetimes = (Vector) itsPointEpochs.get(i);
+        Vector<String> thesepoints = itsPointNames.get(i);
+        Vector<AbsTime> thesetimes = itsPointEpochs.get(i);
         for (int j = 0; j < numpoints; j++) {
           thesepoints.add(st.nextToken());
           thesetimes.add(AbsTime.factory(itsStart));
         }
       } // end of "set up each axis" loop
-
-      /*
-       * DateAxis da2 = new DateAxis("foo"); da2.setTickLabelsVisible(true);
-       * da2.setAutoRange(true); da2.setAutoTickUnitSelection(true);
-       * plot.setSecondaryDomainAxis(0,da2);
-       * plot.configureSecondaryDomainAxes();
-       * plot.mapSecondaryDatasetToDomainAxis(0, new Integer(0));
-       */
 
       makeSeries(); // Create new containers for the data
 
@@ -1562,9 +1533,9 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
   /**
    * Request all data since the specified time from the monitor data server.
    */
-  protected Vector getSince(String pointname, AbsTime t1) {
+  protected Vector<PointData> getSince(String pointname, AbsTime t1) {
     // Request the data from the server
-    Vector v = itsServer.getPointData(pointname, t1, new AbsTime());
+    Vector<PointData> v = itsServer.getPointData(pointname, t1, new AbsTime());
     // Remove first element - we already have that
     if (v != null && v.size() > 0) {
       v.remove(v.firstElement());
@@ -1587,7 +1558,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
             label = label.substring(0, firstdot) + " "
                 + label.substring(lastdot + 1);
           }
-          TimeSeries ts = new TimeSeries(label, Millisecond.class);
+          TimeSeries ts = new TimeSeries(label);
           // Turn notify off so the graph doesn't redraw unnecessarily
           ts.setNotify(false);
           series.addSeries(ts);
@@ -1607,16 +1578,14 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    * @return TimeSeriesDataItem, or <tt>null</tt> if no conversion was
    *         possible.
    */
-  protected static TimeSeriesDataItem toTimeSeriesDataItem(PointData pd) {
+  protected TimeSeriesDataItem toTimeSeriesDataItem(PointData pd) {
     if (pd == null || pd.getTimestamp() == null || pd.getData() == null) {
       return null;
     }
 
     try {
-      Millisecond t = new Millisecond(pd.getTimestamp().getAsDate());
+      Millisecond t = new Millisecond(pd.getTimestamp().getAsDate(), itsTZ, Locale.getDefault());
       Number d = toNumber(pd.getData());
-      // System.err.println(pd.getTimestamp().toString(AbsTime.Format.UTC_STRING)
-      // + "\t" + d);
       if (d == null) {
         return null;
       }
@@ -1706,7 +1675,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           continue;
         }
         // Print the header information for this series
-        p.println("#" + data.getItemCount() + " data for " + data.getName()
+        p.println("#" + data.getItemCount() + " data for " + data.getDescription()
             + " follow");
         for (int i = 0; i < data.getItemCount(); i++) {
           AbsTime tm = AbsTime.factory(data.getTimePeriod(i).getStart());
@@ -1724,32 +1693,5 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
 
   public String getLabel() {
     return null;
-  }
-
-  /** Simple test application. */
-  public static void main(String[] argv) {
-    /*
-     * JFrame foo = new JFrame("ATTimeSeries Test App");
-     * foo.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-     * foo.getContentPane().setLayout(new BoxLayout(foo.getContentPane(),
-     * BoxLayout.Y_AXIS));
-     * 
-     * ATTimeSeries ts1 = new ATTimeSeries(); SavedSetup s1 = new
-     * SavedSetup("ant.temps", "atnf.atoms.mon.gui.monpanel.ATTimeSeries",
-     * "Antenna Pedestal
-     * Temperatures:true:86400000000:0:2:ca05.ant.PEDTEM:ca06.ant.PEDTEM");
-     * SavedSetup s2 = new SavedSetup("seemon.phases",
-     * "atnf.atoms.mon.gui.monpanel.ATTimeSeries", "Seeing Monitor
-     * Phases:true:86400000000:0:1:seemon.site.seemon.Phase:"); SavedSetup s3 =
-     * new SavedSetup("clock.tickphase",
-     * "atnf.atoms.mon.gui.monpanel.ATTimeSeries", "Clock Tick
-     * Phase:true:86400000000:0:1:caclock.site.clock.TickPhase:");
-     * ts1.loadSetup(s3); foo.getContentPane().add(ts1); foo.pack();
-     * foo.setVisible(true);
-     * 
-     * JFrame foo2 = new JFrame("Setup Window");
-     * foo2.getContentPane().add(ts1.getControls()); foo2.pack();
-     * foo2.setVisible(true); //ts1.getControls();
-     */
   }
 }

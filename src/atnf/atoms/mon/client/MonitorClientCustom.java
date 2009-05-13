@@ -247,7 +247,7 @@ MonitorClientCustom
    * Vector. If no data was available for a point (eg, point doesn't
    * exist) then <tt>null</tt> will occupy that index in the Vector. */
   public 
-  Vector
+  Vector<PointData>
   getPointData(Vector points)
   {
     MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{points});
@@ -266,12 +266,12 @@ MonitorClientCustom
    * @param end The most recent data to be retrieved.
    * @return Data from the archive between the specified times. */
   public 
-  Vector
+  Vector<PointData>
   getPointData(String point, AbsTime start, AbsTime end)
   {
     //Server may have limit on number of points returned at once,
     //therefore go into loop which makes consecutive requests.
-    Vector res=new Vector();
+    Vector<PointData> res=new Vector<PointData>();
     AbsTime thisstart=start;
     while (true) {
       MonRequest req=new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart, end});
@@ -279,7 +279,7 @@ MonitorClientCustom
       if (data==null || data.getData()==null) {
         break;
       }
-      Vector thisres=(Vector)(MonitorUtils.decompress((byte[])(data.getData())));
+      Vector<PointData> thisres=(Vector)(MonitorUtils.decompress((byte[])(data.getData())));
       res.addAll(thisres);
       thisstart=((PointData)(thisres.get(thisres.size()-1))).getTimestamp().add(RelTime.factory(1));
     }
@@ -301,12 +301,12 @@ MonitorClientCustom
    * @param sample_rate Interval between returned data points.
    * @return Data from the archive between the specified times. */
   public 
-  Vector
+  Vector<PointData>
   getPointData(String point, AbsTime start, AbsTime end, int sample_rate)
   {
     //Server may have limit on number of points returned at once,
     //therefore go into loop which makes consecutive requests.
-    Vector res=new Vector();
+    Vector<PointData> res=new Vector<PointData>();
     AbsTime thisstart=start;
     while (true) {
       MonRequest req = new MonRequest(MonRequest.GETDATA, new Object[]{point, thisstart, end, new Integer(sample_rate)});
@@ -371,7 +371,7 @@ MonitorClientCustom
    * @param points Vector of point names.
    * @return Vector containing the point initialisation strings. */
   public 
-  Vector
+  Vector<String>
   getPointMonitors(Vector points)
   {
     MonRequest req = new MonRequest(MonRequest.GETPOINT,
@@ -408,7 +408,7 @@ MonitorClientCustom
    * @param points Vector of point names.
    * @return Vector of Transactions. */
   public
-  Vector
+  Vector<Transaction>
   getTransactions(Vector points)
   {
     MonRequest req = new MonRequest(MonRequest.GETTRANSACTION,
@@ -417,8 +417,8 @@ MonitorClientCustom
     if (res==null || res.getData()==null) {
       return null;
     }
-    Vector strvec = (Vector)res.getData();
-    Vector transvec = new Vector(points.size());
+    Vector<String> strvec = (Vector)res.getData();
+    Vector<Transaction> transvec = new Vector<Transaction>(points.size());
     for (int i=0; i<points.size(); i++) {
       transvec.add(Transaction.factory(null, (String)strvec.get(i)));
     }
