@@ -579,6 +579,9 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       // Save the timezone, if one has been specified
       if (itsTimeZoneNames[itsZone.getSelectedIndex()] != null) {
         setup.put("timezone", itsTimeZoneNames[itsZone.getSelectedIndex()]);
+        itsFormatter.setTimeZone(TimeZone.getTimeZone(itsTimeZoneNames[itsZone.getSelectedIndex()]));
+      } else {
+        itsFormatter.setTimeZone(TimeZone.getDefault());
       }
 
       // Check that the numeric period field and save it, if okay
