@@ -19,7 +19,7 @@ The following commands are currently recognised by the server:
   * *since:* Request all updated values since a specified time.
   * *between:* Request all archival values between two nominated times.
   * *following:* Return the first record >= a specified time for a set of points.
-  * *preceeding:* Return the last record <= a specified time for a set of points.
+  * *preceding:* Return the last record <= a specified time for a set of points.
   * *names:* Request the names of all monitor points in the system.
   * *details:* Request meta-information about some monitor points.
 
@@ -158,13 +158,13 @@ following
 site.environment.weather.Temperature 0x1081fca424fe40 33.8
 }}}
 
-==preceeding==
+==preceding==
 
 Return a last archive records with timestamps <= specified times, for a set of monitor points. This can basically be used to step backward one step in time if you have an existing set of timestamps for a group of points.
 
 You need to send:
 {{{
-preceeding
+preceding
 [num_points]
 [BAT_timestamp1] [pointname1]
 ...
@@ -180,7 +180,7 @@ As per the poll command, the server will respond with:
 
 Here is a real example where we request the value for a single monitor point:
 {{{
-preceeding
+preceding
 1
 0x1081fca4200000 site.environment.weather.Temperature
 site.environment.weather.Temperature 0x1081fca424fe40 33.8
