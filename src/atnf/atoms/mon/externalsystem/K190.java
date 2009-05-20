@@ -7,7 +7,6 @@
 
 package atnf.atoms.mon.externalsystem;
 
-import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.transaction.*;
 import java.util.Vector;
@@ -109,7 +108,7 @@ extends ASCIISocket
 	      throw new Exception("K190(" + itsHostName + ":" + itsPort + "): Not enough arguments in output Transaction for " + desc.getFullName());
       }
 	  int thischan = Integer.parseInt(thistrans.getString(0));
-	  if (thischan < 1 || thischan > theirNumSensors) {
+	  if (thischan < 1 || thischan > theirNumRelays) {
 	    throw new Exception("K190(" + itsHostName + ":" + itsPort + "): Illegal sensor number requested (" + thischan + ") for " + desc.getFullName());
 	  }
 
