@@ -161,9 +161,7 @@ extends ExternalSystem
   {
     /** The process variable we handle events for. */
     String itsPV = null;
-    /** The source part of the monitor point name. */
-    String itsSource = null;
-    /** The name part of the monitor point name. */
+    /** The point name. */
     String itsName = null;
     /** The monitor point instance itself. */
     PointDescription itsMonitorPoint = null;
@@ -176,11 +174,8 @@ extends ExternalSystem
     {
       itsChannel=chan;
       itsPV=itsChannel.getName();
-      String mpname=(String)itsPVPointMap.get(itsPV);
-      int dot=mpname.indexOf(".");
-      itsSource=mpname.substring(0,dot);
-      itsName=mpname.substring(dot+1, mpname.length());
-      itsMonitorPoint=PointDescription.getPoint(itsSource+"."+itsName);
+      itsName=(String)itsPVPointMap.get(itsPV);
+      itsMonitorPoint=PointDescription.getPoint(itsName);
       
       //Try to perform a get on the channel
       try {
@@ -203,9 +198,9 @@ extends ExternalSystem
           processDBR(ev.getDBR());
         } else {
           //Fire null data to indicate the problem
-          PointData pd=new PointData(itsName, itsSource, null);
+          PointData pd=new PointData(itsName);
           if (itsMonitorPoint==null) {
-            itsMonitorPoint=PointDescription.getPoint(itsSource+"."+itsName);
+            itsMonitorPoint=PointDescription.getPoint(itsName);
           }
           itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
         }
@@ -251,9 +246,9 @@ extends ExternalSystem
           //System.out.println(itsPV + "\t" + newval);
 
           //Fire new data as an event on our monitor point
-          PointData pd=new PointData(itsName, itsSource, newval);
+          PointData pd=new PointData(itsName, newval);
           if (itsMonitorPoint==null) {
-            itsMonitorPoint=PointDescription.getPoint(itsSource+"."+itsName);
+            itsMonitorPoint=PointDescription.getPoint(itsName);
           }
           if (itsMonitorPoint!=null) {
             itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));

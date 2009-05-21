@@ -41,7 +41,7 @@ implements PointListener
   {
     PointData pd = evt.getPointData();
     //Just print the name, timestamp and latest value
-    System.out.print(pd.getSource() + "." + pd.getName());
+    System.out.print(pd.getName());
     System.out.print("\t(" + pd.getTimestamp().toString(AbsTime.Format.UTC_STRING) + ")");
     System.out.println("\t" + pd.getData());
   }
@@ -63,7 +63,7 @@ implements PointListener
       //Print each returned data point
       for (int i=0; i<data.size(); i++) {
         PointData pd = (PointData)data.get(i);
-        System.out.print(pd.getSource() + "." + pd.getName());
+        System.out.print(pd.getName());
         System.out.print("\t(" + pd.getTimestamp().toString(AbsTime.Format.UTC_STRING) + ")");
         System.out.println("\t" + pd.getData());
       }

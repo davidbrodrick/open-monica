@@ -310,7 +310,7 @@ extends PointArchiver
       String  type = rs.getString(2);
       String  val  = rs.getString(3);
       Object  oval = getObjectForString(type, val);
-      res=new PointData(pm.getName(), pm.getSource(), ts, oval);
+      res=new PointData(pm.getFullName(), ts, oval);
     } catch (Exception e) {
       res=null;
     }

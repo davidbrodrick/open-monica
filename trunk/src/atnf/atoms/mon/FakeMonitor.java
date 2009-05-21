@@ -28,18 +28,6 @@ public class FakeMonitor extends PointDescription
    protected transient int itsDelayNum = 0;
    protected transient long itsTimeOffset = 0;
 
-   public String
-   getLimitsString()
-   {
-     return itsLimitsString;
-   }
-
-   public void
-   setLimitsString(String limits)
-   {
-      itsLimitsString = limits;
-   }
-   
    public void setTimeOffset(long offset)
    {
       itsTimeOffset = offset;
@@ -119,7 +107,7 @@ public class FakeMonitor extends PointDescription
       if (data==null) {
         return; //Maybe no connection to server?
       }
-      System.err.println("FakeMonitor:CollectData: " + data.getName() + " " + data.getSource() + " " + data.getData());
+      System.err.println("FakeMonitor:CollectData: " + data.getName() + " " + " " + data.getData());
       firePointEvent(new PointEvent(this, data, false));
    }
 

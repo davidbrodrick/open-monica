@@ -228,8 +228,7 @@ extends ASCIISocket
                     }
                     if (itsMonitorPoint!=null) {
                       itsMonitorPoint.firePointEvent(new PointEvent(this,
-                             new PointData(itsMonitorPoint.getName(),
-                                           itsMonitorPoint.getSource(), newdata),
+                             new PointData(itsMonitorPoint.getFullName(), newdata),
                                            true));
                     }
                   }

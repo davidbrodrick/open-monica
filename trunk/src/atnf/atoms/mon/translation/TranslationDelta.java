@@ -55,7 +55,7 @@ extends Translation
       //There is no data, can't calculate a delta for this or next point
       itsPreviousValue = null;
       //Return point with a null data field
-      return new PointData(itsParent.getName(), itsParent.getSource());
+      return new PointData(itsParent.getFullName());
     }
 
     //Get the new value as a double
@@ -65,9 +65,9 @@ extends Translation
     } else if (val instanceof Angle) {
       dval = ((Angle)val).getValue();
     } else {
-      System.err.println("TranslationDelta: " + itsParent.getLongName() +
+      System.err.println("TranslationDelta: " + itsParent.getFullName() +
 			 ": Got NON-NUMERIC data!");
-      return new PointData(itsParent.getName(), itsParent.getSource());
+      return new PointData(itsParent.getFullName());
     }
 
     PointData res = null;
@@ -83,15 +83,13 @@ extends Translation
 	} else if (delta<-Math.PI) {
 	  delta = 2*Math.PI + delta;
 	}
-	res = new PointData(itsParent.getName(), itsParent.getSource(),
-			    Angle.factory(delta, Angle.Format.RADIANS));
+	res = new PointData(itsParent.getFullName(), Angle.factory(delta, Angle.Format.RADIANS));
       } else {
-	res = new PointData(itsParent.getName(), itsParent.getSource(),
-			    new Double(delta));
+	res = new PointData(itsParent.getFullName(), new Double(delta));
       }
     } else {
       //No previous value so can't calculate delta, so return null data
-      res = new PointData(itsParent.getName(), itsParent.getSource());
+      res = new PointData(itsParent.getFullName());
     }
 
     //Record the current value for use next time

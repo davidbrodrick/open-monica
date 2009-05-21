@@ -882,7 +882,7 @@ implements PointListener, Runnable, TableCellRenderer
   onPointEvent(Object source, PointEvent evt)
   {
     PointData pd = evt.getPointData();
-    String src = pd.getSource() + "." + pd.getName();
+    String src = pd.getName();
     boolean foundit = false;
     for (int i=0; i<itsPoints.size(); i++) {
       if (((String)itsPoints.get(i)).equals(src)) {

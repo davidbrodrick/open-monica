@@ -98,7 +98,7 @@ extends Translation
     if (data.getData()==null) {
       //There is no data, can't calculate a new value
       //This may cause probs for some sub-classes??
-      return new PointData(itsParent.getName(), itsParent.getSource());
+      return new PointData(itsParent.getFullName());
     }
 
     //Check if we now have the right data to produce a new output
@@ -118,8 +118,7 @@ extends Translation
     PointData res = null;
     if (newval!=null) {
       //Save new data value and return
-      res = new PointData(itsParent.getName(), itsParent.getSource());
-      res.setData(newval);
+      res = new PointData(itsParent.getFullName(), newval);
     }
     return res;
   }
@@ -146,12 +145,12 @@ extends Translation
   matchData(PointData data)
   {
     //Identify the source and save the new data value
-    if ((data.getSource() + "." + data.getName()).equals(itsMP1)) {
+    if (data.getName().equals(itsMP1)) {
       itsVal1 = data;
-    } else if ((data.getSource() + "." + data.getName()).equals(itsMP2)) {
+    } else if (data.getName().equals(itsMP2)) {
       itsVal2 = data;
     } else {
-      System.err.println("TranslationDualListen: " + itsParent.getName() +
+      System.err.println("TranslationDualListen: " + itsParent.getFullName() +
 			 ": Unexpected data from " + data.getName());
       itsVal1 = null;
       itsVal2 = null;

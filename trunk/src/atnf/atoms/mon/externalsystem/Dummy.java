@@ -33,8 +33,7 @@ extends ExternalSystem
     for (int i=0; i<buf.length; i++) {
       PointDescription pm = (PointDescription)buf[i];
       pm.firePointEvent(new PointEvent(this, new
-         PointData(pm.getName(), pm.getSource(),
-         AbsTime.factory(), null), true));
+         PointData(pm.getFullName(), AbsTime.factory(), null), true));
     }
   }
 }

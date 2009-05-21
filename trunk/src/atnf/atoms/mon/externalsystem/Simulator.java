@@ -73,7 +73,7 @@ extends ExternalSystem
     for (int i=0; i<points.length; i++) {
       PointDescription pm = points[i];
       Float newdata = new Float(itsRandom.nextFloat());
-      PointData pd = new PointData(pm.getName(), pm.getSource(), newdata);
+      PointData pd = new PointData(pm.getFullName(), newdata);
       PointEvent pe = new PointEvent(pm, pd, true);
       pm.firePointEvent(pe);
     }

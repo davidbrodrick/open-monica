@@ -72,8 +72,7 @@ extends Translation
     double arg = ((Number)data.getData()).doubleValue();
     Angle newangle = Angle.factory(arg, itsFormat);
     
-    PointData res = new PointData(data.getName(), data.getSource(),
-                                  data.getTimestamp(), newangle);
+    PointData res = new PointData(data.getName(), data.getTimestamp(), newangle);
 
     return res;
   }

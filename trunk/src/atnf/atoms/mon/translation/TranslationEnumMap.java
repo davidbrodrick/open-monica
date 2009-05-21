@@ -82,7 +82,7 @@ extends Translation
 
     //If we got null-data then throw a null-data result
     if (val==null) {
-      return new PointData(itsParent.getName(), itsParent.getSource());
+      return new PointData(itsParent.getFullName());
     }
 
     if (!(val instanceof Number)) {
@@ -108,9 +108,7 @@ extends Translation
     }
 
     //Create return structure with right details
-    PointData res = new PointData(itsParent.getName(), itsParent.getSource());
-    //Call the sub-class method with possibly null value and save result
-    res.setData(m);
+    PointData res = new PointData(itsParent.getFullName(), m);
 
     return res;
   }

@@ -84,8 +84,7 @@ extends Translation
                //           + data.getName() + "): " + e.toString());
       }
       
-      res = new PointData(data.getName(), data.getSource(),
-			data.getTimestamp(), num);
+      res = new PointData(data.getName(), data.getTimestamp(), num);
     } else
        System.err.println("ERROR: TranslationStringToNumber: (for " 
                           + data.getName() + "): EXPECT String got " + data.getClass());

@@ -95,9 +95,7 @@ implements PointListener, ActionListener
       return;
     }
 
-    //PointData pd2 = new PointData(itsParent.getName(), itsParent.getSource(),
-    PointData pd2 = new PointData(pd1.getName(), pd1.getSource(),
-				  pd1.getTimestamp(), pd1.getData());
+    PointData pd2 = new PointData(pd1.getName(), pd1.getTimestamp(), pd1.getData());
     PointEvent evt2 = new PointEvent(this, pd2, true);
 
     itsParent.firePointEvent(evt2);

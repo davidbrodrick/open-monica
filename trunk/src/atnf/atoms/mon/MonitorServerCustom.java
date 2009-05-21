@@ -114,7 +114,7 @@ implements Runnable
             res.add(null);
           }
         } 
-        return new PointData(res);
+        return new PointData("", res);
       } else {
         System.err.println("MonitorServerCustom: Unexpected Argument...");
         return null;
@@ -151,7 +151,7 @@ implements Runnable
                                        end_time, 0);
       }
       //We got the requested data, now return it
-      return new PointData(MonitorUtils.compress(res));
+      return new PointData("", MonitorUtils.compress(res));
     }
 
     //No valid request found, so no valid data can be returned!
@@ -166,7 +166,7 @@ implements Runnable
     if (req == null) {
       return null;
     }
-    return new PointData(PointDescription.getAllPointNames());
+    return new PointData("", PointDescription.getAllPointNames());
   }
 
   public
@@ -195,7 +195,7 @@ implements Runnable
 
     System.err.println("MonitorServerCustom:addPoint: UNIMPLEMENTED!!!");
 
-    return new PointData(new Boolean(true));
+    return new PointData("", new Boolean(true));
   }
 
 
@@ -224,7 +224,7 @@ implements Runnable
           res.add(pm.getStringEquiv());
         }
       }
-      return new PointData(res);
+      return new PointData("", res);
     } else if (req.Args[0] instanceof String) {
       //Single point was requested
       PointDescription pm = PointDescription.getPoint((String)req.Args[0]);
@@ -259,7 +259,7 @@ implements Runnable
     }
 
     System.err.println("MonitorClientCustom:setPoint: UNIMPLEMENTED!");
-    return new PointData(new Boolean(true));
+    return new PointData("", new Boolean(true));
   }
 
 
@@ -272,7 +272,7 @@ implements Runnable
     for (int i=0; i<allpoints.length; i++) {
       allequivs[i]=allpoints[i].getStringEquiv();
     }
-    return new PointData(MonitorUtils.compress(allequivs));
+    return new PointData("", MonitorUtils.compress(allequivs));
   }
 
 
@@ -305,7 +305,7 @@ implements Runnable
           res.add(pm.getInputTransactionString());
         }
       }
-      return new PointData(res);
+      return new PointData("", res);
     } else if (req.Args[0] instanceof String) {
       //Single point was requested
       PointDescription pm = PointDescription.getPoint((String)req.Args[0]);
@@ -313,9 +313,6 @@ implements Runnable
         //Wasn't found
         return null;
       }
-      System.err.println("Got request for Transaction:");
-      System.err.println("pm=" + pm);
-      System.err.println("trans=" + pm.getInputTransactionString());
       return new PointData(pm.getInputTransactionString());
     } else {
       System.err.println("MonitorServerCustom:getTransaction: Unexpected Argument...");
@@ -353,7 +350,7 @@ implements Runnable
           res.add(pm.getTranslationString());
         }
       }
-      return new PointData(res);
+      return new PointData("", res);
     } else if (req.Args[0] instanceof String) {
       //Single point was requested
       PointDescription pm = PointDescription.getPoint((String)req.Args[0]);
@@ -376,7 +373,7 @@ implements Runnable
   PointData
   getAllSetups()
   {
-    return new PointData(MonitorUtils.compress(MonitorMap.getAllSetups()));
+    return new PointData("", MonitorUtils.compress(MonitorMap.getAllSetups()));
   }
 
 
@@ -403,7 +400,7 @@ implements Runnable
     MonitorMap.addSetup(setup);
     saveSetupToFile(setup, username);
 
-    return new PointData(new Boolean(true));
+    return new PointData("", new Boolean(true));
   }
 
 
@@ -440,7 +437,7 @@ implements Runnable
     String[] a = new String[2];
     a[0] = MonitorMap.getPublicKey();
     a[1] = MonitorMap.getModulus();
-    return new PointData(a);
+    return new PointData("", a);
   }
 
 

@@ -21,28 +21,11 @@ public class PointData implements Serializable
   /** Timestamp for when the data was collected. */
   private AbsTime itsTimestamp = null;
 
-  /** The translated real-world data value. */
+  /** The data value. */
   private Object itsData = null;
 
-  /** Name of the monitor point that we contain data for. */
+  /** Name of the point that we contain data for. */
   private String itsName = null;
-
-  /** Name of the source from which this data were collected. */
-  private String itsSource = null;
-   
-  public
-  PointData()
-  {
-  }
-
-   public PointData(String name, String source,
-		    AbsTime timestamp, Object data)
-   {
-     itsName = name;
-     itsSource = source;
-     itsTimestamp = timestamp;
-     itsData = data;
-   }
 
    public PointData(String name, AbsTime timestamp, Object data)
    {
@@ -51,36 +34,18 @@ public class PointData implements Serializable
      itsData = data;
    }
 
-   public PointData(String name, String source, AbsTime timestamp)
+   public PointData(String name, Object data)
    {
      itsName = name;
-     itsSource = source;
-     itsTimestamp = timestamp;
-     itsData = null;
-   }
-
-   public PointData(String name, String source)
-   {
-     itsName = name;
-     itsSource = source;
-     itsTimestamp = AbsTime.factory();
-     itsData = null;
-   }
-
-   public PointData(String name, String source, Object data)
-   {
-     itsName = name;
-     itsSource = source;
-     itsTimestamp = AbsTime.factory();
-     itsData = data;
-   }
-
-   public PointData(Object data)
-   {
      itsData = data;
      itsTimestamp = AbsTime.factory();
    }
 
+   public PointData(String name)
+   {
+     itsName = name;
+     itsTimestamp = AbsTime.factory();     
+   }
 
    /** Specify the name of the monitor point for which we hold data. */
    public
@@ -90,13 +55,6 @@ public class PointData implements Serializable
      itsName = name;
    }
 
-   /** Specify the name of the source that this data relates to. */
-   public
-   void
-   setSource(String source)
-   {
-     itsSource = source;
-   }
 
    /** Specify the timestamp for the data value we hold. */
    public
@@ -114,7 +72,7 @@ public class PointData implements Serializable
      itsData = data;
    }
 
-   /** Get the name of the monitor point for which we hold data. */
+   /** Get the name of the point for which we hold data. */
    public
    String
    getName()
@@ -122,12 +80,20 @@ public class PointData implements Serializable
      return itsName;
    }
 
+   /** Get the name part of the point without the source. */
+   public
+   String
+   getNameOnly()
+   {
+     return itsName.substring(itsName.indexOf(".")+1, itsName.length());
+   }
+   
    /** Get the name of the source that this data relates to. */
    public
    String
    getSource()
    {
-     return itsSource;
+     return itsName.substring(0, itsName.indexOf("."));
    }
 
    /** Get the timestamp for the data value we hold. */
@@ -166,7 +132,7 @@ public class PointData implements Serializable
    String
    toString()
    {
-     return "{" + getSource() + "." + getName() + " "
+     return "{" + getName() + " "
        + getTimestamp().toString(AbsTime.Format.UTC_STRING)
        + " -> " + getData() + "}";
    }

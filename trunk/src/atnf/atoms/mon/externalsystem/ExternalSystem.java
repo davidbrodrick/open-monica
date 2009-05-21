@@ -426,10 +426,7 @@ implements Runnable
            //Fire null-data events for those points since old data is stale
            for (int i=0; i<parray.length; i++) {
              PointDescription pm = (PointDescription)parray[i];
-             pm.firePointEvent(new PointEvent(this,
-                                   new PointData(pm.getName(),
-                                   pm.getSource()),
-                               true));
+             pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
            }
            //Throw in a brief sleep to stop fast reconnection loops
            try {
