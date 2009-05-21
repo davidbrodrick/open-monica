@@ -29,7 +29,7 @@ import java.io.*;
  * 
  * An example instantiation of this driver would be to add the following line to your 
  * monitor-sources.txt file:<BR>
- * <tt>atnf.atoms.mon.externalsystem.Super4 1:FTRG4H5V</tt>
+ * <tt>Super4 1:FTRG4H5V</tt>
  *
  * <P>The control points for the four relays need to define an output Transaction of type
  * TransactionString with the channel set to <i>super4:unique_id</i> where unique_id is the
@@ -98,7 +98,7 @@ extends ExternalSystem
 		    //Turn OFF
         command = "irset -u" + itsSerialNum + "," + relayword;
 	    }
-      System.err.println("Super4(" + itsIdentifier + "): Executing command \"" + command + "\"");
+      //System.err.println("Super4(" + itsIdentifier + "): Executing command \"" + command + "\"");
       
       //Execute the command and write to STDERR if there are any problems
       Process p = Runtime.getRuntime().exec(command);
