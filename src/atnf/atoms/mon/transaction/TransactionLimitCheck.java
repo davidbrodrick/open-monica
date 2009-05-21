@@ -109,9 +109,7 @@ implements ActionListener
   {
     //System.err.println("TransactionLimitCheck: " + itsParent.getSource() + "." +
     //    	       itsParent.getName() + ": Event Firing");
-    PointData res = new PointData(itsParent.getName(),
-				  itsParent.getSource(),
-				  new AbsTime());
+    PointData res = new PointData(itsParent.getFullName());
 
     //shuffle all the old values down
     for (int i=0; i<itsHistory.length-1; i++) {

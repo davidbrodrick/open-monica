@@ -74,7 +74,7 @@ extends Translation
     }
 
     //Get the name of the monitor point that this data comes from
-    String dsrc = data.getSource() + "." + data.getName();
+    String dsrc = data.getName();
     //Get the monitor point object that this data comes from
     PointDescription pm = PointDescription.getPoint(dsrc);
     if (pm==null) {
@@ -102,7 +102,7 @@ extends Translation
     }
 
     //Create return structure with right details
-    PointData res = new PointData(itsParent.getName(), itsParent.getSource());
+    PointData res = new PointData(itsParent.getFullName());
 
     //Get current values as an array
     Object[] values = itsLastValues.values().toArray();

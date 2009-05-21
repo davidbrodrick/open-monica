@@ -54,7 +54,7 @@ extends Translation
 
      //If the data is null we need to throw a null-data result
      if (realdata==null) {
-       return new PointData(itsParent.getName(), itsParent.getSource());
+       return new PointData(itsParent.getFullName());
      }
 
      //Ensure it is a valid type for this class
@@ -66,7 +66,7 @@ extends Translation
      }
 
      //Create the new data structure to be returned
-     PointData res = new PointData(itsParent.getName(), itsParent.getSource());
+     PointData res = new PointData(itsParent.getFullName());
 
      res.setData((realdata instanceof NamedValueList) ?
 		 ((NamedValueList)realdata).get(itsName) :

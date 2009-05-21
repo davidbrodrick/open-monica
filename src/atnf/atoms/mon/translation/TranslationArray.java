@@ -55,7 +55,7 @@ extends Translation
     Object[] array = (Object[])data.getData();
 
     //Create the new data structure to be returned
-    PointData res = new PointData(itsParent.getName(), itsParent.getSource());
+    PointData res = new PointData(itsParent.getFullName());
 
     //If the data is null we need to throw a null-data result
     if (array==null || array.length<itsIndex) {

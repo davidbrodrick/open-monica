@@ -36,8 +36,7 @@ public class DataMaintainer implements Runnable, PointListener {
   public void onPointEvent(Object source, PointEvent evt) {
     if (evt != null && !evt.isRaw()) {
       if (evt.getPointData() != null) {
-        itsBuffer.put(evt.getPointData().getSource() + "."
-            + evt.getPointData().getName(), evt.getPointData());
+        itsBuffer.put(evt.getPointData().getName(), evt.getPointData());
       }
       // Schedule again
       addPointMonitor((PointDescription) source);
@@ -259,7 +258,7 @@ public class DataMaintainer implements Runnable, PointListener {
             if (pd != null) {
               pm.firePointEvent(new PointEvent(pm, pd, false));
             } else {
-              pd = new PointData(pm.getName(), pm.getSource());
+              pd = new PointData(pm.getFullName());
               pm.firePointEvent(new PointEvent(pm, pd, false));
             }
           }
@@ -267,7 +266,7 @@ public class DataMaintainer implements Runnable, PointListener {
           // Got no data back, flag points as no longer collecting
           for (int i = 0; i < getpoints.size(); i++) {
             FakeMonitor pm = (FakeMonitor) getpoints.get(i);
-            PointData pd = new PointData(pm.getName(), pm.getSource());
+            PointData pd = new PointData(pm.getFullName());
             pm.firePointEvent(new PointEvent(pm, pd, false));
           }
         }

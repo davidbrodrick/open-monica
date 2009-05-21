@@ -71,18 +71,13 @@ extends Translation
       //Shift the correct number of places
       temp = temp >> itsNumShift;
       //Translation is now complete
-      return new PointData(data.getName(),
-			   data.getSource(),
-			   data.getTimestamp(),
-			   new Integer(temp));
+      return new PointData(data.getName(), data.getTimestamp(), new Integer(temp));
     } else {
       //We can only translate Numbers using this class
       if (MonitorMap.logger!=null) {
-	MonitorMap.logger.error("TranslationBitShift: Non-Numeric type for "
-				+ data.getName() + "(" + data.getSource() + ")");
+	MonitorMap.logger.error("TranslationBitShift: Non-Numeric type for " + data.getName());
       } else {
-	System.err.println("TranslationBitShift: Non-Numeric type for "
-			   + data.getName() + "(" + data.getSource() + ")");
+	System.err.println("TranslationBitShift: Non-Numeric type for " + data.getName());
       }
       return null;
     }

@@ -54,8 +54,7 @@ extends ExternalSystem
 
       //Fire off the updated value for this monitor point
       pm.firePointEvent(new PointEvent(this, new
-         PointData(pm.getName(), pm.getSource(),
-         new Boolean(canping)), true));
+         PointData(pm.getFullName(), new Boolean(canping)), true));
     }
   }
 }

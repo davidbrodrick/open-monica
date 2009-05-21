@@ -96,8 +96,7 @@ extends PointLimit
     } else if (myData instanceof Angle) {
       doubleData = ((Angle)myData).getValue();
     } else {
-      System.err.println("PointLimitRange: ERROR: " + data.getSource() + "."
-			 + data.getName() + " has NON-NUMERIC data!");
+      System.err.println("PointLimitRange: ERROR: " + data.getName() + " has NON-NUMERIC data!");
       return false;
     }
 

@@ -431,7 +431,7 @@ implements PointListener, TableCellRenderer
     if (!evt.isRaw()) {
       PointData newval = evt.getPointData();
       if (newval!=null) {
-        int row = getRowForPoint(newval.getName());
+        int row = getRowForPoint(newval.getNameOnly());
         int col = getColumnForSource(newval.getSource());
         if (row>=0 && col>=0) {
           fireTableCellUpdated(row, col);
@@ -464,8 +464,7 @@ implements PointListener, TableCellRenderer
     PointDescription pm = getPoint(row, column);
     if (pm!=null) {
       //Limits are defined, get the raw data and check it
-      PointData pd = DataMaintainer.getBuffer(pm.getSource() + "." +
-					      pm.getName());
+      PointData pd = DataMaintainer.getBuffer(pm.getFullName());
       if (pd!=null) {
         long age = (new AbsTime()).getValue() - pd.getTimestamp().getValue();
         long period = pm.getPeriod();

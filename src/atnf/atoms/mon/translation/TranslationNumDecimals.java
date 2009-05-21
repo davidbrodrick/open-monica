@@ -75,10 +75,7 @@ extends Translation
     Object rawval = data.getData();
 
     //Need to make new object with our parent as source/name
-    PointData res = new PointData(itsParent.getName(),
-				  itsParent.getSource(),
-				  data.getTimestamp(),
-				  null);
+    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), null);
 
     Object newval = null;
 

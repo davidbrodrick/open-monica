@@ -75,17 +75,16 @@ extends Translation
 
     //If insufficient data then can't calculate result
     if (itsBuffer.size()<2) {
-      return new PointData(itsParent.getName(), itsParent.getSource());
+      return new PointData(itsParent.getFullName());
     }
 
     //Get the variance
     double v = getVariance();
     //Create result - set "raw" data field to null
     if (((PointData)itsBuffer.get(0)).getData() instanceof Angle) {
-      return new PointData(itsParent.getName(), itsParent.getSource(),
-                           data.getTimestamp(), Angle.factory(v, Angle.Format.RADIANS));
+      return new PointData(itsParent.getFullName(), data.getTimestamp(), Angle.factory(v, Angle.Format.RADIANS));
     } else {
-      return new PointData(itsParent.getName(), itsParent.getSource(),
+      return new PointData(itsParent.getFullName(), 
                            data.getTimestamp(), new Double(v));
     }
   }

@@ -175,7 +175,7 @@ implements PointListener, ActionListener
     }
 
     //Find the index of the point
-    String fullname=pd.getSource()+"."+pd.getName();
+    String fullname=pd.getName();
     int i=0;
     for (; i<itsNumPoints; i++) {
       if (itsNames[i].equals(fullname)) {
@@ -198,8 +198,7 @@ implements PointListener, ActionListener
     if (matchData()) {
       //Recalculate output and fire update event
       Object resval = doCalculations();
-      PointData res = new PointData(itsParent.getName(), itsParent.getSource(),
-                                    new AbsTime(), resval);
+      PointData res = new PointData(itsParent.getFullName(), new AbsTime(), resval);
       itsParent.firePointEvent(new PointEvent(this, res, true));
     }
   }

@@ -718,7 +718,7 @@ implements PointListener, ActionListener
     if (!evt.isRaw()) {
       PointData newval = evt.getPointData();
       if (newval!=null) {
-        String fullname = newval.getSource() + "." + newval.getName();
+        String fullname = newval.getName();
         PointDescription pm = DataMaintainer.getPointFromMap(fullname);
         long age = (new AbsTime()).getValue() - newval.getTimestamp().getValue();
         long period = pm.getPeriod();

@@ -332,7 +332,7 @@ extends PointArchiver
       System.err.println(e.getMessage());
       return null;
     }
-    res = new PointData(pm.getName(), pm.getSource(), ts, d1);
+    res = new PointData(pm.getFullName(), ts, d1);
     return res;
   }
 

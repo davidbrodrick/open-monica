@@ -50,7 +50,7 @@ extends Translation
 
     //If we got null-data then throw a null-data result
     if (val==null) {
-      return new PointData(itsParent.getName(), itsParent.getSource());
+      return new PointData(itsParent.getFullName());
     }
 
     //Get input value as a string
@@ -62,8 +62,7 @@ extends Translation
       resstrings[i]=resstrings[i].trim();
     }
     //Generate output
-    PointData res = new PointData(itsParent.getName(), itsParent.getSource(),
-                                  data.getTimestamp(), resstrings);
+    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), resstrings);
     return res;
   }
 

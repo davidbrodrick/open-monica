@@ -81,7 +81,7 @@ extends Translation
     }
 
     //save the new value
-    itsValues.put(data.getSource()+"."+data.getName(), data.getData());
+    itsValues.put(data.getName(), data.getData());
 
     //check if we are ready to produce a new result
     boolean allfound = true;
@@ -109,8 +109,7 @@ extends Translation
     itsValues.clear();
 
     //Save new data value and return
-    PointData res = new PointData(itsParent.getName(), itsParent.getSource());
-    res.setData(new Float(resval));
+    PointData res = new PointData(itsParent.getFullName(), new Float(resval));
     return res;
   }
 

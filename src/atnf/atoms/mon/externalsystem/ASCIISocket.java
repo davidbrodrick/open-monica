@@ -167,7 +167,7 @@ extends ExternalSystem
         }
         //Fire the new data off for this point
         pm.firePointEvent(new PointEvent(this,
-           new PointData(pm.getName(), pm.getSource(), o), true));
+           new PointData(pm.getFullName(), o), true));
       }
     } catch (Exception e) {
       //Probably a comms error.

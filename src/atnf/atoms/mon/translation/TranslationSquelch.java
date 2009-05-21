@@ -83,10 +83,7 @@ extends Translation
     Object rawval = data.getData();
 
     //Need to make new object with our parent as source/name
-    PointData res = new PointData(itsParent.getName(),
-				  itsParent.getSource(),
-				  data.getTimestamp(),
-				  null);
+    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), null);
 
     Object newval = null;
 
@@ -101,7 +98,7 @@ extends Translation
       }
     } else {
       //It's an unknown data type
-      System.err.println("TranslationSquelch for \"" + itsParent.getName()
+      System.err.println("TranslationSquelch for \"" + itsParent.getFullName()
                          + "\": UNEXPECTED CLASS: " + rawval.getClass());
       return null;
     }

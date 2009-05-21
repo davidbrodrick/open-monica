@@ -84,8 +84,7 @@ extends Translation
       }
 
       //Translation is now complete
-      return new PointData(itsParent.getName(),
-			   itsParent.getSource(),
+      return new PointData(itsParent.getFullName(),
 			   data.getTimestamp(),
 			   new Double(res));
     } else {

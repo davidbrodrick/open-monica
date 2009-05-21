@@ -53,8 +53,7 @@ extends Translation
     }
 
     //Create return structure with right details
-    PointData res = new PointData(itsParent.getName(),
-				  itsParent.getSource());
+    PointData res = new PointData(itsParent.getFullName());
     //Call the calculation method and save result
     res.setData(doCalculations(data.getData()));
 

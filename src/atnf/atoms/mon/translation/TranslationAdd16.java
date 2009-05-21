@@ -65,18 +65,13 @@ extends Translation
       Short s = new Short((short)(((Number)d).shortValue() + itsOffset));
       //System.err.println("TranslationAdd16: " + s.shortValue() + " = " + ((Number)d).shortValue() + " + " + itsOffset);
       //Translation is now complete
-      return new PointData(data.getName(),
-			   data.getSource(),
-			   data.getTimestamp(),
-			   s);
+      return new PointData(data.getName(), data.getTimestamp(), s);
     } else {
       //We can only translate Numbers using this class
       if (MonitorMap.logger!=null) {
-	MonitorMap.logger.error("TranslationAdd16: Non-Numeric type for "
-				+ data.getName() + "(" + data.getSource() + ")");
+	MonitorMap.logger.error("TranslationAdd16: Non-Numeric type for " + data.getName());
       } else {
-	System.err.println("TranslationAdd16: Non-Numeric type for "
-			   + data.getName() + "(" + data.getSource() + ")");
+	System.err.println("TranslationAdd16: Non-Numeric type for " + data.getName());
       }
       return null;
     }

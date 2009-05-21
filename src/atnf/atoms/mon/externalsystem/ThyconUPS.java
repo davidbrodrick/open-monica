@@ -584,7 +584,7 @@ extends ExternalSystem
      //Fire off the new data
      for (int i=0; i<points.length; i++) {
        PointDescription pm = points[i];
-       PointData pd = new PointData(pm.getName(), pm.getSource(), newdata);
+       PointData pd = new PointData(pm.getFullName(), newdata);
        pm.firePointEvent(new atnf.atoms.mon.PointEvent(this, pd, true));
      }
    }

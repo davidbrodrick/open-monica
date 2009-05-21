@@ -56,33 +56,38 @@ implements ActionListener, NamedObject, Comparable
   
   /** Transactions used to collect the data. */
   protected Transaction[] itsInputTransactions = null;
-
+  /** String representation of input Transactions. */
+  protected String[] itsInputTransactionStrings = {};
   /** String representation of input Transactions. */
   protected String itsInputTransactionString = "";
 
   /** Transactions used to output the data. */
   protected Transaction[] itsOutputTransactions = null;
-
+  /** String representation of output Transactions. */
+  protected String[] itsOutputTransactionStrings = {};
   /** String representation of output Transactions. */
   protected String itsOutputTransactionString = "";
 
   /** Translations used to transform the data. */
   protected Translation[] itsTranslations = null;
-
+  /** String representation of Translations. */
+  protected String[] itsTranslationStrings = {};
   /** String representation of Translations. */
   protected String itsTranslationString = "";
 
   /** The limit/alarm criteria for this point. */
   protected PointLimit[] itsLimits = null;
-
   /** String representation of the limits. */
-  protected String itsLimitsString = null;
+  protected String[] itsLimitsStrings = {};
+  /** String representation of the limits. */
+  protected String itsLimitsString = "";
 
   /** The policies that define when to archive this point. */
   protected ArchivePolicy[] itsArchive = null;
-  
+    /** String representation of the archive policies. */
+  protected String[] itsArchiveStrings = {};
   /** String representation of the archive policies. */
-  protected String itsArchiveString = null;
+  protected String itsArchiveString = "";
 
   /** The archiver used to store data for this point. */
   protected PointArchiver itsArchiver = null;
@@ -178,17 +183,18 @@ implements ActionListener, NamedObject, Comparable
     return itsInputTransactionString;
   }
 
-  protected void setInputTransactionString(String transaction)
+  public String[] getInputTransactionsAsStrings()
   {
-    itsInputTransactionString = transaction;
+    return itsInputTransactionStrings;
   }
 
   protected
   void
   setInputTransactionString(String[] transactions)
   {
+    itsInputTransactionStrings = transactions;
     if (transactions==null || transactions.length==0) {
-      itsInputTransactionString = null;
+      itsInputTransactionString = "";
     } else if (transactions.length==1) {
       itsInputTransactionString = transactions[0];
     } else {
@@ -214,15 +220,16 @@ implements ActionListener, NamedObject, Comparable
     return itsOutputTransactionString;
   }
 
-  protected void setOutputTransactionString(String transaction)
+  public String[] getOutputTransactionsAsStrings()
   {
-    itsOutputTransactionString = transaction;
+    return itsOutputTransactionStrings;
   }
 
   protected
   void
   setOutputTransactionString(String[] transactions)
   {
+    itsOutputTransactionStrings=transactions;
     if (transactions==null || transactions.length==0) {
       itsOutputTransactionString = null;
     } else if (transactions.length==1) {
@@ -253,6 +260,13 @@ implements ActionListener, NamedObject, Comparable
     return itsTranslationString;
   }
 
+  public
+  String[]
+  getTranslationsAsStrings()
+  {
+    return itsTranslationStrings;
+  }
+  
   /**
    * Set the Translation objects for this point.
    */
@@ -265,15 +279,9 @@ implements ActionListener, NamedObject, Comparable
 
   protected
   void
-  setTranslationString(String translation)
-  {
-    itsTranslationString = translation;
-  }
-
-  protected
-  void
   setTranslationString(String[] translations)
   {
+    itsTranslationStrings = translations;
     if (translations==null || translations.length==0) {
       itsTranslationString = null;
     } else if (translations.length==1) {
@@ -437,8 +445,23 @@ implements ActionListener, NamedObject, Comparable
     itsLimits = limits;
   }
 
+  public
+  String
+  getLimitsString()
+  {
+    return itsLimitsString;
+  }
+
+  public
+  String[]
+  getLimitsAsStrings()
+  {
+    return itsLimitsStrings;
+  }
+  
   /** Set the limit string. */
   public void setLimitsString(String[] limits) {
+    itsLimitsStrings=limits;
     if (limits == null || limits.length == 0) {
       itsLimitsString = null;
     } else if (limits.length == 1) {
@@ -477,14 +500,8 @@ implements ActionListener, NamedObject, Comparable
   }
 
   /** Set the string representation of the archive policies. */
-  public void
-  setArchiveString(String archive)
-  {
-     itsArchiveString = archive;
-  }
-
-  /** Set the string representation of the archive policies. */
   public void setArchiveString(String[] archive) {
+    itsArchiveStrings = archive;
     if (archive == null || archive.length == 0) {
       itsArchiveString = null;
     } else if (archive.length == 1) {
@@ -500,9 +517,16 @@ implements ActionListener, NamedObject, Comparable
  
   /** Get the string representation of the archive policies. */
   public String
-  getArchiveString()
+  getArchivePolicyString()
   {
      return itsArchiveString;
+  }
+
+  /** Get the string representation of the archive policies. */
+  public String[]
+  getArchivePoliciesAsStrings()
+  {
+     return itsArchiveStrings;
   }
   
   /**
@@ -762,6 +786,7 @@ implements ActionListener, NamedObject, Comparable
       limitsa[i] = PointLimit.factory(limits[i]);
     }
     result.setLimits(limitsa);
+    result.setLimitsString(limits);
 
     ArchivePolicy[] archives = new ArchivePolicy[archive.length];
     for (int i = 0; i < archives.length; i++) {
@@ -775,8 +800,7 @@ implements ActionListener, NamedObject, Comparable
     result.setPeriod(period);
     result.setEnabled(enabled);
     addPoint(result);
-    PointBuffer.updateData(result, new PointData(names[0], source, AbsTime
-        .factory()));
+    PointBuffer.updateData(result, new PointData(names[0]));
     return result;
   }
 

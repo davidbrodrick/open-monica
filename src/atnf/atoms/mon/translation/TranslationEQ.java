@@ -61,13 +61,13 @@ extends Translation
     }
      if (data.getData()==null) {
       //Return a null result
-      return new PointData(itsParent.getName(), itsParent.getSource());
+      return new PointData(itsParent.getFullName());
      }
 
      Object dataCopy = data.getData();
       if (!(dataCopy instanceof Number) && !(dataCopy instanceof Angle)) {
 	if (dataCopy instanceof Object[]) {
-    return new PointData(itsParent.getName(), itsParent.getSource(),
+    return new PointData(itsParent.getFullName(), 
     						       data.getTimestamp(), translateArray((Object[])dataCopy));
   } else {
     return null;
@@ -81,8 +81,7 @@ extends Translation
       }
       double resNum = itsParser.getValue();
 
-      return new PointData(itsParent.getName(), itsParent.getSource(),
-			   data.getTimestamp(), new Double(resNum));
+      return new PointData(itsParent.getFullName(), data.getTimestamp(), new Double(resNum));
    }
 
 
