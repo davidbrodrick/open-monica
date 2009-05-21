@@ -10,7 +10,6 @@ package atnf.atoms.mon.externalsystem;
 
 import java.util.Vector;
 
-import atnf.atoms.mon.MonitorMap;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.transaction.TransactionStrings;
 
@@ -135,7 +134,7 @@ extends ASCIISocket
           }
           String[] archivepolicy={"CHANGE-"};
           //Don't auto-create the point if it already exists
-          if (!MonitorMap.checkPointName(thisname+"."+pointnames[0])) {
+          if (!PointDescription.checkPointName(thisname+"."+pointnames[0])) {
             final String[] nullarray = {"-"};
             String[] transaction = {"Strings-\"NUTUPS" + itsHostName + "\"\"" + thisname + "\"\"" + thisvar + "\""};
             PointDescription mp = PointDescription.factory(pointnames,
@@ -152,7 +151,7 @@ extends ASCIISocket
                "-1",
                true);
         	  if (mp!=null) {
-              MonitorMap.addPointMonitor(mp);
+              PointDescription.addPoint(mp);
             }
           }
         }

@@ -12,7 +12,6 @@ package atnf.atoms.mon.translation;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import atnf.atoms.mon.MonitorMap;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.PointEvent;
@@ -216,7 +215,7 @@ implements PointListener, ActionListener
     //Try to find any points that are still missing
     for (int i=0; i<itsNumPoints; i++) {
       if (itsPoints[i]==null) {
-        itsPoints[i] = MonitorMap.getPointDescription(itsNames[i]);
+        itsPoints[i] = PointDescription.getPoint(itsNames[i]);
         if (itsPoints[i]==null) {
           //Still couldn't find the point, perhaps it doesn't exist?!
           stillmissing = true;

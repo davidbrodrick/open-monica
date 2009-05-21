@@ -156,7 +156,7 @@ implements ActionListener
     //Check the current values of each monitor point
     for (int i=0; i<itsPoints.length; i++) {
       //Get point info and the latest data
-      PointDescription pm = MonitorMap.getPointDescription(itsPoints[i]);
+      PointDescription pm = PointDescription.getPoint(itsPoints[i]);
       PointData pd = PointBuffer.getPointData(itsPoints[i]);
       if (pm==null || pd==null) {
 	vals[i] = null;

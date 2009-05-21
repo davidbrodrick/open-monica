@@ -153,7 +153,7 @@ implements Runnable
   {
     try {
       //Get the list of all names
-      String[] names = MonitorMap.getPointNames();
+      String[] names = PointDescription.getAllPointNames();
 
       //Tell the client how many names we will return
       itsWriter.println(names.length);
@@ -214,7 +214,7 @@ implements Runnable
 
       //Get/check monitor point name
       String mpname = st.nextToken();
-      if (!MonitorMap.checkPointName(mpname)) {
+      if (!PointDescription.checkPointName(mpname)) {
         itsWriter.println("? Named point doesn't exist");
         itsWriter.flush();
         return;
@@ -269,7 +269,7 @@ implements Runnable
 
       //Get/check monitor point name
       String mpname = st.nextToken();
-      if (!MonitorMap.checkPointName(mpname)) {
+      if (!PointDescription.checkPointName(mpname)) {
         itsWriter.println("? Named point doesn't exist");
         itsWriter.flush();
         return;
@@ -309,7 +309,7 @@ implements Runnable
       int numpoints = Integer.parseInt(tempstr);
       for (int i=0; i<numpoints; i++) {
         String pointname = itsReader.readLine().trim();
-        PointDescription pm = MonitorMap.getPointDescription(pointname);
+        PointDescription pm = PointDescription.getPoint(pointname);
         if (pm==null) {
           itsWriter.println("?");
         } else {
@@ -336,7 +336,7 @@ implements Runnable
       int numpoints = Integer.parseInt(tempstr);
       for (int i=0; i<numpoints; i++) {
         String pointname = itsReader.readLine().trim();
-        if (MonitorMap.checkPointName(pointname)) {
+        if (PointDescription.checkPointName(pointname)) {
           PointData pd = PointBuffer.getPointData(pointname);
           if (pd==null) {
             itsWriter.println(pointname + "\t?\t?");
@@ -385,7 +385,7 @@ implements Runnable
         }
         
         String pointname = st.nextToken().trim();
-        if (MonitorMap.checkPointName(pointname)) {
+        if (PointDescription.checkPointName(pointname)) {
           //All arguments look good so do the query
           PointData pd = PointBuffer.getFollowing(pointname, argtime);
           if (pd==null) {
@@ -436,7 +436,7 @@ implements Runnable
         }
         
         String pointname = st.nextToken().trim();
-        if (MonitorMap.checkPointName(pointname)) {
+        if (PointDescription.checkPointName(pointname)) {
           //All arguments look good so do the query
           PointData pd = PointBuffer.getPreceding(pointname, argtime);
           if (pd==null) {
@@ -470,8 +470,8 @@ implements Runnable
       for (int i=0; i<numpoints; i++) {
         String pointname = itsReader.readLine().trim();
         //Make sure the monitor point name is valid
-        if (MonitorMap.checkPointName(pointname)) {
-          PointDescription pm = MonitorMap.getPointDescription(pointname);
+        if (PointDescription.checkPointName(pointname)) {
+          PointDescription pm = PointDescription.getPoint(pointname);
           if (pm==null) {
             //Invalid monitor point requested
             itsWriter.println("? Named point doesn't exist");

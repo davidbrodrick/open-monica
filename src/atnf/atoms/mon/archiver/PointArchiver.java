@@ -235,9 +235,9 @@ extends Thread
          AbsTime start = new AbsTime();
          
          //Loop through each point in the system, purging it if appropriate
-         String[] allnames = MonitorMap.getPointNames();
+         String[] allnames = PointDescription.getAllUniqueNames();
          for (int i=0; i<allnames.length; i++) {
-           PointDescription point = MonitorMap.getPointDescription(allnames[i]);   
+           PointDescription point = PointDescription.getPoint(allnames[i]);   
            if (point==null) {
              System.err.println("PointArchiver:OldDataPurger: Point " + allnames[i] + " Doesn't Exist!");
            } else if (point.getArchiver()==itsOwner && point.getArchiveLongevity()>0) {

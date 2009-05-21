@@ -17,23 +17,15 @@ package atnf.atoms.mon;
 import java.util.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.mon.archiver.*;
-import atnf.atoms.mon.externalsystem.*;
-import atnf.atoms.mon.transaction.*;
 import atnf.atoms.util.*;
 
 public class MonitorMap
 {
    /** Archiver used for archiving data to disk, database, etc. */
    private static PointArchiver theirArchiver;
-
-   private static TreeMap itsPointMap = new TreeMap();
    
    /** Holds all known <i>'saved setups</i> for the clients to use. */
    private static TreeMap itsSetupMap = new TreeMap();
-
-   private static TreeMap itsPoints = new TreeMap();
-
-   private static TreeMap itsSources = new TreeMap();
 
    /** System logger. */
    public static final Logger logger = new Logger("MoniCA");
@@ -41,45 +33,6 @@ public class MonitorMap
    /** Handles RSA encryption of user/password pairs. */
    private static RSA itsRSA = new RSA(1024);
 
-   public static synchronized void addPointMonitor(PointDescription pm)
-   {
-     String[] names = pm.getFullNames();
-     for (int i = 0; i < names.length; i++) {
-      itsPointMap.put(names[i], pm);
-    }
-     if (itsSources.get(pm.getSource()) == null) {
-      itsSources.put(pm.getSource(), new TreeSet());
-    }
-     ((TreeSet)itsSources.get(pm.getSource())).add(pm.getLongName());
-     if (itsPoints.get(pm.getLongName()) == null) {
-      itsPoints.put(pm.getLongName(), new TreeSet());
-    }
-     ((TreeSet)itsPoints.get(pm.getLongName())).add(pm.getSource());
-     //If the Transaction is not null, assign to appropriate ExternalSystem
-     Transaction[] transactions=pm.getInputTransactions();
-     for (int i=0; i<transactions.length; i++) {
-       Transaction t = transactions[i];
-       if (t!=null && !t.getChannel().equals("NONE")) {
-         ExternalSystem ds = ExternalSystem.getExternalSystem(t.getChannel());
-         if (ds!=null) {
-           ds.addPoint(pm);
-           //System.err.println("MonitorMap:addPointMonitor: OK for "
-           //     	    + pm + " (" + t.getChannel() + ")");
-         } else {
-           System.err.println("MonitorMap:addPointMonitor: No ExternalSystem for "
-                              + pm + " (" + t.getChannel() + ")");
-         }
-       }
-     }
-     if (pm.getArchive()!=null) {
-       pm.setArchiver(theirArchiver);
-     }
-   }
-   
-   public static synchronized PointDescription getPointDescription(String hash)
-   {
-      return (PointDescription)itsPointMap.get(hash);
-   }
    
    /** Specify the archiver to be used for archiving all data. */
    public static synchronized void setPointArchiver(PointArchiver archiver)
@@ -90,36 +43,6 @@ public class MonitorMap
    public static synchronized PointArchiver getPointArchiver()
    {
       return theirArchiver;
-   }
-   
-   
-   /** Returns all the points (including aliases) in the system */
-   public static synchronized String[] getPointNames()
-   {
-      return MonitorUtils.toStringArray(itsPointMap.keySet().toArray());
-   }
-
-
-   /** Returns all the points on a source */
-   public static synchronized String[] getPointNames(String source)
-   {
-      String[] res = MonitorUtils.toStringArray(((TreeSet)itsSources.get(source)).toArray());
-      for (int i = 0; i < res.length; i++) {
-        res[i] = source + "." + res[i];
-      }
-      return res;
-   }
-
-   /** Check if the specified point exists */
-   public static
-   boolean
-   checkPointName(String name)
-   {
-     if (itsPointMap.containsKey(name)) {
-      return true;
-    } else {
-      return false;
-    }
    }
 
    public static long getTotalMemory()
@@ -189,16 +112,4 @@ public class MonitorMap
      }
      return res;
    }
-
-   public static synchronized String[] getAllPoints()
-   {
-      TreeSet uniquePoints = new TreeSet(itsPointMap.values());
-      Iterator i = uniquePoints.iterator();
-      TreeSet points = new TreeSet();
-      while (i.hasNext()) {
-        points.add(((PointDescription)i.next()).getStringEquiv());
-      }
-      return MonitorUtils.toStringArray(points.toArray());
-   }
-
 }
