@@ -116,7 +116,7 @@ extends ExternalSystem
             continue;
           }
           //Don't try connect if monitor point hasn't been instantiated yet
-          if (MonitorMap.getPointDescription((String)itsPVPointMap.get(thispv))==null) {
+          if (PointDescription.getPoint((String)itsPVPointMap.get(thispv))==null) {
             continue;
           }
 
@@ -180,7 +180,7 @@ extends ExternalSystem
       int dot=mpname.indexOf(".");
       itsSource=mpname.substring(0,dot);
       itsName=mpname.substring(dot+1, mpname.length());
-      itsMonitorPoint=MonitorMap.getPointDescription(itsSource+"."+itsName);
+      itsMonitorPoint=PointDescription.getPoint(itsSource+"."+itsName);
       
       //Try to perform a get on the channel
       try {
@@ -205,7 +205,7 @@ extends ExternalSystem
           //Fire null data to indicate the problem
           PointData pd=new PointData(itsName, itsSource, null);
           if (itsMonitorPoint==null) {
-            itsMonitorPoint=MonitorMap.getPointDescription(itsSource+"."+itsName);
+            itsMonitorPoint=PointDescription.getPoint(itsSource+"."+itsName);
           }
           itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
         }
@@ -253,7 +253,7 @@ extends ExternalSystem
           //Fire new data as an event on our monitor point
           PointData pd=new PointData(itsName, itsSource, newval);
           if (itsMonitorPoint==null) {
-            itsMonitorPoint=MonitorMap.getPointDescription(itsSource+"."+itsName);
+            itsMonitorPoint=PointDescription.getPoint(itsSource+"."+itsName);
           }
           if (itsMonitorPoint!=null) {
             itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));

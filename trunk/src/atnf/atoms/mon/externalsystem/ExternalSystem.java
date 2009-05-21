@@ -105,7 +105,7 @@ implements Runnable
   protected boolean itsKeepRunning = true;
 
   /** Static map of all ExternalSystems. */
-  protected static HashMap theirExternalSystems = new HashMap();
+  protected static HashMap<String,ExternalSystem> theirExternalSystems = new HashMap<String,ExternalSystem>();
 
   /** Add a ExternalSystem with the given unique channel description. */
   public static
@@ -120,7 +120,7 @@ implements Runnable
   ExternalSystem
   getExternalSystem(String name)
   {
-    return (ExternalSystem)theirExternalSystems.get(name);
+    return theirExternalSystems.get(name);
   }
 
    public ExternalSystem(String name)

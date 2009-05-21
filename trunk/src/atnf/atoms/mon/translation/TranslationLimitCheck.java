@@ -10,7 +10,6 @@ package atnf.atoms.mon.translation;
 
 import java.util.HashMap;
 
-import atnf.atoms.mon.MonitorMap;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.time.AbsTime;
@@ -77,7 +76,7 @@ extends Translation
     //Get the name of the monitor point that this data comes from
     String dsrc = data.getSource() + "." + data.getName();
     //Get the monitor point object that this data comes from
-    PointDescription pm = MonitorMap.getPointDescription(dsrc);
+    PointDescription pm = PointDescription.getPoint(dsrc);
     if (pm==null) {
       System.err.println("TranslationLimitCheck: pm IS NULL!!");
       return null;

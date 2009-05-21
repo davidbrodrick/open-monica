@@ -774,7 +774,7 @@ implements ActionListener, NamedObject, Comparable
     
     result.setPeriod(period);
     result.setEnabled(enabled);
-    MonitorMap.addPointMonitor(result);
+    addPoint(result);
     PointBuffer.updateData(result, new PointData(names[0], source, AbsTime
         .factory()));
     return result;
@@ -941,5 +941,86 @@ implements ActionListener, NamedObject, Comparable
   public String toString() {
     return "{" + itsSource + "." + itsNames[0] + " "
         + getNextEpoch_AbsTime().toString(AbsTime.Format.UTC_STRING) + "}";
+  }
+
+  
+  /** Map of all points (including aliases) indexed by name. */
+  private static TreeMap<String,PointDescription> theirPoints = new TreeMap<String,PointDescription>();
+  /** Map of all points (excluding aliases) indexed by name. */
+  private static TreeMap<String,PointDescription> theirUniquePoints = new TreeMap<String,PointDescription>();
+
+  /** Add a new point to the running system. */
+  public static synchronized void addPoint(PointDescription pm)
+  {
+    String[] names = pm.getFullNames();
+    theirUniquePoints.put(names[0], pm);
+    for (int i = 0; i < names.length; i++) {
+      theirPoints.put(names[i], pm);
+    }
+    
+    //Assign to appropriate ExternalSystem(s) for data collection
+    Transaction[] transactions = pm.getInputTransactions();
+    for (int i = 0; i < transactions.length; i++) {
+      Transaction t = transactions[i];
+      if (t != null && !t.getChannel().equals("NONE")) {
+        ExternalSystem ds = ExternalSystem.getExternalSystem(t.getChannel());
+        if (ds != null) {
+          ds.addPoint(pm);
+          // System.err.println("PointDescription:addPoint: OK for "
+          // + pm + " (" + t.getChannel() + ")");
+        } else {
+          System.err
+              .println("PointDescription:addPoint: No ExternalSystem for "
+                  + pm + " (" + t.getChannel() + ")");
+        }
+      }
+    }
+    
+    //Assign archiver for this point
+    if (pm.getArchive() != null) {
+      pm.setArchiver(MonitorMap.getPointArchiver());
+    }
+  }
+  
+  /** Returns all the point names (including aliases) in the system */
+  public static synchronized String[] getAllPointNames()
+  {
+     return MonitorUtils.toStringArray(theirPoints.keySet().toArray());
+  }
+
+  /** Returns all the point names (excluding aliases) in the system */
+  public static synchronized String[] getAllUniqueNames()
+  {
+     return MonitorUtils.toStringArray(theirUniquePoints.keySet().toArray());
+  }
+  
+  /** Get the point with the specified name. */
+  public static synchronized PointDescription getPoint(String name)
+  {
+     return theirPoints.get(name);
+  }
+
+  /** Get all points (including aliases). */
+  public static synchronized PointDescription[] getAllPoints()
+  {
+    return (PointDescription[])theirPoints.values().toArray();
+  }
+  
+  /** Get all points (excluding aliases). */
+  public static synchronized PointDescription[] getAllUniquePoints()
+  {
+    return (PointDescription[])theirUniquePoints.values().toArray();
+  }
+  
+  /** Check if the point with the specified name exists */
+  public static
+  boolean
+  checkPointName(String name)
+  {
+    if (theirPoints.containsKey(name)) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

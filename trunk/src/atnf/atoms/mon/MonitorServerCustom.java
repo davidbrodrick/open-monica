@@ -166,12 +166,7 @@ implements Runnable
     if (req == null) {
       return null;
     }
-    // All names, no filtering
-    if (req.Args == null || req.Args.length == 0) {
-      return new PointData(MonitorMap.getPointNames());
-    }
-    // Get by source
-    return new PointData(MonitorMap.getPointNames((String)req.Args[0]));
+    return new PointData(PointDescription.getAllPointNames());
   }
 
   public
@@ -221,7 +216,7 @@ implements Runnable
 
       Vector res = new Vector(arg.size());
       for (int i=0; i< arg.size(); i++) {
-        PointDescription pm = MonitorMap.getPointDescription((String)arg.get(i));
+        PointDescription pm = PointDescription.getPoint((String)arg.get(i));
         if (pm==null) {
           //Wasn't found
           res.add(null);
@@ -232,7 +227,7 @@ implements Runnable
       return new PointData(res);
     } else if (req.Args[0] instanceof String) {
       //Single point was requested
-      PointDescription pm = MonitorMap.getPointDescription((String)req.Args[0]);
+      PointDescription pm = PointDescription.getPoint((String)req.Args[0]);
       if (pm==null) {
         //Wasn't found
         System.err.println("MonitorServerCustom:getPoint: NO POINT \""
@@ -272,7 +267,12 @@ implements Runnable
   PointData
   getAllPoints()
   {
-    return new PointData(MonitorUtils.compress(MonitorMap.getAllPoints()));
+    PointDescription[] allpoints = PointDescription.getAllUniquePoints();
+    String[] allequivs = new String[allpoints.length];
+    for (int i=0; i<allpoints.length; i++) {
+      allequivs[i]=allpoints[i].getStringEquiv();
+    }
+    return new PointData(MonitorUtils.compress(allequivs));
   }
 
 
@@ -297,7 +297,7 @@ implements Runnable
 
       Vector res = new Vector(arg.size());
       for (int i=0; i< arg.size(); i++) {
-        PointDescription pm = MonitorMap.getPointDescription((String)arg.get(i));
+        PointDescription pm = PointDescription.getPoint((String)arg.get(i));
         if (pm==null) {
           //Wasn't found
           res.add(null);
@@ -308,7 +308,7 @@ implements Runnable
       return new PointData(res);
     } else if (req.Args[0] instanceof String) {
       //Single point was requested
-      PointDescription pm = MonitorMap.getPointDescription((String)req.Args[0]);
+      PointDescription pm = PointDescription.getPoint((String)req.Args[0]);
       if (pm==null) {
         //Wasn't found
         return null;
@@ -345,7 +345,7 @@ implements Runnable
 
       Vector res = new Vector(arg.size());
       for (int i=0; i< arg.size(); i++) {
-        PointDescription pm = MonitorMap.getPointDescription((String)arg.get(i));
+        PointDescription pm = PointDescription.getPoint((String)arg.get(i));
         if (pm==null) {
           //Wasn't found
           res.add(null);
@@ -356,7 +356,7 @@ implements Runnable
       return new PointData(res);
     } else if (req.Args[0] instanceof String) {
       //Single point was requested
-      PointDescription pm = MonitorMap.getPointDescription((String)req.Args[0]);
+      PointDescription pm = PointDescription.getPoint((String)req.Args[0]);
       if (pm==null) {
         return null;
       }

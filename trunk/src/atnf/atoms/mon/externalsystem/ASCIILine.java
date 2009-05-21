@@ -105,7 +105,7 @@ extends ASCIISocket
             
             //Present this new line to the monitor point
             PointData pd=new PointData(itsMonitorPoint, new AbsTime(), line);
-            PointDescription pm=MonitorMap.getPointDescription(itsMonitorPoint);
+            PointDescription pm=PointDescription.getPoint(itsMonitorPoint);
             if (pm!=null) {
               pm.firePointEvent(new PointEvent(this, pd, true));
             } else {

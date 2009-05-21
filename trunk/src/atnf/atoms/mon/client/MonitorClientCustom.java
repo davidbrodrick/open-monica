@@ -576,27 +576,15 @@ MonitorClientCustom
   }
 
 
-  public 
-  String[]
-  getPointNames(String filter)
-  {
-    MonRequest req;
-    if (filter == null) {
-      req = new MonRequest(MonRequest.GETPOINTNAMES, null);
-    } else {
-      req = new MonRequest(MonRequest.GETPOINTNAMES, new Object[]{filter});
-    }
-    PointData res = makeRequest(req);
-    return (String[])res.getData();
-  }
-
-
   /** Get all points */
   public 
   String[]
   getPointNames()
   {
-    return getPointNames(null);
+    MonRequest req;
+    req = new MonRequest(MonRequest.GETPOINTNAMES, null);
+    PointData res = makeRequest(req);
+    return (String[])res.getData();
   }
 
   public 
