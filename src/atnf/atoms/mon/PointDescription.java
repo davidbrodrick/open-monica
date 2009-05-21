@@ -866,7 +866,7 @@ implements ActionListener, NamedObject, Comparable
             if (ds==null) {
               System.err.println("PointDescription (" + getFullName() + "): No ExternalSystem for output Transaction channel " + thistransaction.getChannel());
             } else {
-              System.err.println("PointDescription.firePointEvent (" + getFullName() + "): Using ExternalSystem " + ds.getName() + " for output");
+              //System.err.println("PointDescription.firePointEvent (" + getFullName() + "): Using ExternalSystem " + ds.getName() + " for output");
               try {
                 ds.putData(this, data);
               } catch (Exception e) {

@@ -26,7 +26,7 @@ import java.util.Vector;
  *
  * <P>The constructor requires <i>hostname:port</i> arguments. For instance your
  * monitor-sources.txt file might contain:<BR>
- * <tt>atnf.atoms.mon.externalsystem.K145 localhost:1234</tt>
+ * <tt>atnf.atoms.mon.externalsystem.K190 localhost:1234</tt>
  *
  * <P>The monitor points for the four sensors need to use a TransactionString with the
  * channel set to <i>hostname:port</i> and the next argument being the specific sensor
