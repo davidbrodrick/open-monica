@@ -329,7 +329,7 @@ extends ExternalSystem
    * and insert the information into the HashMap. */
   private
   void
-  parseResponse(String resp, HashMap map)
+  parseResponse(String resp, HashMap<String,Object> map)
   {
     byte[] bytes = resp.getBytes();
 
@@ -525,7 +525,7 @@ extends ExternalSystem
    /** Do the actual network transactions and parse the output of the
     * UPS into a HashMap that can be used by other monitor points. */
    private
-   HashMap
+   HashMap<String,Object>
    getNewData()
    throws Exception
    {
@@ -533,7 +533,7 @@ extends ExternalSystem
       throw new Exception("Not connected to UPS");
     }
 
-     HashMap res = new HashMap();
+     HashMap<String,Object> res = new HashMap<String,Object>();
      try {
        parseResponse(sendRequest(INVOLTS), res);
        parseResponse(sendRequest(INCUR), res);

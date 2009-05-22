@@ -69,10 +69,10 @@ class ArchiveReplicator
 
     //DETERMINE WHICH POINTS TO MIGRATE
     String[] serverpoints = itsServer.getPointNames();
-    Vector pointnames = null;
+    Vector<String> pointnames = null;
     if (args.length>2) {
       //USER SPECIFIED SUBSET OF POINTS
-      pointnames=new Vector(args.length-2);
+      pointnames=new Vector<String>(args.length-2);
       for (int i=2; i<args.length; i++) {
         //Ensure the user-specified points exist on the server
         boolean found=false;
@@ -90,7 +90,7 @@ class ArchiveReplicator
       }
     } else {
       //ALL POINTS AVAILABLE FROM SERVER
-      pointnames=new Vector(serverpoints.length);
+      pointnames=new Vector<String>(serverpoints.length);
       for (int i=0; i<serverpoints.length; i++) {
         pointnames.add(serverpoints[i]);
       }
@@ -105,7 +105,7 @@ class ArchiveReplicator
     }
     
     //CREATE MONITOR POINT OBJECTS FOR EACH POINT
-    Vector points = new Vector(defstrings.size());
+    Vector<PointDescription> points = new Vector<PointDescription>(defstrings.size());
     for (int i=0; i<defstrings.size(); i++) {
       PointDescription newpoint=PointDescription.parseLine((String)defstrings.get(i)).get(0);
       //PointDescription newpoint=(PointDescription)(PointInteraction.parsePoints((String)defstrings.get(i))[0]);

@@ -136,7 +136,7 @@ implements PointListener, ActionListener
 
       String p = (String)setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
-      Vector points = new Vector(stp.countTokens());
+      Vector<String> points = new Vector<String>(stp.countTokens());
       while (stp.hasMoreTokens()) {
         points.add(stp.nextToken());
       }
@@ -166,10 +166,10 @@ implements PointListener, ActionListener
   implements TableCellRenderer
   {
     /** Names of all PointInteractions to be displayed in the table. */
-    protected Vector itsPoints = new Vector();
+    protected Vector<String> itsPoints = new Vector<String>();
     
     /** Hash mapping of the current values for each point. */
-    protected HashMap itsValues = new HashMap();
+    protected HashMap<String,PointData> itsValues = new HashMap<String,PointData>();
   
     /** The table this model is associated with. */
     protected JTable itsTable = null;
@@ -209,7 +209,7 @@ implements PointListener, ActionListener
     /** Set the list of monitor points to display in this table. */
     public
     void
-    setPoints(Vector points)
+    setPoints(Vector<String> points)
     {
       itsPoints=points;
       fireTableStructureChanged();
@@ -455,7 +455,7 @@ implements PointListener, ActionListener
   WatchdogTableModel itsSilencedModel = new WatchdogTableModel();
 
   /** All the points which are being monitored. */
-  Vector itsPoints = new Vector();
+  Vector<String> itsPoints = new Vector<String>();
   
   /** A textual label for the number of points we are monitoring. */
   JLabel itsSizeLabel = new JLabel("");
@@ -464,7 +464,7 @@ implements PointListener, ActionListener
   int itsInertia = 3;
   
   /** For recording how many updates have been in alarm state for each point. */
-  HashMap itsAlarmCounts = new HashMap();
+  HashMap<String,Integer> itsAlarmCounts = new HashMap<String,Integer>();
   
   /** True if unavailable data is considered an okay condition. */
   boolean itsStaleOK = true;
@@ -584,7 +584,7 @@ implements PointListener, ActionListener
     } else if (e.getActionCommand().equals("reactivate")) {
       //Need to stop silencing all currently silenced alarms
       Vector weresilenced = itsSilencedModel.getPoints();
-      itsSilencedModel.setPoints(new Vector());
+      itsSilencedModel.setPoints(new Vector<String>());
       for (int i=0; i<weresilenced.size(); i++) {
         String thispoint=(String)weresilenced.get(i);
         itsActiveModel.addPoint(thispoint);
@@ -600,10 +600,10 @@ implements PointListener, ActionListener
     for (int i=0; i<itsPoints.size(); i++) {
       DataMaintainer.unsubscribe((String)itsPoints.get(i), this);
     }
-    itsPoints=new Vector();
-    itsActiveModel.setPoints(new Vector());
-    itsSilencedModel.setPoints(new Vector());
-    itsAlarmCounts = new HashMap();  
+    itsPoints=new Vector<String>();
+    itsActiveModel.setPoints(new Vector<String>());
+    itsSilencedModel.setPoints(new Vector<String>());
+    itsAlarmCounts = new HashMap<String,Integer>();  
   }
 
 

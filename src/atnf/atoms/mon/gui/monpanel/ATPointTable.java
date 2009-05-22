@@ -51,7 +51,7 @@ extends MonPanel
       public void actionPerformed(ActionEvent e) {
         super.actionPerformed(e);
         if (e.getActionCommand().equals("Blank-Row")) {
-          Vector sel = getSelections();
+          Vector<String> sel = getSelections();
           sel.add("-");
           setSelections(sel);
         }
@@ -211,8 +211,8 @@ extends MonPanel
   void
   blankSetup()
   {
-    Vector p = new Vector();
-    Vector s = new Vector();
+    Vector<String> p = new Vector<String>();
+    Vector <String>s = new Vector<String>();
     itsModel.set(p, s);
     itsModel.setSizes(itsTable, itsScroll);
   }
@@ -245,14 +245,14 @@ extends MonPanel
       ///BUT WHAT DO THESE DO IF THERE ARE NO TOKENS?
       String p = (String)setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
-      Vector points = new Vector(stp.countTokens());
+      Vector<String> points = new Vector<String>(stp.countTokens());
       while (stp.hasMoreTokens()) {
         points.add(stp.nextToken());
       }
 
       String s = (String)setup.get("sources");
       StringTokenizer sts = new StringTokenizer(s, ":");
-      Vector sources = new Vector(sts.countTokens());
+      Vector<String> sources = new Vector<String>(sts.countTokens());
       while (sts.hasMoreTokens()) {
         sources.add(sts.nextToken());
       }
