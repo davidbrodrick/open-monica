@@ -14,7 +14,7 @@ import atnf.atoms.time.*;
 public class DataMaintainer implements Runnable, PointListener {
   protected ArrayList<PointDescription> itsPoints = new ArrayList<PointDescription>();
 
-  protected static Hashtable<String,Object> itsNames = new Hashtable<String,Object>();
+  protected static Hashtable<String,PointDescription> itsNames = new Hashtable<String,PointDescription>();
 
   protected static Hashtable<String,PointData> itsBuffer = new Hashtable<String,PointData>();
 
@@ -90,7 +90,6 @@ public class DataMaintainer implements Runnable, PointListener {
     if (realarg.size() > 0) {
       // We need to go ask the server for these points
       Vector res = (MonClientUtil.getServer()).getPointMonitors(realarg);
-      long toffset = (MonClientUtil.getServer()).getCurrentTime() - AbsTime.factory().getValue();
       if (res == null) {
         // What SHOULD we do?
         System.err.println("DataMaintainer:subscribe: GOT NULL RESULT!");
@@ -102,16 +101,16 @@ public class DataMaintainer implements Runnable, PointListener {
             continue;
           }
           // Parse the string so we can build the point
-          ArrayList al = PointDescription.parseLine(pm, false);
+          ArrayList al = PointDescription.parseLine(pm);
           Object[] obj = al.toArray();
           for (int j = 0; j < obj.length; j++) {
-            String[] names = ((FakeMonitor) obj[j]).getAllNames();
-            String source = ((FakeMonitor) obj[j]).getSource();
+            ((PointDescription) obj[j]).populateClientFields();
+            String[] names = ((PointDescription) obj[j]).getAllNames();
+            String source = ((PointDescription) obj[j]).getSource();
             for (int k = 0; k < names.length; k++) {
-              itsNames.put(source + "." + names[k], obj[j]);
+              itsNames.put(source + "." + names[k], (PointDescription)obj[j]);
             }
-            itsMain.addPointMonitor((FakeMonitor) obj[j], true);
-            ((FakeMonitor) obj[j]).setTimeOffset(toffset);
+            itsMain.addPointMonitor((PointDescription) obj[j], true);
           }
         }
       }
@@ -119,7 +118,7 @@ public class DataMaintainer implements Runnable, PointListener {
 
     // We've now loaded all the required points, need to add the listener
     for (int i = 0; i < points.size(); i++) {
-      FakeMonitor fm = (FakeMonitor) itsNames.get(points.get(i));
+      PointDescription fm = itsNames.get(points.get(i));
       if (fm == null) {
         continue;
       }
@@ -135,21 +134,18 @@ public class DataMaintainer implements Runnable, PointListener {
         return;
       }
       // Parse the string so we can build the point
-      ArrayList al = PointDescription.parseLine(pm, false);
+      ArrayList al = PointDescription.parseLine(pm);
       Object[] obj = al.toArray();
       for (int i = 0; i < obj.length; i++) {
-        String[] names = ((FakeMonitor) obj[i]).getAllNames();
-        String source = ((FakeMonitor) obj[i]).getSource();
+        String[] names = ((PointDescription) obj[i]).getAllNames();
+        String source = ((PointDescription) obj[i]).getSource();
         for (int k = 0; k < names.length; k++) {
-          itsNames.put(source + "." + names[k], obj[i]);
+          itsNames.put(source + "." + names[k], (PointDescription)obj[i]);
         }
-        itsMain.addPointMonitor((FakeMonitor) obj[i], true);
-        ((FakeMonitor) obj[i]).setTimeOffset((MonClientUtil.getServer())
-            .getCurrentTime()
-            - AbsTime.factory().getValue());
+        itsMain.addPointMonitor((PointDescription) obj[i], true);
       }
     }
-    FakeMonitor fm = (FakeMonitor) itsNames.get(point);
+    PointDescription fm = itsNames.get(point);
     fm.addPointListener(pl);
     // Next, let the collection thread know our points have changed
     // itsMain.itsPoints.notifyAll();
@@ -188,13 +184,13 @@ public class DataMaintainer implements Runnable, PointListener {
   }
 
   /** For convenience, but it isn't the proper way of making a FakePoint */
-  public static FakeMonitor getPointFromMap(String pointname, String source) {
-    return (FakeMonitor) (itsNames.get(source + "." + pointname));
+  public static PointDescription getPointFromMap(String pointname, String source) {
+    return itsNames.get(source + "." + pointname);
   }
 
   /** For convenience, but it isn't the proper way of making a FakePoint */
-  public static FakeMonitor getPointFromMap(String fullname) {
-    return (FakeMonitor) (itsNames.get(fullname));
+  public static PointDescription getPointFromMap(String fullname) {
+    return itsNames.get(fullname);
   }
 
   public static PointData getBuffer(String point) {
@@ -221,22 +217,19 @@ public class DataMaintainer implements Runnable, PointListener {
         }
 
         // Get the point from the head of the queue
-        FakeMonitor pm = (FakeMonitor) itsPoints.remove(0);
+        PointDescription pm = itsPoints.remove(0);
         long nextRun = pm.getNextEpoch();
         long now = AbsTime.factory().getValue();
         now += 50000; // Fudge factor
 
         while (pm != null && (nextRun <= now)) {
           // This point needs to be collected right now
-          if (!pm.isCollecting()) {
-            pm.collecting();
-            getpoints.add(pm);
-            getnames.add("" + pm.getSource() + "." + pm.getLongName());
-          }
+          getpoints.add(pm);
+          getnames.add("" + pm.getSource() + "." + pm.getLongName());
           pm = null;
           if (itsPoints.size() > 0) {
             // Get next point
-            pm = (FakeMonitor) itsPoints.remove(0);
+            pm = itsPoints.remove(0);
             nextRun = pm.getNextEpoch();
           } else {
             break; // No more points awaiting collection
@@ -254,7 +247,7 @@ public class DataMaintainer implements Runnable, PointListener {
         if (resdata != null) {
           for (int i = 0; i < getpoints.size(); i++) {
             PointData pd = (PointData) resdata.get(i);
-            FakeMonitor pm = (FakeMonitor) getpoints.get(i);
+            PointDescription pm = getpoints.get(i);
             if (pd != null) {
               pm.firePointEvent(new PointEvent(pm, pd, false));
             } else {
@@ -265,7 +258,7 @@ public class DataMaintainer implements Runnable, PointListener {
         } else {
           // Got no data back, flag points as no longer collecting
           for (int i = 0; i < getpoints.size(); i++) {
-            FakeMonitor pm = (FakeMonitor) getpoints.get(i);
+            PointDescription pm = getpoints.get(i);
             PointData pd = new PointData(pm.getFullName());
             pm.firePointEvent(new PointEvent(pm, pd, false));
           }
