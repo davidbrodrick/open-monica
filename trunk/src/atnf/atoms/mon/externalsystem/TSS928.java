@@ -104,7 +104,7 @@ extends ASCIISocket
      String line2 = itsReader.readLine();
      String line3 = itsReader.readLine();
 
-     HashMap res = new HashMap();
+     HashMap<String,Object> res = new HashMap<String,Object>();
      int numnear = 0;
      int numfar = 0;
 

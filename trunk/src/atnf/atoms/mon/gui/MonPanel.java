@@ -27,16 +27,14 @@ MonPanel
 extends JPanel
 {
   /** Container for the descriptions of registered MonPanel sub-classes. */
-  private static Vector theirNames;
+  private static Vector<String> theirNames = new Vector<String>();
 
   /** Container for the class types of registered MonPanel sub-classes. */
-  private static Vector theirClasses;
+  private static Vector<Class> theirClasses = new Vector<Class>();
 
 
   //static block to force loading of MonPanel sub-classes
   static {
-    theirNames = new Vector();
-    theirClasses = new Vector();
     loadMonPanels();
   }
 

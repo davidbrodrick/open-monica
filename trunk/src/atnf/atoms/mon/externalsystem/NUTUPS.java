@@ -54,7 +54,7 @@ extends ASCIISocket
         return;
       }
     
-      Vector upsnames=new Vector();
+      Vector<String> upsnames=new Vector<String>();
       itsWriter.write("LIST UPS\n");
       String line=itsReader.readLine();
       if (!line.equals("BEGIN LIST UPS")) {
@@ -81,7 +81,7 @@ extends ASCIISocket
 
       //Request a list of variables supported by each UPS
       for (int i=0; i<upsnames.size(); i++) {
-        Vector upsvars=new Vector();
+        Vector<String> upsvars=new Vector<String>();
         String thisname=(String)upsnames.get(i);
         itsWriter.write("LIST VAR " + thisname + "\n");
         line=itsReader.readLine();
@@ -223,6 +223,6 @@ extends ASCIISocket
     fullargs[0]="nutups";
     fullargs[1]=args[0];
     fullargs[2]=args[1];
-    NUTUPS ups = new NUTUPS(fullargs);
+    new NUTUPS(fullargs);
   }
 }

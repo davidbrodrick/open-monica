@@ -722,7 +722,7 @@ implements ActionListener, NamedObject, Comparable
     String[] lines = MonitorUtils.parseFile(pointsfile);
     if (lines != null) {
       for (int i = 0; i < lines.length; i++) {
-        ArrayList al = parseLine(lines[i]);
+        ArrayList<PointDescription> al = parseLine(lines[i]);
         if (al!=null) {
           result.addAll(al);
         } else {
@@ -884,6 +884,7 @@ implements ActionListener, NamedObject, Comparable
       }
 
       //Perform any required output transactions
+      if (data.isValid()) {
       if (itsOutputTransactions!=null && itsOutputTransactions.length>0) {
         for (int i=0; i<itsOutputTransactions.length; i++) {
           Transaction thistransaction = itsOutputTransactions[i];
@@ -898,10 +899,12 @@ implements ActionListener, NamedObject, Comparable
                 ds.putData(this, data);
               } catch (Exception e) {
                 System.err.println("ExternalSystem " + ds.getName() + " threw exception \"" + e + "\" for " + getFullName());
+                e.printStackTrace();
               }
             }
           }
         }
+      }
       }
       
       // Pass the event on to all listeners

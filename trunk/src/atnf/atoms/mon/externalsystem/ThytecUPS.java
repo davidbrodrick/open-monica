@@ -63,10 +63,10 @@ extends ASCIISocket
   
   /** UPS version currently used in ATCA antennas. */
   public
-  HashMap
+  HashMap<String,Object>
   parse31V72(String line)
   {
-    HashMap res=new HashMap();
+    HashMap<String,Object> res=new HashMap<String,Object>();
     //Input voltages
     res.put("INPV1", new Integer(line.substring(102,105).trim())); //V
     res.put("INPV2", new Integer(line.substring(105,108).trim())); //V
@@ -107,10 +107,10 @@ extends ASCIISocket
 
   /** UPS version currently used at Mopra. */
   public
-  HashMap
+  HashMap<String,Object>
   parse33V33(String line)
   {
-    HashMap res=new HashMap();
+    HashMap<String,Object> res=new HashMap<String,Object>();
     //Inputs
     res.put("INPV1", new Integer(line.substring(102,105).trim())); //V
     res.put("INPV2", new Integer(line.substring(105,108).trim())); //V

@@ -26,7 +26,7 @@ import java.util.Vector;
  *
  * <P>The constructor requires <i>hostname:port</i> arguments. For instance your
  * monitor-sources.txt file might contain:<BR>
- * <tt>atnf.atoms.mon.externalsystem.K190 localhost:1234</tt>
+ * <tt>K190 localhost:1234</tt>
  *
  * <P>The monitor points for the four sensors need to use a TransactionString with the
  * channel set to <i>hostname:port</i> and the next argument being the specific sensor
@@ -61,27 +61,31 @@ extends ASCIISocket
   parseData(PointDescription desc)
   throws Exception 
   {
-	//Get the Transaction which associates the point with us
-	TransactionStrings thistrans = (TransactionStrings) getMyTransactions(desc.getInputTransactions()).get(0);
+    // Get the Transaction which associates the point with us
+    TransactionStrings thistrans = (TransactionStrings) getMyTransactions(desc.getInputTransactions()).get(0);
 
-    //The Transaction should contain a numeric channel id
-	if (thistrans.getNumStrings() < 1) {
-      throw new Exception("K190(" + itsHostName + ":" + itsPort + "): Not enough arguments in input Transaction for " + desc.getFullName());
-	}
-	int thischan = Integer.parseInt(thistrans.getString(0));
-	if (thischan < 1 || thischan > theirNumSensors) {
-      throw new Exception("K190(" + itsHostName + ":" + itsPort + "): Illegal sensor number requested (" + thischan + ") for " + desc.getFullName());
+    // The Transaction should contain a numeric channel id
+    if (thistrans.getNumStrings() < 1) {
+      throw new Exception("K190(" + itsHostName + ":" + itsPort + "): Not enough arguments in input Transaction for "
+          + desc.getFullName());
+    }
+    int thischan = Integer.parseInt(thistrans.getString(0));
+    if (thischan < 1 || thischan > theirNumSensors) {
+      throw new Exception("K190(" + itsHostName + ":" + itsPort + "): Illegal sensor number requested (" + thischan + ") for "
+          + desc.getFullName());
     }
 
-	//Request the value for this sensor
-	itsWriter.write("T" + thischan);
-	
-	//Parse response
-	String response = itsReader.readLine();
-	System.err.println("K190(" + itsHostName + ":" + itsPort + "): Got response \"" + response + "\"");
-	Float result = null;
-    if (response.indexOf("?")==-1) {
-      result=new Float(response);
+    // Request the value for this sensor
+    itsReader.reset();
+    itsWriter.write("T" + thischan);
+    itsWriter.flush();
+
+    // Parse response
+    String response = itsReader.readLine();
+    System.err.println("K190(" + itsHostName + ":" + itsPort + "): Got response \"" + response + "\"");
+    Float result = null;
+    if (response.indexOf("?") == -1) {
+      result = new Float(response);
     }
     return result;
   }
@@ -93,33 +97,46 @@ extends ASCIISocket
   putData(PointDescription desc, PointData pd)
   throws Exception
   {
-	//Determine desired state for relays
-	boolean relayset = ((Number)pd.getData()).intValue()==0?false:true;
-	
-	//Get the Transactions which associates the point with us
-	Vector<Transaction> alltrans = getMyTransactions(desc.getOutputTransactions());
+    //Ensure we are connected
+    if (!itsConnected) {
+      connect();
+    }
+    
+    // Determine desired state for relays
+    boolean relayset = ((Number) pd.getData()).intValue() == 0 ? false : true;
 
-	//Point may control more than one relay
-	for (int i=0; i<alltrans.size(); i++) {
-	  TransactionStrings thistrans = (TransactionStrings)alltrans.get(i);
+    // Get the Transactions which associates the point with us
+    Vector<Transaction> alltrans = getMyTransactions(desc.getOutputTransactions());
 
-      //The Transaction should contain a numeric channel id
-	  if (thistrans.getNumStrings() < 1) {
-	      throw new Exception("K190(" + itsHostName + ":" + itsPort + "): Not enough arguments in output Transaction for " + desc.getFullName());
+    // Point may control more than one relay
+    for (int i = 0; i < alltrans.size(); i++) {
+      TransactionStrings thistrans = (TransactionStrings) alltrans.get(i);
+
+      // The Transaction should contain a numeric channel id
+      if (thistrans.getNumStrings() < 1) {
+        throw new Exception("K190(" + itsHostName + ":" + itsPort + "): Not enough arguments in output Transaction for "
+            + desc.getFullName());
       }
-	  int thischan = Integer.parseInt(thistrans.getString(0));
-	  if (thischan < 1 || thischan > theirNumRelays) {
-	    throw new Exception("K190(" + itsHostName + ":" + itsPort + "): Illegal sensor number requested (" + thischan + ") for " + desc.getFullName());
-	  }
+      int thischan = Integer.parseInt(thistrans.getString(0));
+      if (thischan < 1 || thischan > theirNumRelays) {
+        throw new Exception("K190(" + itsHostName + ":" + itsPort + "): Illegal relay number requested (" + thischan + ") for "
+            + desc.getFullName());
+      }
 
-	  //Write setting for this relay
-	  if (relayset) {
-		//Turn ON
-		itsWriter.write("N" + thischan);
-	  } else {
-		//Turn OFF
-		itsWriter.write("F" + thischan);
-	  }
-	}
+      try {
+        // Write setting for this relay
+        if (relayset) {
+          // Turn ON
+          itsWriter.write("N" + thischan);
+        } else {
+          // Turn OFF
+          itsWriter.write("F" + thischan);
+        }
+        itsWriter.flush();
+      } catch (Exception e) {
+        disconnect();
+        throw e;
+      }
+    }
   }
 }

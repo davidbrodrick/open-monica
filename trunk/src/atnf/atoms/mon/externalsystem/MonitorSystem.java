@@ -52,7 +52,7 @@ extends ExternalSystem
 
       for (int i=0; i<buf.length; i++) {
         PointDescription pm = (PointDescription)buf[i];
-        HashMap res = new HashMap();
+        HashMap<String,Object> res = new HashMap<String,Object>();
 
         //Get the actual data
         res.put("TotalMemory", new Float((float)(MonitorMap.getTotalMemory())/(1024*1024)));

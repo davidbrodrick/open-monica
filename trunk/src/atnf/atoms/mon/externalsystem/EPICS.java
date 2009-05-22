@@ -31,10 +31,10 @@ extends ExternalSystem
   Context itsContext = null;
   
   /** Mapping between PV's and monitor points. */
-  HashMap itsPVPointMap = new HashMap();
+  HashMap<String,String> itsPVPointMap = new HashMap<String,String>();
   
   /** Mapping between PV names and Channels. */
-  HashMap itsChannelMap = new HashMap();
+  HashMap<String,Channel> itsChannelMap = new HashMap<String,Channel>();
 
   public EPICS(String[] args)
   {
