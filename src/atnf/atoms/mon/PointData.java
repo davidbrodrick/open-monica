@@ -135,5 +135,5 @@ public class PointData implements Serializable
      return "{" + getName() + " "
        + getTimestamp().toString(AbsTime.Format.UTC_STRING)
        + " -> " + getData() + "}";
-   }
+   }   
 }

@@ -173,11 +173,6 @@ implements ActionListener, NamedObject, Comparable
     return itsInputTransactions;
   }
 
-  protected void setInputTransactions(Transaction[] transactions)
-  {
-    itsInputTransactions = transactions;
-  }
-  
   public String getInputTransactionString()
   {
     return itsInputTransactionString;
@@ -210,11 +205,6 @@ implements ActionListener, NamedObject, Comparable
     return itsOutputTransactions;
   }
 
-  protected void setOutputTransactions(Transaction[] transactions)
-  {
-    itsOutputTransactions = transactions;
-  }
-  
   public String getOutputTransactionString()
   {
     return itsOutputTransactionString;
@@ -243,6 +233,22 @@ implements ActionListener, NamedObject, Comparable
     }
   }
   
+  /** Construct the input and output transactions used by this point. */
+  protected void
+  makeTransactions()
+  {
+    Transaction[] inputtrans = new Transaction[itsInputTransactionStrings.length];
+    for (int i = 0; i < itsInputTransactionStrings.length; i++) {
+      inputtrans[i] = Transaction.factory(this, itsInputTransactionStrings[i]);
+    }
+    Transaction[] outputtrans = new Transaction[itsOutputTransactionStrings.length];
+    for (int i = 0; i < itsOutputTransactionStrings.length; i++) {
+      outputtrans[i] = Transaction.factory(this, itsOutputTransactionStrings[i]);
+    }
+    itsInputTransactions = inputtrans;
+    itsOutputTransactions = outputtrans;
+  }
+  
   /**
    * Return the Translation objects used by this PointInteraction.
    */
@@ -265,6 +271,17 @@ implements ActionListener, NamedObject, Comparable
   getTranslationsAsStrings()
   {
     return itsTranslationStrings;
+  }
+  
+  /** Build the Translation objects for this point. */
+  protected void
+  makeTranslations()
+  {
+    Translation[] translations = new Translation[itsTranslationStrings.length];
+    for (int i = 0; i < itsTranslationStrings.length; i++) {
+      translations[i] = Translation.factory(this, itsTranslationStrings[i]);
+    }
+    itsTranslations=translations;
   }
   
   /**
@@ -440,11 +457,6 @@ implements ActionListener, NamedObject, Comparable
     return itsLimits;
   }
 
-  /** Set the limit/alarm checking criteria to be used by this point. */
-  public void setLimits(PointLimit[] limits) {
-    itsLimits = limits;
-  }
-
   public
   String
   getLimitsString()
@@ -474,6 +486,17 @@ implements ActionListener, NamedObject, Comparable
       itsLimitsString += limits[limits.length - 1] + "}";
     }
   }
+  
+  /** Make the point's limit objects. */
+  protected void
+  makeLimits()
+  {
+    PointLimit[] limitsa = new PointLimit[itsLimitsStrings.length];
+    for (int i = 0; i < itsLimitsStrings.length; i++) {
+      limitsa[i] = PointLimit.factory(itsLimitsStrings[i]);
+    }
+    itsLimits=limitsa;
+  }
 
   /** Check the data against the alarm criteria. */
   public boolean checkLimits(PointData pd) {
@@ -495,9 +518,9 @@ implements ActionListener, NamedObject, Comparable
   }
 
   /** Specify the archive policies to be used by this point. */
-  public void setArchive(ArchivePolicy[] archive) {
+ /* public void setArchive(ArchivePolicy[] archive) {
     itsArchive = archive;
-  }
+  }*/
 
   /** Set the string representation of the archive policies. */
   public void setArchiveString(String[] archive) {
@@ -527,6 +550,17 @@ implements ActionListener, NamedObject, Comparable
   getArchivePoliciesAsStrings()
   {
      return itsArchiveStrings;
+  }
+  
+  /** Build the ArchivePolicies from their string representation. */
+  protected void
+  makeArchivePolicies()
+  {
+    ArchivePolicy[] archives = new ArchivePolicy[itsArchiveStrings.length];
+    for (int i = 0; i < archives.length; i++) {
+      archives[i] = ArchivePolicy.factory(itsArchiveStrings[i]);
+    }
+    itsArchive=archives;
   }
   
   /**
@@ -609,6 +643,43 @@ implements ActionListener, NamedObject, Comparable
   public void setUnits(String units) {
     itsUnits = units;
   }
+  
+  /** Populate all point fields and manipulate any perform any other operations to
+   * make the point active on the server. */
+  public void
+  populateServerFields()
+  {
+    makeTransactions();
+    makeTranslations();
+    makeArchivePolicies();
+    makeLimits();
+    //Assign to appropriate ExternalSystem(s) for data collection
+    for (int i = 0; i < itsInputTransactions.length; i++) {
+      Transaction t = itsInputTransactions[i];
+      if (t != null && !t.getChannel().equals("NONE")) {
+        ExternalSystem ds = ExternalSystem.getExternalSystem(t.getChannel());
+        if (ds != null) {
+          ds.addPoint(this);
+          // System.err.println("PointDescription:addPoint: OK for "
+          // + pm + " (" + t.getChannel() + ")");
+        } else {
+          System.err.println("PointDescription:addPoint: No ExternalSystem for "
+                  + this + " (" + t.getChannel() + ")");
+        }
+      }
+    }
+    
+    //Assign archiver for this point
+    setArchiver(MonitorMap.getPointArchiver());
+  }
+
+  /** Populate any point fields which may be required on the client. */
+  public void
+  populateClientFields()
+  {
+    makeLimits(); 
+  }
+  
   /**
    * Parse a line from the point definitions file and generate all the
    * points defined there. The returned array may be null if the line
@@ -644,10 +715,10 @@ implements ActionListener, NamedObject, Comparable
   /**
    * Parse a point definitions file and return all the points defined.
    */
-  public static ArrayList
+  public static ArrayList<PointDescription>
   parseFile(Reader pointsfile)
   {
-    ArrayList result = new ArrayList();
+    ArrayList<PointDescription> result = new ArrayList<PointDescription>();
     String[] lines = MonitorUtils.parseFile(pointsfile);
     if (lines != null) {
       for (int i = 0; i < lines.length; i++) {
@@ -655,24 +726,19 @@ implements ActionListener, NamedObject, Comparable
         if (al!=null) {
           result.addAll(al);
         } else {
-          System.err.println("PARSE ERROR: " + pointsfile + "["
-                             + i + "]: " + lines[i]);
+          System.err.println("PointDescription.parseFile: ERROR parsing line "
+                             + i + ": " + lines[i]);
         }
       }
     }
     return result;
   }
 
-  public static ArrayList parseLine(String line)
-  {
-     return parseLine(line, true);
-  }
-
-  public static ArrayList parseLine(String line, boolean real) {
+  public static ArrayList<PointDescription> parseLine(String line) {
     //Number of tokens we expect for each point definition
     final int NUMTOKENS = 13;
     
-    ArrayList result = new ArrayList();
+    ArrayList<PointDescription> result = new ArrayList<PointDescription>();
     try {
       // Extract appropriate information and make point/s
       String[] toks = MonitorUtils.getTokens(line);
@@ -704,17 +770,10 @@ implements ActionListener, NamedObject, Comparable
       }
 
       for (int i = 0; i < pointSourceArray.length; i++) {
-        if (real) {
           result.add(PointDescription.factory(pointNameArray, pointLongDesc,
               pointShortDesc, pointUnits, pointSourceArray[i], pointInputArray,
               pointOutputArray, pointTranslateArray, pointLimitsArray,
               pointArchiveArray, pointPeriod, archiveLife, pointEnabledArray[i]));
-        } else {
-          result.add(FakeMonitor.Fakefactory(pointNameArray, pointLongDesc,
-              pointShortDesc, pointUnits, pointSourceArray[i], pointInputArray,
-              pointOutputArray, pointTranslateArray, pointLimitsArray,
-              pointArchiveArray, pointPeriod, archiveLife, pointEnabledArray[i]));
-        }
       }
 
     } catch (Exception e) {
@@ -748,6 +807,7 @@ implements ActionListener, NamedObject, Comparable
      }
       return result;
   }
+  
   /** Construct a new monitor point from the given fields. */
   public static PointDescription factory(String[] names, String longdesc, String shortdesc, 
       String units, String source, String[] inputs, String[] outputs,
@@ -759,48 +819,15 @@ implements ActionListener, NamedObject, Comparable
     result.setShortDesc(shortdesc);
     result.setUnits(units);
     result.setSource(source);
-
-    Transaction[] inputtrans = new Transaction[inputs.length];
-    for (int i = 0; i < inputs.length; i++) {
-      inputtrans[i] = Transaction.factory(result, inputs[i]);
-    }
-    result.setInputTransactions(inputtrans);
     result.setInputTransactionString(inputs);
-
-    Transaction[] outputtrans = new Transaction[outputs.length];
-    for (int i = 0; i < outputs.length; i++) {
-      outputtrans[i] = Transaction.factory(result, outputs[i]);
-    }
-    result.setOutputTransactions(outputtrans);
     result.setOutputTransactionString(outputs);
-
-    Translation[] translations = new Translation[translate.length];
-    for (int i = 0; i < translate.length; i++) {
-      translations[i] = Translation.factory(result, translate[i]);
-    }
-    result.setTranslations(translations);
     result.setTranslationString(translate);
-
-    PointLimit[] limitsa = new PointLimit[limits.length];
-    for (int i = 0; i < limits.length; i++) {
-      limitsa[i] = PointLimit.factory(limits[i]);
-    }
-    result.setLimits(limitsa);
     result.setLimitsString(limits);
-
-    ArchivePolicy[] archives = new ArchivePolicy[archive.length];
-    for (int i = 0; i < archives.length; i++) {
-      archives[i] = ArchivePolicy.factory(archive[i]);
-    }
-    result.setArchive(archives);
     result.setArchiveString(archive);
-    
     result.setArchiveLongevity(archivelife);
-    
     result.setPeriod(period);
     result.setEnabled(enabled);
     addPoint(result);
-    PointBuffer.updateData(result, new PointData(names[0]));
     return result;
   }
 
@@ -980,29 +1007,6 @@ implements ActionListener, NamedObject, Comparable
     theirUniquePoints.put(names[0], pm);
     for (int i = 0; i < names.length; i++) {
       theirPoints.put(names[i], pm);
-    }
-    
-    //Assign to appropriate ExternalSystem(s) for data collection
-    Transaction[] transactions = pm.getInputTransactions();
-    for (int i = 0; i < transactions.length; i++) {
-      Transaction t = transactions[i];
-      if (t != null && !t.getChannel().equals("NONE")) {
-        ExternalSystem ds = ExternalSystem.getExternalSystem(t.getChannel());
-        if (ds != null) {
-          ds.addPoint(pm);
-          // System.err.println("PointDescription:addPoint: OK for "
-          // + pm + " (" + t.getChannel() + ")");
-        } else {
-          System.err
-              .println("PointDescription:addPoint: No ExternalSystem for "
-                  + pm + " (" + t.getChannel() + ")");
-        }
-      }
-    }
-    
-    //Assign archiver for this point
-    if (pm.getArchive() != null) {
-      pm.setArchiver(MonitorMap.getPointArchiver());
     }
   }
   

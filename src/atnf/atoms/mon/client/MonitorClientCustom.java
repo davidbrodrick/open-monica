@@ -552,21 +552,6 @@ MonitorClientCustom
   }
 
 
-  // For convenience only
-  public 
-  FakeMonitor
-  makeFakeMonitor(String init)
-  {
-    ArrayList al = PointDescription.parseLine(init, false);
-    // Check
-    if (al == null || al.size() < 1) {
-      return null;
-    }
-    // Only want one point
-    return (FakeMonitor)al.get(0);
-  }
-
-
   /** Why is this here??? It returns the current time as a long. */
   public 
   long

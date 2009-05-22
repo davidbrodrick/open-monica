@@ -134,7 +134,7 @@ public class PointBuffer
    * @return Vector containing all data in the specified time range.
    *         <tt>null</tt> will be returned if no data were found. */
   public static
-  Vector
+  Vector<PointData>
   getPointData(PointDescription pm,
                AbsTime start_time,
                AbsTime end_time,
@@ -246,7 +246,7 @@ public class PointBuffer
    *         <tt>null</tt> will be returned if no data were found
    *         or if the source/point name were invalid. */
   public static
-  Vector
+  Vector<PointData>
   getPointData(String point,
                AbsTime start,
                AbsTime end,
