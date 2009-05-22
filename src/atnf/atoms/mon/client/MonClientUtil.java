@@ -36,7 +36,7 @@ public class MonClientUtil
 {
   /** Hashmap contains a Hashtable of SavedSetups for each class, indexed by
    * class name . */
-  private static Hashtable theirSetups;
+  private static Hashtable<String,Hashtable<String,SavedSetup>> theirSetups;
 
   /** Network connection to the monitor server. */
   private static MonitorClientCustom theirServer;
@@ -64,8 +64,8 @@ public class MonClientUtil
         System.exit(1);
       }
 
-      Vector serverlist=new Vector();
-      Vector defaultserver=null;
+      Vector<Vector<String>> serverlist=new Vector<Vector<String>>();
+      Vector<String> defaultserver=null;
       try {
         //Get the list of server definitions
         InputStream res = MonClientUtil.class.getClassLoader().getResourceAsStream("monitor-servers.txt");
@@ -105,7 +105,7 @@ public class MonClientUtil
             System.err.println("MonClientUtil: WARNING: monitor-servers.txt parse error line " + linecounter);
             continue;
           }
-          Vector thisserver=new Vector();
+          Vector<String> thisserver=new Vector<String>();
           thisserver.add(tokens[0].trim());
           thisserver.add(tokens[1].trim());
           if (tokens.length>2) {
@@ -122,7 +122,7 @@ public class MonClientUtil
           if (def>serverlist.size()-1) {
             System.err.println("MonClientUtil: WARNING: Default server " + (def+1) + " requested but only " + serverlist.size() + " servers defined: IGNORING DEFAULT");
           } else {
-            defaultserver=(Vector)serverlist.get(def);
+            defaultserver=serverlist.get(def);
           }
         }
       } catch (Exception e) {
@@ -142,7 +142,7 @@ public class MonClientUtil
       System.out.print("MonClientUtil: Connecting to host \"" + host + "\"");
       theirServer = new MonitorClientCustom(host);
       System.out.println("\tOK");
-      theirSetups = new Hashtable();
+      theirSetups = new Hashtable<String,Hashtable<String,SavedSetup>>();
       addServerSetups(); //Get all SavedSetups from server
       addLocalSetups();  //Also load any which have been saved locally
       cachePointNames(); //Cache the list of points available on the server
@@ -161,7 +161,7 @@ public class MonClientUtil
             System.out.print("MonClientUtil: Connecting to \"localhost\"");
             theirServer = new MonitorClientCustom("localhost");
             System.out.println("\tOK");
-            theirSetups = new Hashtable();
+            theirSetups = new Hashtable<String,Hashtable<String,SavedSetup>>();
             addServerSetups(); //Get all SavedSetups from server
             addLocalSetups();  //Also load any which have been saved locally
 
@@ -215,7 +215,7 @@ public class MonClientUtil
       try { theirServer.connect(); } catch (Exception e) { }
     }
 
-    theirSetups = new Hashtable();
+    theirSetups = new Hashtable<String,Hashtable<String,SavedSetup>>();
     //Need to load setups from server
     addServerSetups();
     //reload any which have been saved locally
@@ -253,18 +253,18 @@ public class MonClientUtil
    * @param names Vector containing String names for the points.
    * @return Vector containing an array of names for each requested point. */
   public static 
-  Vector
+  Vector<Vector<String>>
   getSources(Vector points)
   {
     if (points==null || points.size()==0) {
       return null;
     }
     
-    Vector res = new Vector(points.size());
+    Vector<Vector<String>> res = new Vector<Vector<String>>(points.size());
     for (int i=0; i<points.size(); i++) {
       if (points.get(i)!=null && points.get(i) instanceof String) {
         String searchname=(String)points.get(i);
-        Vector match = new Vector();
+        Vector<String> match = new Vector<String>();
         for (int j=0; j<theirPointNameCache.length; j++) {
           String thispoint=theirPointNameCache[j];
           int doti = thispoint.indexOf(".");
@@ -302,7 +302,7 @@ public class MonClientUtil
         System.err.println("MonClientUtil:addServerSetups: Loaded "
                            + setups.length + " setups from server");
         //Convert to Vector form
-        Vector v = new Vector(setups.length);
+        Vector<SavedSetup> v = new Vector<SavedSetup>(setups.length);
         for (int i=0; i<setups.length; i++) {
           v.add(setups[i]);
         }
@@ -333,7 +333,7 @@ public class MonClientUtil
 
     monfile = System.getProperty("user.home") + monfile;
 
-    Vector setups = null;
+    Vector<SavedSetup> setups = null;
     try {
       setups = SavedSetup.parseFile(monfile);
     } catch (Exception e) {
@@ -375,11 +375,11 @@ public class MonClientUtil
 
       if (theirSetups.get(thissetup.getClassName())==null) {
         //First setup to be added for that class
-        theirSetups.put(thissetup.getClassName(), new Hashtable());
+        theirSetups.put(thissetup.getClassName(), new Hashtable<String,SavedSetup>());
       }
 
       //Add this setup to the vector for the appropriate class
-      Hashtable classsetups = (Hashtable)theirSetups.get(thissetup.getClassName());
+      Hashtable<String,SavedSetup> classsetups = theirSetups.get(thissetup.getClassName());
       classsetups.put(thissetup.getName(), thissetup);
     }
   }
@@ -401,11 +401,11 @@ public class MonClientUtil
 
     if (theirSetups.get(setup.getClassName())==null) {
       //First setup to be added for that class
-      theirSetups.put(setup.getClassName(), new Hashtable());
+      theirSetups.put(setup.getClassName(), new Hashtable<String,SavedSetup>());
     }
 
     //Add this setup to the vector for the appropriate class
-    Hashtable classsetups = (Hashtable)theirSetups.get(setup.getClassName());
+    Hashtable<String,SavedSetup> classsetups = theirSetups.get(setup.getClassName());
     classsetups.put(setup.getName(), setup);
   }
 

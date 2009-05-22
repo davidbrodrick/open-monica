@@ -373,7 +373,7 @@ implements NamedObject, Comparable
    * @param setupfilename The name of the file containing the SavedSetups.
    * @return Vector containing the setups, possibly empty. */
   public static
-  Vector
+  Vector<SavedSetup>
   parseFile(String setupfilename)
   throws Exception
   {
@@ -385,7 +385,7 @@ implements NamedObject, Comparable
    * @param setupfile The file containing the SavedSetups.
    * @return Vector containing the setups, possibly empty. */
   public static
-  Vector
+  Vector<SavedSetup>
   parseFile(Reader setupfile)
   throws Exception
   {

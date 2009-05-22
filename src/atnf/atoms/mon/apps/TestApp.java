@@ -24,14 +24,13 @@ implements PointListener
    * calling "printArchive" with the name of the first monitor point,
    * and then demonstrates real-time update mode by creating a
    * DataMaintainer. */
-  public TestApp(Vector points) {
+  public TestApp(Vector<String> points) {
     //First print the archival data
     printArchive((String)points.get(0));
 
     //Then start in real-time mode
     System.out.println("SUBSCRIBING TO REAL-TIME UPDATES:");
-    DataMaintainer d = new DataMaintainer();
-    d.subscribe(points, this);
+    DataMaintainer.subscribe(points, this);
   }
 
 
@@ -79,9 +78,9 @@ implements PointListener
       System.exit(1);
     }
     //Specify the full names of as many points as you like here
-    Vector points = new Vector();
+    Vector<String> points = new Vector<String>();
     points.add(args[0]);
 
-    TestApp t = new TestApp(points);
+    new TestApp(points);
   }
 }

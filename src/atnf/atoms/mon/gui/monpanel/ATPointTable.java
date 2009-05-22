@@ -143,14 +143,14 @@ extends MonPanel
 
       String p = (String)setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
-      Vector points = new Vector(stp.countTokens());
+      Vector<String> points = new Vector<String>(stp.countTokens());
       while (stp.hasMoreTokens()) {
         points.add(stp.nextToken());
       }
 
       String s = (String)setup.get("sources");
       StringTokenizer sts = new StringTokenizer(s, ":");
-      Vector sources = new Vector(sts.countTokens());
+      Vector<String> sources = new Vector<String>(sts.countTokens());
       while (sts.hasMoreTokens()) {
         sources.add(sts.nextToken());
       }
