@@ -75,17 +75,20 @@ extends ASCIISocket
           + desc.getFullName());
     }
 
+    // Purge the input stream
+    while (itsReader.ready()) {
+      itsReader.readLine();  
+    }
     // Request the value for this sensor
-    itsReader.reset();
     itsWriter.write("T" + thischan);
     itsWriter.flush();
 
     // Parse response
     String response = itsReader.readLine();
-    System.err.println("K190(" + itsHostName + ":" + itsPort + "): Got response \"" + response + "\"");
+    //System.err.println("K190(" + itsHostName + ":" + itsPort + "): Got response \"" + response + "\"");
     Float result = null;
-    if (response.indexOf("?") == -1) {
-      result = new Float(response);
+    if (response.startsWith("T"+thischan)) {
+      result = new Float(response.substring(2));
     }
     return result;
   }
