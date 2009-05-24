@@ -173,7 +173,6 @@ extends ExternalSystem
       //Probably a comms error.
       disconnect();
       System.err.println("ASCIISocket: " + e.getClass() + ": " + e.getMessage());
-      e.printStackTrace();
       MonitorMap.logger.error(e.getMessage());
     }
   }
