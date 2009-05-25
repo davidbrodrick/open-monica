@@ -17,23 +17,20 @@ import atnf.atoms.time.*;
 import atnf.atoms.mon.transaction.*;
 
 /**
- * ExternalSystem is the base class for objects which bring new information
- * into the system. Each Datasource has a thread which schedules and manages
- * the collection of the monitor points which have been assigned to it.
- * ExternalSystem sub-classes use the information from a Transaction object in
- * order to collect the appropriate information for a particular monitor
- * point. This sub-class specific behavior is realised by implementing the
- * <i>getData</i> method.
- *
+ * ExternalSystem is the base class for objects which bring new information into
+ * the system and allow control operations to be written out. They are
+ * essentially 'drivers' designed to interact with a specific system external to
+ * MoniCA. Specific behavior can be realised by implementing the <i>getData</i>
+ * and <i>putData</i> methods.
+ * 
  * @author David Brodrick
  * @author Le Cuong Nguyen
- * @version $Id: ExternalSystem.java,v 1.8 2005/11/22 00:43:13 bro764 Exp $
- **/
+ */
 public
 class ExternalSystem
 implements Runnable
 {
-  /** Comparator to compare PointMonitors and/or AbsTimes. We need
+  /** Comparator to compare PointDescriptions and/or AbsTimes. We need
    * to use this Comparator with the SortedLinkedList class. */
   private class TimeComp
   implements Comparator
@@ -55,7 +52,7 @@ implements Runnable
       }
     }
 
-    /** Compare PointMonitors and/or AbsTimes. */
+    /** Compare PointDescriptions and/or AbsTimes. */
     public
     int
     compare(Object o1, Object o2) {
@@ -90,7 +87,7 @@ implements Runnable
   /** Allows access to the thread running this collector */
   protected Thread itsThread = null;
 
-  /** A "name" used for finding DataSources based on their source and type. */
+  /** A unique "name" used for finding a specific ExternalSystem. */
   protected String itsName = null;
 
   /** Records if we're currently connected to the remote source. */
@@ -251,7 +248,6 @@ implements Runnable
    addPoint(PointDescription p)
    {
      synchronized(itsPoints) {
-       //if (itsName.indexOf("servo")!=-1) System.err.println("datasource: Adding " + p + " (" + itsPoints.size() + ")");
        itsPoints.add(p);
        itsPoints.notifyAll();
      }
@@ -331,7 +327,7 @@ implements Runnable
      System.err.println("ExternalSystem (" + itsName + "): Unsupported control request from " + desc.getFullName());
    }
    
-   /** Initialise all the DataSources declared in a file.
+   /** Initialise all the ExternalSystems declared in a file.
     * @param fileName The file to parse for ExternalSystem declarations. */
    public static
    void
@@ -370,7 +366,7 @@ implements Runnable
        }
      } catch (Exception e) {
        e.printStackTrace();
-       MonitorMap.logger.error("ExternalSystem: Cannot Initialise DataSources");
+       MonitorMap.logger.error("ExternalSystem: Cannot Initialise External Systems!");
      }
    }
 
