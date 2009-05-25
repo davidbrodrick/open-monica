@@ -68,7 +68,17 @@ extends PointArchiver
   {
     if (point.getArchiveLongevity()<0) return;
     
-    System.err.println("PointArchiverASCII.purgeOldData: NOT YET IMPLEMENTED!");
+    //Get the directory where this point is archived
+    String dir = getDir(point);
+    //Calculate timestamps for period to purge over
+    AbsTime start = AbsTime.factory(0);
+    AbsTime end = AbsTime.factory((new AbsTime()).getValue() - 86400000000l*point.getArchiveLongevity());
+    //Get list of all files to be purged
+    Vector<String> files = getFiles(dir, start, end);
+    //Delete all files except most current (as it may contain still-valid data)
+    for (int i=0; i<files.size()-1; i++) {
+      (new File(files.get(i))).delete();
+    }
   }
 
   /** Method to do the actual archiving.
