@@ -87,7 +87,7 @@ extends ASCIISocket
     String response = itsReader.readLine();
     //System.err.println("K190(" + itsHostName + ":" + itsPort + "): Got response \"" + response + "\"");
     Float result = null;
-    if (response.startsWith("T"+thischan)) {
+    if (response.startsWith("T"+thischan) && response.indexOf("?")==-1) {
       result = new Float(response.substring(2));
     }
     return result;
