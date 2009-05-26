@@ -89,10 +89,13 @@ public class DataMaintainer implements Runnable, PointListener {
 
     if (realarg.size() > 0) {
       // We need to go ask the server for these points
-      Vector<PointDescription> res = (MonClientUtil.getServer()).getPoints(realarg);
+      Vector<PointDescription> res = null;
+      try {
+        res = (MonClientUtil.getServer()).getPoints(realarg);
+      } catch (Exception e) {
+      }
       if (res == null) {
-        // What SHOULD we do?
-        System.err.println("DataMaintainer:subscribe: GOT NULL RESULT!");
+        System.err.println("DataMaintainer.subscribe1: GOT NULL RESULT!");
       } else {
         // Add the details for all the new points
         for (int i = 0; i < res.size(); i++) {
@@ -121,17 +124,20 @@ public class DataMaintainer implements Runnable, PointListener {
 
   public static void subscribe(String point, PointListener pl) {
     if (itsNames.get(point) == null) {
-      // Get the info to build the structure from the server
-      PointDescription pm = (MonClientUtil.getServer()).getPoint(point);
-      if (pm == null) {
+      //Get the info to build the structure from the server
+      PointDescription pm = null;
+      try {
+        pm = (MonClientUtil.getServer()).getPoint(point);
+      } catch (Exception e) {
+      }
+      if (pm == null) {        
+        System.err.println("DataMaintainer.subscribe2: GOT NULL RESULT!");
         return;
       }
       itsMain.addPoint(pm, true);
     }
     PointDescription fm = itsNames.get(point);
     fm.addPointListener(pl);
-    // Next, let the collection thread know our points have changed
-    // itsMain.itsPoints.notifyAll();
   }
 
   public static void subscribe(String pointname, String source, PointListener pl) {
@@ -226,7 +232,11 @@ public class DataMaintainer implements Runnable, PointListener {
       if (getpoints.size() > 0) {
         // System.err.println("DataMaintainer: Requesting " + getpoints.size() +
         // " Updates");
-        Vector<PointData> resdata = (MonClientUtil.getServer()).getData(getnames);
+        Vector<PointData> resdata = null;
+        try {
+          resdata = MonClientUtil.getServer().getData(getnames);
+        } catch (Exception e) {
+        }
         if (resdata != null) {
           for (int i = 0; i < getpoints.size(); i++) {
             PointDescription pm = getpoints.get(i);

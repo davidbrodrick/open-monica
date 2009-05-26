@@ -54,7 +54,7 @@ extends MonitorPolicy
       try {
         Constructor Limit_con = Class.forName("atnf.atoms.mon.limit.PointLimit"+type).getConstructor(new Class[]{String[].class});
         result = (PointLimit)(Limit_con.newInstance(new Object[]{limitArgs}));
-      } catch (Exception e) {e.printStackTrace();result = new PointLimitSIMPLE(new String[]{});}
+      } catch (Exception e) {e.printStackTrace();result = new PointLimitNONE(new String[]{});}
 
       result.setStringEquiv(arg);
       

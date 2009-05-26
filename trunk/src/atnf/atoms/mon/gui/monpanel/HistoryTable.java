@@ -1228,12 +1228,12 @@ implements PointListener, Runnable, TableCellRenderer
     }
     Vector alldata = new Vector();
     for (int i=0; i<itsPoints.size(); i++) {
-      Vector v = MonClientUtil.getServer().getArchiveData(itsPoints.get(i), start, end);
-      if (v==null) {
-        v = new Vector();
-      }
-      alldata.add(v);
-      //System.err.println("Got " + v.size() + " data for " + itsPoints.get(i));
+      try {
+        Vector v = MonClientUtil.getServer().getArchiveData(itsPoints.get(i), start, end);
+        if (v!=null) {
+          alldata.add(v);
+        }
+      } catch (Exception e) { }
     }
     itsData = alldata;
   }

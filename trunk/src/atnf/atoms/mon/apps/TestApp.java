@@ -57,7 +57,12 @@ implements PointListener
     //Get a reference to the connection back to the server
     MoniCAClient server = MonClientUtil.getServer();
     //Ask for the archived data for the specified monitor point
-    Vector<PointData> data = server.getArchiveData(pointname, starttime, now);
+    Vector<PointData> data = null;
+    try {
+      data = server.getArchiveData(pointname, starttime, now);
+    } catch (Exception e) {
+      System.err.println("printArchive: Error communicating with server: " + e.getMessage());
+    }
     if (data!=null) {
       System.out.println("ARCHIVE QUERY RESULTS FOR " + pointname);
       //Print each returned data point

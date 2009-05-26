@@ -225,7 +225,7 @@ public class MonClientUtil
     try {
       theirPointNameCache = theirServer.getAllPointNames();
     } catch (Exception e) {
-      System.err.println("MonClientUtil.cachePointNames: ERROR communicating with server. Cannot continue!");
+      System.err.println("MonClientUtil.cachePointNames: " + e.getClass() + ": "+ e.getMessage());
       System.exit(1);
     }
   }
@@ -233,7 +233,7 @@ public class MonClientUtil
   /** Return the cached list of all point names. */
   public static
   String[]
-  getAllPoints()
+  getAllPointNames()
   {
     return theirPointNameCache;
   }
@@ -283,24 +283,25 @@ public class MonClientUtil
   void
   addServerSetups()
   {
-      SavedSetup[] setups = theirServer.getAllSetups();
-      if (setups!=null && setups.length>0) {
-        System.err.println("MonClientUtil:addServerSetups: Loaded "
-                           + setups.length + " setups from server");
-        //Convert to Vector form
-        Vector<SavedSetup> v = new Vector<SavedSetup>(setups.length);
-        for (int i=0; i<setups.length; i++) {
-          v.add(setups[i]);
-        }
-        mergeSetups(v);
+    try {
+      Vector<SavedSetup> setups = theirServer.getAllSetups();
+      if (setups != null && setups.size() > 0) {
+        System.err.println("MonClientUtil:addServerSetups: Loaded " + setups.size() + " setups from server");
+        mergeSetups(setups);
       } else {
         System.err.println("MonClientUtil:addServerSetups: None available");
       }
+    } catch (Exception e) {
+      System.err.println("MonClientUtil.addServerSetups: " + e.getClass() + " " + e.getMessage());
+      System.exit(1);
+    }
   }
 
 
-  /** Download all the SavedSetups which available locally and add them
-   * to our collection. */
+  /**
+   * Download all the SavedSetups which available locally and add them to our
+   * collection.
+   */
   public static
   void
   addLocalSetups()

@@ -61,27 +61,27 @@ extends TreeItemSelector
   void
   buildTree()
   {
-    if (theirPointNames==null) {
-      theirPointNames = MonClientUtil.getServer().getAllPointNames();
-      theirNodeNames  = new String[theirPointNames.length];
-      for (int i=0; i<theirPointNames.length; i++) {
-	int firstdot = theirPointNames[i].indexOf(".");
-	String source = theirPointNames[i].substring(0, firstdot);
-	String point  = theirPointNames[i].substring(firstdot+1);
+    if (theirPointNames == null) {
+      theirPointNames = MonClientUtil.getAllPointNames();
+      theirNodeNames = new String[theirPointNames.length];
+      for (int i = 0; i < theirPointNames.length; i++) {
+        int firstdot = theirPointNames[i].indexOf(".");
+        String source = theirPointNames[i].substring(0, firstdot);
+        String point = theirPointNames[i].substring(firstdot + 1);
 
-	if (isUnique(theirPointNames[i])) {
-	  theirNodeNames[i] = point;
-	} else {
-	  theirNodeNames[i] = point + "." + source;
-	}
+        if (isUnique(theirPointNames[i])) {
+          theirNodeNames[i] = point;
+        } else {
+          theirNodeNames[i] = point + "." + source;
+        }
       }
     }
 
     itsTreeUtil = new TreeUtil("Points");
 
-    if (theirPointNames!=null) {
-      for (int i=0; i<theirPointNames.length; i++) {
-	itsTreeUtil.addNode(theirNodeNames[i], theirPointNames[i]);
+    if (theirPointNames != null) {
+      for (int i = 0; i < theirPointNames.length; i++) {
+        itsTreeUtil.addNode(theirNodeNames[i], theirPointNames[i]);
       }
     }
   }
