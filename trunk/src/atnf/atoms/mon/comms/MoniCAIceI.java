@@ -117,10 +117,25 @@ public final class MoniCAIceI extends _MoniCAIceDisp
 
   /** Start the server. */
   public static void startIceServer(int port) {
+    MoniCAIceServerThread server = new MoniCAIceServerThread(port);
+    server.start();
+  }
+
+  /** Start a new thread to run the server. */
+  public static class MoniCAIceServerThread extends Thread {
+    protected int itsPort;
+    
+    public MoniCAIceServerThread(int port)
+    {
+      itsPort = port;
+    }
+    
+    public void run()
+    {
     Ice.Communicator ic = null;
     try {
       ic = Ice.Util.initialize();
-      Ice.ObjectAdapter adapter = ic.createObjectAdapterWithEndpoints("MoniCAIceAdapter", "tcp -p " + port);
+      Ice.ObjectAdapter adapter = ic.createObjectAdapterWithEndpoints("MoniCAIceAdapter", "tcp -p " + itsPort);
       Ice.Object object = new MoniCAIceI();
       adapter.add(object, ic.stringToIdentity("MoniCAIce"));
       adapter.activate();
@@ -139,4 +154,5 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     }
     System.err.println("MoniCAIceI.startIceServer(): ERROR Ice Server Exited!");
   }
+  };
 }
