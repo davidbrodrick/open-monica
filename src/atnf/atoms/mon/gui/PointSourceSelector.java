@@ -62,7 +62,7 @@ extends TreeItemSelector
   buildTree()
   {
     if (theirPointNames==null) {
-      theirPointNames = MonClientUtil.getServer().getPointNames();
+      theirPointNames = MonClientUtil.getServer().getAllPointNames();
       theirNodeNames  = new String[theirPointNames.length];
       for (int i=0; i<theirPointNames.length; i++) {
 	int firstdot = theirPointNames[i].indexOf(".");

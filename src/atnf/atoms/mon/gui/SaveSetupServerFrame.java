@@ -8,8 +8,8 @@
 
 package atnf.atoms.mon.gui;
 
-import atnf.atoms.mon.client.MonClientUtil;
-import atnf.atoms.mon.client.MonitorClientCustom;
+import atnf.atoms.mon.client.*;
+import atnf.atoms.mon.comms.MoniCAClient;
 import atnf.atoms.mon.SavedSetup;
 
 import java.awt.*;
@@ -117,7 +117,7 @@ extends SaveSetupFrame
 				      JOptionPane.WARNING_MESSAGE);
         return false;
       }
-      MonitorClientCustom serverconn = MonClientUtil.getServer();
+      MoniCAClient serverconn = MonClientUtil.getServer();
       if (!serverconn.addSetup(itsSetup, itsUser.getText(),
 			       new String(itsPass.getPassword()))) {
 	return false;

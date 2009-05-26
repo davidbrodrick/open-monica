@@ -10,6 +10,7 @@ package atnf.atoms.mon.apps;
 
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.client.*;
+import atnf.atoms.mon.comms.MoniCAClient;
 import atnf.atoms.time.*;
 import java.util.Vector;
 
@@ -54,9 +55,9 @@ implements PointListener
     RelTime timespan = RelTime.factory(-300000000);
     AbsTime starttime = now.add(timespan);
     //Get a reference to the connection back to the server
-    MonitorClientCustom server = MonClientUtil.getServer();
+    MoniCAClient server = MonClientUtil.getServer();
     //Ask for the archived data for the specified monitor point
-    Vector data = server.getPointData(pointname, starttime, now);
+    Vector<PointData> data = server.getArchiveData(pointname, starttime, now);
     if (data!=null) {
       System.out.println("ARCHIVE QUERY RESULTS FOR " + pointname);
       //Print each returned data point

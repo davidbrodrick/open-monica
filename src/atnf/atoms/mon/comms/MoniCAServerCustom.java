@@ -6,10 +6,11 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon;
+package atnf.atoms.mon.comms;
 
 import atnf.atoms.util.*;
 import atnf.atoms.time.*;
+import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
 import java.io.*;
 import java.util.*;
@@ -27,7 +28,7 @@ import java.net.*;
  * @version $Id: MonitorServerCustom.java,v 1.15 2007/04/12 05:18:07 bro764 Exp bro764 $
  */
 public class
-MonitorServerCustom
+MoniCAServerCustom
 implements Runnable
 {
   /** Keep track of how many clients are connected. */
@@ -45,7 +46,7 @@ implements Runnable
   protected Logger itsLogger = new Logger("Monitor Server");
 
   /** Starts up the main server thread which waits for client connections. */
-  public MonitorServerCustom()
+  public MoniCAServerCustom()
   {
     Thread t = new Thread(this, "MonitorServer Main");
     t.setDaemon(true);
@@ -54,7 +55,7 @@ implements Runnable
 
   /** Starts up a server thread to handle requests from a new client.
    * @param socket The socket connection tot he new client. */
-  public MonitorServerCustom(Socket socket)
+  public MoniCAServerCustom(Socket socket)
   {
     theirNumClients++;
     itsLogger.debug("New Java Connection from: "
@@ -85,7 +86,7 @@ implements Runnable
    * specifies a sampling interval we return undersampled archival data. */
   private
   PointData
-  getData(MonRequest req)
+  getData(MonCustomRequest req)
   {
     //Sanity check
     if (req==null || req.Args==null || req.Args.length<1) {
@@ -143,7 +144,7 @@ implements Runnable
 
       Vector res = null;
       if (req.Args.length==4 && req.Args[3] instanceof Integer) {
-        //A resampling interval has been specified
+        //A maximum number of samples has been specified
         res = PointBuffer.getPointData((String)req.Args[0], start_time,
                           end_time, ((Integer)req.Args[3]).intValue());
       } else {
@@ -161,7 +162,7 @@ implements Runnable
 
   public
   PointData
-  getPointNames(MonRequest req)
+  getPointNames(MonCustomRequest req)
   {
     if (req == null) {
       return null;
@@ -171,7 +172,7 @@ implements Runnable
 
   public
   PointData
-  addPoint(MonRequest req)
+  addPoint(MonCustomRequest req)
   {
     //Preconditions
     if (req==null || req.Args==null || req.Args.length<3) {
@@ -201,7 +202,7 @@ implements Runnable
 
   public
   PointData
-  getPoint(MonRequest req)
+  getPoint(MonCustomRequest req)
   {
     if (req == null || req.Args == null || req.Args.length < 1) {
       return null;
@@ -244,7 +245,7 @@ implements Runnable
 
   public
   PointData
-  setPoint(MonRequest req)
+  setPoint(MonCustomRequest req)
   {
     //preconditions
     if (req==null || req.Args==null || req.Args.length<4) {
@@ -275,96 +276,6 @@ implements Runnable
     return new PointData("", MonitorUtils.compress(allequivs));
   }
 
-
-  /** Return the <i>Transaction</i> definition string used by the specified
-   * point(s). The request can either consist of the string name of one point
-   * (including source), or it may be a Vector of string names if you wish
-   * to obtain the Transaction strings for many points at once. */
-  public
-  PointData
-  getTransaction(MonRequest req)
-  {
-    if (req == null || req.Args == null || req.Args.length != 1) {
-      return null;
-    }
-
-    if (req.Args[0] instanceof Vector) {
-      //Batch of points were requested
-      Vector arg = (Vector)req.Args[0];
-      if (arg==null || arg.size()==0) {
-        return null;
-      }
-
-      Vector res = new Vector(arg.size());
-      for (int i=0; i< arg.size(); i++) {
-        PointDescription pm = PointDescription.getPoint((String)arg.get(i));
-        if (pm==null) {
-          //Wasn't found
-          res.add(null);
-        } else {
-          res.add(pm.getInputTransactionString());
-        }
-      }
-      return new PointData("", res);
-    } else if (req.Args[0] instanceof String) {
-      //Single point was requested
-      PointDescription pm = PointDescription.getPoint((String)req.Args[0]);
-      if (pm==null) {
-        //Wasn't found
-        return null;
-      }
-      return new PointData(pm.getInputTransactionString());
-    } else {
-      System.err.println("MonitorServerCustom:getTransaction: Unexpected Argument...");
-      return null;
-    }
-  }
-
-
-  /** Return the <i>Translation</i> definition strings used by the specified
-   * point(s). The request can either consist of the string name of one point
-   * (including source), or it may be a Vector of string names if you wish
-   * to obtain the Translation strings for many points at once. */
-  public
-  PointData
-  getTranslations(MonRequest req)
-  {
-    if (req == null || req.Args == null || req.Args.length != 1) {
-      return null;
-    }
-
-    if (req.Args[0] instanceof Vector) {
-      //Batch of points were requested
-      Vector arg = (Vector)req.Args[0];
-      if (arg==null || arg.size()==0) {
-        return null;
-      }
-
-      Vector res = new Vector(arg.size());
-      for (int i=0; i< arg.size(); i++) {
-        PointDescription pm = PointDescription.getPoint((String)arg.get(i));
-        if (pm==null) {
-          //Wasn't found
-          res.add(null);
-        } else {
-          res.add(pm.getTranslationString());
-        }
-      }
-      return new PointData("", res);
-    } else if (req.Args[0] instanceof String) {
-      //Single point was requested
-      PointDescription pm = PointDescription.getPoint((String)req.Args[0]);
-      if (pm==null) {
-        return null;
-      }
-      return new PointData(pm.getTranslationString());
-    } else {
-      System.err.println("MonitorServerCustom:getTranslations: Unexpected Argument...");
-      return null;
-    }
-  }
-
-
   /** Return all SavedSetups known by the system. The SavedSetups are
    * used on the client side to simplify the process of navigating and
    * viewing the available information.
@@ -380,7 +291,7 @@ implements Runnable
   /** Add a new SavedSetup to the system. */
   public
   PointData
-  addSetup(MonRequest req)
+  addSetup(MonCustomRequest req)
   {
     //preconditions
     if (req==null || req.Args==null || req.Args.length<3) {
@@ -410,7 +321,7 @@ implements Runnable
   saveSetupToFile(SavedSetup setup, String user)
   {
     try {
-      URL setupfile = MonitorServerCustom.class.getClassLoader().getResource("monitor-setups.txt");
+      URL setupfile = MoniCAServerCustom.class.getClassLoader().getResource("monitor-setups.txt");
       if (setupfile==null || setupfile.equals("")) {
         MonitorMap.logger.error("I don't know which file to save SavedSetups to");
         System.err.println("ERROR: Couldn't determine file to save setup to");
@@ -462,7 +373,7 @@ implements Runnable
   void
   processConnection()
   {
-    MonRequest req = null;
+    MonCustomRequest req = null;
     try {
       itsOutput = new ObjectOutputStream(itsSocket.getOutputStream());
       itsOutput.flush();
@@ -474,32 +385,28 @@ implements Runnable
     }
     while (true) {
       try {
-	req = (MonRequest)itsInput.readObject();
+	req = (MonCustomRequest)itsInput.readObject();
       } catch (Exception e) {break;}
 
       PointData res = null;
       switch (req.Command) {
-      case MonRequest.GETDATA:       res = getData(req);
+      case MonCustomRequest.GETDATA:       res = getData(req);
       break;
-      case MonRequest.GETPOINT:      res = getPoint(req);
+      case MonCustomRequest.GETPOINT:      res = getPoint(req);
       break;
-      case MonRequest.SETPOINT:      res = setPoint(req);
+      case MonCustomRequest.SETPOINT:      res = setPoint(req);
       break;
-      case MonRequest.ADDPOINT:      res = addPoint(req);
+      case MonCustomRequest.ADDPOINT:      res = addPoint(req);
       break;
-      case MonRequest.GETKEY:        res = getPublicKey();
+      case MonCustomRequest.GETKEY:        res = getPublicKey();
       break;
-      case MonRequest.GETALLPOINTS:  res = getAllPoints();
+      case MonCustomRequest.GETALLPOINTS:  res = getAllPoints();
       break;
-      case MonRequest.GETALLSETUPS:  res = getAllSetups();
+      case MonCustomRequest.GETALLSETUPS:  res = getAllSetups();
       break;
-      case MonRequest.ADDSETUP:      res = addSetup(req);
+      case MonCustomRequest.ADDSETUP:      res = addSetup(req);
       break;
-      case MonRequest.GETTRANSACTION: res = getTransaction(req);
-      break;
-      case MonRequest.GETTRANSLATION: res = getTranslations(req);
-      break;
-      case MonRequest.GETPOINTNAMES: res = getPointNames(req);
+      case MonCustomRequest.GETPOINTNAMES: res = getPointNames(req);
       break;      
       default: System.err.println("MonitorServerCustom: Invalid request");
       }
@@ -547,7 +454,7 @@ implements Runnable
 	    Socket soc = ss.accept();
 	    //Got a new client connection, spawn a server to service it
 	    if (soc!=null) {
-        new MonitorServerCustom(soc);
+        new MoniCAServerCustom(soc);
       }
 	  }
 	  catch (IOException ie) {}

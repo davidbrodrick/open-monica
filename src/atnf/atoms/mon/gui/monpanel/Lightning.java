@@ -10,6 +10,7 @@ package atnf.atoms.mon.gui.monpanel;
 
 import atnf.atoms.mon.gui.*;
 import atnf.atoms.mon.client.*;
+import atnf.atoms.mon.comms.MoniCAClient;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.time.*;
@@ -433,7 +434,7 @@ implements ActionListener, Runnable
   /** Indicates if our thread should continue to run. */
   private boolean itsKeepRunning = true;
   /** Network connection to the monitor server. */
-  private MonitorClientCustom itsServer = null;
+  private MoniCAClient itsServer = null;
   /** The actual array of strike data to be displayed. Each frame has
    * 17 data points (overhead + 8 inner octants + 8 outer octants). */
   private int[][] itsStrikeData = new int[0][];
@@ -970,9 +971,9 @@ implements ActionListener, Runnable
   AbsTime
   getLatest(int[] strikes) {
     itsLastTried = new AbsTime();
-    Vector newdata = null;
+    Vector<PointData> newdata = null;
     try {
-      newdata = itsServer.getPointData(itsPointNames);
+      newdata = itsServer.getData(itsPointNames);
     } catch (Exception e) {
       e.printStackTrace();
       return null;
@@ -982,7 +983,7 @@ implements ActionListener, Runnable
     }
     AbsTime tstamp = null;
     for (int i=0; i<20; i++) {
-      PointData pd = (PointData)newdata.get(i);
+      PointData pd = newdata.get(i);
       if (pd==null) {
         return null;
       }
@@ -1026,7 +1027,7 @@ implements ActionListener, Runnable
       boolean first = true;
       //We retrieve each monitor points archival data in turn
       for (int i=0; i<20; i++) {
-        Vector thisdata = itsServer.getPointData((String)itsPointNames.get(i),
+        Vector<PointData> thisdata = itsServer.getArchiveData(itsPointNames.get(i),
                                                  itsLoopStart, itsLoopEnd);
         if (i==19 && (thisdata==null || thisdata.size()<itsStrikeData[0].length)) 
         {

@@ -14,6 +14,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.tree.*;
 import atnf.atoms.mon.*;
+import atnf.atoms.mon.comms.MoniCAClient;
+import atnf.atoms.mon.comms.MoniCAClientCustom;
 import atnf.atoms.mon.gui.*;
 import atnf.atoms.mon.util.*;
 
@@ -39,7 +41,7 @@ public class MonClientUtil
   private static Hashtable<String,Hashtable<String,SavedSetup>> theirSetups;
 
   /** Network connection to the monitor server. */
-  private static MonitorClientCustom theirServer;
+  private static MoniCAClient theirServer;
   
   /** Short descriptive name of the user-selected server. */
   private static String theirServerName;
@@ -140,7 +142,7 @@ public class MonClientUtil
 
     try {
       System.out.print("MonClientUtil: Connecting to host \"" + host + "\"");
-      theirServer = new MonitorClientCustom(host);
+      theirServer = new MoniCAClientCustom(host);
       System.out.println("\tOK");
       theirSetups = new Hashtable<String,Hashtable<String,SavedSetup>>();
       addServerSetups(); //Get all SavedSetups from server
@@ -159,7 +161,7 @@ public class MonClientUtil
                                   8050, 8050);
 
             System.out.print("MonClientUtil: Connecting to \"localhost\"");
-            theirServer = new MonitorClientCustom("localhost");
+            theirServer = new MoniCAClientCustom("localhost");
             System.out.println("\tOK");
             theirSetups = new Hashtable<String,Hashtable<String,SavedSetup>>();
             addServerSetups(); //Get all SavedSetups from server
@@ -181,7 +183,6 @@ public class MonClientUtil
         }
       }
     }
-    theirServer.setTimeout(30000);
   }
 
   /** Get the short name of the server. */
@@ -194,12 +195,9 @@ public class MonClientUtil
 
   /** Get a reference to the network connection to the server. */
   public static synchronized
-  MonitorClientCustom
+  MoniCAClient
   getServer()
   {
-    if (!theirServer.isConnected()) {
-      try { theirServer.connect(); } catch (Exception e) { }
-    }
     return theirServer;
   }
 
@@ -209,11 +207,7 @@ public class MonClientUtil
   setServer(String newserver)
   throws Exception
   {
-    theirServer = new MonitorClientCustom(newserver);
-
-    if (!theirServer.isConnected()) {
-      try { theirServer.connect(); } catch (Exception e) { }
-    }
+    theirServer = new MoniCAClientCustom(newserver);
 
     theirSetups = new Hashtable<String,Hashtable<String,SavedSetup>>();
     //Need to load setups from server
@@ -229,10 +223,7 @@ public class MonClientUtil
   cachePointNames()
   {    
     try {
-      if (!theirServer.isConnected()) {
-        try { theirServer.connect(); } catch (Exception e) { }
-      }
-      theirPointNameCache = theirServer.getPointNames();
+      theirPointNameCache = theirServer.getAllPointNames();
     } catch (Exception e) {
       System.err.println("MonClientUtil.cachePointNames: ERROR communicating with server. Cannot continue!");
       System.exit(1);
@@ -292,11 +283,6 @@ public class MonClientUtil
   void
   addServerSetups()
   {
-    if (!theirServer.isConnected()) {
-      try { theirServer.connect(); } catch (Exception e) { }
-    }
-
-    if (theirServer.isConnected()) {
       SavedSetup[] setups = theirServer.getAllSetups();
       if (setups!=null && setups.length>0) {
         System.err.println("MonClientUtil:addServerSetups: Loaded "
@@ -310,7 +296,6 @@ public class MonClientUtil
       } else {
         System.err.println("MonClientUtil:addServerSetups: None available");
       }
-    }
   }
 
 

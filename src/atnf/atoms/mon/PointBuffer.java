@@ -130,7 +130,7 @@ public class PointBuffer
    * @param pm The point to get the data for.
    * @param start_time The earliest time in the range of interest.
    * @param end_time The most recent time in the range of interest.
-   * @param sample_rate Not yet sure how it works...
+   * @param maxsamples The maximum number of samples to be returned.
    * @return Vector containing all data in the specified time range.
    *         <tt>null</tt> will be returned if no data were found. */
   public static
@@ -259,56 +259,6 @@ public class PointBuffer
     }
 
     return getPointData(pm, start, end, sample_rate);
-  }
-
-
-  /** Return all data between the given time and NOW for the specified
-   * point from the specified source. This will access the memory buffer
-   * and/or the data archive on disk in order to gather all data in the
-   * specified time range.
-   * @param name Name of the monitor point to retrieve.
-   * @param source Name of the data source to get the data for.
-   * @param timestamp Oldest data to return.
-   * @return All data between the given time and now. <tt>null</tt> will
-   *         be returned if no data were available. */
-  public static
-  Vector
-  getPointData(String name,
-               String source,
-               AbsTime timestamp)
-  {
-    PointDescription pm = PointDescription.getPoint(source+"."+name);
-    if (timestamp.isASAP()) {
-      return getBufferData(pm);
-    }
-    return getPointData(pm, timestamp, AbsTime.factory(), 0);
-  }
-
-
-  /** Return all data between the given time and NOW for the specified
-   * point/source. This will access the memory buffer and/or the data
-   * archive on disk in order to gather all data in the specified time range.
-   * @param point Source and point name to get the data for. This must
-   *              be in the format <tt>source.pointname</tt>.
-   * @param source Name of the data source to get the data for.
-   * @param timestamp Oldest data to return.
-   * @return All data between the given time and now. <tt>null</tt> will
-   *         be returned if no data were available. */
-  public static
-  Vector
-  getPointData(String point,
-               AbsTime timestamp)
-  {
-    //Try to get the specified point and check if it was found
-    PointDescription pm = PointDescription.getPoint(point);
-    if (pm==null) {
-      return null;
-    }
-
-    if (timestamp.isASAP()) {
-      return getBufferData(pm);
-    }
-    return getPointData(pm, timestamp, AbsTime.factory(), 0);
   }
 
 
