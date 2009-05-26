@@ -102,7 +102,10 @@ public final class MoniCAIceI extends _MoniCAIceDisp
 
   /** Return the key and modulus required to send encrypted data to the server. */
   public String[] getEncryptionInfo(Ice.Current __current) {
-    return null;
+    String[] a = new String[2];
+    a[0] = MonitorMap.getPublicKey();
+    a[1] = MonitorMap.getModulus();
+    return a;
   }
 
   /** Return the current time on the server. */
@@ -124,35 +127,33 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   /** Start a new thread to run the server. */
   public static class MoniCAIceServerThread extends Thread {
     protected int itsPort;
-    
-    public MoniCAIceServerThread(int port)
-    {
+
+    public MoniCAIceServerThread(int port) {
       itsPort = port;
     }
-    
-    public void run()
-    {
-    Ice.Communicator ic = null;
-    try {
-      ic = Ice.Util.initialize();
-      Ice.ObjectAdapter adapter = ic.createObjectAdapterWithEndpoints("MoniCAIceAdapter", "tcp -p " + itsPort);
-      Ice.Object object = new MoniCAIceI();
-      adapter.add(object, ic.stringToIdentity("MoniCAIce"));
-      adapter.activate();
-      ic.waitForShutdown();
-    } catch (Ice.LocalException e) {
-      e.printStackTrace();
-    } catch (Exception e) {
-      System.err.println(e.getMessage());
-    }
-    if (ic != null) {
+
+    public void run() {
+      Ice.Communicator ic = null;
       try {
-        ic.destroy();
+        ic = Ice.Util.initialize();
+        Ice.ObjectAdapter adapter = ic.createObjectAdapterWithEndpoints("MoniCAIceAdapter", "tcp -p " + itsPort);
+        Ice.Object object = new MoniCAIceI();
+        adapter.add(object, ic.stringToIdentity("MoniCAIce"));
+        adapter.activate();
+        ic.waitForShutdown();
+      } catch (Ice.LocalException e) {
+        e.printStackTrace();
       } catch (Exception e) {
         System.err.println(e.getMessage());
       }
+      if (ic != null) {
+        try {
+          ic.destroy();
+        } catch (Exception e) {
+          System.err.println(e.getMessage());
+        }
+      }
+      System.err.println("MoniCAIceI.startIceServer(): ERROR Ice Server Exited!");
     }
-    System.err.println("MoniCAIceI.startIceServer(): ERROR Ice Server Exited!");
-  }
   };
 }

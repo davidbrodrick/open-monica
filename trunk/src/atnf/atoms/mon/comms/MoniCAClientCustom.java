@@ -281,8 +281,8 @@ MoniCAClientCustom extends MoniCAClient
   }
 
   /** Return an RSA encryptor that uses the servers public key and modulus.
-   * this will allow us to encrypt information that can only be encrypted by
-   * the monitor server. */
+   * This will allow us to encrypt information that can only be encrypted by
+   * the server. */
   public 
   RSA
   getEncryptor()
