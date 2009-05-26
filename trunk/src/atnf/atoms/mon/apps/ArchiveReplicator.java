@@ -11,7 +11,7 @@ package atnf.atoms.mon.apps;
 import java.util.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.archiver.*;
-import atnf.atoms.mon.client.*;
+import atnf.atoms.mon.comms.*;
 import atnf.atoms.time.*;
 
 /**
@@ -33,7 +33,7 @@ class ArchiveReplicator
   private static PointArchiver itsNewArchive = null;
   
   /** Connection to the server. */
-  private static MonitorClientCustom itsServer = null;
+  private static MoniCAClient itsServer = null;
   
   public static final void main(String[] args) {
     //CHECK USER ARGUMENTS
@@ -49,7 +49,7 @@ class ArchiveReplicator
     //CONNECT TO SERVER
     System.out.println("#Connecting to \"" + args[0] + "\"");
     try {
-      itsServer = new MonitorClientCustom(args[0]);
+      itsServer = new MoniCAClientCustom(args[0]);
     } catch (Exception e) {
       System.err.println(e.getMessage());
       e.printStackTrace();
@@ -68,7 +68,7 @@ class ArchiveReplicator
     }
 
     //DETERMINE WHICH POINTS TO MIGRATE
-    String[] serverpoints = itsServer.getPointNames();
+    String[] serverpoints = itsServer.getAllPointNames();
     Vector<String> pointnames = null;
     if (args.length>2) {
       //USER SPECIFIED SUBSET OF POINTS
@@ -97,24 +97,8 @@ class ArchiveReplicator
     }
     System.out.println("#Will replicate " + pointnames.size() + " points to new archive");
     
-    //GET THE FULL DATA FOR EACH POINT FROM THE SERVER
-    Vector defstrings = itsServer.getPointMonitors(pointnames);
-    if (defstrings==null || defstrings.size()!=pointnames.size()) {
-      System.err.println("#ERROR: Obtaining point definitions from server");
-      System.exit(1);
-    }
-    
     //CREATE MONITOR POINT OBJECTS FOR EACH POINT
-    Vector<PointDescription> points = new Vector<PointDescription>(defstrings.size());
-    for (int i=0; i<defstrings.size(); i++) {
-      PointDescription newpoint=PointDescription.parseLine((String)defstrings.get(i)).get(0);
-      //PointDescription newpoint=(PointDescription)(PointInteraction.parsePoints((String)defstrings.get(i))[0]);
-      if (newpoint==null) {
-        System.err.println("#ERROR: Creating \"" + pointnames.get(i) + "\"");
-        System.exit(1);
-      }
-      points.add(newpoint);
-    }
+    Vector<PointDescription> points = itsServer.getAllPoints();
     
     //PROCESS EACH POINT IN TURN
     long totalrecords=0;
@@ -140,7 +124,7 @@ class ArchiveReplicator
       long numcollected=0;
       while (true) {
         //COLLECT SOME MORE DATA FROM THE SERVER
-        Vector newdata=itsServer.getPointData(thisname, downloadstart, downloadend);
+        Vector<PointData> newdata=itsServer.getArchiveData(thisname, downloadstart, downloadend);
         if (newdata==null || newdata.size()==0) {
           System.out.println("#Replicated " + numcollected + " data points");
           totalrecords+=numcollected;

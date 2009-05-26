@@ -10,6 +10,7 @@ package atnf.atoms.mon.gui.monpanel;
 
 import atnf.atoms.mon.gui.*;
 import atnf.atoms.mon.client.*;
+import atnf.atoms.mon.comms.MoniCAClient;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.time.*;
@@ -1275,7 +1276,7 @@ public class ATXYPlot extends MonPanel implements ActionListener, Runnable {
   private static Object theirLock = new Object();
 
   /** Network connection to the monitor server. */
-  private MonitorClientCustom itsServer = null;
+  private MoniCAClient itsServer = null;
 
   /** Container for the individual datasets. */
   private XYSeriesCollection itsData = new XYSeriesCollection();
@@ -1968,19 +1969,19 @@ public class ATXYPlot extends MonPanel implements ActionListener, Runnable {
   }
 
   /** Request archival data from the monitor data server. */
-  protected Vector getArchive(String pointname, AbsTime t1, AbsTime t2) {
+  protected Vector<PointData> getArchive(String pointname, AbsTime t1, AbsTime t2) {
     // if (!theirServer.isConnected()) return null;
 
     // Otherwise, we're connected and ready to get the data
-    return itsServer.getPointData(pointname, t1, t2);
+    return itsServer.getArchiveData(pointname, t1, t2);
   }
 
   /**
    * Request all data since the specified time from the monitor data server.
    */
-  protected Vector getSince(String pointname, AbsTime t1) {
+  protected Vector<PointData> getSince(String pointname, AbsTime t1) {
     // Request the data from the server
-    Vector v = itsServer.getPointData(pointname, t1, new AbsTime());
+    Vector<PointData> v = itsServer.getArchiveData(pointname, t1, new AbsTime());
     // Remove first element - we already have that
     if (v != null && v.size() > 0) {
       v.remove(v.firstElement());

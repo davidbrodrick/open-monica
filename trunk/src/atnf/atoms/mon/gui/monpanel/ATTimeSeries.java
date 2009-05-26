@@ -10,6 +10,7 @@ package atnf.atoms.mon.gui.monpanel;
 
 import atnf.atoms.mon.gui.*;
 import atnf.atoms.mon.client.*;
+import atnf.atoms.mon.comms.MoniCAClient;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.time.*;
@@ -812,7 +813,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
   private static Object theirLock = new Object();
 
   /** Network connection to the monitor server. */
-  private MonitorClientCustom itsServer = null;
+  private MoniCAClient itsServer = null;
 
   /** Number of axis contained in the graph. */
   private int itsNumAxis = 0;
@@ -1523,12 +1524,12 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
   }
 
   /** Request archival data from the monitor data server. */
-  protected Vector getArchive(String pointname, AbsTime t1, AbsTime t2) {
-    Vector v = null;
+  protected Vector<PointData> getArchive(String pointname, AbsTime t1, AbsTime t2) {
+    Vector<PointData> v = null;
     if (itsMaxSamps == 0) {
-      v = itsServer.getPointData(pointname, t1, t2);
+      v = itsServer.getArchiveData(pointname, t1, t2);
     } else {
-      v = itsServer.getPointData(pointname, t1, t2, itsMaxSamps);
+      v = itsServer.getArchiveData(pointname, t1, t2, itsMaxSamps);
     }
     return v;
   }
@@ -1538,7 +1539,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    */
   protected Vector<PointData> getSince(String pointname, AbsTime t1) {
     // Request the data from the server
-    Vector<PointData> v = itsServer.getPointData(pointname, t1, new AbsTime());
+    Vector<PointData> v = itsServer.getArchiveData(pointname, t1, new AbsTime());
     // Remove first element - we already have that
     if (v != null && v.size() > 0) {
       v.remove(v.firstElement());

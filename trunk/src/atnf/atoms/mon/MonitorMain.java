@@ -13,7 +13,7 @@ import java.io.*;
 import atnf.atoms.mon.externalsystem.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.mon.archiver.*;
-//import atnf.atoms.mon.comms.MoniCAIceUtil;
+import atnf.atoms.mon.comms.*;
 
 
 /**
@@ -79,9 +79,9 @@ MonitorMain
     }
 
     //Create the network server interfaces
-    new MonitorServerCustom();
-    new MonitorServerASCII();
-    //MoniCAIceUtil.startIceServer();
+    new MoniCAServerCustom();
+    new MoniCAServerASCII();
+//    MoniCAIceUtil.startIceServer();
 
     //Start the data collection
     ExternalSystem.startAll();

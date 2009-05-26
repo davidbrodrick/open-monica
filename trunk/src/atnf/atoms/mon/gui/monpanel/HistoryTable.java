@@ -551,7 +551,7 @@ implements PointListener, Runnable, TableCellRenderer
   protected SavedSetup itsSetup = null;
 
   /** Contains the names of the monitor points we are displaying. */
-  protected Vector itsPoints = new Vector();
+  protected Vector<String> itsPoints = new Vector<String>();
 
   /** The time period that the table covers. */
   protected RelTime itsPeriod = RelTime.factory(600000000);
@@ -1228,7 +1228,7 @@ implements PointListener, Runnable, TableCellRenderer
     }
     Vector alldata = new Vector();
     for (int i=0; i<itsPoints.size(); i++) {
-      Vector v = MonClientUtil.getServer().getPointData((String)itsPoints.get(i), start, end);
+      Vector v = MonClientUtil.getServer().getArchiveData(itsPoints.get(i), start, end);
       if (v==null) {
         v = new Vector();
       }

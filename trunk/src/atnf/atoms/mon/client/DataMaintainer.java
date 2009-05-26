@@ -39,15 +39,15 @@ public class DataMaintainer implements Runnable, PointListener {
         itsBuffer.put(evt.getPointData().getName(), evt.getPointData());
       }
       // Schedule again
-      addPointMonitor((PointDescription) source);
+      addPoint((PointDescription) source);
     } else if (evt == null) {
       // Schedule again
-      addPointMonitor((PointDescription) source);
+      addPoint((PointDescription) source);
     }
   }
 
   /** Schedules a point */
-  protected void addPointMonitor(PointDescription pm) {
+  protected void addPoint(PointDescription pm) {
     long nextExec = pm.getNextEpoch();
     synchronized (itsPoints) {
       for (int i = 0; i < itsPoints.size(); i++) {
@@ -62,11 +62,11 @@ public class DataMaintainer implements Runnable, PointListener {
     }
   }
 
-  public void addPointMonitor(PointDescription pm, boolean init) {
+  public void addPoint(PointDescription pm, boolean init) {
     if (init) {
       pm.addPointListener(this);
     }
-    addPointMonitor(pm);
+    addPoint(pm);
   }
 
   /** Unschedules a point. */
@@ -89,29 +89,22 @@ public class DataMaintainer implements Runnable, PointListener {
 
     if (realarg.size() > 0) {
       // We need to go ask the server for these points
-      Vector res = (MonClientUtil.getServer()).getPointMonitors(realarg);
+      Vector<PointDescription> res = (MonClientUtil.getServer()).getPoints(realarg);
       if (res == null) {
         // What SHOULD we do?
         System.err.println("DataMaintainer:subscribe: GOT NULL RESULT!");
       } else {
         // Add the details for all the new points
         for (int i = 0; i < res.size(); i++) {
-          String pm = (String) res.get(i);
-          if (pm == null) {
+          PointDescription pd = res.get(i);
+          if (pd==null) {
             continue;
           }
-          // Parse the string so we can build the point
-          ArrayList al = PointDescription.parseLine(pm);
-          Object[] obj = al.toArray();
-          for (int j = 0; j < obj.length; j++) {
-            ((PointDescription) obj[j]).populateClientFields();
-            String[] names = ((PointDescription) obj[j]).getAllNames();
-            String source = ((PointDescription) obj[j]).getSource();
-            for (int k = 0; k < names.length; k++) {
-              itsNames.put(source + "." + names[k], (PointDescription)obj[j]);
-            }
-            itsMain.addPointMonitor((PointDescription) obj[j], true);
+          String[] names = pd.getFullNames();
+          for (int j = 0; j < names.length; j++) {
+            itsNames.put(names[j], pd);
           }
+          itsMain.addPoint(pd, true);
         }
       }
     }
@@ -129,21 +122,11 @@ public class DataMaintainer implements Runnable, PointListener {
   public static void subscribe(String point, PointListener pl) {
     if (itsNames.get(point) == null) {
       // Get the info to build the structure from the server
-      String pm = (MonClientUtil.getServer()).getPointMonitor(point);
+      PointDescription pm = (MonClientUtil.getServer()).getPoint(point);
       if (pm == null) {
         return;
       }
-      // Parse the string so we can build the point
-      ArrayList al = PointDescription.parseLine(pm);
-      Object[] obj = al.toArray();
-      for (int i = 0; i < obj.length; i++) {
-        String[] names = ((PointDescription) obj[i]).getAllNames();
-        String source = ((PointDescription) obj[i]).getSource();
-        for (int k = 0; k < names.length; k++) {
-          itsNames.put(source + "." + names[k], (PointDescription)obj[i]);
-        }
-        itsMain.addPointMonitor((PointDescription) obj[i], true);
-      }
+      itsMain.addPoint(pm, true);
     }
     PointDescription fm = itsNames.get(point);
     fm.addPointListener(pl);
@@ -243,16 +226,14 @@ public class DataMaintainer implements Runnable, PointListener {
       if (getpoints.size() > 0) {
         // System.err.println("DataMaintainer: Requesting " + getpoints.size() +
         // " Updates");
-        Vector resdata = (MonClientUtil.getServer()).getPointData(getnames);
+        Vector<PointData> resdata = (MonClientUtil.getServer()).getData(getnames);
         if (resdata != null) {
           for (int i = 0; i < getpoints.size(); i++) {
-            PointData pd = (PointData) resdata.get(i);
             PointDescription pm = getpoints.get(i);
-            if (pd != null) {
-              pm.firePointEvent(new PointEvent(pm, pd, false));
+            if (resdata.get(i) != null) {
+              pm.firePointEvent(new PointEvent(pm, resdata.get(i), false));
             } else {
-              pd = new PointData(pm.getFullName());
-              pm.firePointEvent(new PointEvent(pm, pd, false));
+              pm.firePointEvent(new PointEvent(pm, new PointData(pm.getFullName()), false));
             }
           }
         } else {

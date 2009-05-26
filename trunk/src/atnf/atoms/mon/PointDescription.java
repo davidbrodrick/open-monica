@@ -475,7 +475,7 @@ implements ActionListener, NamedObject, Comparable
   public void setLimitsString(String[] limits) {
     itsLimitsStrings=limits;
     if (limits == null || limits.length == 0) {
-      itsLimitsString = null;
+      itsLimitsString = "-";
     } else if (limits.length == 1) {
       itsLimitsString = limits[0];
     } else {
@@ -498,13 +498,14 @@ implements ActionListener, NamedObject, Comparable
     itsLimits=limitsa;
   }
 
-  /** Check the data against the alarm criteria. */
+  /** Check the data against the alarm criteria. 
+   * @return True if everything is okay, False if there is an alarm. */
   public boolean checkLimits(PointData pd) {
-    boolean res = false;
+    boolean res = true;
     if (itsLimits != null && itsLimits.length > 0) {
       for (int i = 0; i < itsLimits.length; i++) {
-        if (itsLimits[i].checkLimits(pd)) {
-          res = true;
+        if (!itsLimits[i].checkLimits(pd)) {
+          res = false;
           break;
         }
       }

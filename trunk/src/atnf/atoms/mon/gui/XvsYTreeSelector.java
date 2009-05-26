@@ -312,7 +312,7 @@ implements ActionListener
     itsTreeUtil = new TreeUtil("Points");
     //Might be better off having a cached copy of the point names
     //this could be implemented through MonClientUtil
-    String[] points = MonClientUtil.getServer().getPointNames();
+    String[] points = MonClientUtil.getServer().getAllPointNames();
     if (points!=null && points.length>0) {
       for (int i=0; i<points.length; i++) {
         int firstdot = points[i].indexOf(".");

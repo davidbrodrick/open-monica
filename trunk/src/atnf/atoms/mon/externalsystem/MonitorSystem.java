@@ -10,6 +10,8 @@ package atnf.atoms.mon.externalsystem;
 
 import java.util.HashMap;
 import atnf.atoms.mon.*;
+import atnf.atoms.mon.comms.MoniCAServerASCII;
+import atnf.atoms.mon.comms.MoniCAServerCustom;
 import atnf.atoms.time.*;
 
 /**
@@ -56,8 +58,8 @@ extends ExternalSystem
 
         //Get the actual data
         res.put("TotalMemory", new Float((float)(MonitorMap.getTotalMemory())/(1024*1024)));
-        res.put("NumClntsJ", new Integer(MonitorServerCustom.getNumClients()));
-        res.put("NumClntsA", new Integer(MonitorServerASCII.getNumClients()));
+        res.put("NumClntsJ", new Integer(MoniCAServerCustom.getNumClients()));
+        res.put("NumClntsA", new Integer(MoniCAServerASCII.getNumClients()));
         res.put("TimeUTC", new AbsTime());
 
         pm.firePointEvent(new PointEvent(this, new
