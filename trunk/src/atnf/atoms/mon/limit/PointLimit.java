@@ -17,19 +17,14 @@ import atnf.atoms.mon.util.*;
  * Base-class for classes which check the value of a monitor point. The
  * basic theory is that monitor points normally have some nominal value,
  * or set of values, and the user may need to be alerted when the value
- * strays outside of this nominal set. The approach taken in this
- * implementation is that a <i>PointLimit</i> sub-class will be able to
- * check a point's current value and indicate whether the value is within
- * the set of nominal values, or if it has strayed from the nominal set.
+ * strays outside of this nominal set.
  * <P>
- * This is realised by implementing an appropriate <i>checkLimits</i>
- * method for the particular sub-class. <i>checkLimits</i> should return
- * <tt>True</tt> when the point's value is okay and <tt>False</tt> when
- * an alert should be raised.
+ * Sub-classes must implement an appropriate <i>checkLimits</i> method. 
+ * <i>checkLimits</i> should return <tt>True</tt> when the point's value
+ * is okay and <tt>False</tt> when an alert should be raised.
  *
  * @author Le Cuong Nguyen
  * @author David Brodrick
- * @version $Id: PointLimit.java,v 1.3 2004/09/14 22:57:10 bro764 Exp $
  **/
 public abstract class
 PointLimit
@@ -53,12 +48,12 @@ extends MonitorPolicy
       // Find the type of translation
       String type = arg.substring(0, arg.indexOf("-"));
       if (type == "" || type == null || type.length()<1) {
-        type = "SIMPLE";
+        type = "NONE";
       }
 
       try {
-	 Constructor Limit_con = Class.forName("atnf.atoms.mon.limit.PointLimit"+type).getConstructor(new Class[]{String[].class});
-	 result = (PointLimit)(Limit_con.newInstance(new Object[]{limitArgs}));
+        Constructor Limit_con = Class.forName("atnf.atoms.mon.limit.PointLimit"+type).getConstructor(new Class[]{String[].class});
+        result = (PointLimit)(Limit_con.newInstance(new Object[]{limitArgs}));
       } catch (Exception e) {e.printStackTrace();result = new PointLimitSIMPLE(new String[]{});}
 
       result.setStringEquiv(arg);
