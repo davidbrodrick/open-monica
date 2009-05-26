@@ -10,7 +10,6 @@ package atnf.atoms.mon.comms;
 
 import java.net.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.transaction.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
 import java.io.*;
@@ -391,15 +390,23 @@ MoniCAClientCustom extends MoniCAClient
   /** Return all SavedSetups for client Objects from the server.
    * <tt>null</tt> may be returned if the server has no SavedSetups. */
   public
-  SavedSetup[]
+  Vector<SavedSetup>
   getAllSetups()
   {
     MonCustomRequest req = new MonCustomRequest(MonCustomRequest.GETALLSETUPS, null);
-    PointData res = makeRequest(req);
-    if (res == null) {
+    PointData response = makeRequest(req);
+    if (response == null) {
       return null;
     }
-    return (SavedSetup[])MonitorUtils.decompress((byte[])res.getData());
+    SavedSetup[] setups = (SavedSetup[])MonitorUtils.decompress((byte[])response.getData());
+    Vector<SavedSetup> result = null;
+    if (setups!=null) {
+      result = new Vector<SavedSetup>(setups.length);
+      for (int i=0; i<setups.length; i++) {
+        result.add(setups[i]);
+      }
+    }
+    return result;
   }
 
 
@@ -466,10 +473,6 @@ MoniCAClientCustom extends MoniCAClient
       System.exit(1);
     }
 
-    //Print all pages to screen just to prove things work
-    SavedSetup[] setups = MCC.getAllSetups();
-    for (int i=0; i<setups.length; i++) {
-      System.out.println(setups[i]);
-    }
+    //Connected. Now can do something
   }
 }

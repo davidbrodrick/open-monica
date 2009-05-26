@@ -1970,21 +1970,28 @@ public class ATXYPlot extends MonPanel implements ActionListener, Runnable {
 
   /** Request archival data from the monitor data server. */
   protected Vector<PointData> getArchive(String pointname, AbsTime t1, AbsTime t2) {
-    // if (!theirServer.isConnected()) return null;
-
-    // Otherwise, we're connected and ready to get the data
-    return itsServer.getArchiveData(pointname, t1, t2);
+    Vector<PointData> v = null;
+    try {
+      // Request the data from the server
+      v = itsServer.getArchiveData(pointname, t1, t2);
+    } catch (Exception e) {
+    }
+    return v;
   }
 
   /**
    * Request all data since the specified time from the monitor data server.
    */
   protected Vector<PointData> getSince(String pointname, AbsTime t1) {
-    // Request the data from the server
-    Vector<PointData> v = itsServer.getArchiveData(pointname, t1, new AbsTime());
-    // Remove first element - we already have that
-    if (v != null && v.size() > 0) {
-      v.remove(v.firstElement());
+    Vector<PointData> v = null;
+    try {
+      // Request the data from the server
+      v = itsServer.getArchiveData(pointname, t1, new AbsTime());
+      // Remove first element - we already have that
+      if (v != null && v.size() > 0) {
+        v.remove(v.firstElement());
+      }
+    } catch (Exception e) {
     }
     return v;
   }

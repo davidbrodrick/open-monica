@@ -68,7 +68,13 @@ class ArchiveReplicator
     }
 
     //DETERMINE WHICH POINTS TO MIGRATE
-    String[] serverpoints = itsServer.getAllPointNames();
+    String[] serverpoints = null;
+    try {
+      serverpoints = itsServer.getAllPointNames();
+    } catch (Exception e) {
+      System.err.println("ERROR: Could not get list of point names from server: " + e.getMessage());
+      System.exit(1);
+    }
     Vector<String> pointnames = null;
     if (args.length>2) {
       //USER SPECIFIED SUBSET OF POINTS
@@ -98,7 +104,13 @@ class ArchiveReplicator
     System.out.println("#Will replicate " + pointnames.size() + " points to new archive");
     
     //CREATE MONITOR POINT OBJECTS FOR EACH POINT
-    Vector<PointDescription> points = itsServer.getAllPoints();
+    Vector<PointDescription> points = null;
+    try {
+      points = itsServer.getPoints(pointnames);
+    } catch (Exception e) {
+      System.err.println("ERROR: Could not get point definitions from server: " + e.getMessage());
+      System.exit(1);
+    }
     
     //PROCESS EACH POINT IN TURN
     long totalrecords=0;
@@ -124,7 +136,13 @@ class ArchiveReplicator
       long numcollected=0;
       while (true) {
         //COLLECT SOME MORE DATA FROM THE SERVER
-        Vector<PointData> newdata=itsServer.getArchiveData(thisname, downloadstart, downloadend);
+        Vector<PointData> newdata=null;
+        try {
+          itsServer.getArchiveData(thisname, downloadstart, downloadend);
+        } catch (Exception e) {
+          System.err.println("ERROR: Could not communicate with server: " + e.getMessage());
+          System.exit(1);
+        }
         if (newdata==null || newdata.size()==0) {
           System.out.println("#Replicated " + numcollected + " data points");
           totalrecords+=numcollected;

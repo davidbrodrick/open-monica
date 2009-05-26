@@ -1526,10 +1526,9 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
   /** Request archival data from the monitor data server. */
   protected Vector<PointData> getArchive(String pointname, AbsTime t1, AbsTime t2) {
     Vector<PointData> v = null;
-    if (itsMaxSamps == 0) {
-      v = itsServer.getArchiveData(pointname, t1, t2);
-    } else {
+    try {
       v = itsServer.getArchiveData(pointname, t1, t2, itsMaxSamps);
+    } catch (Exception e) {
     }
     return v;
   }
@@ -1538,11 +1537,14 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    * Request all data since the specified time from the monitor data server.
    */
   protected Vector<PointData> getSince(String pointname, AbsTime t1) {
-    // Request the data from the server
-    Vector<PointData> v = itsServer.getArchiveData(pointname, t1, new AbsTime());
-    // Remove first element - we already have that
-    if (v != null && v.size() > 0) {
-      v.remove(v.firstElement());
+    Vector<PointData> v = null;
+    try {
+      v = itsServer.getArchiveData(pointname, t1, new AbsTime());
+      // Remove first element - we already have that
+      if (v != null && v.size() > 0) {
+        v.remove(v.firstElement());
+      }
+    } catch (Exception e) {
     }
     return v;
   }

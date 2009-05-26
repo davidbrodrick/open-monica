@@ -44,7 +44,7 @@ extends TreeItemSelector
   buildTree()
   {
     if (theirPointNames==null) {
-      theirPointNames = MonClientUtil.getAllPoints();
+      theirPointNames = MonClientUtil.getAllPointNames();
     }
 
     itsTreeUtil = new TreeUtil("Points");

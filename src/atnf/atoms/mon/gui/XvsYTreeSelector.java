@@ -301,25 +301,22 @@ implements ActionListener
   }
 
 
-  /** Build <i>itsTreeUtil</i>, containing the names and sources for all
-   * monitor points. The nodes have the source name as the last field in
-   * the path but the user objects associated with the nodes in the
-   * TreeUtil have the conventional name in <i>source.name</i> format. */
-  protected
-  void
-  buildTree()
-  {
+  /**
+   * Build <i>itsTreeUtil</i>, containing the names and sources for all monitor
+   * points. The nodes have the source name as the last field in the path but
+   * the user objects associated with the nodes in the TreeUtil have the
+   * conventional name in <i>source.name</i> format.
+   */
+  protected void buildTree() {
     itsTreeUtil = new TreeUtil("Points");
-    //Might be better off having a cached copy of the point names
-    //this could be implemented through MonClientUtil
-    String[] points = MonClientUtil.getServer().getAllPointNames();
-    if (points!=null && points.length>0) {
-      for (int i=0; i<points.length; i++) {
+    String[] points = MonClientUtil.getAllPointNames();
+    if (points != null && points.length > 0) {
+      for (int i = 0; i < points.length; i++) {
         int firstdot = points[i].indexOf(".");
-	String source = points[i].substring(0, firstdot);
-	String point  = points[i].substring(firstdot+1);
+        String source = points[i].substring(0, firstdot);
+        String point = points[i].substring(firstdot + 1);
         String newname = point + "." + source;
-	itsTreeUtil.addNode(newname, points[i]);
+        itsTreeUtil.addNode(newname, points[i]);
       }
     }
   }
