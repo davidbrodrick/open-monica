@@ -148,16 +148,6 @@ MoniCAClientCustom extends MoniCAClient
   }
 
 
-  /** Return the port used to connect to our server.
-   * @return The server's listening port. */
-  public
-  int
-  getPort()
-  {
-    return itsPort;
-  }
-
-
   /** Return the current connection status.
    * @return Connection status, True if connected, False if disconnected. */
   public synchronized
@@ -165,22 +155,6 @@ MoniCAClientCustom extends MoniCAClient
   isConnected()
   {
     return itsConnected;
-  }
-
-
-  /** Return a short descriptive string.
-   * @return A short descriptive string. */
-  public
-  String
-  toString()
-  {
-    String res = itsServer + ":" + itsPort + "(";
-    if (isConnected()) {
-      res += "connected)";
-    } else {
-      res += "disconnected)";
-    }
-    return res;
   }
 
 

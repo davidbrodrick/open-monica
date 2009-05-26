@@ -48,7 +48,7 @@ public abstract class MoniCAClient {
   /** Get the points with the specified names. The populateClientFields method should
    * be invoked on each point prior to returning the result.
    * @param pointnames Vector containing point names to be retrieved.
-   * @return Array containing all point definitions. */
+   * @return Vector containing all point definitions. */
   public abstract Vector<PointDescription> getPoints(Vector<String> pointnames) throws Exception;
   
   /** Get all of the points on the system.
@@ -97,7 +97,7 @@ public abstract class MoniCAClient {
 
   /** Return the latest data for all of the named points.
    * @param pointnames Points to obtain data for.
-   * @return Array of latest values in same order as argument. */
+   * @return Vector of latest values in same order as argument. */
   public abstract Vector<PointData> getData(Vector<String> pointnames) throws Exception;
 
   /** Return archived data for the given point.

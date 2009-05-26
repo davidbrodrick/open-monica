@@ -128,17 +128,20 @@ public class MoniCAClientIce extends MoniCAClient {
   public boolean addPoints(Vector<PointDescription> newpoints, String username, String passwd)
   throws Exception
   {
+    boolean res = false;
     try {
       if (!isConnected()) {
         connect();
       }
-      
+      PointDescriptionIce[] icepoints = MoniCAIceUtil.getPointDescriptionsAsIce(newpoints);
+//    Need to encrypt username and password      
+      res = itsIceClient.addPoints(icepoints, username, passwd);
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.addPoints:" + e.getClass());
       disconnect();
       throw e;
     } 
-    return false;
+    return res;
   }
   
   /** Return the latest data for all of the named points.
@@ -210,18 +213,24 @@ public class MoniCAClientIce extends MoniCAClient {
   public boolean setData(Vector<String> pointnames, Vector<PointData> values, String username, String passwd)
   throws Exception  
   {
+    boolean res = false;
     try {
       if (!isConnected()) {
         connect();
       }
-
-      
+      String[] namesarray = new String[pointnames.size()];
+      for (int i=0; i<pointnames.size(); i++) {
+        namesarray[i] = pointnames.get(i);
+      }
+      PointDataIce[] icevalues = MoniCAIceUtil.getPointDataAsIce(values);
+//    Need to encrypt username and password
+      res = itsIceClient.setData(namesarray, icevalues, username, passwd);
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.setData:" + e.getClass());
       disconnect();
       throw e;
     } 
-    return false;
+    return res;
   }
 
   /** Return all SavedSetups for client Objects from the server.
@@ -263,18 +272,20 @@ public class MoniCAClientIce extends MoniCAClient {
   public boolean addSetup(SavedSetup setup, String username, String passwd)
   throws Exception
   {
+    boolean res = false;
     try {
       if (!isConnected()) {
         connect();
       }
-
-      
+      String stringsetup = setup.toString();
+//    Need to encrypt username and password      
+      res = itsIceClient.addSetup(stringsetup, username, passwd);
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.addSetup:" + e.getClass());
       disconnect();
       throw e;
     }
-    return false;
+    return res;
   }
 
   /** Return an RSA encryptor that uses the servers public key and modulus.
