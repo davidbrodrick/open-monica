@@ -81,7 +81,7 @@ MonitorMain
     //Create the network server interfaces
     new MoniCAServerCustom();
     new MoniCAServerASCII();
-    //MoniCAIceUtil.startIceServer();
+    MoniCAIceI.startIceServer();
 
     //Start the data collection
     ExternalSystem.startAll();

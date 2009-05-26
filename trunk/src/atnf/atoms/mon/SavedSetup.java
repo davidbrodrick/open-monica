@@ -95,21 +95,21 @@ implements NamedObject, Comparable
   escape(String arg)
   {
     String res = "";
-    for (int i=0; i<arg.length(); i++) {
-      if (i+1<arg.length() && arg.substring(i,i+2).equals("\\'")) {
-        //Need to escape the escape..
-	res += "\\\\'";
+    for (int i = 0; i < arg.length(); i++) {
+      if (i + 1 < arg.length() && arg.substring(i, i + 2).equals("\\'")) {
+        // Need to escape the escape..
+        res += "\\\\'";
         i++;
-      } else if (arg.substring(i, i+1).equals("`")) {
-        //Need to escape the reserved character
-	res += "\\'";
-      } else if (arg.substring(i, i+1).equals("\n")) {
-	res += "\\n";
-      } else if (arg.substring(i, i+1).equals("\r")) {
-	res += "\\r";
+      } else if (arg.substring(i, i + 1).equals("`")) {
+        // Need to escape the reserved character
+        res += "\\'";
+      } else if (arg.substring(i, i + 1).equals("\n")) {
+        res += "\\n";
+      } else if (arg.substring(i, i + 1).equals("\r")) {
+        res += "\\r";
       } else {
-	//Add this character to the result as is
-	res += arg.substring(i, i+1);
+        // Add this character to the result as is
+        res += arg.substring(i, i + 1);
       }
     }
     return res;

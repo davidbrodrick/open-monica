@@ -14,8 +14,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.tree.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.comms.MoniCAClient;
-import atnf.atoms.mon.comms.MoniCAClientCustom;
+import atnf.atoms.mon.comms.*;
 import atnf.atoms.mon.gui.*;
 import atnf.atoms.mon.util.*;
 
@@ -141,9 +140,9 @@ public class MonClientUtil
     }
 
     try {
-      System.out.print("MonClientUtil: Connecting to host \"" + host + "\"");
-      theirServer = new MoniCAClientCustom(host);
-      System.out.println("\tOK");
+      System.out.println("MonClientUtil: Connecting to host \"" + host + "\"");
+      //theirServer = new MoniCAClientCustom(host);
+      theirServer = new MoniCAClientIce(host);
       theirSetups = new Hashtable<String,Hashtable<String,SavedSetup>>();
       addServerSetups(); //Get all SavedSetups from server
       addLocalSetups();  //Also load any which have been saved locally
@@ -156,17 +155,20 @@ public class MonClientUtil
         boolean connected=false;
         if (chosenserver.get(2)!=null) {
           try {
+            //Choose a random local port
+            int localport = 8060 + (new Random()).nextInt()%2000;
+            //Get the remote port
+            int remoteport = MoniCAClientIce.getDefaultPort();
+            
             new SecureTunnel((String)chosenserver.get(1),
                                   (String)chosenserver.get(2),
-                                  8050, 8050);
-
-            System.out.print("MonClientUtil: Connecting to \"localhost\"");
-            theirServer = new MoniCAClientCustom("localhost");
-            System.out.println("\tOK");
+                                  localport, remoteport);
+            System.out.println("MonClientUtil: Connecting to \"localhost\"");
+            //theirServer = new MoniCAClientCustom("localhost");
+            theirServer = new MoniCAClientIce("localhost", localport);
             theirSetups = new Hashtable<String,Hashtable<String,SavedSetup>>();
             addServerSetups(); //Get all SavedSetups from server
             addLocalSetups();  //Also load any which have been saved locally
-
             connected=true;
           } catch (Exception f) {}
         }
@@ -201,22 +203,7 @@ public class MonClientUtil
     return theirServer;
   }
 
-  /** Get a reference to the network connection to the server. */
-  public static synchronized
-  void
-  setServer(String newserver)
-  throws Exception
-  {
-    theirServer = new MoniCAClientCustom(newserver);
-
-    theirSetups = new Hashtable<String,Hashtable<String,SavedSetup>>();
-    //Need to load setups from server
-    addServerSetups();
-    //reload any which have been saved locally
-    addLocalSetups();  
-  }
-
-  
+ 
   /** Cache the list of points available from the server. */
   private static
   void
