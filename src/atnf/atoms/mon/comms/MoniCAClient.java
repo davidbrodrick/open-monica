@@ -189,8 +189,8 @@ public abstract class MoniCAClient {
   public abstract boolean addSetup(SavedSetup setup, String username, String passwd) throws Exception;
 
   /** Return an RSA encryptor that uses the servers public key and modulus.
-   * this will allow us to encrypt information that can only be encrypted by
-   * the monitor server. */
+   * This will allow us to encrypt information that can only be encrypted by
+   * the server. */
   public abstract RSA getEncryptor() throws Exception;
 
   /** Get the current time on the server. */

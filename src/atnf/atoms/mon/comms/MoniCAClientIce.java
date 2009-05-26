@@ -8,6 +8,7 @@
 
 package atnf.atoms.mon.comms;
 
+import java.math.BigInteger;
 import java.util.Vector;
 
 import atnf.atoms.mon.*;
@@ -134,8 +135,11 @@ public class MoniCAClientIce extends MoniCAClient {
         connect();
       }
       PointDescriptionIce[] icepoints = MoniCAIceUtil.getPointDescriptionsAsIce(newpoints);
-//    Need to encrypt username and password      
-      res = itsIceClient.addPoints(icepoints, username, passwd);
+      // Encrypt the username/password
+      RSA encryptor = getEncryptor();      
+      String encname = encryptor.encrypt(username);
+      String encpass = encryptor.encrypt(passwd);      
+      res = itsIceClient.addPoints(icepoints, encname, encpass);
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.addPoints:" + e.getClass());
       disconnect();
@@ -223,8 +227,11 @@ public class MoniCAClientIce extends MoniCAClient {
         namesarray[i] = pointnames.get(i);
       }
       PointDataIce[] icevalues = MoniCAIceUtil.getPointDataAsIce(values);
-//    Need to encrypt username and password
-      res = itsIceClient.setData(namesarray, icevalues, username, passwd);
+      // Encrypt the username/password
+      RSA encryptor = getEncryptor();      
+      String encname = encryptor.encrypt(username);
+      String encpass = encryptor.encrypt(passwd);
+      res = itsIceClient.setData(namesarray, icevalues, encname, encpass);
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.setData:" + e.getClass());
       disconnect();
@@ -278,8 +285,11 @@ public class MoniCAClientIce extends MoniCAClient {
         connect();
       }
       String stringsetup = setup.toString();
-//    Need to encrypt username and password      
-      res = itsIceClient.addSetup(stringsetup, username, passwd);
+      // Encrypt the username/password
+      RSA encryptor = getEncryptor();      
+      String encname = encryptor.encrypt(username);
+      String encpass = encryptor.encrypt(passwd);
+      res = itsIceClient.addSetup(stringsetup, encname, encpass);
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.addSetup:" + e.getClass());
       disconnect();
@@ -289,23 +299,27 @@ public class MoniCAClientIce extends MoniCAClient {
   }
 
   /** Return an RSA encryptor that uses the servers public key and modulus.
-   * this will allow us to encrypt information that can only be encrypted by
-   * the monitor server. */
+   * This will allow us to encrypt information that can only be encrypted by
+   * the server. */
   public RSA getEncryptor()
   throws Exception
   {
+    RSA res = null;
     try {
       if (!isConnected()) {
         connect();
       }
-
-      
+      //Get the public key and modulus
+      String[] a = itsIceClient.getEncryptionInfo();
+      BigInteger e = new BigInteger(a[0]);
+      BigInteger n = new BigInteger(a[1]);
+      res = new RSA(n, e);
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.getEncryptor:" + e.getClass());
       disconnect();
       throw e;
     }
-    return null;
+    return res;
   }
 
   /** Get the current time on the server. */
