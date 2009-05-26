@@ -32,6 +32,22 @@ public class MoniCAIceUtil {
     return res;
   }
   
+  
+  /** Convert the points to their Ice representation. */
+  public static 
+  PointDescriptionIce[] 
+  getPointDescriptionsAsIce(Vector<PointDescription> points)
+  {
+    if (points==null || points.size()==0) {
+      return new PointDescriptionIce[0];
+    }
+    PointDescriptionIce[] res = new PointDescriptionIce[points.size()];
+    for (int i=0; i<points.size(); i++) {
+      res[i]=getPointDescriptionAsIce(points.get(i));
+    }
+    return res;
+  }
+  
   /** Convert the point to its Ice representation. */
   public static 
   PointDescriptionIce 
