@@ -88,12 +88,8 @@ implements NamedObject, Comparable
   }
 
 
-
   /** Escape any reserved characters. */
-  protected static
-  String 
-  escape(String arg)
-  {
+  protected static String escape(String arg) {
     String res = "";
     for (int i = 0; i < arg.length(); i++) {
       if (i + 1 < arg.length() && arg.substring(i, i + 2).equals("\\'")) {
@@ -117,29 +113,26 @@ implements NamedObject, Comparable
 
 
   /** Unescape any reserved character sequences. */
-  protected static
-  String 
-  unescape(String arg)
-  {
+  protected static String unescape(String arg) {
     String res = "";
-    for (int i=0; i<arg.length(); i++) {
-      if (i+2<arg.length() && arg.substring(i,i+3).equals("\\\\'")) {
-        //Need to unescape an escape..
-	res += "\\'";
-	i+=2;
-      } else if (i+1<arg.length() && arg.substring(i, i+2).equals("\\'")) {
-	//Need to replace the escape with the reserved character
-	res += "`";
+    for (int i = 0; i < arg.length(); i++) {
+      if (i + 2 < arg.length() && arg.substring(i, i + 3).equals("\\\\'")) {
+        // Need to unescape an escape..
+        res += "\\'";
+        i += 2;
+      } else if (i + 1 < arg.length() && arg.substring(i, i + 2).equals("\\'")) {
+        // Need to replace the escape with the reserved character
+        res += "`";
         i++;
-      } else if (i+1<arg.length() && arg.substring(i, i+2).equals("\\n")) {
-	res += "\n";
+      } else if (i + 1 < arg.length() && arg.substring(i, i + 2).equals("\\n")) {
+        res += "\n";
         i++;
-      } else if (i+1<arg.length() && arg.substring(i, i+2).equals("\\r")) {
-	res += "\r";
+      } else if (i + 1 < arg.length() && arg.substring(i, i + 2).equals("\\r")) {
+        res += "\r";
         i++;
       } else {
-	//Add this character to the result as is
-	res += arg.substring(i, i+1);
+        // Add this character to the result as is
+        res += arg.substring(i, i + 1);
       }
     }
     return res;

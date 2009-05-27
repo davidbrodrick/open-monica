@@ -21,7 +21,11 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   }
 
   /** Add the new points to the system. */
-  public boolean addPoints(PointDescriptionIce[] newpoints, String username, String passwd, Ice.Current __current) {
+  public boolean addPoints(PointDescriptionIce[] newpoints, String encname, String encpass, Ice.Current __current) {
+    //Decrypt the user's credentials
+    String username = MonitorMap.decrypt(encname);
+    String password = MonitorMap.decrypt(encpass);
+    //TODO: Currently does nothing    
     return false;
   }
 
@@ -52,7 +56,11 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   }
 
   /** Add the new setup to the system. */
-  public boolean addSetup(String setup, String username, String passwd, Ice.Current __current) {
+  public boolean addSetup(String setup, String encname, String encpass, Ice.Current __current) {
+    //Decrypt the user's credentials
+    String username = MonitorMap.decrypt(encname);
+    String password = MonitorMap.decrypt(encpass);
+    //TODO: Currently does nothing
     return false;
   }
 
@@ -96,7 +104,11 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   }
 
   /** Set new values for the specified points. */
-  public boolean setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, Ice.Current __current) {
+  public boolean setData(String[] names, PointDataIce[] rawvalues, String encname, String encpass, Ice.Current __current) {
+    //Decrypt the user's credentials
+    String username = MonitorMap.decrypt(encname);
+    String password = MonitorMap.decrypt(encpass);
+    //TODO: Currently does nothing    
     return false;
   }
 
