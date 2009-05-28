@@ -314,17 +314,22 @@ implements Runnable
    getData(PointDescription[] points)
    throws Exception
    {
-     for (int i=0; i<points.length; i++) {
-       System.err.println("ExternalSystem (" + itsName + "): Unsupported monitor request from " + points[i].getFullName());
-     }
+     MonitorMap.logger.warning("ExternalSystem (" + itsName + "): Received unsupported monitor requests: stopping collection");
+     stopCollection();
    }
 
+   /** Write a value to the device.
+    * 
+    * @param desc The point that requires the write operation.
+    * @param pd The value that needs to be written.
+    * @throws Exception
+    */
    public
    void
    putData(PointDescription desc, PointData pd)
    throws Exception
    {
-     System.err.println("ExternalSystem (" + itsName + "): Unsupported control request from " + desc.getFullName());
+     MonitorMap.logger.warning("ExternalSystem (" + itsName + "): Received unsupported control request from " + desc.getFullName());
    }
    
    /** Initialise all the ExternalSystems declared in a file.
@@ -357,10 +362,8 @@ implements Runnable
              Constructor con = newes.getConstructor(new Class[]{String[].class});
              con.newInstance(new Object[]{classArgs});
            } catch (Exception f) {
-             MonitorMap.logger.error("ExternalSystem: Cannot Initialise " + lines[i]);
-             System.err.println("ExternalSystem: Cannot Initialise \"" + lines[i] + "\" defined on line " 
-                                + (i+1) + ": " + f + f.getMessage());
-             f.printStackTrace();
+             MonitorMap.logger.error("ExternalSystem: Cannot Initialise \"" + lines[i] + "\" defined on line " 
+                                + (i+1) + ": " + f);
            }
          }
        }

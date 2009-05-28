@@ -33,22 +33,19 @@ extends Transaction
   {
     super(parent, specifics);
 
-    String[] tokens=specifics.split("\"");
-    assert tokens.length>2;
+    String[] tokens=MonitorUtils.getTokens(specifics);
+    assert tokens.length>1;
 
     //Replace the macro $1 with source name if present
-    if (tokens[1].indexOf("$1")!=-1) {
-      tokens[1]=MonitorUtils.replaceTok(tokens[1], parent.getSource());
+    if (tokens[0].indexOf("$1")!=-1) {
+      tokens[0]=MonitorUtils.replaceTok(tokens[1], parent.getSource());
     }
     //Set the channel (used to determine which ExternalSystem to use)
-    setChannel(tokens[1]);
+    setChannel(tokens[0]);
 
     //Add the remaining strings to our list
-    for (int i=3; i<tokens.length; i++) {
-      String thisstring=tokens[i].trim();
-      if (!thisstring.equals("")) {
-        itsStrings.add(thisstring);
-      }
+    for (int i=2; i<tokens.length; i++) {
+      itsStrings.add(tokens[i].trim());
     }
   }
     

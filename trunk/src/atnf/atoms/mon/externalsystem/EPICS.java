@@ -12,6 +12,7 @@ import java.util.*;
 
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
+import atnf.atoms.mon.transaction.*;
 
 import gov.aps.jca.*;
 import gov.aps.jca.dbr.*;
@@ -30,7 +31,7 @@ extends ExternalSystem
   /** JCA context. */
   Context itsContext = null;
   
-  /** Mapping between PV's and monitor points. */
+  /** Mapping between PV names and MoniCA point names. */
   HashMap<String,String> itsPVPointMap = new HashMap<String,String>();
   
   /** Mapping between PV names and Channels. */
@@ -38,28 +39,8 @@ extends ExternalSystem
 
   public EPICS(String[] args)
   {
-    //Try to read the list of points to monitor
-    InputStream mapfile = EPICS.class.getClassLoader().getResourceAsStream(args[0]);
-    System.err.println("EPICS: Point map is " + mapfile);
-    try {
-      BufferedReader reader = new BufferedReader(new InputStreamReader(mapfile));
-      while (reader.ready()) {
-        String thisline=reader.readLine();
-        if (thisline.length()==0 || thisline.startsWith("#")) {
-          continue; //Comment line or blank line
-        }
-        StringTokenizer st=new StringTokenizer(thisline);
-        if (st.countTokens()!=2) {
-          MonitorMap.logger.warning("EPICS: Parse error with line \"" + thisline + "\" of " + mapfile);
-          continue;
-        }
-        itsPVPointMap.put(st.nextToken(), st.nextToken());
-      }
-      reader.close();
-    } catch (Exception e) {
-      MonitorMap.logger.error("EPICS: Could not read PV/point map " + mapfile);
-    }
-
+    super("EPICS");
+    
     //Get the JCALibrary instance.
     JCALibrary jca=JCALibrary.getInstance();
     try {
@@ -76,37 +57,77 @@ extends ExternalSystem
     } catch (Exception e) {
       MonitorMap.logger.error("EPICS: Constructor: Connecting Channels: " + e.getClass() + " " + e.getMessage());
     }
-    MonitorMap.logger.checkpoint("EPICS: Initialised with \"" + itsPVPointMap.size() + "\" monitor points");
   }
 
-
-  /** Dummy connect method. */
-  public
-  boolean
-  connect()
+  /** Poll new values from EPICS. */
+  protected
+  void
+  getData(PointDescription[] points)
   throws Exception
   {
-    itsConnected=true;
-    return itsConnected;
+    //Process each point in turn
+    for (int i=0; i<points.length; i++) {
+      //Get the appropriate Transaction(s) and process each PV
+      Vector<Transaction> thesetrans = getMyTransactions(points[i].getInputTransactions());
+      for (int j=0; j<thesetrans.size(); j++) {
+        //Get this Transaction which contains the PV name
+        TransactionEPICS thistrans = (TransactionEPICS)thesetrans.get(j);
+        String pvname = thistrans.getPVName();
+        //Lookup the channel connected to this PV
+        Channel thischan = itsChannelMap.get(pvname);
+        if (thischan==null) {
+          //We haven't connected to this channel yet. Try to connect.
+          thischan=itsContext.createChannel(pvname);
+          try {
+            itsContext.pendIO(5.0);
+            itsChannelMap.put(pvname, thischan);
+          } catch (Exception e) {
+            //Failed to connect: IOC probably isn't running yet
+            thischan.destroy();
+            thischan=null;
+          }
+        }
+        Object newval = null;
+        if (thischan!=null) {
+          try {
+            DBR dbr = thischan.get();
+            if (dbr != null) {
+              newval = processDBR(dbr, pvname);
+            }
+          } catch (Exception e) {
+            MonitorMap.logger.error("EPICS.getData: " + pvname + ": " + e.getClass() + ": " + e.getMessage());
+          }
+        }
+        // Fire new data as an event on this monitor point
+        PointData pd = new PointData(itsName, newval);
+        points[i].firePointEvent(new PointEvent(this, pd, true));
+      }
+    }
   }
 
-
-  /** Dummy disconnect method. */
+  /** Send a value from MoniCA to EPICS. */ 
   public
   void
-  disconnect()
+  putData(PointDescription desc, PointData pd)
   throws Exception
   {
-    itsConnected  = false;
+    
+    System.err.println("EPICS: Unsupported control request from " + desc.getFullName());
   }
-
+  
+  /** Register the specified point and PV name pair to receive monitor updates. */
+  public void registerMonitor(String pointname, String pvname)
+  {
+    itsPVPointMap.put(pvname, pointname);
+    itsChannelMap.put(pvname, null);
+  }
 
   /** Nested threaded class to connect Channels as the IOCs and monitor points become available. */
   protected class ChannelConnector
   extends Thread {
     public void run() {
-      //Thread continues to run until all channels connected
-      while (itsPVPointMap.size()>itsChannelMap.size()) {
+      //Thread continues to run connecting any points which require it
+      while (true) {
         Iterator allpvs = itsPVPointMap.keySet().iterator();
         while (allpvs.hasNext()) {
           //Get the name of the next PV
@@ -115,7 +136,7 @@ extends ExternalSystem
           if (itsChannelMap.get(thispv)!=null) {
             continue;
           }
-          //Don't try connect if monitor point hasn't been instantiated yet
+          //Don't try connect if point hasn't been instantiated yet
           if (PointDescription.getPoint((String)itsPVPointMap.get(thispv))==null) {
             continue;
           }
@@ -177,14 +198,19 @@ extends ExternalSystem
       itsName=(String)itsPVPointMap.get(itsPV);
       itsMonitorPoint=PointDescription.getPoint(itsName);
       
-      //Try to perform a get on the channel
-      try {
-        DBR dbr=itsChannel.get();
-        if (dbr!=null) {
-          processDBR(dbr);
+      if (itsMonitorPoint != null) {
+        // Try to perform an initial get on the channel
+        try {
+          DBR dbr = itsChannel.get();
+          if (dbr != null) {
+            Object newval = processDBR(dbr, itsPV);
+            // Fire new data as an event on our monitor point
+            PointData pd = new PointData(itsName, newval);
+            itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
+          }
+        } catch (Exception e) {
+          MonitorMap.logger.error("EPICS:MonUpdater: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
         }
-      } catch (Exception e) {
-        System.err.println("EPICS:MonUpdater: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
       }
     }
     
@@ -195,7 +221,15 @@ extends ExternalSystem
     {
       try {
         if (ev.getStatus()==CAStatus.NORMAL && ev.getDBR()!=null) {
-          processDBR(ev.getDBR());
+          Object newval = processDBR(ev.getDBR(), itsPV);
+          //Fire new data as an event on our monitor point
+          PointData pd=new PointData(itsName, newval);
+          if (itsMonitorPoint==null) {
+            itsMonitorPoint=PointDescription.getPoint(itsName);
+          }
+          if (itsMonitorPoint!=null) {
+            itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
+          }        
         } else {
           //Fire null data to indicate the problem
           PointData pd=new PointData(itsName);
@@ -209,64 +243,45 @@ extends ExternalSystem
         MonitorMap.logger.warning("EPICS: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
       }
     }    
-    
-    /** Process a new DBR. */
-    public
-    void
-    processDBR(DBR dbr)
-    {
-      try {
-        int count=dbr.getCount();
-        Object rawval=dbr.getValue();
-        
-        for (int i=0; i<count; i++) {
-          //Process each new value
-          Object newval=null;        
-          //Have to switch on type, don't think there's any simpler way
-          //to get the individual data as an object type.
-          if (dbr.getType()==DBRType.INT) {
-            newval=new Integer(((int[])rawval)[i]);
-          } else if (dbr.getType()==DBRType.BYTE) {
-            newval=new Integer(((byte[])rawval)[i]);
-          } else if (dbr.getType()==DBRType.SHORT) {
-            newval=new Integer(((short[])rawval)[i]);
-          } else if (dbr.getType()==DBRType.FLOAT) {
-            newval=new Float(((float[])rawval)[i]);
-          } else if (dbr.getType()==DBRType.DOUBLE) {
-            newval=new Double(((double[])rawval)[i]);
-          } else if (dbr.getType()==DBRType.STRING) {
-            newval=((String[])rawval)[i];
-          } else if (dbr.getType()==DBRType.ENUM) {
-            newval=new Integer(((short[])rawval)[i]);
-          } else {
-            System.err.println("EPICS:processDBR: " + itsPV + ": Unhandled DBR type: " + dbr.getType());
-            MonitorMap.logger.warning("EPICS: " + itsPV + ": Unhandled DBR type: " + dbr.getType());
-          }
-
-          //System.out.println(itsPV + "\t" + newval);
-
-          //Fire new data as an event on our monitor point
-          PointData pd=new PointData(itsName, newval);
-          if (itsMonitorPoint==null) {
-            itsMonitorPoint=PointDescription.getPoint(itsName);
-          }
-          if (itsMonitorPoint!=null) {
-            itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
-          }
-        }
-      } catch (Exception e) {
-        System.err.println("EPICS:processDBR: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
-        MonitorMap.logger.warning("EPICS: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
-        e.printStackTrace();
-      }
-    }
   };  
   
-  /** Collect data and display to STDOUT. */
-  public final static
-  void
-  main(String[] argv)
+  /** Decode the value from an EPICS DBR. */
+  public
+  Object
+  processDBR(DBR dbr, String pvname)
   {
-    new EPICS(null);
-  }
+    Object newval = null;
+    try {
+      int count = dbr.getCount();
+      if (count > 1) {
+        MonitorMap.logger.warning("EPICS.processDBR: " + pvname + ": >1 value received");
+      }
+      Object rawval = dbr.getValue();
+      // Have to switch on type, don't think there's any simpler way
+      // to get the individual data as an object type.
+      if (dbr.getType() == DBRType.INT) {
+        newval = new Integer(((int[]) rawval)[0]);
+      } else if (dbr.getType() == DBRType.BYTE) {
+        newval = new Integer(((byte[]) rawval)[0]);
+      } else if (dbr.getType() == DBRType.SHORT) {
+        newval = new Integer(((short[]) rawval)[0]);
+      } else if (dbr.getType() == DBRType.FLOAT) {
+        newval = new Float(((float[]) rawval)[0]);
+      } else if (dbr.getType() == DBRType.DOUBLE) {
+        newval = new Double(((double[]) rawval)[0]);
+      } else if (dbr.getType() == DBRType.STRING) {
+        newval = ((String[]) rawval)[0];
+      } else if (dbr.getType() == DBRType.ENUM) {
+        newval = new Integer(((short[]) rawval)[0]);
+      } else {
+        MonitorMap.logger.warning("EPICS.processDBR: " + pvname + ": Unhandled DBR type: " + dbr.getType());
+      }
+
+      System.out.println("EPICS.processDBR: " + pvname + "\t" + newval);
+    } catch (Exception e) {
+      MonitorMap.logger.warning("EPICS: " + pvname + ": " + e.getClass() + ": " + e.getMessage());
+      e.printStackTrace();
+    }
+    return newval;
+  }  
 }

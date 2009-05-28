@@ -657,7 +657,7 @@ implements ActionListener, NamedObject, Comparable
     //Assign to appropriate ExternalSystem(s) for data collection
     for (int i = 0; i < itsInputTransactions.length; i++) {
       Transaction t = itsInputTransactions[i];
-      if (t != null && !t.getChannel().equals("NONE")) {
+      if (t != null && t.getChannel() != null && !t.getChannel().equals("NONE")) {
         ExternalSystem ds = ExternalSystem.getExternalSystem(t.getChannel());
         if (ds != null) {
           ds.addPoint(this);
@@ -744,7 +744,7 @@ implements ActionListener, NamedObject, Comparable
       // Extract appropriate information and make point/s
       String[] toks = MonitorUtils.getTokens(line);
       if (toks.length!=NUMTOKENS) {
-        return null;
+        throw new Exception("Expect " + NUMTOKENS + " tokens, found " + toks.length);
       }
       
       String[] pointNameArray = getTokens(toks[0]);
@@ -778,6 +778,7 @@ implements ActionListener, NamedObject, Comparable
       }
 
     } catch (Exception e) {
+      e.printStackTrace();
       result = null;
     }
     return result;
