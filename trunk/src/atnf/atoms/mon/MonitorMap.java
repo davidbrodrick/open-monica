@@ -29,10 +29,6 @@ public class MonitorMap
 
    /** System logger. */
    public static final Logger logger = new Logger("MoniCA");
-
-   /** Handles RSA encryption of user/password pairs. */
-   private static RSA itsRSA = new RSA(1024);
-
    
    /** Specify the archiver to be used for archiving all data. */
    public static synchronized void setPointArchiver(PointArchiver archiver)
@@ -55,30 +51,6 @@ public class MonitorMap
       return Runtime.getRuntime().freeMemory();
    }
       
-   /** Return the public RSA key. */
-   public static String getPublicKey()
-   {
-     return new String(itsRSA.getE().toString());
-   }
-
-   /** Return the RSA modulus. */
-   public static String getModulus()
-   {
-     return new String(itsRSA.getN().toString());
-   }
-   
-   /** Generate a new set of RSA encryption keys. */
-   public static void generateNewKeys()
-   {
-     itsRSA.generateKeys();
-   }
-
-   /** Decrypt the given ciphertext. */
-   public static String decrypt(String ciphertext)
-   {
-     return itsRSA.decrypt(ciphertext);
-   }
-
    /** Add the new SavedSetup to the system. */
    public static synchronized void addSetup(SavedSetup setup)
    {
