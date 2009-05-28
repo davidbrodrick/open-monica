@@ -122,15 +122,13 @@ extends MonitorPolicy
         Transaction_con = Class.forName(type).getConstructor(new Class[]{PointDescription.class, String.class});
       } catch (Exception f) {
         //Supplied name was not a full path
-        //Look in atnf.atoms.mon.translation package.
+        //Look in atnf.atoms.mon.transaction package.
         Transaction_con = Class.forName("atnf.atoms.mon.transaction.Transaction"+type).getConstructor(new Class[]{PointDescription.class, String.class});
       }
       result = (Transaction)(Transaction_con.newInstance(new Object[]{parent, specifics}));
     } catch (Exception e) {
-      System.err.println("ERROR in Transaction.factory for " + parent.getName());
-      System.err.println("\tUNABLE TO FIND CONSTRUCTOR FOR CLASS " + type);
-      System.err.println("\tSubstituting class NONE rather than crash...");
-      result = new TransactionNONE(parent, "");
+      MonitorMap.logger.fatal("Transaction.factory: " + type + ", for " + parent.getName() + ": " + e.getClass() + " " + e.getMessage());
+      System.exit(1);
     }
 
     result.setStringEquiv(arg);
