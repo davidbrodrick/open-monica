@@ -20,11 +20,14 @@ import atnf.atoms.mon.util.*;
  * @author Le Cuong Nguyen
  * @version $Id: KeyKeeper.java,v 1.2 2004/02/13 05:14:01 bro764 Exp $
  */
-class KeyKeeper
+public class KeyKeeper
 implements Runnable
 {
   /** Should the thread keep running <tt>True</tt> or stop <tt>False</tt>. */
   protected boolean itsRunning = true;
+  
+  /** Handles RSA encryption. */
+  private static RSA theirRSA = new RSA(1024);
 
   /** Create a new KeyKeeper thread. */
   public
@@ -34,19 +37,38 @@ implements Runnable
     t.start();
   }
 
+  /** Return the public RSA key. */
+  public static String getPublicKey()
+  {
+    return new String(theirRSA.getE().toString());
+  }
 
+  /** Return the RSA modulus. */
+  public static String getModulus()
+  {
+    return new String(theirRSA.getN().toString());
+  }
+
+  /** Decrypt the given ciphertext. */
+  public static String decrypt(String ciphertext)
+  {
+    return theirRSA.decrypt(ciphertext);
+  }
+  
   /** Main loop for KeyKeeper thread. */
   public
   void
   run()
   {
     while (itsRunning) {
-      MonitorMap.generateNewKeys();
+      theirRSA.generateKeys();
       try {
-	synchronized(this) {
-	  this.wait(Long.parseLong(MonitorConfig.getProperty("KeyLife")));
-	}
-      } catch (Exception e) { e.printStackTrace(); }
+        synchronized (this) {
+          this.wait(Long.parseLong(MonitorConfig.getProperty("KeyLife")));
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 }

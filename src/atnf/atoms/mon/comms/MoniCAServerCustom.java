@@ -182,8 +182,8 @@ implements Runnable
     ArrayList points = PointDescription.parseLine((String)req.Args[0]);
 
     //Decrypt and check the users credentials
-    String username = MonitorMap.decrypt((String)req.Args[1]);
-    String password = MonitorMap.decrypt((String)req.Args[2]);
+    String username = KeyKeeper.decrypt((String)req.Args[1]);
+    String password = KeyKeeper.decrypt((String)req.Args[2]);
     if (!atnf.atoms.mon.util.Authenticator.check(username, password)) {
       return null;
     }
@@ -253,8 +253,8 @@ implements Runnable
     }
 
     //Decrypt and check the users credentials
-    String username = MonitorMap.decrypt((String)req.Args[2]);
-    String password = MonitorMap.decrypt((String)req.Args[3]);
+    String username = KeyKeeper.decrypt((String)req.Args[2]);
+    String password = KeyKeeper.decrypt((String)req.Args[3]);
     if (!atnf.atoms.mon.util.Authenticator.check(username, password)) {
       return null;
     }
@@ -299,9 +299,9 @@ implements Runnable
     }
 
     //Decrypt and check the users credentials
-    String username = MonitorMap.decrypt((String)req.Args[0]);
+    String username = KeyKeeper.decrypt((String)req.Args[0]);
     System.err.println("DECRYPTED USERNAME = " + username);
-    String password = MonitorMap.decrypt((String)req.Args[1]);
+    String password = KeyKeeper.decrypt((String)req.Args[1]);
     if (!atnf.atoms.mon.util.Authenticator.check(username, password)) {
       return null;
     }
@@ -346,8 +346,8 @@ implements Runnable
   getPublicKey()
   {
     String[] a = new String[2];
-    a[0] = MonitorMap.getPublicKey();
-    a[1] = MonitorMap.getModulus();
+    a[0] = KeyKeeper.getPublicKey();
+    a[1] = KeyKeeper.getModulus();
     return new PointData("", a);
   }
 

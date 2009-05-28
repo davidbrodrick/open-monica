@@ -23,8 +23,8 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   /** Add the new points to the system. */
   public boolean addPoints(PointDescriptionIce[] newpoints, String encname, String encpass, Ice.Current __current) {
     //Decrypt the user's credentials
-    String username = MonitorMap.decrypt(encname);
-    String password = MonitorMap.decrypt(encpass);
+    String username = KeyKeeper.decrypt(encname);
+    String password = KeyKeeper.decrypt(encpass);
     //TODO: Currently does nothing    
     return false;
   }
@@ -58,8 +58,8 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   /** Add the new setup to the system. */
   public boolean addSetup(String setup, String encname, String encpass, Ice.Current __current) {
     //Decrypt the user's credentials
-    String username = MonitorMap.decrypt(encname);
-    String password = MonitorMap.decrypt(encpass);
+    String username = KeyKeeper.decrypt(encname);
+    String password = KeyKeeper.decrypt(encpass);
     //TODO: Currently does nothing
     return false;
   }
@@ -106,8 +106,8 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   /** Set new values for the specified points. */
   public boolean setData(String[] names, PointDataIce[] rawvalues, String encname, String encpass, Ice.Current __current) {
     //Decrypt the user's credentials
-    String username = MonitorMap.decrypt(encname);
-    String password = MonitorMap.decrypt(encpass);
+    String username = KeyKeeper.decrypt(encname);
+    String password = KeyKeeper.decrypt(encpass);
     //TODO: Currently does nothing    
     return false;
   }
@@ -115,8 +115,8 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   /** Return the key and modulus required to send encrypted data to the server. */
   public String[] getEncryptionInfo(Ice.Current __current) {
     String[] a = new String[2];
-    a[0] = MonitorMap.getPublicKey();
-    a[1] = MonitorMap.getModulus();
+    a[0] = KeyKeeper.getPublicKey();
+    a[1] = KeyKeeper.getModulus();
     return a;
   }
 
