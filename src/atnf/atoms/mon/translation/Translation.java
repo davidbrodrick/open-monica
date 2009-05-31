@@ -76,7 +76,7 @@ extends MonitorPolicy
 {
    protected String[] itsInit = null;
    protected PointDescription itsParent = null;
-//   protected MonitorTimer itsTimer = new MonitorTimer(20, this);
+//   protected MonitorTimer itsSubscriptionTimer = new MonitorTimer(20, this);
    
    /** Override this. Use format fullname, shortname, argname, argtype, argname, argtype, ...
    */
@@ -88,7 +88,7 @@ extends MonitorPolicy
       itsInit = init;
       itsParent = parent;
       //itsParent.addPointListener(this);
-      //itsTimer.setRepeats(true);
+      //itsSubscriptionTimer.setRepeats(true);
    }
 
 
