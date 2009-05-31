@@ -49,8 +49,7 @@ extends TranslationListener
     super(parent, init);
 
     if (init.length<itsNumPoints+2) {
-      System.err.println("TranslationCalculation: INSUFFICIENT ARGUMENTS: for "
-                         + parent.getSource() + "." + parent.getName());
+      System.err.println("TranslationCalculation: INSUFFICIENT ARGUMENTS: for " + parent.getFullName());
       return;
     }
 
@@ -82,8 +81,7 @@ extends TranslationListener
     
     //Check for parse error
     if (itsParser.hasError()) {
-      System.err.println("TranslationCalculator(" + itsParent.getSource() +"."+
-                         itsParent.getName() + ": " + itsParser.getErrorInfo());
+      System.err.println("TranslationCalculator(" + itsParent.getFullName() + ": " + itsParser.getErrorInfo());
     }
     
     return res;

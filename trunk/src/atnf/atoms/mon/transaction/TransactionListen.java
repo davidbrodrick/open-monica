@@ -10,6 +10,7 @@ package atnf.atoms.mon.transaction;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
 import java.awt.event.*;
+import javax.swing.Timer;
 
 /**
  *
@@ -32,7 +33,7 @@ implements PointListener, ActionListener
   protected String[] itsNames = null;
 
   /** Timer used when listened-to points haven't been created yet. */
-  protected MonitorTimer itsTimer = null;
+  protected Timer itsTimer = null;
 
   public TransactionListen(PointDescription parent, String specifics)
   {
@@ -63,7 +64,7 @@ implements PointListener, ActionListener
           //Either point name is wrong or point hasn't been created yet
           //Start timer which will try again shortly
           if (itsTimer==null) {
-            itsTimer = new MonitorTimer(20, this);
+            itsTimer = new Timer(100, this);
             itsTimer.start();
           }
         } else {

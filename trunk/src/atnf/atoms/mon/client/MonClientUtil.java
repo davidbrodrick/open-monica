@@ -13,6 +13,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.tree.*;
+import javax.swing.Timer;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.comms.*;
 import atnf.atoms.mon.gui.*;
@@ -616,7 +617,7 @@ public class MonClientUtil
           realthis.validateTree();
           realthis.setVisible(true);
           if (itsDefault!=null) {
-            MonitorTimer timer = new MonitorTimer(1000, realthis, true);
+            Timer timer = new Timer(1000, realthis);
             timer.start();
           }
         }
@@ -636,7 +637,7 @@ public class MonClientUtil
           synchronized (this) {
             notifyAll();
           }
-          ((MonitorTimer)e.getSource()).stop();
+          ((Timer)e.getSource()).stop();
         } else {
           itsCounter.setText("Default \"" + itsDefault.get(0) + "\" in " +
                              itsTimeout);

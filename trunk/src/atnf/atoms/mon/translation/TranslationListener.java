@@ -11,12 +11,12 @@ package atnf.atoms.mon.translation;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.Timer;
 
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.PointEvent;
 import atnf.atoms.mon.PointListener;
-import atnf.atoms.mon.util.MonitorTimer;
 import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.time.AbsTime;
 
@@ -69,7 +69,7 @@ implements PointListener, ActionListener
   protected PointData[] itsValues;
 
   /** Timer used when listened-to points haven't been created yet. */
-  protected MonitorTimer itsTimer = null;
+  protected Timer itsTimer = null;
 
   protected static String[] itsArgs = new String[]{"Listener",
   "Listens to two other points",
@@ -115,7 +115,7 @@ implements PointListener, ActionListener
     }
       
     //Start the timer which subscribes us to updates from the points      
-    itsTimer = new MonitorTimer(100, this);
+    itsTimer = new Timer(100, this);
     itsTimer.start();
   }
 
@@ -209,28 +209,30 @@ implements PointListener, ActionListener
   void
   actionPerformed(ActionEvent evt)
   {
-    boolean stillmissing = false;
-    
-    //Try to find any points that are still missing
-    for (int i=0; i<itsNumPoints; i++) {
-      if (itsPoints[i]==null) {
-        itsPoints[i] = PointDescription.getPoint(itsNames[i]);
-        if (itsPoints[i]==null) {
-          //Still couldn't find the point, perhaps it doesn't exist?!
-          stillmissing = true;
-          System.err.println("WARNING: TranslationListener (" + 
-                             itsParent.getSource() + "." + itsParent.getName() +
-                             "): LISTENED-TO POINT " + itsNames[i] + " DOESN'T EXIST?!");
-        } else {
-          itsPoints[i].addPointListener(this);
+    if (evt.getSource() == itsTimer) {
+      boolean stillmissing = false;
+
+      // Try to find any points that are still missing
+      for (int i = 0; i < itsNumPoints; i++) {
+        if (itsPoints[i] == null) {
+          itsPoints[i] = PointDescription.getPoint(itsNames[i]);
+          if (itsPoints[i] == null) {
+            // Still couldn't find the point, perhaps it doesn't exist?!
+            stillmissing = true;
+            System.err.println("WARNING: TranslationListener ("
+                + itsParent.getSource() + "." + itsParent.getName()
+                + "): LISTENED-TO POINT " + itsNames[i] + " DOESN'T EXIST?!");
+          } else {
+            itsPoints[i].addPointListener(this);
+          }
         }
       }
-    }
 
-    if (!stillmissing) {
-      //All points now found and all subscriptions complete
-      itsTimer.stop();
-      itsTimer = null;
+      if (!stillmissing) {
+        // All points now found and all subscriptions complete
+        itsTimer.stop();
+        itsTimer = null;
+      }
     }
   }
 
