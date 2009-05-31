@@ -38,14 +38,14 @@ extends Transaction
 
     //Replace the macro $1 with source name if present
     if (tokens[0].indexOf("$1")!=-1) {
-      tokens[0]=MonitorUtils.replaceTok(tokens[1], parent.getSource());
+      tokens[0]=MonitorUtils.replaceTok(tokens[0], parent.getSource());
     }
     //Set the channel (used to determine which ExternalSystem to use)
     setChannel(tokens[0]);
 
     //Add the remaining strings to our list
-    for (int i=2; i<tokens.length; i++) {
-      itsStrings.add(tokens[i].trim());
+    for (int i=1; i<tokens.length; i++) {
+      itsStrings.add(tokens[i].replace("\"", "").trim());
     }
   }
     
