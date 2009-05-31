@@ -115,8 +115,8 @@ implements PointListener, TableCellRenderer
           ///This is pretty dumb since not all sources will have all points
           Vector<String> pnames = new Vector<String>();
           for (int i=0; i<itsPoints.size(); i++) {
-            String pname = (String)itsPoints.get(i);
-            if (pname==null || pname.equals("")) {
+            String pname = itsPoints.get(i);
+            if (pname==null || pname.equals("") || pname.equals("-")) {
               continue; //Blank row
             }
             for (int j=0; j<itsSources.size(); j++) {
