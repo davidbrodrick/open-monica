@@ -42,13 +42,10 @@ public class TranslationPulse extends Translation {
   public TranslationPulse(PointDescription parent, String[] init) {
     super(parent, init);
     try {
-      itsMarkPeriod = RelTime
-          .factory((long) (Double.parseDouble(init[0]) * 1000000));
-      itsSpacePeriod = RelTime
-          .factory((long) (Double.parseDouble(init[0]) * 1000000));
+      itsMarkPeriod = RelTime.factory((long) (Double.parseDouble(init[0]) * 1000000));
+      itsSpacePeriod = RelTime.factory((long) (Double.parseDouble(init[1]) * 1000000));
     } catch (Exception e) {
-      MonitorMap.logger.error("TranslationPulse for " + itsParent.getFullName()
-          + ": " + e);
+      MonitorMap.logger.error("TranslationPulse for " + itsParent.getFullName() + ": " + e);
     }
   }
 
@@ -62,8 +59,7 @@ public class TranslationPulse extends Translation {
     } else {
       now = data.getTimestamp();
     }
-    if (itsLastPulse != null
-        && itsLastPulse.add(itsMarkPeriod).add(itsSpacePeriod).compare(now) > 0) {
+    if (itsLastPulse != null && itsLastPulse.add(itsMarkPeriod).add(itsSpacePeriod).compare(now) > 0) {
       if (itsLastPulse.add(itsMarkPeriod).compare(now) > 0) {
         // Currently generating the mark
         output = new Boolean(true);
@@ -85,8 +81,7 @@ public class TranslationPulse extends Translation {
             output = new Boolean(true);
           }
         } else {
-          MonitorMap.logger.error("TranslationPulse for "
-              + itsParent.getFullName() + ": Expect Boolean or Number input");
+          MonitorMap.logger.error("TranslationPulse for " + itsParent.getFullName() + ": Expect Boolean or Number input");
           output = null;
         }
 
