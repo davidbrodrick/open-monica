@@ -35,7 +35,8 @@ import java.io.*;
  * TransactionString with the channel set to <i>super4:unique_id</i> where unique_id is the
  * same string used to instanciate the driver. The next argument for the TransactionStrings 
  * must be the specific relay number to be controlled, eg <i>"1"</i> or <i>"4"</i>. A zero 
- * data value will turn the specified relay OFF, any non-zero value will turn the relay ON.
+ * or False data value will turn the specified relay OFF, any non-zero value or True will 
+ * turn the relay ON.
  *
  * @author David Brodrick
  **/
@@ -64,8 +65,13 @@ extends ExternalSystem
   putData(PointDescription desc, PointData pd)
   throws Exception
   {
-  	//Determine desired state for relays
-	  boolean relayset = ((Number)pd.getData()).intValue()==0?false:true;
+  	//Determine desired state for relay(s)
+    boolean relayset;
+    if (pd.getData() instanceof Boolean) {
+      relayset = ((Boolean)pd.getData()).booleanValue(); 
+    } else {
+	    relayset = ((Number)pd.getData()).intValue()==0?false:true;
+    }
 	
   	//Get the Transactions which associates the point with us
 	  Vector<Transaction> alltrans = getMyTransactions(desc.getOutputTransactions());

@@ -34,8 +34,8 @@ import java.util.Vector;
  * by using a TranslationEQ to apply the appropriate offset.
  * 
  * <P>The four relays require the same Transaction settings as the sensors, but are
- * defined as output transactions rather than inputs. A zero data value will turn the
- * specified relay OFF, any non-zero value will turn the relay ON.
+ * defined as output transactions rather than inputs. A zero or False data value will 
+ * turn the specified relay OFF, any non-zero value or True will turn the relay ON.
  *
  * @author David Brodrick
  * @version $Id: $
@@ -105,8 +105,13 @@ extends ASCIISocket
       connect();
     }
     
-    // Determine desired state for relays
-    boolean relayset = ((Number) pd.getData()).intValue() == 0 ? false : true;
+    // Determine desired state for relay(s)
+    boolean relayset;
+    if (pd.getData() instanceof Boolean) {
+      relayset = ((Boolean)pd.getData()).booleanValue(); 
+    } else {
+      relayset = ((Number)pd.getData()).intValue()==0?false:true;
+    }
 
     // Get the Transactions which associates the point with us
     Vector<Transaction> alltrans = getMyTransactions(desc.getOutputTransactions());
