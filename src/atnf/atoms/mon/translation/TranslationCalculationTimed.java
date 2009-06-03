@@ -62,7 +62,16 @@ extends TranslationCalculation
       }
       //Update the value for this variable
       String thisvar=""+((char)(('a')+i));
-      itsParser.addVariableAsObject(thisvar,itsValues[i].getData());
+      if (!(itsValues[i].getData() instanceof Boolean)) {
+        itsParser.addVariableAsObject(thisvar,itsValues[i].getData());
+      } else {
+        boolean boolval = ((Boolean)itsValues[i].getData()).booleanValue();
+        if (boolval) {
+          itsParser.addVariable(thisvar, 1.0);
+        } else {
+          itsParser.addVariable(thisvar, 0.0);
+        }
+      }
     }
 
     if (!missingdata) {
