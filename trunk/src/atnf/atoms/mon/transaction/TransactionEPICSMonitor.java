@@ -28,7 +28,7 @@ public class TransactionEPICSMonitor extends Transaction {
     if (es==null) {
       MonitorMap.logger.error("EPICS ExternalSystem is not running!");
     } else {
-      es.registerMonitor(parent.getFullName(), itsPV);
+      es.registerMonitor(parent, itsPV);
     }
   }
 }
