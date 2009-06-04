@@ -95,6 +95,7 @@ implements ActionListener, NamedObject, Comparable
   /** The number of days to keep archived data, or -1 for indefinitely. */
   protected int itsArchiveLongevity = -1;
 
+  /** Listeners for data value updates. */
   protected EventListenerList itsPLList = new EventListenerList();
 
   /**

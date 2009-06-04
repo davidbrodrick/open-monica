@@ -217,7 +217,7 @@ extends Thread
      
      OldDataPurger(PointArchiver owner)
      {
-       super();
+       super("OldDataPurger");
        itsOwner = owner;
      }
      
