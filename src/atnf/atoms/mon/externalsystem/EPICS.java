@@ -18,11 +18,20 @@ import gov.aps.jca.dbr.*;
 import gov.aps.jca.event.*;
 
 /**
- * Expects file with space delimited PV/monitor point name mapping to be
- * included as part of argument.
+ * Interface between MoniCA and EPICS Channel Access, allowing CA monitors
+ * (publish/subscribe) updates and gets (polling).
+ * 
+ * <P>
+ * Channel access monitors can be established by using a <tt>TransactionEPICSMonitor</tt>
+ * as an input for the MoniCA point. The transaction requires one argument which is the
+ * name of the EPICS Process Variable to be monitored.
+ * 
+ * <P>
+ * Polling is implemented by using a <tt>TransactionEPICS</tt> as an input transaction.
+ * This requires the name of the EPICS Process Variable to be polled as an argument. 
+ * Polling will occur at the normal update period specified for the MoniCA point.
  * 
  * @author David Brodrick
- * @version $Id: $
  */
 public class EPICS extends ExternalSystem {
   /** JCA context. */
@@ -35,8 +44,8 @@ public class EPICS extends ExternalSystem {
   HashMap<String, EPICSListener> itsListenerMap = new HashMap<String, EPICSListener>();
 
   /**
-   * Lists of MoniCA points which require 'monitor' updates for each PV which
-   * hasn't been connected yet.
+   * Lists of MoniCA points which require 'monitor' updates for each PV which hasn't been
+   * connected yet.
    */
   HashMap<String, Vector<PointDescription>> itsRequiresMonitor = new HashMap<String, Vector<PointDescription>>();
 
@@ -62,9 +71,9 @@ public class EPICS extends ExternalSystem {
   }
 
   /**
-   * Poll new values from EPICS. This first ensures the EPICS channel has been
-   * established and subsequently performs an asynchronous 'get' on the channel,
-   * providing the data to the MoniCA point when the 'get' callback is called.
+   * Poll new values from EPICS. This first ensures the EPICS channel has been established
+   * and subsequently performs an asynchronous 'get' on the channel, providing the data to
+   * the MoniCA point when the 'get' callback is called.
    */
   protected void getData(PointDescription[] points) throws Exception {
     // Process each requesting point in turn
@@ -79,11 +88,9 @@ public class EPICS extends ExternalSystem {
         synchronized (itsChannelMap) {
           Channel thischan = itsChannelMap.get(pvname);
           if (thischan == null) {
-            // We haven't connected to this channel yet so request its
-            // connection.
+            // We haven't connected to this channel yet so request its connection.
             itsChannelMap.put(pvname, null);
-            // Fire a null-data update to indicate that data is not yet
-            // available.
+            // Fire a null-data update to indicate that data is not yet available.
             points[i].firePointEvent(new PointEvent(this, new PointData(points[i].getFullName()), true));
           } else {
             String listenername = points[i].getFullName() + ":" + pvname;
@@ -98,14 +105,12 @@ public class EPICS extends ExternalSystem {
             if (thischan.getConnectionState() == Channel.ConnectionState.CONNECTED) {
               // Channel is connected, request data via a channel access 'get'
               try {
+                points[i].isCollecting(true);
                 thischan.get(listener);
-                // Set epoch for next collection (so point doesn't get
-                // rescheduled while
-                // the asynchronous collection is ongoing).
-                points[i].setNextEpoch((new AbsTime().getValue() + points[i].getPeriod()));
               } catch (Exception e) {
                 // Maybe the channel just became disconnected
                 points[i].firePointEvent(new PointEvent(this, new PointData(points[i].getFullName()), true));
+                points[i].isCollecting(false);
               }
             } else {
               // Channel exists but is currently disconnected. Fire null-data
@@ -117,6 +122,7 @@ public class EPICS extends ExternalSystem {
       }
     }
     try {
+      // Flush all of the get requests
       itsContext.flushIO();
     } catch (Exception e) {
       MonitorMap.logger.error("EPICS.getData: Flushing IO: " + e);
@@ -125,7 +131,7 @@ public class EPICS extends ExternalSystem {
 
   /** Send a value from MoniCA to EPICS. */
   public void putData(PointDescription desc, PointData pd) throws Exception {
-    System.err.println("EPICS: Unsupported control request from " + desc.getFullName());
+    MonitorMap.logger.error("EPICS: Unsupported control request from " + desc.getFullName());
 
     try {
       itsContext.flushIO();
@@ -157,8 +163,8 @@ public class EPICS extends ExternalSystem {
   }
 
   /**
-   * Thread which connects to EPICS channels and configures 'monitor' updates
-   * for points which request it.
+   * Thread which connects to EPICS channels and configures 'monitor' updates for points
+   * which request it.
    */
   protected class ChannelConnector extends Thread {
     public void run() {
@@ -272,8 +278,7 @@ public class EPICS extends ExternalSystem {
   };
 
   /**
-   * Class which handles asynchronous callbacks from EPICS for a specific MoniCA
-   * point.
+   * Class which handles asynchronous callbacks from EPICS for a specific MoniCA point.
    */
   protected class EPICSListener implements MonitorListener, GetListener, ConnectionListener {
     /** The name of the process variable we handle events for. */
@@ -294,16 +299,6 @@ public class EPICS extends ExternalSystem {
       itsPV = itsChannel.getName();
       itsPoint = point;
       itsPointName = point.getFullName();
-
-      // Try to perform an initial get on the channel
-      /*
-       * PointData pd = new PointData(itsName); try { DBR dbr =
-       * itsChannel.get(); if (dbr != null) { pd.setData(processDBR(dbr,
-       * itsPV)); } } catch (Exception e) {
-       * MonitorMap.logger.warning("EPICS:EPICSListener: " + itsPV + ": " + e); }
-       * 
-       * itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
-       */
     }
 
     /** Call back for 'monitor' updates. */
@@ -330,6 +325,8 @@ public class EPICS extends ExternalSystem {
         MonitorMap.logger.warning("EPICS:EPICSListener.getCompleted: " + itsPV + ": " + e);
       }
       itsPoint.firePointEvent(new PointEvent(this, pd, true));
+      // Return the point for rescheduling
+      asynchReturn(itsPoint);
     }
 
     /** Call back for channel state changes. */
@@ -337,6 +334,10 @@ public class EPICS extends ExternalSystem {
       if (!ev.isConnected()) {
         // Connection just dropped out so fire null-data update
         itsPoint.firePointEvent(new PointEvent(this, new PointData(itsPointName), true));
+        if (itsPoint.isCollecting()) {
+          // A get was in progress so need to return the point for rescheduling
+          asynchReturn(itsPoint);
+        }
       }
     }
   };
@@ -370,8 +371,8 @@ public class EPICS extends ExternalSystem {
         MonitorMap.logger.warning("EPICS.processDBR: " + pvname + ": Unhandled DBR type: " + dbr.getType());
       }
 
-      //Print new value (for debugging)
-      //MonitorMap.logger.debug("EPICS.processDBR: " + pvname + "\t" + newval);
+      // Print new value (for debugging)
+      // MonitorMap.logger.debug("EPICS.processDBR: " + pvname + "\t" + newval);
     } catch (Exception e) {
       MonitorMap.logger.warning("EPICS.processDBR: " + pvname + ": " + e);
       e.printStackTrace();
