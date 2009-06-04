@@ -388,7 +388,7 @@ implements Runnable
        }
 
        //We're connected, need to determine which points need collecting
-       Vector thesepoints = null;
+       Vector<PointDescription> thesepoints = null;
        synchronized (itsPoints) {
          try {
            //Wait for notification if there are no points
@@ -411,7 +411,10 @@ implements Runnable
        if (!thesepoints.isEmpty()) {
          Object[] o = thesepoints.toArray();
          PointDescription[] parray = new PointDescription[o.length];
-         for (int i=0; i<o.length; i++) parray[i]=(PointDescription)o[i];
+         for (int i=0; i<o.length; i++) {
+           parray[i]=(PointDescription)o[i];
+           //System.err.println(itsName + ": scheduling " + parray[i].getFullName());
+         }
          if (itsConnected && parray!=null && parray.length>0) {
            try {
              //Call the sub-class specific method to do the real work

@@ -7,7 +7,6 @@
 
 package atnf.atoms.mon.externalsystem;
 
-import java.io.*;
 import java.util.*;
 
 import atnf.atoms.time.*;
@@ -19,237 +18,331 @@ import gov.aps.jca.dbr.*;
 import gov.aps.jca.event.*;
 
 /**
- * Expects file with space delimited PV/monitor point name mapping to be 
+ * Expects file with space delimited PV/monitor point name mapping to be
  * included as part of argument.
- *
+ * 
  * @author David Brodrick
  * @version $Id: $
- **/
-public class EPICS
-extends ExternalSystem
-{
+ */
+public class EPICS extends ExternalSystem {
   /** JCA context. */
   Context itsContext = null;
-  
-  /** Mapping between PV names and MoniCA point names. */
-  HashMap<String,String> itsPVPointMap = new HashMap<String,String>();
-  
-  /** Mapping between PV names and Channels. */
-  HashMap<String,Channel> itsChannelMap = new HashMap<String,Channel>();
 
-  public EPICS(String[] args)
-  {
+  /** Mapping between PV names and Channels. */
+  HashMap<String, Channel> itsChannelMap = new HashMap<String, Channel>();
+
+  /** Mapping between 'pointname:PVname' strings and EPICSListeners. */
+  HashMap<String, EPICSListener> itsListenerMap = new HashMap<String, EPICSListener>();
+
+  /**
+   * Lists of MoniCA points which require 'monitor' updates for each PV which
+   * hasn't been connected yet.
+   */
+  HashMap<String, Vector<PointDescription>> itsRequiresMonitor = new HashMap<String, Vector<PointDescription>>();
+
+  public EPICS(String[] args) {
     super("EPICS");
-    
-    //Get the JCALibrary instance.
-    JCALibrary jca=JCALibrary.getInstance();
+
+    // Get the JCALibrary instance.
+    JCALibrary jca = JCALibrary.getInstance();
     try {
-      //Create context with default configuration values.
-      itsContext=jca.createContext(JCALibrary.CHANNEL_ACCESS_JAVA);
+      // Create context with default configuration values.
+      itsContext = jca.createContext(JCALibrary.CHANNEL_ACCESS_JAVA);
     } catch (Exception e) {
-      MonitorMap.logger.error("EPICS: Constructor: " + e.getClass() + " " + e.getMessage());
+      MonitorMap.logger.error("EPICS(constructor): Creating Context: " + e);
     }
 
-    //Create thread to connect channels
+    // Create thread to connect channels
     try {
       ChannelConnector connector = new ChannelConnector();
       connector.start();
     } catch (Exception e) {
-      MonitorMap.logger.error("EPICS: Constructor: Connecting Channels: " + e.getClass() + " " + e.getMessage());
+      MonitorMap.logger.error("EPICS(constructor): Creating ChannelConnector: " + e);
     }
   }
 
-  /** Poll new values from EPICS. */
-  protected
-  void
-  getData(PointDescription[] points)
-  throws Exception
-  {
-    //Process each point in turn
-    for (int i=0; i<points.length; i++) {
-      //Get the appropriate Transaction(s) and process each PV
+  /**
+   * Poll new values from EPICS. This first ensures the EPICS channel has been
+   * established and subsequently performs an asynchronous 'get' on the channel,
+   * providing the data to the MoniCA point when the 'get' callback is called.
+   */
+  protected void getData(PointDescription[] points) throws Exception {
+    // Process each requesting point in turn
+    for (int i = 0; i < points.length; i++) {
+      // Get the appropriate Transaction(s) and process each PV
       Vector<Transaction> thesetrans = getMyTransactions(points[i].getInputTransactions());
-      for (int j=0; j<thesetrans.size(); j++) {
-        //Get this Transaction which contains the PV name
-        TransactionEPICS thistrans = (TransactionEPICS)thesetrans.get(j);
+      for (int j = 0; j < thesetrans.size(); j++) {
+        // Get this Transaction which contains the PV name
+        TransactionEPICS thistrans = (TransactionEPICS) thesetrans.get(j);
         String pvname = thistrans.getPVName();
-        //Lookup the channel connected to this PV
-        Channel thischan = itsChannelMap.get(pvname);
-        if (thischan==null) {
-          //We haven't connected to this channel yet. Try to connect.
-          thischan=itsContext.createChannel(pvname);
-          try {
-            itsContext.pendIO(5.0);
-            itsChannelMap.put(pvname, thischan);
-          } catch (Exception e) {
-            //Failed to connect: IOC probably isn't running yet
-            thischan.destroy();
-            thischan=null;
-          }
-        }
-        Object newval = null;
-        if (thischan!=null) {
-          try {
-            DBR dbr = thischan.get();
-            if (dbr != null) {
-              newval = processDBR(dbr, pvname);
+        // Lookup the channel connected to this PV
+        synchronized (itsChannelMap) {
+          Channel thischan = itsChannelMap.get(pvname);
+          if (thischan == null) {
+            // We haven't connected to this channel yet so request its
+            // connection.
+            itsChannelMap.put(pvname, null);
+            // Fire a null-data update to indicate that data is not yet
+            // available.
+            points[i].firePointEvent(new PointEvent(this, new PointData(points[i].getFullName()), true));
+          } else {
+            String listenername = points[i].getFullName() + ":" + pvname;
+            EPICSListener listener = itsListenerMap.get(listenername);
+            if (listener == null) {
+              // This MoniCA point/PV combination hasn't been activated yet
+              listener = new EPICSListener(thischan, points[i]);
+              itsListenerMap.put(listenername, listener);
+              thischan.addConnectionListener(listener);
             }
-          } catch (Exception e) {
-            MonitorMap.logger.error("EPICS.getData: " + pvname + ": " + e.getClass() + ": " + e.getMessage());
+
+            if (thischan.getConnectionState() == Channel.ConnectionState.CONNECTED) {
+              // Channel is connected, request data via a channel access 'get'
+              try {
+                thischan.get(listener);
+                // Set epoch for next collection (so point doesn't get
+                // rescheduled while
+                // the asynchronous collection is ongoing).
+                points[i].setNextEpoch((new AbsTime().getValue() + points[i].getPeriod()));
+              } catch (Exception e) {
+                // Maybe the channel just became disconnected
+                points[i].firePointEvent(new PointEvent(this, new PointData(points[i].getFullName()), true));
+              }
+            } else {
+              // Channel exists but is currently disconnected. Fire null-data
+              // event.
+              points[i].firePointEvent(new PointEvent(this, new PointData(points[i].getFullName()), true));
+            }
           }
         }
-        // Fire new data as an event on this monitor point
-        PointData pd = new PointData(itsName, newval);
-        points[i].firePointEvent(new PointEvent(this, pd, true));
+      }
+    }
+    try {
+      itsContext.flushIO();
+    } catch (Exception e) {
+      MonitorMap.logger.error("EPICS.getData: Flushing IO: " + e);
+    }
+  }
+
+  /** Send a value from MoniCA to EPICS. */
+  public void putData(PointDescription desc, PointData pd) throws Exception {
+    System.err.println("EPICS: Unsupported control request from " + desc.getFullName());
+
+    try {
+      itsContext.flushIO();
+    } catch (Exception e) {
+      MonitorMap.logger.error("EPICS.putData: Flushing IO: " + e);
+    }
+  }
+
+  /** Register the specified point and PV name pair to receive monitor updates. */
+  public void registerMonitor(PointDescription point, String pvname) {
+    synchronized (itsChannelMap) {
+      if (itsChannelMap.get(pvname) == null) {
+        // Not connected to this channel yet
+        itsChannelMap.put(pvname, null);
+      }
+    }
+    synchronized (itsRequiresMonitor) {
+      Vector<PointDescription> thesepoints = itsRequiresMonitor.get(pvname);
+      if (thesepoints == null) {
+        thesepoints = new Vector<PointDescription>(1);
+        thesepoints.add(point);
+        itsRequiresMonitor.put(pvname, thesepoints);
+      } else {
+        if (!thesepoints.contains(point)) {
+          thesepoints.add(point);
+        }
       }
     }
   }
 
-  /** Send a value from MoniCA to EPICS. */ 
-  public
-  void
-  putData(PointDescription desc, PointData pd)
-  throws Exception
-  {
-    
-    System.err.println("EPICS: Unsupported control request from " + desc.getFullName());
-  }
-  
-  /** Register the specified point and PV name pair to receive monitor updates. */
-  public void registerMonitor(String pointname, String pvname)
-  {
-    itsPVPointMap.put(pvname, pointname);
-    itsChannelMap.put(pvname, null);
-  }
-
-  /** Nested threaded class to connect Channels as the IOCs and monitor points become available. */
-  protected class ChannelConnector
-  extends Thread {
+  /**
+   * Thread which connects to EPICS channels and configures 'monitor' updates
+   * for points which request it.
+   */
+  protected class ChannelConnector extends Thread {
     public void run() {
-      //Thread continues to run connecting any points which require it
       while (true) {
-        Iterator allpvs = itsPVPointMap.keySet().iterator();
-        while (allpvs.hasNext()) {
-          //Get the name of the next PV
-          String thispv = (String)allpvs.next();
-          //Don't try to connect if it's already connected
-          if (itsChannelMap.get(thispv)!=null) {
-            continue;
-          }
-          //Don't try connect if point hasn't been instantiated yet
-          if (PointDescription.getPoint((String)itsPVPointMap.get(thispv))==null) {
-            continue;
-          }
-
-          try {
-            //Create the Channel to connect to the PV.
-            Channel thischan=itsContext.createChannel(thispv);
-            try {
-              itsContext.pendIO(5.0);
-            } catch (Exception e) {
-              //Failed to connect: IOC probably isn't running yet
-              System.err.println("EPICS: Connecting Channel: " + thispv + e.getClass() + " " + e.getMessage());
-              thischan.destroy();
+        // Build a list of all challs which need connecting
+        Vector<Channel> newchannels = new Vector<Channel>();
+        synchronized (itsChannelMap) {
+          Iterator allchans = itsChannelMap.keySet().iterator();
+          while (allchans.hasNext()) {
+            String thispv = (String) allchans.next();
+            // Don't try to connect if it's already connected
+            if (itsChannelMap.get(thispv) != null) {
               continue;
             }
-        
-            //Create MonUpdater instance to handle updates from this particular point
-            MonUpdater updater = new MonUpdater(thischan);
-            //Subscribe to updates from this PV
-            thischan.addMonitor(Monitor.VALUE, updater);
-        
-            //Keep this association
-            itsChannelMap.put(thispv, thischan);
-          } catch (Exception e) {
-            System.err.println("EPICS: Connecting Channel " + thispv + ": " + e.getClass() + " " + e.getMessage());
-            MonitorMap.logger.error("EPICS: Connecting Channel " + thispv + ": " + e.getClass() + " " + e.getMessage());
+            try {
+              // Create the Channel to connect to the PV.
+              Channel thischan = itsContext.createChannel(thispv);
+              newchannels.add(thischan);
+            } catch (Exception e) {
+              MonitorMap.logger.warning("EPICS.ChannelConnector: Connecting Channel " + thispv + ": " + e);
+            }
           }
         }
-        
+
+        // Try to connect to the channels
         try {
-          //Sleep for a while before trying to connect remaining channels
-          RelTime sleepy=RelTime.factory(5000000);
-          sleepy.sleep();
-        } catch (Exception e) {}
+          itsContext.pendIO(5.0);
+        } catch (Exception e) {
+          // Failed to connect: IOC probably isn't running yet
+        }
+
+        // Check which channels connected successfully
+        synchronized (itsChannelMap) {
+          for (int i = 0; i < newchannels.size(); i++) {
+            Channel thischan = newchannels.get(i);
+            String thispv = thischan.getName();
+            if (thischan.getConnectionState() == Channel.ConnectionState.CONNECTED) {
+              // This channel connected okay
+              itsChannelMap.put(thispv, thischan);
+            } else {
+              // This channel failed to connect
+              try {
+                thischan.destroy();
+              } catch (Exception e) {
+                MonitorMap.logger.error("EPICS: Destroying channel for " + thispv + ": " + e);
+              }
+            }
+          }
+        }
+
+        // ////////////////////////////////////////////////////////
+        // Connect any 'monitor' requests for established channels
+        synchronized (itsRequiresMonitor) {
+          Vector<String> allconnected = new Vector<String>();
+          Iterator allreqs = itsRequiresMonitor.keySet().iterator();
+          while (allreqs.hasNext()) {
+            String thispv = (String) allreqs.next();
+            Channel thischan = itsChannelMap.get(thispv);
+            if (thischan == null) {
+              // This channel is still not connected so cannot configure
+              // monitors
+              continue;
+            }
+            Vector<PointDescription> thesepoints = itsRequiresMonitor.get(thispv);
+            if (thesepoints == null || thesepoints.size() == 0) {
+              // Should never happen
+              MonitorMap.logger.error("EPICS.ChannelConnector: PV " + thispv
+                      + " is queued for monitor connection but no points are waiting!");
+              continue;
+            } else {
+              for (int i = 0; i < thesepoints.size(); i++) {
+                // Connect each point to 'monitor' updates from this channel
+                PointDescription thispoint = thesepoints.get(i);
+                String listenername = thispoint.getFullName() + ":" + thispv;
+                EPICSListener listener = new EPICSListener(thischan, thispoint);
+                try {
+                  thischan.addConnectionListener(listener);
+                  thischan.addMonitor(Monitor.VALUE, listener);
+                  itsListenerMap.put(listenername, listener);
+                  thesepoints.remove(thispoint);
+                } catch (Exception f) {
+                  MonitorMap.logger.error("EPICS: Establising Listener " + thispoint.getFullName() + "/" + thispv + ": " + f);
+                }
+              }
+              if (thesepoints.size() == 0) {
+                // We successfully connected all queued points
+                allconnected.add(thispv);
+              }
+            }
+          }
+          // Now modify the map by removing any pv's which are fully connected
+          for (int i = 0; i < allconnected.size(); i++) {
+            itsRequiresMonitor.remove(allconnected.get(i));
+          }
+        }
+
+        // Ensure all monitor requests have been flushed
+        try {
+          itsContext.flushIO();
+        } catch (Exception e) {
+          MonitorMap.logger.error("EPICS.ChannelConnector: Flushing IO: " + e);
+        }
+        try {
+          // Sleep for a while before trying to connect remaining channels
+          final RelTime sleeptime = RelTime.factory(5000000);
+          sleeptime.sleep();
+        } catch (Exception e) {
+        }
       }
     }
   };
-  
 
-  /** Nested class which received Monitor events for a specific process variable. */
-  protected class MonUpdater
-  implements MonitorListener
-  {
-    /** The process variable we handle events for. */
+  /**
+   * Class which handles asynchronous callbacks from EPICS for a specific MoniCA
+   * point.
+   */
+  protected class EPICSListener implements MonitorListener, GetListener, ConnectionListener {
+    /** The name of the process variable we handle events for. */
     String itsPV = null;
-    /** The point name. */
-    String itsName = null;
-    /** The monitor point instance itself. */
-    PointDescription itsMonitorPoint = null;
-    /** Channel which connects us to the point. */
+
+    /** Channel which connects us to the PV. */
     Channel itsChannel = null;
-     
+
+    /** The point name. */
+    String itsPointName = null;
+
+    /** The MoniCA point instance. */
+    PointDescription itsPoint = null;
+
     /** Create new instance to handle updates to the specified PV. */
-    public 
-    MonUpdater(Channel chan)
-    {
-      itsChannel=chan;
-      itsPV=itsChannel.getName();
-      itsName=(String)itsPVPointMap.get(itsPV);
-      itsMonitorPoint=PointDescription.getPoint(itsName);
-      
-      if (itsMonitorPoint != null) {
-        // Try to perform an initial get on the channel
-        try {
-          DBR dbr = itsChannel.get();
-          if (dbr != null) {
-            Object newval = processDBR(dbr, itsPV);
-            // Fire new data as an event on our monitor point
-            PointData pd = new PointData(itsName, newval);
-            itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
-          }
-        } catch (Exception e) {
-          MonitorMap.logger.error("EPICS:MonUpdater: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
-        }
-      }
+    public EPICSListener(Channel chan, PointDescription point) {
+      itsChannel = chan;
+      itsPV = itsChannel.getName();
+      itsPoint = point;
+      itsPointName = point.getFullName();
+
+      // Try to perform an initial get on the channel
+      /*
+       * PointData pd = new PointData(itsName); try { DBR dbr =
+       * itsChannel.get(); if (dbr != null) { pd.setData(processDBR(dbr,
+       * itsPV)); } } catch (Exception e) {
+       * MonitorMap.logger.warning("EPICS:EPICSListener: " + itsPV + ": " + e); }
+       * 
+       * itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
+       */
     }
-    
-    /** Call back for PV updates. */
-    public
-    void
-    monitorChanged(MonitorEvent ev)
-    {
+
+    /** Call back for 'monitor' updates. */
+    public void monitorChanged(MonitorEvent ev) {
+      PointData pd = new PointData(itsPointName);
       try {
-        if (ev.getStatus()==CAStatus.NORMAL && ev.getDBR()!=null) {
-          Object newval = processDBR(ev.getDBR(), itsPV);
-          //Fire new data as an event on our monitor point
-          PointData pd=new PointData(itsName, newval);
-          if (itsMonitorPoint==null) {
-            itsMonitorPoint=PointDescription.getPoint(itsName);
-          }
-          if (itsMonitorPoint!=null) {
-            itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
-          }        
-        } else {
-          //Fire null data to indicate the problem
-          PointData pd=new PointData(itsName);
-          if (itsMonitorPoint==null) {
-            itsMonitorPoint=PointDescription.getPoint(itsName);
-          }
-          itsMonitorPoint.firePointEvent(new PointEvent(this, pd, true));
+        if (ev.getStatus() == CAStatus.NORMAL && ev.getDBR() != null) {
+          pd.setData(processDBR(ev.getDBR(), itsPV));
         }
       } catch (Exception e) {
-        System.err.println("EPICS:monitorChanged: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
-        MonitorMap.logger.warning("EPICS: " + itsPV + ": " + e.getClass() + ": " + e.getMessage());
+        MonitorMap.logger.warning("EPICS:EPICSListener.monitorChanged: " + itsPV + ": " + e);
       }
-    }    
-  };  
-  
+      itsPoint.firePointEvent(new PointEvent(this, pd, true));
+    }
+
+    /** Call back for 'get' updates. */
+    public void getCompleted(GetEvent ev) {
+      PointData pd = new PointData(itsPointName);
+      try {
+        if (ev.getStatus() == CAStatus.NORMAL && ev.getDBR() != null) {
+          pd.setData(processDBR(ev.getDBR(), itsPV));
+        }
+      } catch (Exception e) {
+        MonitorMap.logger.warning("EPICS:EPICSListener.getCompleted: " + itsPV + ": " + e);
+      }
+      itsPoint.firePointEvent(new PointEvent(this, pd, true));
+    }
+
+    /** Call back for channel state changes. */
+    public void connectionChanged(ConnectionEvent ev) {
+      if (!ev.isConnected()) {
+        // Connection just dropped out so fire null-data update
+        itsPoint.firePointEvent(new PointEvent(this, new PointData(itsPointName), true));
+      }
+    }
+  };
+
   /** Decode the value from an EPICS DBR. */
-  public
-  Object
-  processDBR(DBR dbr, String pvname)
-  {
+  public Object processDBR(DBR dbr, String pvname) {
     Object newval = null;
     try {
       int count = dbr.getCount();
@@ -277,11 +370,12 @@ extends ExternalSystem
         MonitorMap.logger.warning("EPICS.processDBR: " + pvname + ": Unhandled DBR type: " + dbr.getType());
       }
 
-      System.out.println("EPICS.processDBR: " + pvname + "\t" + newval);
+      //Print new value (for debugging)
+      //MonitorMap.logger.debug("EPICS.processDBR: " + pvname + "\t" + newval);
     } catch (Exception e) {
-      MonitorMap.logger.warning("EPICS: " + pvname + ": " + e.getClass() + ": " + e.getMessage());
+      MonitorMap.logger.warning("EPICS.processDBR: " + pvname + ": " + e);
       e.printStackTrace();
     }
     return newval;
-  }  
+  }
 }

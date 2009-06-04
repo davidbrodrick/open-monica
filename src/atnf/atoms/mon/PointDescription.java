@@ -604,7 +604,14 @@ implements ActionListener, NamedObject, Comparable
     return 50;
   }
 
-  /** Indicates if the point is in the process of actively being updated. */
+  /** Indicate if the point is in the process of being updated. This is useful for points
+   * which are updated asynchronously to prevent a subsequent collection from being 
+   * scheduled while another collection is still happening. */
+  public void isCollecting(boolean collecting) {
+    itsCollecting = collecting;
+  }
+
+  /** Indicates if the point is in the process of being updated. */
   public boolean isCollecting() {
     return itsCollecting;
   }
@@ -922,7 +929,6 @@ implements ActionListener, NamedObject, Comparable
         itsNextEpoch = (new AbsTime()).getValue() + itsPeriod;
       }
     }
-    itsCollecting = false;
   }
 
   /**
