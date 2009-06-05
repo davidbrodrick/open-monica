@@ -19,15 +19,18 @@ public final class PointDataIce implements java.lang.Cloneable
 
     public DataValue value;
 
+    public boolean alarm;
+
     public PointDataIce()
     {
     }
 
-    public PointDataIce(String name, long timestamp, DataValue value)
+    public PointDataIce(String name, long timestamp, DataValue value, boolean alarm)
     {
         this.name = name;
         this.timestamp = timestamp;
         this.value = value;
+        this.alarm = alarm;
     }
 
     public boolean
@@ -60,6 +63,10 @@ public final class PointDataIce implements java.lang.Cloneable
             {
                 return false;
             }
+            if(alarm != _r.alarm)
+            {
+                return false;
+            }
 
             return true;
         }
@@ -80,6 +87,7 @@ public final class PointDataIce implements java.lang.Cloneable
         {
             __h = 5 * __h + value.hashCode();
         }
+        __h = 5 * __h + (alarm ? 1 : 0);
         return __h;
     }
 
@@ -104,6 +112,7 @@ public final class PointDataIce implements java.lang.Cloneable
         __os.writeString(name);
         __os.writeLong(timestamp);
         __os.writeObject(value);
+        __os.writeBool(alarm);
     }
 
     private class Patcher implements IceInternal.Patcher
@@ -134,5 +143,6 @@ public final class PointDataIce implements java.lang.Cloneable
         name = __is.readString();
         timestamp = __is.readLong();
         __is.readObject(new Patcher());
+        alarm = __is.readBool();
     }
 }

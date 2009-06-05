@@ -61,6 +61,7 @@ module atnf {
           string    name;
           long      timestamp;
           DataValue value;
+          bool      alarm;
         };
         sequence<PointDataIce> pointdataset;
         sequence<pointdataset> pointdatasetarray;

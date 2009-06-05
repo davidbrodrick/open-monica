@@ -12,12 +12,12 @@ import java.io.*;
 
 /**
  * Class: PointData
- * <P>Description: Used to store data for a monitor/control point
+ * <P>
+ * Description: Used to store data for a monitor/control point
  * @author Le Cuong Nguyen
  * @author David Brodrick
- **/
-public class PointData implements Serializable
-{
+ */
+public class PointData implements Serializable {
   /** Timestamp for when the data was collected. */
   private AbsTime itsTimestamp = null;
 
@@ -27,113 +27,99 @@ public class PointData implements Serializable
   /** Name of the point that we contain data for. */
   private String itsName = null;
 
-   public PointData(String name, AbsTime timestamp, Object data)
-   {
-     itsName = name;
-     itsTimestamp = timestamp;
-     itsData = data;
-   }
+  /** Indicates if this data represents an alarm condition. */
+  private boolean itsAlarm;
 
-   public PointData(String name, Object data)
-   {
-     itsName = name;
-     itsData = data;
-     itsTimestamp = AbsTime.factory();
-   }
+  public PointData(String name, AbsTime timestamp, Object data, boolean alarm) {
+    itsName = name;
+    itsTimestamp = timestamp;
+    itsData = data;
+    itsAlarm = alarm;
+  }
 
-   public PointData(String name)
-   {
-     itsName = name;
-     itsTimestamp = AbsTime.factory();     
-   }
+  public PointData(String name, AbsTime timestamp, Object data) {
+    itsName = name;
+    itsTimestamp = timestamp;
+    itsData = data;
+  }
 
-   /** Specify the name of the monitor point for which we hold data. */
-   public
-   void
-   setName(String name)
-   {
-     itsName = name;
-   }
+  public PointData(String name, Object data) {
+    itsName = name;
+    itsData = data;
+    itsTimestamp = AbsTime.factory();
+  }
 
+  public PointData(String name) {
+    itsName = name;
+    itsTimestamp = AbsTime.factory();
+  }
 
-   /** Specify the timestamp for the data value we hold. */
-   public
-   void
-   setTimestamp(AbsTime timestamp)
-   {
-     itsTimestamp = timestamp;
-   }
+  /** Specify the name of the monitor point for which we hold data. */
+  public void setName(String name) {
+    itsName = name;
+  }
 
-   /** Specify the actual data to be stored. */
-   public
-   void
-   setData(Object data)
-   {
-     itsData = data;
-   }
+  /** Specify the timestamp for the data value we hold. */
+  public void setTimestamp(AbsTime timestamp) {
+    itsTimestamp = timestamp;
+  }
 
-   /** Get the name of the point for which we hold data. */
-   public
-   String
-   getName()
-   {
-     return itsName;
-   }
+  /** Specify the actual data to be stored. */
+  public void setData(Object data) {
+    itsData = data;
+  }
 
-   /** Get the name part of the point without the source. */
-   public
-   String
-   getNameOnly()
-   {
-     return itsName.substring(itsName.indexOf(".")+1, itsName.length());
-   }
-   
-   /** Get the name of the source that this data relates to. */
-   public
-   String
-   getSource()
-   {
-     return itsName.substring(0, itsName.indexOf("."));
-   }
+  /** Get the name of the point for which we hold data. */
+  public String getName() {
+    return itsName;
+  }
 
-   /** Get the timestamp for the data value we hold. */
-   public
-   AbsTime
-   getTimestamp()
-   {
-     return itsTimestamp;
-   }
+  /** Get the name part of the point without the source. */
+  public String getNameOnly() {
+    return itsName.substring(itsName.indexOf(".") + 1, itsName.length());
+  }
 
-   /** Get the actual translated data stored by this PointData. */
-   public
-   Object
-   getData()
-   {
-     return itsData;
-   }
+  /** Get the name of the source that this data relates to. */
+  public String getSource() {
+    return itsName.substring(0, itsName.indexOf("."));
+  }
 
-   /** Check if the data field contains valid data. This simply checks to see
-    * if the data field is null, a null data field indicates that there was
-    * some problem updating the value for this point and that we no longer
-    * have a valid value to display for the point. */
-   public
-   boolean
-   isValid()
-   {
-     if (itsData==null) {
+  /** Get the timestamp for the data value we hold. */
+  public AbsTime getTimestamp() {
+    return itsTimestamp;
+  }
+
+  /** Get the actual translated data stored by this PointData. */
+  public Object getData() {
+    return itsData;
+  }
+
+  /** Get the alarm status for this data. */
+  public boolean getAlarm() {
+    return itsAlarm;
+  }
+
+  /** Get the alarm status for this data. */
+  public void setAlarm(boolean alarm) {
+    itsAlarm = alarm;
+  }  
+  
+  /**
+   * Check if the data field contains valid data. This simply checks to see if the data
+   * field is null, a null data field indicates that there was some problem updating the
+   * value for this point and that we no longer have a valid value to display for the
+   * point.
+   */
+  public boolean isValid() {
+    if (itsData == null) {
       return false;
     } else {
       return true;
     }
-   }
+  }
 
-   /** Get a String representation of this Object. */
-   public
-   String
-   toString()
-   {
-     return "{" + getName() + " "
-       + getTimestamp().toString(AbsTime.Format.UTC_STRING)
-       + " -> " + getData() + "}";
-   }   
+  /** Get a String representation of this Object. */
+  public String toString() {
+    return "{" + getName() + " " + getTimestamp().toString(AbsTime.Format.UTC_STRING) + " -> " + getData() + "}";
+  }
 }

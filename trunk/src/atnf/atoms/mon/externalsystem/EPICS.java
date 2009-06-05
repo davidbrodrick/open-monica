@@ -372,7 +372,7 @@ public class EPICS extends ExternalSystem {
       }
 
       // Print new value (for debugging)
-      // MonitorMap.logger.debug("EPICS.processDBR: " + pvname + "\t" + newval);
+      MonitorMap.logger.debug("EPICS.processDBR: " + pvname + "\t" + newval);
     } catch (Exception e) {
       MonitorMap.logger.warning("EPICS.processDBR: " + pvname + ": " + e);
       e.printStackTrace();
