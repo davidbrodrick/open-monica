@@ -160,7 +160,7 @@ public class MoniCAIceUtil {
     } else {
       value=new DataValue(DataType.DTNull);      
     }
-    return new PointDataIce(pd.getName(), pd.getTimestamp().getValue(), value);
+    return new PointDataIce(pd.getName(), pd.getTimestamp().getValue(), value, pd.getAlarm());
   }
 
   /** Convert data from Ice representation. */
@@ -205,7 +205,8 @@ public class MoniCAIceUtil {
     } else {
       value = null;
     }
-    return new PointData(name, ts, value);
+    boolean alarm = icedata.alarm;
+    return new PointData(name, ts, value, alarm);
   }
   
   /** Default port. */
