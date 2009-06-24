@@ -25,6 +25,8 @@ You can then make this available using socket, eg to create a server listening o
 socket -slp /tmp/foo.sh 8000
 }}}
 
+You should quickly test that the dummy server is running okay by connecting to the port with telnet, eg 'telnet localhost 8000'
+
 = Config Files =
 
 == monitor-sources.txt ==
