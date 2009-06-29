@@ -271,9 +271,6 @@ MoniCAClientCustom extends MoniCAClient
       String defstring = (String)((Vector)response.getData()).get(i);
       if (defstring!=null) {
         PointDescription newpoint = PointDescription.parseLine(defstring).get(0);
-        if (newpoint!=null) {
-          newpoint.populateClientFields();
-        }
         res.add(newpoint);
       }
     }
@@ -354,7 +351,6 @@ MoniCAClientCustom extends MoniCAClient
     Vector<PointDescription> res = new Vector<PointDescription>(pointdefs.length);
     for (int i=0; i<pointdefs.length; i++) {
       PointDescription newpoint = PointDescription.parseLine(pointdefs[i]).get(0);
-      newpoint.populateClientFields();
       res.add(newpoint);
     }
     return res;

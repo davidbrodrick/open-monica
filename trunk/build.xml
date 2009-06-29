@@ -61,12 +61,13 @@
 
     <!-- Generate some scripts in bin area -->
     <property name="bindir" value="${prefix}/bin"/>
+    <property name="server_invocation" value="java -DIce.MessageSizeMax=32768 -jar ${jarname}"/>
     <mkdir dir="${bindir}"/>
     <echo file="${bindir}/open-monica-server.sh" append="false">#!/bin/sh
 
 case "$1" in
   start)
-    NUM=$$(ps -efw | grep "java -jar ${jarname}" | grep -v grep | wc -l)
+    NUM=$$(ps -efw | grep "${server_invocation}" | grep -v grep | wc -l)
     if (( $$NUM == 0 )); then
       cd ${libdir}
       which nohup >/dev/null 2>/dev/null
@@ -75,7 +76,7 @@ case "$1" in
         $0 start-fg
       else
         echo Invoking Open-MoniCA server in background using \'nohup\'
-        nohup java -jar ${jarname} >/dev/null &amp;
+        nohup ${server_invocation} >/dev/null &amp;
       fi
     else
       echo Open-MoniCA server is already running
@@ -83,18 +84,18 @@ case "$1" in
     ;;
 
   start-fg)
-    NUM=$$(ps -efw | grep "java -jar ${jarname}" | grep -v grep | wc -l)
+    NUM=$$(ps -efw | grep "${server_invocation}" | grep -v grep | wc -l)
     if (( $$NUM == 0 )); then
       cd ${libdir}
       echo Starting Open-MoniCA server in the foreground
-      java -jar ${jarname}
+      ${server_invocation}
     else
       echo Open-MoniCA server is already running
     fi        
     ;;   
 
   stop)
-    PROCLINE=$(ps -efw | grep "java -jar ${jarname}" | grep -v grep)
+    PROCLINE=$(ps -efw | grep "${server_invocation}" | grep -v grep)
     if (( $? )); then
       echo Open-MoniCA server is not running
     else
@@ -121,7 +122,7 @@ esac
     <echo file="${bindir}/open-monica-client.sh" append="false">#!/bin/sh
 
 cd ${libdir}
-java -cp ${jarname} atnf.atoms.mon.gui.MonFrame
+java -DIce.MessageSizeMax=32768 -cp ${jarname} atnf.atoms.mon.gui.MonFrame
     </echo>
     <chmod file="${bindir}/open-monica-client.sh" perm="ugo+rx"/>
   </target>

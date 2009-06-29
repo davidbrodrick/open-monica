@@ -14,14 +14,11 @@ import atnf.atoms.mon.util.*;
 
 
 /**
- * Base-class for classes which check the value of a monitor point. The
- * basic theory is that monitor points normally have some nominal value,
- * or set of values, and the user may need to be alerted when the value
- * strays outside of this nominal set.
+ * Base-class for classes which indicate if a point is in an alarm state.
  * <P>
  * Sub-classes must implement an appropriate <i>checkLimits</i> method. 
- * <i>checkLimits</i> should return <tt>True</tt> when the point's value
- * is okay and <tt>False</tt> when an alert should be raised.
+ * <i>checkLimits</i> should set the PointData's alarm field to True when
+ * an alarm condition is detected or leave the field unchanged otherwise.
  *
  * @author Le Cuong Nguyen
  * @author David Brodrick
@@ -62,14 +59,10 @@ extends MonitorPolicy
    }
 
 
-   /** Check the value against the limits. This is the sub-class specific
-    * algorithm.
-    * @param data New data value to check.
-    * @return <tt>True</tt> if the value is okay, <tt>False</tt> if the
-    *  value is not okay.
-    */
+   /** Check the value against the alarm criteria.
+    * @param data New data value to check. */
    public abstract
-   boolean
+   void
    checkLimits(PointData data);
 
 

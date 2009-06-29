@@ -89,15 +89,13 @@ implements PointListener, ActionListener
     //System.err.println("TransactionListen: " + itsParent.getName() + " GOT " + evt);
 
     //Need to repack the data into a new event object
-    PointData pd1 = evt.getPointData();
-
+    PointData pd = evt.getPointData();
     //Check that there's data.. ?
-    if (pd1==null) {
+    if (pd==null) {
       return;
     }
 
-    PointData pd2 = new PointData(pd1.getName(), pd1.getTimestamp(), pd1.getData());
-    PointEvent evt2 = new PointEvent(this, pd2, true);
+    PointEvent evt2 = new PointEvent(this, new PointData(pd), true);
 
     itsParent.firePointEvent(evt2);
   }

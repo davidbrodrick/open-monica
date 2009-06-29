@@ -384,7 +384,7 @@ implements PointListener, ActionListener
         String pointname = (String)itsPoints.get(row);
         PointData pd = (PointData)itsValues.get(pointname);
         PointDescription pm = DataMaintainer.getPointFromMap(pointname);
-        if (pd==null || pm.checkLimits(pd)) {
+        if (pd==null || !pd.getAlarm()) {
           res=new JLabel(value.toString());
         } else {
           res=new JLabel(value.toString());
@@ -413,8 +413,7 @@ implements PointListener, ActionListener
         for (int i=0; i<itsPoints.size(); i++) {
           String pointname=(String)itsPoints.get(i);
           PointData pd = (PointData)itsValues.get(pointname);
-          PointDescription pm = DataMaintainer.getPointFromMap(pointname);
-          if (pd==null || !pm.checkLimits(pd)) {
+          if (pd==null || pd.getAlarm()) {
             return true;
           }
         }
@@ -730,7 +729,7 @@ implements PointListener, ActionListener
               count=icount.intValue();
             }
             //Check if current update is in alarm state
-            if (pm.checkLimits(newval)) {
+            if (!newval.getAlarm()) {
               //Value is currently okay
               if (count>0) {
                 count--;

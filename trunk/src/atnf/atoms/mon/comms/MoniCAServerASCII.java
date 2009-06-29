@@ -482,15 +482,12 @@ implements Runnable
               //No current data for this monitor point
               itsWriter.println(pointname + "\t?\t?\t?\t?");
             } else {
-              boolean limits = true;
-              limits = pm.checkLimits(pd);
               String units = pm.getUnits();
               if (units==null || units=="") {
                 units="?";
               }
               itsWriter.println(pointname + "\t" + pd.getTimestamp().toString(AbsTime.Format.HEX_BAT)
-                                + "\t" + pd.getData() + "\t" + units + "\t" +
-                                limits);
+                                + "\t" + pd.getData() + "\t" + units + "\t" + pd.getAlarm());
             }
           }
         } else {

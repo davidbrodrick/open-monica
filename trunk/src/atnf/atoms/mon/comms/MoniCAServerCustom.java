@@ -414,7 +414,7 @@ implements Runnable
 	if (res != null && res instanceof PointData) {
     itsOutput.writeObject(res);
   } else {
-    itsOutput.writeObject(new PointData(null));
+    //itsOutput.writeObject(new PointData(null));
   }
 	itsOutput.flush();
 	itsOutput.reset(); //Stops memory leak

@@ -20,8 +20,8 @@ public class PointLimitNONE extends PointLimit {
   }
   
   /** Always indicates that data is okay. */
-  public boolean checkLimits(PointData data) {
-    return true;
+  public void checkLimits(PointData data) {
+    return;
   }
 
 }

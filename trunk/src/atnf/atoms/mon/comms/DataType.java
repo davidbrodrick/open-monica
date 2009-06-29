@@ -21,7 +21,8 @@ public enum DataType
     DTString,
     DTBoolean,
     DTAbsTime,
-    DTRelTime;
+    DTRelTime,
+    DTAngle;
 
     public static final int _DTNull = 0;
     public static final int _DTFloat = 1;
@@ -32,11 +33,12 @@ public enum DataType
     public static final int _DTBoolean = 6;
     public static final int _DTAbsTime = 7;
     public static final int _DTRelTime = 8;
+    public static final int _DTAngle = 9;
 
     public static DataType
     convert(int val)
     {
-        assert val >= 0 && val < 9;
+        assert val >= 0 && val < 10;
         return values()[val];
     }
 
@@ -68,7 +70,7 @@ public enum DataType
     public static DataType
     __read(IceInternal.BasicStream __is)
     {
-        int __v = __is.readByte(9);
+        int __v = __is.readByte(10);
         return DataType.convert(__v);
     }
 }

@@ -473,7 +473,7 @@ implements PointListener, TableCellRenderer
           res.setForeground(Color.lightGray);
         }
 
-        if (pd.isValid() && !pm.checkLimits(pd)) {
+        if (pd.isValid() && pd.getAlarm()) {
           //Don't highlight the point if it has expired
           //Point is outside of limits, so highlight this cell
           if (age<3*period) {

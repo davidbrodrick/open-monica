@@ -73,6 +73,11 @@ extends ASCIISocket
   DataReader
   extends Thread
   {
+    public DataReader()
+    {
+      super(itsName + " DataReader");  
+    }
+    
     public void	run()
     {
       while (true) {
@@ -95,7 +100,11 @@ extends ASCIISocket
           while (true) {
             //Read a line from the server
             String line = itsReader.readLine();
-            //System.err.println(line);
+            //System.err.println(line);            
+            if (line==null) {
+              //Read timed out?
+              throw new Exception("Read timed out or socket closed?");
+            }
             
             //Do any required pre-formatting
             line=preformat(line);
@@ -114,9 +123,9 @@ extends ASCIISocket
             }  
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          //e.printStackTrace();
           System.err.println("ASCIILine:DataReader.run (" + itsHostName 
-                             + ":" + itsPort + "): " + e.getClass());
+                             + ":" + itsPort + "): " + e);
           try { disconnect(); } catch (Exception f) { }
         }
       }
