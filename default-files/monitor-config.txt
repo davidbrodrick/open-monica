@@ -9,7 +9,7 @@ ArchiveSize 7340032
 ArchiveMaxAge 604800
 # Max archive records to be returned for a single query
 # This is to prevent server CPU/memory saturation
-ArchiveMaxRecords 86400
+ArchiveMaxRecords 16384
 
 # Authentication
 NISGroup atomsprg
