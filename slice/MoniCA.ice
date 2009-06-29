@@ -26,7 +26,7 @@ module atnf {
         sequence<PointDescriptionIce> pointarray;
 
         //Enum to represent data type        
-        enum DataType {DTNull, DTFloat, DTDouble, DTInt, DTLong, DTString, DTBoolean, DTAbsTime, DTRelTime};
+        enum DataType {DTNull, DTFloat, DTDouble, DTInt, DTLong, DTString, DTBoolean, DTAbsTime, DTRelTime, DTAngle};
         //Classes to hold different data types
         class DataValue { 
           DataType type;
@@ -54,6 +54,9 @@ module atnf {
         };
         class DataValueAbsTime extends DataValue {
           long value;
+        };
+        class DataValueAngle extends DataValue {
+          double value;
         };
         
         //PointDataIce encapsulates a single record/datum

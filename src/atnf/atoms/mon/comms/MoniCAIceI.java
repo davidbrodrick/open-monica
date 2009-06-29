@@ -141,6 +141,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     protected int itsPort;
 
     public MoniCAIceServerThread(int port) {
+      super("MoniCAIceServer");
       itsPort = port;
     }
 

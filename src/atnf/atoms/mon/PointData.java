@@ -27,8 +27,16 @@ public class PointData implements Serializable {
   /** Name of the point that we contain data for. */
   private String itsName = null;
 
-  /** Indicates if this data represents an alarm condition. */
+  /** Indicates if this data represents an alarm condition. A value of True indicates
+   * an alarm, a value of False indicates no alarm. */
   private boolean itsAlarm;
+
+  public PointData(PointData orig) {
+    itsName = orig.getName();
+    itsTimestamp = orig.getTimestamp();
+    itsData = orig.getData();
+    itsAlarm = orig.getAlarm();
+  }
 
   public PointData(String name, AbsTime timestamp, Object data, boolean alarm) {
     itsName = name;
@@ -94,12 +102,14 @@ public class PointData implements Serializable {
     return itsData;
   }
 
-  /** Get the alarm status for this data. */
+  /** Get the alarm status for this data. A value of True indicates an alarm, 
+   * a value of False indicates no alarm. */
   public boolean getAlarm() {
     return itsAlarm;
   }
 
-  /** Get the alarm status for this data. */
+  /** Get the alarm status for this data. A value of True indicates an alarm, a
+   * value of False indicates no alarm. */
   public void setAlarm(boolean alarm) {
     itsAlarm = alarm;
   }  

@@ -49,7 +49,7 @@ extends TranslationListener
         break;
       }
       
-      if (itsPoints[i].checkLimits(itsValues[i])==false) {
+      if (itsValues[i].getAlarm()) {
         //This point is in an alarm state
         unavailable=true;
         break;        

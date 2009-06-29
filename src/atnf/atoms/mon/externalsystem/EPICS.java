@@ -167,6 +167,11 @@ public class EPICS extends ExternalSystem {
    * which request it.
    */
   protected class ChannelConnector extends Thread {
+    public ChannelConnector()
+    {
+      super("EPICS ChannelConnector");  
+    }
+    
     public void run() {
       while (true) {
         // Build a list of all challs which need connecting
@@ -372,7 +377,7 @@ public class EPICS extends ExternalSystem {
       }
 
       // Print new value (for debugging)
-      MonitorMap.logger.debug("EPICS.processDBR: " + pvname + "\t" + newval);
+      //MonitorMap.logger.debug("EPICS.processDBR: " + pvname + "\t" + newval);
     } catch (Exception e) {
       MonitorMap.logger.warning("EPICS.processDBR: " + pvname + ": " + e);
       e.printStackTrace();

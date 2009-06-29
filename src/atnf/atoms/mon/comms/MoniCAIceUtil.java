@@ -11,6 +11,7 @@ package atnf.atoms.mon.comms;
 import java.util.Vector;
 import atnf.atoms.mon.*;
 import atnf.atoms.time.*;
+import atnf.atoms.util.Angle;
 
 /** Contains various static methods for converting between native MoniCA data types and
  * their Ice representations.
@@ -94,8 +95,6 @@ public class MoniCAIceUtil {
         pd.shortdescription, pd.units, pd.source, pd.inputtransactions, 
         pd.outputtransactions, pd.translations, pd.limits, pd.archivepolicies, 
         ""+pd.period, ""+pd.archivelongevity, pd.enabled);
-    //Populate the appropriate data structures for client-side use
-    res.populateClientFields();
     return res;
   }
   
@@ -157,6 +156,8 @@ public class MoniCAIceUtil {
       value=new DataValueAbsTime(DataType.DTAbsTime, ((AbsTime)data).getValue());      
     } else if (data instanceof RelTime) {
       value=new DataValueRelTime(DataType.DTRelTime, ((RelTime)data).getValue());      
+    } else if (data instanceof Angle) {
+      value=new DataValueAngle(DataType.DTAngle, ((Angle)data).getValue());      
     } else {
       value=new DataValue(DataType.DTNull);      
     }
@@ -202,6 +203,8 @@ public class MoniCAIceUtil {
       value = AbsTime.factory(((DataValueAbsTime)icedata.value).value);
     } else if (icedata.value.type==DataType.DTRelTime) {
       value = RelTime.factory(((DataValueRelTime)icedata.value).value);
+    } else if (icedata.value.type==DataType.DTAngle) {
+      value = Angle.factory(((DataValueAngle)icedata.value).value);
     } else {
       value = null;
     }
