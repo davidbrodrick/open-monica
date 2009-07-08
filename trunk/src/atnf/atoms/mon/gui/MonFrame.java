@@ -1063,14 +1063,10 @@ implements ActionListener
   /** Simple test application. */
   public static void main(String[] argv)
   {
-    boolean autodump = false;
+    boolean autodump;
     int autodumpperiod = 60000;
     int numframes = 0;
     String outputdir = "";
-
-    System.err.println("MonFrame " + theirRCS + " starting");
-
-    //Angle.setTheirDefaultFormat(Angle.Format.DEGREES);
 
     if (argv.length>0) {
       for (int i=0; i<argv.length; i++) {
