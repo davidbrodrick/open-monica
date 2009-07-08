@@ -103,7 +103,7 @@ public class MonClientUtil
 
           //This line is a server definition
           String[] tokens=thisline.split("\t");
-          if (tokens==null || tokens.length<2) {
+          if (tokens==null || tokens.length<2 || tokens[1].trim().equals("")) {
             System.err.println("MonClientUtil: WARNING: monitor-servers.txt parse error line " + linecounter);
             continue;
           }
@@ -136,7 +136,7 @@ public class MonClientUtil
       SiteChooser chooser = new SiteChooser(serverlist, defaultserver);
       chosenserver = chooser.getSite();
       host=(String)chosenserver.get(1);
-      System.err.println("User selected server " + host);
+      System.err.println("User selected server: \"" + host + "\"");
       theirServerName = (String)chosenserver.get(0);
     }
 
@@ -178,7 +178,7 @@ public class MonClientUtil
           JOptionPane.showMessageDialog(MonFrame.theirWindowManager.getWindow(0),
             "ERROR CONTACTING SERVER\n\n" +
             "Server: " + host + "\n" +
-            "Error: \"" + e.getMessage() + "\"\n\n" +
+            "Error: " + (e.getMessage()==null?e.getClass().getName():e.getMessage()) + "\n\n" +
             "The application will now exit.",
             "Error Contacting Server",
             JOptionPane.WARNING_MESSAGE);
