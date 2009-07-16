@@ -77,6 +77,20 @@ public class MoniCAClientIce extends MoniCAClient {
   }
 
   /**
+   * Get the point with the specified name. The populateClientFields method should be
+   * invoked on each point prior to returning the result.
+   * @param pointname Point names to be retrieved.
+   * @return The point definitions.
+   */
+  public PointDescription getPoint(String pointnames) throws Exception {
+    Vector<String> request = new Vector<String>(1);
+    Vector<PointDescription> res = getPoints(request);
+    if (res!=null && res.size()>0) return res.get(0);
+    else return null;
+  }
+  
+  
+  /**
    * Get the points with the specified names. The populateClientFields method should be
    * invoked on each point prior to returning the result.
    * @param pointnames Vector containing point names to be retrieved.

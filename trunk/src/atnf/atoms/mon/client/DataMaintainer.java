@@ -1,271 +1,316 @@
 package atnf.atoms.mon.client;
 
 import java.util.*;
+
 import atnf.atoms.mon.*;
+import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
 
 /**
- * Class: DataMaintainer Description: handles client-side collection and
- * buffering of Points
+ * Class: DataMaintainer Description: handles client-side collection and buffering of
+ * Points
  * 
  * @author Le Cuong Nguyen
  */
 
-public class DataMaintainer implements Runnable, PointListener {
-  protected ArrayList<PointDescription> itsPoints = new ArrayList<PointDescription>();
-
-  protected static Hashtable<String,PointDescription> itsNames = new Hashtable<String,PointDescription>();
-
-  protected static Hashtable<String,PointData> itsBuffer = new Hashtable<String,PointData>();
-
-  protected static Thread itsCollector;
-
-  protected static DataMaintainer itsMain;
-
-  protected static boolean itsRunning = true;
+public class DataMaintainer implements Runnable {
+  //Create a thread to do the polling of the server
   static {
-    itsMain = new DataMaintainer();
-    itsCollector = new Thread(itsMain);
-    itsCollector.start();
+    new Thread(new DataMaintainer(), "DataMaintainer Collector").start();
   }
-
-  public DataMaintainer() {
-  }
-
-  // Data is collected
-  public void onPointEvent(Object source, PointEvent evt) {
-    if (evt != null && !evt.isRaw()) {
-      if (evt.getPointData() != null) {
-        itsBuffer.put(evt.getPointData().getName(), evt.getPointData());
+  
+  /**
+   * Comparator to compare PointDescriptions and/or AbsTimes. We need to use this
+   * Comparator with the SortedLinkedList class.
+   */
+  private static class TimeComp implements Comparator {
+    /** Return a timestamp for any known class type. */
+    private long getTimeStamp(Object o) {
+      if (o instanceof PointDescription) {
+        return ((PointDescription) o).getNextEpoch();
+      } else if (o instanceof AbsTime) {
+        return ((AbsTime) o).getValue();
+      } else if (o == null) {
+        return 0;
+      } else {
+        System.err.println("ExternalSystem: TimeComp: compare: UNKNOWN TYPE (" + o.getClass() + ")");
+        return 0;
       }
-      // Schedule again
-      addPoint((PointDescription) source);
-    } else if (evt == null) {
-      // Schedule again
-      addPoint((PointDescription) source);
+    }
+
+    /** Compare PointDescriptions and/or AbsTimes. */
+    public int compare(Object o1, Object o2) {
+      long val1 = getTimeStamp(o1);
+      long val2 = getTimeStamp(o2);
+
+      if (val1 > val2) {
+        return 1;
+      }
+      if (val1 < val2) {
+        return -1;
+      }
+      return 0;
+    }
+
+    /** Test if equivalent to the given Comparator. */
+    public boolean equals(Object o) {
+      if (o instanceof TimeComp) {
+        return true;
+      } else {
+        return false;
+      }
     }
   }
 
+  /** Queue of points sorted by time of next collection. */
+  protected static SortedLinkedList theirQueue = new SortedLinkedList(new TimeComp());
+  
+  /** All points currently being collected. */
+  protected static HashMap<String,PointDescription> theirPoints = new HashMap<String,PointDescription>();
+
+  public DataMaintainer()
+  {
+  }
+
+  /** Check if the named point is already being collected. */
+  public static boolean alreadyCollecting(String name) {
+    return theirPoints.containsKey(name);
+  }
+  
   /** Schedules a point */
-  protected void addPoint(PointDescription pm) {
-    long nextExec = pm.getNextEpoch();
-    synchronized (itsPoints) {
-      for (int i = 0; i < itsPoints.size(); i++) {
-        if (((PointDescription) itsPoints.get(i)).getNextEpoch() >= nextExec) {
-          itsPoints.add(i, pm);
-          itsPoints.notifyAll();
-          return;
-        }
-      }
-      itsPoints.add(pm);
-      itsPoints.notifyAll();
-    }
-  }
-
-  public void addPoint(PointDescription pm, boolean init) {
-    if (init) {
-      pm.addPointListener(this);
-    }
-    addPoint(pm);
+  protected static void addPoint(PointDescription pd) {
+    theirPoints.put(pd.getFullName(), pd);
+    theirQueue.add(pd);
+    theirQueue.notifyAll();
   }
 
   /** Unschedules a point. */
-  public void removePointMonitor(PointDescription pm) {
-    synchronized (itsPoints) {
-      itsPoints.remove(pm);
-      itsPoints.notifyAll();
-    }
+  public static void removePoint(PointDescription pd) {
+    theirPoints.remove(pd.getFullName());
   }
 
+  /** Subscribe the specified listener to updates from all of the given points. */
   public static void subscribe(Vector<String> points, PointListener pl) {
-    Vector<String> realarg = new Vector<String>();
+    // Identify any points we dont have full definitions for yet
+    Vector<String> newpoints = new Vector<String>();
     for (int i = 0; i < points.size(); i++) {
-      String pname = (String) points.get(i);
-      if (itsNames.get(pname) == null) {
+      String pname = points.get(i);
+      if (PointDescription.getPoint(pname) == null) {
         // We don't already have this point
-        realarg.add(pname);
+        newpoints.add(pname);
+        System.err.println("DataMaintainer.subscribe: requesting def for " + pname);
       }
     }
 
-    if (realarg.size() > 0) {
-      // We need to go ask the server for these points
-      Vector<PointDescription> res = null;
+    // Get the new definitions from the server
+    if (newpoints.size() > 0) {
+      Vector<PointDescription> queryres = null;
       try {
-        res = (MonClientUtil.getServer()).getPoints(realarg);
+        // Points will get added to static fields when the downloaded definitions are
+        // instanciated - so simply requesting the points from the server meets our goals.
+        queryres = (MonClientUtil.getServer()).getPoints(newpoints);
       } catch (Exception e) {
+        queryres = null;
       }
-      if (res == null) {
+      if (queryres == null) {
         System.err.println("DataMaintainer.subscribe1: GOT NULL RESULT!");
-      } else {
-        // Add the details for all the new points
-        for (int i = 0; i < res.size(); i++) {
-          PointDescription pd = res.get(i);
-          if (pd==null) {
-            continue;
-          }
-          String[] names = pd.getFullNames();
-          for (int j = 0; j < names.length; j++) {
-            itsNames.put(names[j], pd);
-          }
-          itsMain.addPoint(pd, true);
-        }
+        return;
       }
     }
 
-    // We've now loaded all the required points, need to add the listener
+    // Ensure all of the specified points are being collected
     for (int i = 0; i < points.size(); i++) {
-      PointDescription fm = itsNames.get(points.get(i));
-      if (fm == null) {
-        continue;
+      PointDescription pd = PointDescription.getPoint(points.get(i));
+      synchronized (theirQueue) {
+        if (!alreadyCollecting(points.get(i))) {
+          if (pd == null) {
+            System.err.println("DataMaintainer.subscribe1: Point " + points.get(i) + " was still null");
+          } else {
+            System.err.println("DataMaintainer.subscribe: collecting " + points.get(i));
+            addPoint(pd);
+          }
+        }
+        // Add the listener to this point
+        pd.addPointListener(pl);
       }
-      fm.addPointListener(pl);
     }
   }
 
+  /** Subscribe the specified listener to updates from the specified point. */
   public static void subscribe(String point, PointListener pl) {
-    if (itsNames.get(point) == null) {
-      //Get the info to build the structure from the server
-      PointDescription pm = null;
+    PointDescription pd = PointDescription.getPoint(point);
+    System.err.println("DataMaintainer.subscribe: " + point);
+    if (pd == null) {
+      // Need to get the point definition from the server
       try {
-        pm = (MonClientUtil.getServer()).getPoint(point);
+        pd = (MonClientUtil.getServer()).getPoint(point);
       } catch (Exception e) {
+        pd = null;
       }
-      if (pm == null) {        
+      if (pd == null) {
         System.err.println("DataMaintainer.subscribe2: GOT NULL RESULT!");
         return;
       }
-      itsMain.addPoint(pm, true);
     }
-    PointDescription fm = itsNames.get(point);
-    fm.addPointListener(pl);
+
+    // Ensure point is in the update queue
+    synchronized (theirQueue) {
+      if (!alreadyCollecting(point)) {
+        addPoint(pd);
+      }
+    }
+
+    // Add the listener to this point
+    pd.addPointListener(pl);
   }
 
-  public static void subscribe(String pointname, String source, PointListener pl) {
-    subscribe(source + "." + pointname, pl);
-  }
-
-  public static void unsubscribe(String pointname, String source,
-      PointListener pl) {
-    unsubscribe(source + "." + pointname, pl);
-  }
-
-  /** Unsubscribe from all points contained in the vector. */
+  /** Unsubscribe the listener from all points contained in the vector. */
   public static void unsubscribe(Vector points, PointListener pl) {
     for (int i = 0; i < points.size(); i++) {
       unsubscribe((String) points.get(i), pl);
     }
   }
 
+  /** Unsubscribe the listener from the specified point. */
   public static void unsubscribe(String point, PointListener pl) {
-    // TODO: Currently broken - doesn't unsubscribe.
-    // Either fix or replace with ICE
-    /*
-     * if (itsNames.get(point) == null) { return; } FakeMonitor fm =
-     * (FakeMonitor)MonitorMap.getPointMonitor(point);
-     * fm.removePointListener(pl); itsBuffer.remove(point); if
-     * (fm.getNumListeners() < 2) { itsMain.removePointMonitor(fm); //Remove
-     * each name for the point String[] names = fm.getAllNames();
-     * itsNames.remove(point); //for (int i=0; i<names.length; i++)
-     * //itsNames.remove(source+"."+names[i]); //Next, let the collection thread
-     * know our points have changed //synchronized (itsMain.itsPoints) { //
-     * itsMain.itsPoints.notifyAll(); //itsMain.interrupt(); //} }
-     */
+    // Get the reference to the full point
+    PointDescription pd = PointDescription.getPoint(point);
+    if (pd!=null) {
+      // Point exists
+      pd.removePointListener(pl);
+      System.err.println("DataMaintainer.unsubscribe: " + point + " has " + pd.getNumListeners() + " listeners remaining");
+      if (pd.getNumListeners()==0) {
+        // No listeners left so stop collecting this point
+        removePoint(pd);
+      }
+    }
   }
 
-  /** For convenience, but it isn't the proper way of making a FakePoint */
-  public static PointDescription getPointFromMap(String pointname, String source) {
-    return itsNames.get(source + "." + pointname);
+  /** Determine when to next collect the point. */
+  public static void updateCollectionTime(PointDescription point) {
+    // A short interval
+    final long shortinterval = 1000000l;
+
+    long nexttime = 0;
+    if (point.getNextEpoch() == 0) {
+      // Point has never been collected so collect now
+      nexttime = AbsTime.factory().getValue();
+    } else {
+      // Last collection attempt failed so try again shortly
+      nexttime = AbsTime.factory().getValue() + shortinterval;
+    }
+
+    point.setNextEpoch(nexttime);
   }
 
-  /** For convenience, but it isn't the proper way of making a FakePoint */
-  public static PointDescription getPointFromMap(String fullname) {
-    return itsNames.get(fullname);
+  /** Determine when to next collect the point. */
+  public static void updateCollectionTime(PointDescription point, PointData data) {
+    // A short interval
+    final long shortinterval = 1000000l;
+
+    long nexttime = 0;
+    long lasttime = point.getNextEpoch();
+    long datatime = data.getTimestamp().getValue();
+    long now = AbsTime.factory().getValue();
+    long period = point.getPeriod();
+
+    if (lasttime == 0) {
+      // Point has never been collected, so collect now
+      nexttime = now;
+    } else if (period <= 0) {
+      // Point is aperiodic. For now all we can do is try again shortly to see
+      // if it has updated yet. A proper publish/subscribe to replace this polling
+      // will be the ultimate solution.
+      nexttime = now + shortinterval;
+    } else if (datatime + period > now) {
+      // Schedule for expected next update of the point
+      nexttime = datatime + period;
+    } else {
+      // Try again shortly
+      nexttime = now + shortinterval;
+    }
+
+    point.setNextEpoch(nexttime);
   }
 
-  public static PointData getBuffer(String point) {
-    return (PointData) itsBuffer.get(point);
-  }
-
-  public static PointData getBuffer(String pname, String source) {
-    return (PointData) itsBuffer.get(source + "." + pname);
-  }
-
+  /** Main loop for collection thread. */
   public void run() {
-    while (itsRunning) {
-      Vector<PointDescription> getpoints = new Vector<PointDescription>();
-      Vector<String> getnames = new Vector<String>();
-
+    while (true) {
+      Vector<PointDescription> getpoints = null;
       AbsTime nextTime = AbsTime.factory("ASAP");
-      synchronized (itsPoints) {
+      synchronized (theirQueue) {
         try {
           // Wait for notification if no points are waiting
-          while (itsPoints.size() == 0) {
-            itsPoints.wait();
+          while (theirQueue.size() == 0) {
+            theirQueue.wait();
           }
         } catch (Exception e) {
         }
 
-        // Get the point from the head of the queue
-        PointDescription pm = itsPoints.remove(0);
-        long nextRun = pm.getNextEpoch();
-        long now = AbsTime.factory().getValue();
-        now += 50000; // Fudge factor
-
-        while (pm != null && (nextRun <= now)) {
-          // This point needs to be collected right now
-          getpoints.add(pm);
-          getnames.add("" + pm.getSource() + "." + pm.getLongName());
-          pm = null;
-          if (itsPoints.size() > 0) {
-            // Get next point
-            pm = itsPoints.remove(0);
-            nextRun = pm.getNextEpoch();
-          } else {
-            break; // No more points awaiting collection
-          }
-        }
-        if (pm != null) {
-          itsPoints.add(0, pm); // Reinsert point
-        }
+        // Get the points which are ready for collection
+        getpoints = theirQueue.headSet(AbsTime.factory());
       }
 
       if (getpoints.size() > 0) {
-        // System.err.println("DataMaintainer: Requesting " + getpoints.size() +
-        // " Updates");
+        Vector<String> getnames = new Vector<String>();
+        for (int i=0; i<getpoints.size(); i++) {
+          getnames.add(getpoints.get(i).getFullName());
+        }
+        System.err.println("DataMaintainer: Requesting " + getpoints.size() + " Updates");
         Vector<PointData> resdata = null;
+        AbsTime startepoch = AbsTime.factory();
         try {
           resdata = MonClientUtil.getServer().getData(getnames);
         } catch (Exception e) {
         }
+        AbsTime endepoch = AbsTime.factory();
+        System.err.println("DataMaintainer: Query took " + (endepoch.getAsSeconds() - startepoch.getAsSeconds()));
         if (resdata != null) {
           for (int i = 0; i < getpoints.size(); i++) {
             PointDescription pm = getpoints.get(i);
             if (resdata.get(i) != null) {
-              pm.firePointEvent(new PointEvent(pm, resdata.get(i), false));
+              // Got new data for this point okay
+              System.err.println("DataMaintainer: foo1 " + pm.getFullName());
+              pm.distributeData(new PointEvent(pm, resdata.get(i), false));
+              updateCollectionTime(pm, resdata.get(i));
             } else {
-              pm.firePointEvent(new PointEvent(pm, new PointData(pm.getFullName()), false));
+              // Got no data back for this point
+              System.err.println("DataMaintainer: foo2 " + pm.getFullName());
+              pm.distributeData(new PointEvent(pm, new PointData(pm.getFullName()), false));
+              updateCollectionTime(pm);
             }
           }
         } else {
-          // Got no data back, flag points as no longer collecting
+          // Got no data back
           for (int i = 0; i < getpoints.size(); i++) {
             PointDescription pm = getpoints.get(i);
             PointData pd = new PointData(pm.getFullName());
-            pm.firePointEvent(new PointEvent(pm, pd, false));
+            pm.distributeData(new PointEvent(pm, pd, false));
+            updateCollectionTime(pm);
+          }
+        }
+        
+        // Need to reinsert the points to reschedule collection
+        for (int i = 0; i < getpoints.size(); i++) {
+          // Ensure point subscription hasn't been cancelled in meantime
+          synchronized (theirQueue) {
+            if (theirPoints.containsKey(getpoints.get(i).getFullName()) && !theirQueue.contains(getpoints.get(i))) {
+              theirQueue.add(getpoints.get(i));
+            }
           }
         }
       }
 
       try {
-        synchronized (itsPoints) {
-          if (itsPoints.size() > 0) {
-            PointDescription pm = (PointDescription) itsPoints.get(0);
+        synchronized (theirQueue) {
+          if (theirQueue.size() > 0) {
+            PointDescription pm = (PointDescription) theirQueue.first();
             nextTime = AbsTime.factory(pm.getNextEpoch());// -10000);
           }
         }
         AbsTime timenow = AbsTime.factory();
         if (nextTime.isAfter(timenow)) {
-          final RelTime maxsleep = RelTime.factory(300000);
+          final RelTime maxsleep = RelTime.factory(10000);
           // We need to wait before we collect the next point.
           // Work out how long we need to wait for
           RelTime waittime = Time.diff(nextTime, timenow);

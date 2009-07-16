@@ -174,6 +174,20 @@ SortedLinkedList
     return false;
   }
 
+  /** Check if the object is already stored in the list. */
+  public synchronized
+  boolean
+  contains(Object o)
+  {
+    ListNode next = itsHead;
+    while (next!=null) {
+      if (next.data==o) {
+        return true;
+      }
+      next = next.next;
+    }
+    return false;
+  }
 
   /** Get a string representation of the list. */
   public synchronized
