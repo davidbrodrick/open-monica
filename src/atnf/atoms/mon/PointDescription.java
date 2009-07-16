@@ -764,7 +764,18 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     return result;
   }
 
-  /** OK, maybe data has been collected */
+  /** Distribute data to listeners. */
+  public synchronized void distributeData(PointEvent pe) {
+    // Pass the event on to all listeners
+    Object[] listeners = itsPLList.getListenerList();
+    for (int i = 0; i < listeners.length; i += 2) {
+      if (listeners[i] == PointListener.class) {
+        ((PointListener) listeners[i + 1]).onPointEvent(this, pe);
+      }
+    }
+  }
+
+  /** OK, maybe new raw data has been collected */
   public synchronized void firePointEvent(PointEvent pe) {
     PointData data = pe.getPointData();
     if (pe.isRaw()) {
@@ -837,12 +848,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     }
 
     // Pass the event on to all listeners
-    Object[] listeners = itsPLList.getListenerList();
-    for (int i = 0; i < listeners.length; i += 2) {
-      if (listeners[i] == PointListener.class) {
-        ((PointListener) listeners[i + 1]).onPointEvent(this, pe);
-      }
-    }
+    distributeData(pe);
 
     // Schedule the next collection
     if (itsPeriod > 0) {

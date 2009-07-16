@@ -352,7 +352,7 @@ implements PointListener, ActionListener
       Object res = null;
       synchronized (itsPoints) {
         String pointname = (String)itsPoints.get(row);
-        PointDescription pm = DataMaintainer.getPointFromMap(pointname);
+        PointDescription pm = PointDescription.getPoint(pointname);
         if (column==0) {
           PointData pd=(PointData)itsValues.get(pointname);
           if (pd==null) {
@@ -383,7 +383,7 @@ implements PointListener, ActionListener
       
         String pointname = (String)itsPoints.get(row);
         PointData pd = (PointData)itsValues.get(pointname);
-        PointDescription pm = DataMaintainer.getPointFromMap(pointname);
+        PointDescription pm = PointDescription.getPoint(pointname);
         if (pd==null || !pd.getAlarm()) {
           res=new JLabel(value.toString());
         } else {
@@ -718,7 +718,7 @@ implements PointListener, ActionListener
       PointData newval = evt.getPointData();
       if (newval!=null) {
         String fullname = newval.getName();
-        PointDescription pm = DataMaintainer.getPointFromMap(fullname);
+        PointDescription pm = PointDescription.getPoint(fullname);
         long age = (new AbsTime()).getValue() - newval.getTimestamp().getValue();
         long period = pm.getPeriod();
         if (newval.isValid() && (period==0 || age<5*period)) {

@@ -115,8 +115,12 @@ public class PointArchiverASCII extends PointArchiver {
       for (int i = 0; i < dirFiles.length; i++) {
         Date thisdate = null;
         String thisfile = dirFiles[i];
+        if (thisfile.startsWith(".")) {
+          // It's a hidden file so ignore it
+          continue;
+        }
         if (isCompressed(thisfile)) {
-          // cut the ".zip" off the end of the string
+          // Cut the ".zip" off the end of the string
           thisfile = thisfile.substring(0, thisfile.length() - 4);
         }
         thisdate = getDateTime(thisfile);

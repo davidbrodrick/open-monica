@@ -42,6 +42,9 @@ public class PointTableModel extends AbstractTableModel implements PointListener
   /** Names of sources selected for display in the table. */
   protected Vector<String> itsSources = new Vector<String>();
 
+  /** Table containing all of the latest values in [source][point] ie [column][row] order. */
+  protected PointData[][] itsValues = null;
+  
   public PointTableModel() {
     super();
   }
@@ -74,7 +77,7 @@ public class PointTableModel extends AbstractTableModel implements PointListener
           continue; // Blank row
         }
         for (int j = 0; j < itsSources.size(); j++) {
-          DataMaintainer.unsubscribe(pname, (String) itsSources.get(j), this);
+          DataMaintainer.unsubscribe(itsSources.get(j)+"."+pname, this);
         }
       }
     }
@@ -82,6 +85,9 @@ public class PointTableModel extends AbstractTableModel implements PointListener
     // Record new settings
     itsPoints = points;
     itsSources = sources;
+    if (itsSources!=null && itsPoints!=null) {
+      itsValues = new PointData[itsSources.size()][itsPoints.size()];
+    }
     fireTableStructureChanged();
 
     if (itsPoints != null && itsPoints.size() > 0) {
@@ -191,7 +197,7 @@ public class PointTableModel extends AbstractTableModel implements PointListener
         // we find a source which has the required point. Pretty dumb.
         for (int s = 0; s < itsSources.size(); s++) {
           PointDescription temp = null;
-          temp = DataMaintainer.getPointFromMap(pname, (String) itsSources.get(s));
+          temp = PointDescription.getPoint(itsSources.get(s)+"."+pname);
           if (temp != null) {
             // We found the answer, record it and we're done!
             res = temp;
@@ -216,7 +222,7 @@ public class PointTableModel extends AbstractTableModel implements PointListener
     if (row >= 0 && row < getRowCount() && column > 0 && column < getColumnCount() - 1) {
       String pname = (String) itsPoints.get(row);
       if (pname != null && !pname.equals("")) {
-        res = DataMaintainer.getPointFromMap(pname, (String) itsSources.get(column - 1));
+        res = PointDescription.getPoint(itsSources.get(column - 1) + "." + pname);
       }
     }
     return res;
@@ -302,7 +308,6 @@ public class PointTableModel extends AbstractTableModel implements PointListener
       return "";
     }
 
-    String source = getSourceForColumn(column);
     if (column == 0) {
       // Point name was requested
       PointDescription pm = getPointForRow(row);
@@ -321,8 +326,14 @@ public class PointTableModel extends AbstractTableModel implements PointListener
         res = new JLabel(pm.getUnits());
       }
     } else {
+      column = column-1;
       PointDescription pm = getPointForRow(row);
-      PointData pd = DataMaintainer.getBuffer(source + "." + pname);
+      PointData pd = null;
+      if (itsValues!=null && column<itsValues.length && row<itsValues[0].length) {
+        pd = itsValues[column][row];
+      } else {
+        System.err.println("PointTableModel.onPointEvent: Cannot Get Value For [" + column + "][" + row + "]");
+      }
       if (pd != null && pm != null) {
         if (pd.isValid()) {
           res = pd.getData();
@@ -377,6 +388,11 @@ public class PointTableModel extends AbstractTableModel implements PointListener
         int row = getRowForPoint(newval.getNameOnly());
         int col = getColumnForSource(newval.getSource());
         if (row >= 0 && col >= 0) {
+          if (itsValues!=null && (col-1)<itsValues.length && row<itsValues[0].length) {
+            itsValues[col-1][row] = newval;
+          } else {
+            System.err.println("PointTableModel.onPointEvent: Cannot Insert Value at [" + col + "][" + row + "]");
+          }
           fireTableCellUpdated(row, col);
         }
       }
@@ -401,8 +417,7 @@ public class PointTableModel extends AbstractTableModel implements PointListener
     // Check if this monitor point defines it's limits
     PointDescription pm = getPoint(row, column);
     if (pm != null) {
-      // Limits are defined, get the raw data and check it
-      PointData pd = DataMaintainer.getBuffer(pm.getFullName());
+      PointData pd = itsValues[column-1][row];
       if (pd != null) {
         long period = pm.getPeriod();
         long age = (new AbsTime()).getValue() - pd.getTimestamp().getValue();
@@ -460,9 +475,8 @@ public class PointTableModel extends AbstractTableModel implements PointListener
       line = pm.getLongDesc();
       for (int j = 0; j < itsSources.size(); j++) {
         line += ", ";
-        String pname = (String) itsSources.get(j) + "." + (String) itsPoints.get(i);
 
-        PointData pd = DataMaintainer.getBuffer(pname);
+        PointData pd = itsValues[j][i];
         if (pd == null || pd.getData() == null) {
           continue;
         }
