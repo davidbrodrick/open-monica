@@ -98,7 +98,6 @@ public class DataMaintainer implements Runnable {
       if (PointDescription.getPoint(pname) == null) {
         // We don't already have this point
         newpoints.add(pname);
-        System.err.println("DataMaintainer.subscribe: requesting def for " + pname);
       }
     }
 
@@ -126,7 +125,6 @@ public class DataMaintainer implements Runnable {
           if (pd == null) {
             System.err.println("DataMaintainer.subscribe1: Point " + points.get(i) + " was still null");
           } else {
-            System.err.println("DataMaintainer.subscribe: collecting " + points.get(i));
             addPoint(pd);
           }
         }
@@ -139,7 +137,6 @@ public class DataMaintainer implements Runnable {
   /** Subscribe the specified listener to updates from the specified point. */
   public static void subscribe(String point, PointListener pl) {
     PointDescription pd = PointDescription.getPoint(point);
-    System.err.println("DataMaintainer.subscribe: " + point);
     if (pd == null) {
       // Need to get the point definition from the server
       try {
@@ -178,7 +175,6 @@ public class DataMaintainer implements Runnable {
     if (pd!=null) {
       // Point exists
       pd.removePointListener(pl);
-      System.err.println("DataMaintainer.unsubscribe: " + point + " has " + pd.getNumListeners() + " listeners remaining");
       if (pd.getNumListeners()==0) {
         // No listeners left so stop collecting this point
         removePoint(pd);
@@ -256,26 +252,20 @@ public class DataMaintainer implements Runnable {
         for (int i=0; i<getpoints.size(); i++) {
           getnames.add(getpoints.get(i).getFullName());
         }
-        System.err.println("DataMaintainer: Requesting " + getpoints.size() + " Updates");
         Vector<PointData> resdata = null;
-        AbsTime startepoch = AbsTime.factory();
         try {
           resdata = MonClientUtil.getServer().getData(getnames);
         } catch (Exception e) {
         }
-        AbsTime endepoch = AbsTime.factory();
-        System.err.println("DataMaintainer: Query took " + (endepoch.getAsSeconds() - startepoch.getAsSeconds()));
         if (resdata != null) {
           for (int i = 0; i < getpoints.size(); i++) {
             PointDescription pm = getpoints.get(i);
             if (resdata.get(i) != null) {
               // Got new data for this point okay
-              System.err.println("DataMaintainer: foo1 " + pm.getFullName());
               pm.distributeData(new PointEvent(pm, resdata.get(i), false));
               updateCollectionTime(pm, resdata.get(i));
             } else {
               // Got no data back for this point
-              System.err.println("DataMaintainer: foo2 " + pm.getFullName());
               pm.distributeData(new PointEvent(pm, new PointData(pm.getFullName()), false));
               updateCollectionTime(pm);
             }
