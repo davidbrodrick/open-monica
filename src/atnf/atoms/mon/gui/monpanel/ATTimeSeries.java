@@ -1164,8 +1164,6 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
 
   /** */
   public void actionPerformed(ActionEvent e) {
-    System.err.println("ATTimeSeries: Time to update graph \"" + itsTitle
-        + "\"");
     synchronized (this) {
       this.notifyAll();
     }
