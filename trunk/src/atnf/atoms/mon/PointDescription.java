@@ -141,13 +141,13 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   /** Set the update interval. */
   public void setPeriod(String newperiod) {
     if (newperiod.equalsIgnoreCase("null") || newperiod.trim().equals("-")) {
-      itsPeriod = -1;
+      itsPeriod = 0;
     } else {
       try {
         itsPeriod = Long.parseLong(newperiod);
       } catch (Exception e) {
         MonitorMap.logger.error("PointDescription: (" + getName() + "): setPeriod: " + e.getMessage());
-        itsPeriod = -1; // Better than doing nothing..
+        itsPeriod = 0; // Better than doing nothing.. ?
       }
     }
   }
