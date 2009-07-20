@@ -9,6 +9,7 @@ package atnf.atoms.mon.transaction;
 
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.externalsystem.*;
+import atnf.atoms.mon.util.MonitorUtils;
 
 /** Subscribe to updates via the EPICS Channel Access monitor mechanism. This Transaction
  * requires the name of the Process Variable to be monitored as an argument. 
@@ -21,12 +22,18 @@ public class TransactionEPICSMonitor extends Transaction {
   public TransactionEPICSMonitor(PointDescription parent, String specifics)
   {
     super(parent, specifics);
-    //Get the name of the PV to monitor
-    itsPV = specifics.replace('\"','\0').trim();
-    //Subscribe to monitor updates from EPICS
+
+    String[] tokens=MonitorUtils.getTokens(specifics);
+    //Replace the macro $1 with source name if present
+    if (tokens[0].indexOf("$1")!=-1) {
+      tokens[0]=MonitorUtils.replaceTok(tokens[0], parent.getSource());
+    }
+    //Record name of the PV to monitor
+    itsPV = tokens[0].trim();
+
     EPICS es = (EPICS)ExternalSystem.getExternalSystem("EPICS");
     if (es==null) {
-      MonitorMap.logger.error("EPICS ExternalSystem is not running!");
+      MonitorMap.logger.error("TransactionEPICS (" + itsParent.getFullName() + "): EPICS ExternalSystem is not running!");
     } else {
       es.registerMonitor(parent, itsPV);
     }
