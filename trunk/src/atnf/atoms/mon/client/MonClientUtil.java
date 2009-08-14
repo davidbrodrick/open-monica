@@ -132,11 +132,16 @@ public class MonClientUtil
         System.exit(1);
       }
 
-      //We can launch a GUI tool to ask the user what site to connect to
-      SiteChooser chooser = new SiteChooser(serverlist, defaultserver);
-      chosenserver = chooser.getSite();
+      if (serverlist.size()==1) {
+        // Only one server specified, so connect to that
+        chosenserver=serverlist.get(0);
+        
+      } else {
+        //We can launch a GUI tool to ask the user what site to connect to
+        SiteChooser chooser = new SiteChooser(serverlist, defaultserver);
+        chosenserver = chooser.getSite();
+      }
       host=(String)chosenserver.get(1);
-      System.err.println("User selected server: \"" + host + "\"");
       theirServerName = (String)chosenserver.get(0);
     }
 
@@ -567,7 +572,9 @@ public class MonClientUtil
     /** Label for our counter. */
     JLabel itsCounter = null;
     /** The available server. */
-    Vector itsServers=null;
+    Vector itsServers = null;
+    /** The countdown Timer. */
+    Timer itsTimer = null;
 
     public SiteChooser(Vector servers, Vector def) {
       itsServers=servers;
@@ -602,7 +609,6 @@ public class MonClientUtil
       }
 
       getContentPane().add(temppanel);
-      //getContentPane().add(temppanel2);
 
       //Do this on the AWT threads time to avoid deadlocks
       final SiteChooser realthis = this;
@@ -617,8 +623,8 @@ public class MonClientUtil
           realthis.validateTree();
           realthis.setVisible(true);
           if (itsDefault!=null) {
-            Timer timer = new Timer(1000, realthis);
-            timer.start();
+            itsTimer = new Timer(1000, realthis);
+            itsTimer.start();
           }
         }
       };
@@ -628,7 +634,7 @@ public class MonClientUtil
     }
 
     public void actionPerformed(ActionEvent e) {
-      if (e.getActionCommand().equals("timer")) {
+      if (e.getSource()==itsTimer) {
         //timer update
         itsTimeout--;
         if (itsTimeout==0) {
