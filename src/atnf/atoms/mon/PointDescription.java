@@ -145,9 +145,12 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     } else {
       try {
         itsPeriod = Long.parseLong(newperiod);
+        if (itsPeriod<0) {
+          itsPeriod = 0;
+        }
       } catch (Exception e) {
         MonitorMap.logger.error("PointDescription: (" + getName() + "): setPeriod: " + e.getMessage());
-        itsPeriod = 0; // Better than doing nothing.. ?
+        itsPeriod = 0;
       }
     }
   }
