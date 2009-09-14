@@ -25,7 +25,7 @@ TranslationStringToArray
 extends Translation
 {
   /** The regexp used to split strings. */
-  protected String itsRegexp = " ";
+  protected String itsRegexp = " +";
 
   protected static String[] itsArgs = new String[]{"Translation String to Array",
   "String2Array"};
