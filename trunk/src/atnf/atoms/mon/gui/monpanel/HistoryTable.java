@@ -806,7 +806,7 @@ implements PointListener, Runnable, TableCellRenderer
 
       String p = (String)setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
-      Vector points = new Vector(stp.countTokens());
+      Vector<String> points = new Vector<String>(stp.countTokens());
       while (stp.hasMoreTokens()) {
         points.add(stp.nextToken());
       }
