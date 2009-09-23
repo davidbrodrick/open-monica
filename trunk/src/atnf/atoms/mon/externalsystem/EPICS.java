@@ -24,12 +24,15 @@ import gov.aps.jca.event.*;
  * <P>
  * Channel access monitors can be established by using a <tt>TransactionEPICSMonitor</tt>
  * as an input for the MoniCA point. The transaction requires one argument which is the
- * name of the EPICS Process Variable to be monitored.
+ * name of the EPICS Process Variable to be monitored. An additional argument may
+ * optionally be specified if you need to collect the data as a specific DBRType, eg
+ * "DBR_STRING".
  * 
  * <P>
  * Polling is implemented by using a <tt>TransactionEPICS</tt> as an input transaction.
- * This requires the name of the EPICS Process Variable to be polled as an argument. 
- * Polling will occur at the normal update period specified for the MoniCA point.
+ * This requires the name of the EPICS Process Variable to be polled as an argument.
+ * Polling will occur at the normal update period specified for the MoniCA point. You may
+ * also specify an optional DBRType.
  * 
  * @author David Brodrick
  */
@@ -47,7 +50,7 @@ public class EPICS extends ExternalSystem {
    * Lists of MoniCA points which require 'monitor' updates for each PV which hasn't been
    * connected yet.
    */
-  HashMap<String, Vector<PointDescription>> itsRequiresMonitor = new HashMap<String, Vector<PointDescription>>();
+  HashMap<String, Vector<Vector<Object>>> itsRequiresMonitor = new HashMap<String, Vector<Vector<Object>>>();
 
   public EPICS(String[] args) {
     super("EPICS");
@@ -106,7 +109,13 @@ public class EPICS extends ExternalSystem {
               // Channel is connected, request data via a channel access 'get'
               try {
                 points[i].isCollecting(true);
-                thischan.get(listener);
+                // Check if we need to request the data as a specific DBRType
+                DBRType type = thistrans.getType();
+                if (type == null) {
+                  thischan.get(listener);
+                } else {
+                  thischan.get(type, 1, listener);
+                }
               } catch (Exception e) {
                 // Maybe the channel just became disconnected
                 points[i].firePointEvent(new PointEvent(this, new PointData(points[i].getFullName()), true));
@@ -141,7 +150,7 @@ public class EPICS extends ExternalSystem {
   }
 
   /** Register the specified point and PV name pair to receive monitor updates. */
-  public void registerMonitor(PointDescription point, String pvname) {
+  public void registerMonitor(PointDescription point, String pvname, DBRType type) {
     synchronized (itsChannelMap) {
       if (itsChannelMap.get(pvname) == null) {
         // Not connected to this channel yet
@@ -149,14 +158,20 @@ public class EPICS extends ExternalSystem {
       }
     }
     synchronized (itsRequiresMonitor) {
-      Vector<PointDescription> thesepoints = itsRequiresMonitor.get(pvname);
+      Vector<Vector<Object>> thesepoints = itsRequiresMonitor.get(pvname);
       if (thesepoints == null) {
-        thesepoints = new Vector<PointDescription>(1);
-        thesepoints.add(point);
+        thesepoints = new Vector<Vector<Object>>(1);
+        Vector<Object> newpoint = new Vector<Object>(2);
+        newpoint.add(point);
+        newpoint.add(type);
+        thesepoints.add(newpoint);
         itsRequiresMonitor.put(pvname, thesepoints);
       } else {
         if (!thesepoints.contains(point)) {
-          thesepoints.add(point);
+          Vector<Object> newpoint = new Vector<Object>(2);
+          newpoint.add(point);
+          newpoint.add(type);
+          thesepoints.add(newpoint);
         }
       }
     }
@@ -167,14 +182,13 @@ public class EPICS extends ExternalSystem {
    * which request it.
    */
   protected class ChannelConnector extends Thread {
-    public ChannelConnector()
-    {
-      super("EPICS ChannelConnector");  
+    public ChannelConnector() {
+      super("EPICS ChannelConnector");
     }
-    
+
     public void run() {
       while (true) {
-        // Build a list of all challs which need connecting
+        // Build a list of all channels which need connecting
         Vector<Channel> newchannels = new Vector<Channel>();
         synchronized (itsChannelMap) {
           Iterator allchans = itsChannelMap.keySet().iterator();
@@ -233,7 +247,7 @@ public class EPICS extends ExternalSystem {
               // monitors
               continue;
             }
-            Vector<PointDescription> thesepoints = itsRequiresMonitor.get(thispv);
+            Vector<Vector<Object>> thesepoints = itsRequiresMonitor.get(thispv);
             if (thesepoints == null || thesepoints.size() == 0) {
               // Should never happen
               MonitorMap.logger.error("EPICS.ChannelConnector: PV " + thispv
@@ -242,12 +256,18 @@ public class EPICS extends ExternalSystem {
             } else {
               for (int i = 0; i < thesepoints.size(); i++) {
                 // Connect each point to 'monitor' updates from this channel
-                PointDescription thispoint = thesepoints.get(i);
+                PointDescription thispoint = (PointDescription)thesepoints.get(i).get(0);
+                DBRType thistype = (DBRType)thesepoints.get(i).get(1);
                 String listenername = thispoint.getFullName() + ":" + thispv;
                 EPICSListener listener = new EPICSListener(thischan, thispoint);
                 try {
                   thischan.addConnectionListener(listener);
-                  thischan.addMonitor(Monitor.VALUE, listener);
+                  if (thistype==null) {
+                    thischan.addMonitor(Monitor.VALUE, listener);
+                  } else {
+                    // Needs to be monitored so data arrives as a specific type
+                    thischan.addMonitor(thistype, 1, Monitor.VALUE, listener);
+                  }
                   itsListenerMap.put(listenername, listener);
                   thesepoints.remove(thispoint);
                 } catch (Exception f) {
@@ -260,7 +280,7 @@ public class EPICS extends ExternalSystem {
               }
             }
           }
-          // Now modify the map by removing any pv's which are fully connected
+          // Now modify the map by removing any PV's which are fully connected
           for (int i = 0; i < allconnected.size(); i++) {
             itsRequiresMonitor.remove(allconnected.get(i));
           }
@@ -377,7 +397,7 @@ public class EPICS extends ExternalSystem {
       }
 
       // Print new value (for debugging)
-      //MonitorMap.logger.debug("EPICS.processDBR: " + pvname + "\t" + newval);
+      // MonitorMap.logger.debug("EPICS.processDBR: " + pvname + "\t" + newval);
     } catch (Exception e) {
       MonitorMap.logger.warning("EPICS.processDBR: " + pvname + ": " + e);
       e.printStackTrace();
