@@ -39,7 +39,7 @@ public class TransactionEPICS extends Transaction {
     // Set the channel (to find the EPICS ExternalSystem)
     setChannel("EPICS");
 
-    String[] tokens = MonitorUtils.getTokens(specifics);
+    String[] tokens = MonitorUtils.tokToStringArray(specifics);
 
     // Replace the macro $1 with source name if present
     if (tokens[0].indexOf("$1") != -1) {
@@ -50,7 +50,7 @@ public class TransactionEPICS extends Transaction {
 
     // Get the data type to used, if specified
     if (tokens.length > 1) {
-      itsType = DBRType.forName(tokens[1].replace('\"', ' ').trim());
+      itsType = DBRType.forName(tokens[1].trim());
     }
   }
 
