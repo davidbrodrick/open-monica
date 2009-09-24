@@ -24,15 +24,20 @@ import gov.aps.jca.event.*;
  * <P>
  * Channel access monitors can be established by using a <tt>TransactionEPICSMonitor</tt>
  * as an input for the MoniCA point. The transaction requires one argument which is the
- * name of the EPICS Process Variable to be monitored. An additional argument may
- * optionally be specified if you need to collect the data as a specific DBRType, eg
- * "DBR_STRING".
+ * name of the EPICS Process Variable to be monitored.
  * 
  * <P>
  * Polling is implemented by using a <tt>TransactionEPICS</tt> as an input transaction.
- * This requires the name of the EPICS Process Variable to be polled as an argument.
- * Polling will occur at the normal update period specified for the MoniCA point. You may
- * also specify an optional DBRType.
+ * This requires the name of the EPICS Process Variable to be polled as an argument and
+ * also the DBRType if the Transaction is being used for control/write operations. Polling
+ * will occur at the normal update period specified for the MoniCA point.
+ * 
+ * <P>
+ * Both kinds of Transactions can take an optional argument if you need to collect the
+ * data as a specific DBRType, eg "DBR_STS_STRING". Doing this at the STS level also
+ * provides MoniCA with additional information such as the record's alarm severity and
+ * allows UNDefined values to be recognised. If you do not specify a DBRType then
+ * operations will be performed using the channel's native type, at the STS level.
  * 
  * @author David Brodrick
  */
@@ -109,13 +114,21 @@ public class EPICS extends ExternalSystem {
               // Channel is connected, request data via a channel access 'get'
               try {
                 points[i].isCollecting(true);
-                // Check if we need to request the data as a specific DBRType
                 DBRType type = thistrans.getType();
+
+                // If the Transaction doesn't specify a particular DBRType, then
+                // do an initial CA get to determine the native type of the record,
+                // so that we can ensure all subsequent gets use an STS DBRType
+                // which ensures alarm and validity information is available.
                 if (type == null) {
-                  thischan.get(listener);
-                } else {
-                  thischan.get(type, 1, listener);
+                  DBR tempdbr = thischan.get();
+                  itsContext.flushIO();
+                  type = DBRType.forName(tempdbr.getType().getName().replaceAll("DBR_", "DBR_STS_").replaceAll("_ENUM", "_STRING"));
+                  thistrans.setType(type);
                 }
+
+                // Do the actual CA get operation
+                thischan.get(type, 1, listener);
               } catch (Exception e) {
                 // Maybe the channel just became disconnected
                 points[i].firePointEvent(new PointEvent(this, new PointData(points[i].getFullName()), true));
@@ -247,6 +260,21 @@ public class EPICS extends ExternalSystem {
               // monitors
               continue;
             }
+
+            // Do an initial CA get to determine the native type of the record,
+            // so that we can ensure all subsequent gets use an STS DBRType
+            // which ensures alarm and validity information is available.
+            DBRType nativetype = null;
+            try {
+              DBR tempdbr = thischan.get();
+              itsContext.flushIO();
+              nativetype = DBRType.forName(tempdbr.getType().getName().replaceAll("DBR_", "DBR_STS_")
+                      .replaceAll("_ENUM", "_STRING"));
+            } catch (Exception e) {
+              MonitorMap.logger.error("EPICS.ChannelConnector: ERROR determining native DBRType for " + thispv);
+              continue;
+            }
+
             Vector<Vector<Object>> thesepoints = itsRequiresMonitor.get(thispv);
             if (thesepoints == null || thesepoints.size() == 0) {
               // Should never happen
@@ -256,20 +284,26 @@ public class EPICS extends ExternalSystem {
             } else {
               for (int i = 0; i < thesepoints.size(); i++) {
                 // Connect each point to 'monitor' updates from this channel
-                PointDescription thispoint = (PointDescription)thesepoints.get(i).get(0);
-                DBRType thistype = (DBRType)thesepoints.get(i).get(1);
+                Vector<Object> thisvector = thesepoints.get(i);
+                PointDescription thispoint = (PointDescription) thisvector.get(0);
+                DBRType thistype = (DBRType) thesepoints.get(i).get(1);
+                // If no DBRType explicitly specified then set native type
+                if (thistype == null) {
+                  thistype = nativetype;
+                }
+
                 String listenername = thispoint.getFullName() + ":" + thispv;
                 EPICSListener listener = new EPICSListener(thischan, thispoint);
                 try {
                   thischan.addConnectionListener(listener);
-                  if (thistype==null) {
+                  if (thistype == null) {
                     thischan.addMonitor(Monitor.VALUE, listener);
                   } else {
                     // Needs to be monitored so data arrives as a specific type
                     thischan.addMonitor(thistype, 1, Monitor.VALUE, listener);
                   }
                   itsListenerMap.put(listenername, listener);
-                  thesepoints.remove(thispoint);
+                  thesepoints.remove(thisvector);
                 } catch (Exception f) {
                   MonitorMap.logger.error("EPICS: Establising Listener " + thispoint.getFullName() + "/" + thispv + ": " + f);
                 }
@@ -331,7 +365,7 @@ public class EPICS extends ExternalSystem {
       PointData pd = new PointData(itsPointName);
       try {
         if (ev.getStatus() == CAStatus.NORMAL && ev.getDBR() != null) {
-          pd.setData(processDBR(ev.getDBR(), itsPV));
+          pd = getPDforDBR(ev.getDBR(), itsPointName, itsPV);
         }
       } catch (Exception e) {
         MonitorMap.logger.warning("EPICS:EPICSListener.monitorChanged: " + itsPV + ": " + e);
@@ -344,7 +378,7 @@ public class EPICS extends ExternalSystem {
       PointData pd = new PointData(itsPointName);
       try {
         if (ev.getStatus() == CAStatus.NORMAL && ev.getDBR() != null) {
-          pd.setData(processDBR(ev.getDBR(), itsPV));
+          pd = getPDforDBR(ev.getDBR(), itsPointName, itsPV);
         }
       } catch (Exception e) {
         MonitorMap.logger.warning("EPICS:EPICSListener.getCompleted: " + itsPV + ": " + e);
@@ -368,40 +402,68 @@ public class EPICS extends ExternalSystem {
   };
 
   /** Decode the value from an EPICS DBR. */
-  public Object processDBR(DBR dbr, String pvname) {
+  public PointData getPDforDBR(DBR dbr, String pointname, String pvname) {
+    PointData pd = new PointData(pointname);
     Object newval = null;
+    boolean alarm = false;
+    AbsTime timestamp = new AbsTime();
+
     try {
       int count = dbr.getCount();
       if (count > 1) {
-        MonitorMap.logger.warning("EPICS.processDBR: " + pvname + ": >1 value received");
+        MonitorMap.logger.warning("EPICS.getPDforDBR: " + pvname + ": >1 value received");
       }
       Object rawval = dbr.getValue();
       // Have to switch on type, don't think there's any simpler way
       // to get the individual data as an object type.
-      if (dbr.getType() == DBRType.INT) {
+      if (dbr instanceof INT) {
         newval = new Integer(((int[]) rawval)[0]);
-      } else if (dbr.getType() == DBRType.BYTE) {
+      } else if (dbr instanceof BYTE) {
         newval = new Integer(((byte[]) rawval)[0]);
-      } else if (dbr.getType() == DBRType.SHORT) {
+      } else if (dbr instanceof SHORT) {
         newval = new Integer(((short[]) rawval)[0]);
-      } else if (dbr.getType() == DBRType.FLOAT) {
+      } else if (dbr instanceof FLOAT) {
         newval = new Float(((float[]) rawval)[0]);
-      } else if (dbr.getType() == DBRType.DOUBLE) {
+      } else if (dbr instanceof DOUBLE) {
         newval = new Double(((double[]) rawval)[0]);
-      } else if (dbr.getType() == DBRType.STRING) {
+      } else if (dbr instanceof STRING) {
         newval = ((String[]) rawval)[0];
-      } else if (dbr.getType() == DBRType.ENUM) {
+      } else if (dbr instanceof ENUM) {
         newval = new Integer(((short[]) rawval)[0]);
       } else {
-        MonitorMap.logger.warning("EPICS.processDBR: " + pvname + ": Unhandled DBR type: " + dbr.getType());
+        MonitorMap.logger.warning("EPICS.getPDforDBR: " + pvname + ": Unhandled DBR type: " + dbr.getType());
       }
 
-      // Print new value (for debugging)
-      // MonitorMap.logger.debug("EPICS.processDBR: " + pvname + "\t" + newval);
+      // Check the alarm status, if information is available
+      if (dbr instanceof STS) {
+        STS thissts = (STS) dbr;
+        if (thissts.getSeverity() == Severity.INVALID_ALARM) {
+          // Point is undefined, so data value is invalid
+          newval = null;
+        } else if (thissts.getSeverity() != Severity.NO_ALARM) {
+          // An alarm condition exists
+          alarm = true;
+        }
+      }
+
+      // Preserve the data time stamp, if available
+      // / ts always seems to be null, so conversion below is untested
+      /*
+       * if (dbr instanceof TIME) { TIME time = (TIME)dbr; TimeStamp ts =
+       * time.getTimeStamp(); System.err.println("TS = " + ts); if (ts!=null) {
+       * System.err.println("NOW=" + timestamp.toString(AbsTime.Format.UTC_STRING) +
+       * "\tTS=" + AbsTime.factory(new Date(ts.secPastEpoch()*1000l +
+       * ts.nsec()/1000000l)).toString(AbsTime.Format.UTC_STRING)); timestamp =
+       * AbsTime.factory(new Date(ts.secPastEpoch()*1000l + ts.nsec()/1000000l)); } }
+       */
+
+      pd.setData(newval);
+      pd.setAlarm(alarm);
+      pd.setTimestamp(timestamp);
     } catch (Exception e) {
-      MonitorMap.logger.warning("EPICS.processDBR: " + pvname + ": " + e);
+      MonitorMap.logger.warning("EPICS.getPDforDBR: " + pvname + ": " + e);
       e.printStackTrace();
     }
-    return newval;
+    return pd;
   }
 }

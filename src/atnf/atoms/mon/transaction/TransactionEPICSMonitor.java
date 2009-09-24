@@ -15,6 +15,14 @@ import gov.aps.jca.dbr.DBRType;
 /**
  * Subscribe to updates via the EPICS Channel Access monitor mechanism. This Transaction
  * requires the name of the Process Variable to be monitored as an argument.
+ * 
+ * <P>
+ * If you need to read the data as a specific data type, then the DBRType can be specified
+ * as an additional argument, eg "DBR_STS_STRING". Doing this at the STS level also
+ * provides MoniCA with additional information such as the record's alarm severity and
+ * allows UNDefined values to be recognised. If you do not specify a DBRType then
+ * operations will be performed using the channel's native type, at the STS level.
+ * 
  * @author David Brodrick
  */
 public class TransactionEPICSMonitor extends Transaction {
@@ -35,13 +43,13 @@ public class TransactionEPICSMonitor extends Transaction {
     }
     // Record name of the PV to monitor
     itsPV = tokens[0].trim();
-    
+
     // Get the data type to used, if specified
     if (tokens.length > 1) {
       if (!tokens[1].equals("-")) {
         itsType = DBRType.forName(tokens[1].replace('\"', ' ').trim());
       }
-    }    
+    }
 
     EPICS es = (EPICS) ExternalSystem.getExternalSystem("EPICS");
     if (es == null) {
@@ -50,9 +58,14 @@ public class TransactionEPICSMonitor extends Transaction {
       es.registerMonitor(parent, itsPV, itsType);
     }
   }
-  
+
   /** Return the DBRType to use for input, if specified. */
   public DBRType getType() {
     return itsType;
-  }  
+  }
+
+  /** Specify the DBRType to use. */
+  public void setType(DBRType type) {
+    itsType = type;
+  }
 }

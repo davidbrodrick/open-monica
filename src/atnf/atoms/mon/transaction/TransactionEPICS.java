@@ -17,9 +17,13 @@ import gov.aps.jca.dbr.DBRType;
  * polled as an argument.
  * 
  * <P>
- * If this Transaction is being used for output, or you need to read the data as a
- * specific type, then the DBRType can be specified as an additional argument, eg
- * "DBR_STRING".
+ * If this Transaction is being used for output/writes, or you need to read the data as a
+ * specific data type, then the DBRType can be specified as an additional argument, eg
+ * "DBR_STS_STRING". Doing this at the STS level also provides MoniCA with additional
+ * information such as the record's alarm severity and allows UNDefined values to be
+ * recognised. If you do not specify a DBRType then operations will be performed using the
+ * channel's native type, at the STS level.
+ * 
  * @author David Brodrick
  */
 public class TransactionEPICS extends Transaction {
@@ -58,5 +62,10 @@ public class TransactionEPICS extends Transaction {
   /** Return the DBRType to use. */
   public DBRType getType() {
     return itsType;
+  }
+
+  /** Specify the DBRType to use. */
+  public void setType(DBRType type) {
+    itsType = type;
   }
 }
