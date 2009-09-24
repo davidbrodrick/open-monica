@@ -33,7 +33,7 @@ extends Transaction
   {
     super(parent, specifics);
 
-    String[] tokens=MonitorUtils.getTokens(specifics);
+    String[] tokens=MonitorUtils.tokToStringArray(specifics);
     assert tokens.length>1;
 
     //Replace the macro $1 with source name if present

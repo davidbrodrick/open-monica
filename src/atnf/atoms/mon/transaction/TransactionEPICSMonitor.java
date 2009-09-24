@@ -36,7 +36,7 @@ public class TransactionEPICSMonitor extends Transaction {
   public TransactionEPICSMonitor(PointDescription parent, String specifics) {
     super(parent, specifics);
 
-    String[] tokens = MonitorUtils.getTokens(specifics);
+    String[] tokens = MonitorUtils.tokToStringArray(specifics);
     // Replace the macro $1 with source name if present
     if (tokens[0].indexOf("$1") != -1) {
       tokens[0] = MonitorUtils.replaceTok(tokens[0], parent.getSource());
@@ -47,7 +47,7 @@ public class TransactionEPICSMonitor extends Transaction {
     // Get the data type to used, if specified
     if (tokens.length > 1) {
       if (!tokens[1].equals("-")) {
-        itsType = DBRType.forName(tokens[1].replace('\"', ' ').trim());
+        itsType = DBRType.forName(tokens[1].trim());
       }
     }
 
