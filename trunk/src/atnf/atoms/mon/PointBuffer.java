@@ -47,7 +47,7 @@ public class PointBuffer
   void
   updateData(PointDescription pm, PointData data)
   {
-    if (data!=null && data.getData()!=null) {
+    if (data!=null) {
       synchronized(bufferTable) {
         Vector<PointData> buf = bufferTable.get(pm);
         if (buf==null) {

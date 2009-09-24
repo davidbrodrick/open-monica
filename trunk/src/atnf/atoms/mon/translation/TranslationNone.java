@@ -35,7 +35,7 @@ extends Translation
   {
     //Need to make new object with our parent as source/name
     PointData res = new PointData(itsParent.getFullName(), 
-				  data.getTimestamp(), data.getData());
+				  data.getTimestamp(), data.getData(), data.getAlarm());
     return res;
   }
 
