@@ -8,6 +8,7 @@
 package atnf.atoms.mon.transaction;
 
 import atnf.atoms.mon.PointDescription;
+import atnf.atoms.mon.util.MonitorUtils;
 
 /**
  * Set the channel to be the provided argument string, so that we don't
@@ -26,6 +27,7 @@ extends Transaction
   {
     super(parent, specifics);
     specifics = specifics.replace('\"','\0').trim();
+    specifics = MonitorUtils.replaceTok(specifics, parent.getSource());
     setChannel(specifics);
     itsName = specifics;
   }
