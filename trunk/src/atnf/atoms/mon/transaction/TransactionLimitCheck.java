@@ -172,7 +172,7 @@ public class TransactionLimitCheck extends Transaction implements ActionListener
     }
     // However if any are outside of limits the result must be true (bad)
     for (int i = 0; i < vals.length; i++) {
-      if (vals[i] != null && vals[i].booleanValue() == false) {
+      if (vals[i] != null && vals[i].booleanValue()) {
         res = new Boolean(true);
         break;
       }
