@@ -105,11 +105,37 @@ public final class MoniCAIceI extends _MoniCAIceDisp
 
   /** Set new values for the specified points. */
   public boolean setData(String[] names, PointDataIce[] rawvalues, String encname, String encpass, Ice.Current __current) {
-    //Decrypt the user's credentials
+    if (names.length!=rawvalues.length) {
+      return false;
+    }
+    int numpoints=names.length;
+    
+    // Decrypt the user's credentials
+    /// Doesn't presently do anything with user's credentials
     String username = KeyKeeper.decrypt(encname);
     String password = KeyKeeper.decrypt(encpass);
-    //TODO: Currently does nothing    
-    return false;
+    
+    // Process each of the control requests consecutively
+    boolean result = true;    
+    Vector<PointData> values = MoniCAIceUtil.getPointDataFromIce(rawvalues);
+    for (int i=0; i<numpoints; i++) {
+      try {
+        // Get the specified point
+        PointDescription thispoint = PointDescription.getPoint(names[i]);
+        if (thispoint==null) {
+          MonitorMap.logger.warning("MoniCAIceI.setData: Point " + names[i] + " does not exist");
+          result = false;
+          continue;
+        }
+        // Act on the new data value
+        thispoint.firePointEvent(new PointEvent(this, values.get(i), true));
+      } catch (Exception e) {
+        MonitorMap.logger.warning("MoniCAIceI.setData: Processing " + names[i] + ": " + e);
+        result = false;
+      }
+    }
+    
+    return result;
   }
 
   /** Return the key and modulus required to send encrypted data to the server. */

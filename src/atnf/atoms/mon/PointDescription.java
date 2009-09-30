@@ -811,7 +811,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       evaluateAlarms(data);
 
       // Perform any required output transactions
-      if (itsOutputTransactions != null && itsOutputTransactions.length > 0) {
+      if (getEnabled() && itsOutputTransactions != null && itsOutputTransactions.length > 0) {
         for (int i = 0; i < itsOutputTransactions.length; i++) {
           Transaction thistransaction = itsOutputTransactions[i];
           if (!(thistransaction instanceof TransactionNONE)) {

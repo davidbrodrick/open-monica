@@ -25,7 +25,7 @@ import atnf.atoms.mon.*;
  * 
  * <P>
  * Here is an example string for the monitor-sources.txt:<BR>
- * <tt>ThytecUPS ca06ups:7001:ca06.power.ups.antenna.alldata</tt>
+ * <tt>ThytecUPS ca06ups:7001:5000:ca06.power.ups.antenna.alldata</tt>
  * 
  * <P>
  * The specified monitor point will receive updates with a HashMap which contains all of
