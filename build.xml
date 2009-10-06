@@ -31,7 +31,7 @@
   <target name="jar" depends="compile">
     <jar destfile="${jarname}">
       <manifest>
-        <attribute name="Main-Class" value="atnf.atoms.mon.MonitorMain"/>
+        <attribute name="Main-Class" value="atnf.atoms.mon.MoniCAMain"/>
         <attribute name="Class-Path" value="${3rdPartyMF}"/>
       </manifest>
       <fileset dir="${output}"/>
