@@ -156,7 +156,13 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     startIceServer(MoniCAIceUtil.getDefaultPort());
   }
 
-  /** Start the server. */
+  /** Start the server using the specified Communicator. */
+  public static void startIceServer(Ice.ObjectAdapter a) {
+    MoniCAIceServerThread server = new MoniCAIceServerThread(a);
+    server.start();
+  }
+  
+  /** Start the server using the specified port number. */
   public static void startIceServer(int port) {
     MoniCAIceServerThread server = new MoniCAIceServerThread(port);
     server.start();
@@ -164,21 +170,38 @@ public final class MoniCAIceI extends _MoniCAIceDisp
 
   /** Start a new thread to run the server. */
   public static class MoniCAIceServerThread extends Thread {
+    /** The port to start the server on. Not used if a communicator has been 
+     * explicitly specified. */
     protected int itsPort;
+    /** The communicator to start the server with. */
+    protected Ice.ObjectAdapter itsAdapter = null;
 
     public MoniCAIceServerThread(int port) {
       super("MoniCAIceServer");
       itsPort = port;
     }
 
+    public MoniCAIceServerThread(Ice.ObjectAdapter a) {
+      super("MoniCAIceServer");
+      itsAdapter = a;
+    }
+
     public void run() {
       Ice.Communicator ic = null;
       try {
-        ic = Ice.Util.initialize();
-        Ice.ObjectAdapter adapter = ic.createObjectAdapterWithEndpoints("MoniCAIceAdapter", "tcp -p " + itsPort);
-        Ice.Object object = new MoniCAIceI();
-        adapter.add(object, ic.stringToIdentity("MoniCAIce"));
-        adapter.activate();
+        if (itsAdapter==null) {
+          //Need to create a new adapter
+          ic = Ice.Util.initialize();
+          itsAdapter = ic.createObjectAdapterWithEndpoints("MoniCAIceAdapter", "tcp -p " + itsPort);
+          Ice.Object object = new MoniCAIceI();
+          itsAdapter.add(object, ic.stringToIdentity("MoniCAService"));
+          itsAdapter.activate();          
+        } else {
+          //The Adapter to use has been explicitly specified
+          ic = itsAdapter.getCommunicator();
+          Ice.Object object = new MoniCAIceI();
+          itsAdapter.add(object, ic.stringToIdentity("MoniCAService"));
+        }
         ic.waitForShutdown();
       } catch (Ice.LocalException e) {
         e.printStackTrace();

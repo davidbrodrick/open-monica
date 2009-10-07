@@ -21,6 +21,17 @@ import atnf.atoms.mon.comms.*;
  * @author David Brodrick
  */
 public class MoniCAMain {
+  /** The ICE Adapter to be used for initialising the ICE server interface.
+   * This is optional, if left as null then a new adapter will be created using
+   * configuration parameters. */
+  private static Ice.ObjectAdapter theirICEAdapter = null;
+  
+  /** Specify the ICE Communicator to be used by the ICE server interface. */
+  public static void setICEAdapter(Ice.ObjectAdapter a)
+  {
+    theirICEAdapter = a;
+  }
+  
   /**
    * Start MoniCA.
    * @return True if successfully stopped, False if a problem was encountered.
@@ -80,7 +91,11 @@ public class MoniCAMain {
     // Create the network server interfaces
     new MoniCAServerCustom();
     new MoniCAServerASCII();
-    MoniCAIceI.startIceServer();
+    if (theirICEAdapter==null) {
+      MoniCAIceI.startIceServer();
+    } else {
+      MoniCAIceI.startIceServer(theirICEAdapter);
+    }
 
     // Start the data collection
     ExternalSystem.startAll();
