@@ -33,6 +33,15 @@ public class MoniCAClientIce extends MoniCAClient {
 
   /** The Ice communicator used to talk with the server. */
   protected Ice.Communicator itsCommunicator;
+  
+  /** Ice properties used to create the Communicator. */
+  protected Ice.Properties itsProperties = null;
+
+  /** Connect using the specified properties to find the MoniCA server via a locator. */
+  public MoniCAClientIce(Ice.Properties props) throws Exception {
+    itsProperties = props;
+    connect();
+  }
 
   /** Connect to the specified host. */
   public MoniCAClientIce(String host) throws Exception {
@@ -370,8 +379,18 @@ public class MoniCAClientIce extends MoniCAClient {
 
   protected boolean connect() throws Exception {
     itsCommunicator = null;
-    itsCommunicator = Ice.Util.initialize();
-    Ice.ObjectPrx base = itsCommunicator.stringToProxy("MoniCAIce: tcp -h " + itsHost + " -p " + itsPort);
+    Ice.ObjectPrx base = null;
+    if (itsProperties==null) {
+      // Connect directly to the specified server
+      itsCommunicator = Ice.Util.initialize();
+      base = itsCommunicator.stringToProxy("MoniCAService: tcp -h " + itsHost + " -p " + itsPort);
+    } else {
+      // Find the server via a Locator service
+      Ice.InitializationData id = new Ice.InitializationData();
+      id.properties = itsProperties;
+      itsCommunicator = Ice.Util.initialize(id);
+      base = itsCommunicator.stringToProxy("MoniCAService");
+    }
     itsIceClient = MoniCAIcePrxHelper.checkedCast(base);
     if (itsIceClient == null) {
       throw new Error("MoniCAClientIce.connect: Invalid proxy");
