@@ -17,6 +17,9 @@ import atnf.atoms.time.AbsTime;
  * @author David Brodrick */
 public final class MoniCAIceI extends _MoniCAIceDisp
 {
+  /** The currently running server. */
+  protected static MoniCAIceServerThread theirServer = null;
+  
   public MoniCAIceI() {
   }
 
@@ -156,52 +159,80 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     startIceServer(MoniCAIceUtil.getDefaultPort());
   }
 
-  /** Start the server using the specified Communicator. */
+  /** Start the server using the specified adapter. */
   public static void startIceServer(Ice.ObjectAdapter a) {
-    MoniCAIceServerThread server = new MoniCAIceServerThread(a);
-    server.start();
+    if (theirServer!=null) {
+      theirServer.shutdown();
+    }
+    theirServer = new MoniCAIceServerThreadAdapter(a);
+    theirServer.start();
   }
   
   /** Start the server using the specified port number. */
   public static void startIceServer(int port) {
-    MoniCAIceServerThread server = new MoniCAIceServerThread(port);
-    server.start();
+    if (theirServer!=null) {
+      theirServer.shutdown();
+    }    
+    theirServer = new MoniCAIceServerThreadPort(port);
+    theirServer.start();
   }
+  
+  /** Shutdown the currently running Ice server. */
+  public static void stopIceServer() {
+    theirServer.shutdown();
+    theirServer = null;
+  }  
 
-  /** Start a new thread to run the server. */
-  public static class MoniCAIceServerThread extends Thread {
-    /** The port to start the server on. Not used if a communicator has been 
-     * explicitly specified. */
-    protected int itsPort;
-    /** The communicator to start the server with. */
+  /** Start a new thread to run the server using an existing adapter. */
+  public abstract static class MoniCAIceServerThread extends Thread {
+    /** The name of the service which is registered with Ice. */
+    protected static String theirServiceName = "MoniCAService";
+    
+    /** The adapter to start the server with. */
     protected Ice.ObjectAdapter itsAdapter = null;
 
-    public MoniCAIceServerThread(int port) {
+    public MoniCAIceServerThread() {
       super("MoniCAIceServer");
-      itsPort = port;
     }
 
-    public MoniCAIceServerThread(Ice.ObjectAdapter a) {
-      super("MoniCAIceServer");
+    /** Start the server and block until it is registered. */
+    public void start() {
+      super.start();
+      // Block until service is registered
+      while (itsAdapter==null || itsAdapter.find(itsAdapter.getCommunicator().stringToIdentity(theirServiceName))==null) {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+        }
+      }      
+    }
+
+    /** Stop the server and block until it is deregistered. */
+    public void shutdown() {
+      itsAdapter.remove(itsAdapter.getCommunicator().stringToIdentity(theirServiceName));
+      // Block until service is unregistered
+      while (itsAdapter.find(itsAdapter.getCommunicator().stringToIdentity(theirServiceName))!=null) {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+        }
+      }          
+    }
+  };
+
+  /** Start a new thread to run the server using an existing adapter. */
+  public static class MoniCAIceServerThreadAdapter extends MoniCAIceServerThread {
+    public MoniCAIceServerThreadAdapter(Ice.ObjectAdapter a) {
+      super();
       itsAdapter = a;
     }
 
     public void run() {
       Ice.Communicator ic = null;
       try {
-        if (itsAdapter==null) {
-          //Need to create a new adapter
-          ic = Ice.Util.initialize();
-          itsAdapter = ic.createObjectAdapterWithEndpoints("MoniCAIceAdapter", "tcp -p " + itsPort);
-          Ice.Object object = new MoniCAIceI();
-          itsAdapter.add(object, ic.stringToIdentity("MoniCAService"));
-          itsAdapter.activate();          
-        } else {
-          //The Adapter to use has been explicitly specified
-          ic = itsAdapter.getCommunicator();
-          Ice.Object object = new MoniCAIceI();
-          itsAdapter.add(object, ic.stringToIdentity("MoniCAService"));
-        }
+        ic = itsAdapter.getCommunicator();
+        Ice.Object object = new MoniCAIceI();
+        itsAdapter.add(object, ic.stringToIdentity(theirServiceName));
         ic.waitForShutdown();
       } catch (Ice.LocalException e) {
         e.printStackTrace();
@@ -215,7 +246,49 @@ public final class MoniCAIceI extends _MoniCAIceDisp
           System.err.println(e.getMessage());
         }
       }
-      System.err.println("MoniCAIceI.startIceServer(): ERROR Ice Server Exited!");
     }
   };
+
+  /** Start a new thread to run the server using a new adapter on specified port. */
+  public static class MoniCAIceServerThreadPort extends MoniCAIceServerThread {
+    /** The port to start the server on. Not used if a adapter has been explicitly specified. */
+    protected int itsPort;
+
+    public MoniCAIceServerThreadPort(int port) {
+      super();
+      itsPort = port;
+    }
+
+    /** Stop the server and block until it is deregistered. */
+    public void shutdown() {
+      super.shutdown();
+      itsAdapter.deactivate();
+    }
+    
+    public void run() {
+      Ice.Communicator ic = null;
+      try {
+        //Need to create a new adapter
+        ic = Ice.Util.initialize();
+        itsAdapter = ic.createObjectAdapterWithEndpoints("MoniCAIceAdapter", "tcp -p " + itsPort);
+        Ice.Object object = new MoniCAIceI();
+        itsAdapter.add(object, ic.stringToIdentity(theirServiceName));
+        itsAdapter.activate();          
+        ic.waitForShutdown();
+      } catch (Ice.LocalException e) {
+        e.printStackTrace();
+      } catch (Exception e) {
+        System.err.println(e.getMessage());
+      }
+      if (ic != null) {
+        try {
+          ic.destroy();
+        } catch (Exception e) {
+          System.err.println(e.getMessage());
+        }
+      }
+    }
+  };
+
+
 }
