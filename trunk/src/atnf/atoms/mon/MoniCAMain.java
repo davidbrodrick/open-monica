@@ -88,15 +88,6 @@ public class MoniCAMain {
       }
     }
 
-    // Create the network server interfaces
-    new MoniCAServerCustom();
-    new MoniCAServerASCII();
-    if (theirICEAdapter==null) {
-      MoniCAIceI.startIceServer();
-    } else {
-      MoniCAIceI.startIceServer(theirICEAdapter);
-    }
-
     // Start the data collection
     ExternalSystem.startAll();
 
@@ -107,18 +98,30 @@ public class MoniCAMain {
   }
 
   /**
-   * Stop MoniCA.
-   * @return True if successfully stopped, False if a problem was encountered.
+   * Open the network server interfaces.
    */
-  public static boolean stop() {
-    // Stop the data collection threads
-    ExternalSystem.stopAll();
-    return true;
+  public static void openInterfaces() {
+    new MoniCAServerASCII();
+    if (theirICEAdapter==null) {
+      MoniCAIceI.startIceServer();
+    } else {
+      MoniCAIceI.startIceServer(theirICEAdapter);
+    }    
+  }
+  
+  /**
+   * Close the network server interfaces.
+   */
+  public static void closeInterfaces() {
+    MoniCAServerASCII.stopAll();
+    MoniCAIceI.stopIceServer();
   }
 
   public static void main(String[] argv) {
     // Start the system
     if (MoniCAMain.start()) {
+      // Open the network server interfaces
+      MoniCAMain.openInterfaces();
       // We're now underway!
       System.err.println("CHECKPOINT: MoniCA System is GO!");
     } else {
