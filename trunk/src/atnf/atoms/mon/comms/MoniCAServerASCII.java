@@ -39,6 +39,9 @@ public class MoniCAServerASCII extends Thread {
   
   /** List of all currently running servers. */
   protected static Vector<MoniCAServerASCII> theirServers = new Vector<MoniCAServerASCII>();
+  
+  /** Server socket SO timeout (ms). */
+  protected static int theirServerSocketTimeout = 100;
 
   /** Starts up the main server thread which waits for client connections. */
   public MoniCAServerASCII() {
@@ -80,6 +83,10 @@ public class MoniCAServerASCII extends Thread {
       while (i.hasNext()) {
         i.next().stopRunning();
       }
+    }
+    try {
+      Thread.sleep(2*theirServerSocketTimeout);
+    } catch (InterruptedException e) {
     }
   }
   
@@ -474,7 +481,7 @@ public class MoniCAServerASCII extends Thread {
         int port = Integer.parseInt(MonitorConfig.getProperty("ASCIIPort"));
         // Create the server socket to listen with
         ServerSocket ss = new ServerSocket(port);
-        ss.setSoTimeout(500);
+        ss.setSoTimeout(theirServerSocketTimeout);
 
         // Keep looping until we need to stop
         while (itsRunning) {
