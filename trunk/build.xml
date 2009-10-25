@@ -50,7 +50,7 @@
   <!-- Install the jar files to a run-time directory -->
   <target name="install" depends="jar">
     <!-- Copy jar files to lib area -->
-    <property name="libdir" value="${prefix}/lib/open-monica"/>
+    <property name="libdir" value="${prefix}/lib"/>
     <mkdir dir="${libdir}"/>
     <copy file="${jarname}" todir="${libdir}"/>
     <copy todir="${libdir}">
