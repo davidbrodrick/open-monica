@@ -145,7 +145,7 @@ public class DataMaintainer implements Runnable {
         pd = null;
       }
       if (pd == null) {
-        System.err.println("DataMaintainer.subscribe2: GOT NULL RESULT!");
+          System.err.println("DataMaintainer.subscribe2: GOT NULL RESULT!");
         return;
       }
     }

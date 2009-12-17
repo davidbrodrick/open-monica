@@ -91,8 +91,9 @@ public class MoniCAClientIce extends MoniCAClient {
    * @param pointname Point names to be retrieved.
    * @return The point definitions.
    */
-  public PointDescription getPoint(String pointnames) throws Exception {
+  public PointDescription getPoint(String pointname) throws Exception {
     Vector<String> request = new Vector<String>(1);
+    request.add(pointname);
     Vector<PointDescription> res = getPoints(request);
     if (res!=null && res.size()>0) return res.get(0);
     else return null;
