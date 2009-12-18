@@ -827,7 +827,6 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
                 ds.putData(this, data);
               } catch (Exception e) {
                 System.err.println("ExternalSystem " + ds.getName() + " threw exception \"" + e + "\" for " + getFullName());
-                e.printStackTrace();
               }
             }
           }

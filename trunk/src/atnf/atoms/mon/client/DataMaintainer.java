@@ -112,7 +112,7 @@ public class DataMaintainer implements Runnable {
         queryres = null;
       }
       if (queryres == null) {
-        System.err.println("DataMaintainer.subscribe1: GOT NULL RESULT!");
+        System.err.println("DataMaintainer.subscribe: GOT NULL RESULT!");
         return;
       }
     }
@@ -132,33 +132,38 @@ public class DataMaintainer implements Runnable {
         pd.addPointListener(pl);
       }
     }
+    
+    // Force a data collection so the new subscriber gets an update
+    Vector<PointData> resdata = null;
+    try {
+      resdata = MonClientUtil.getServer().getData(points);
+    } catch (Exception e) {
+    }
+    if (resdata != null) {
+      for (int i = 0; i < points.size(); i++) {
+        PointDescription pm = PointDescription.getPoint(points.get(i));
+        if (resdata.get(i) != null) {
+          // Got new data for this point okay
+          pm.distributeData(new PointEvent(pm, resdata.get(i), false));
+        } else {
+          // Got no data back for this point
+          pm.distributeData(new PointEvent(pm, new PointData(pm.getFullName()), false));
+        }
+      }
+    } else {
+      // Got no data back at all
+      for (int i = 0; i < points.size(); i++) {
+        PointDescription pm = PointDescription.getPoint(points.get(i));
+        pm.distributeData(new PointEvent(pm, new PointData(pm.getFullName()), false));
+      }
+    }
   }
 
   /** Subscribe the specified listener to updates from the specified point. */
   public static void subscribe(String point, PointListener pl) {
-    PointDescription pd = PointDescription.getPoint(point);
-    if (pd == null) {
-      // Need to get the point definition from the server
-      try {
-        pd = (MonClientUtil.getServer()).getPoint(point);
-      } catch (Exception e) {
-        pd = null;
-      }
-      if (pd == null) {
-          System.err.println("DataMaintainer.subscribe2: GOT NULL RESULT!");
-        return;
-      }
-    }
-
-    // Ensure point is in the update queue
-    synchronized (theirQueue) {
-      if (!alreadyCollecting(point)) {
-        addPoint(pd);
-      }
-    }
-
-    // Add the listener to this point
-    pd.addPointListener(pl);
+    Vector<String> pointnames = new Vector<String>(1);
+    pointnames.add(point);
+    subscribe(pointnames, pl);
   }
 
   /** Unsubscribe the listener from all points contained in the vector. */
@@ -271,11 +276,10 @@ public class DataMaintainer implements Runnable {
             }
           }
         } else {
-          // Got no data back
+          // Got no data back at all
           for (int i = 0; i < getpoints.size(); i++) {
             PointDescription pm = getpoints.get(i);
-            PointData pd = new PointData(pm.getFullName());
-            pm.distributeData(new PointEvent(pm, pd, false));
+            pm.distributeData(new PointEvent(pm, new PointData(pm.getFullName()), false));
             updateCollectionTime(pm);
           }
         }
