@@ -71,6 +71,7 @@ extends ExternalSystem
   {
     //Get the actual data
     Float[] newdata=getNewWeather();
+    if (newdata==null) return;
     
     //Fire new data to each point
     for (int i=0; i<points.length; i++) {
