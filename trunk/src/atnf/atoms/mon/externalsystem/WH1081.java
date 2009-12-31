@@ -8,7 +8,7 @@
 package atnf.atoms.mon.externalsystem;
 
 import java.io.*;
-import atnf.atoms.time.RelTime;
+import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 
 /**
@@ -182,6 +182,10 @@ extends ExternalSystem
       line = stdInput.readLine();
       //Pressure
       res[7]=new Float(line.substring(20,line.length()).trim());
+      if (res[7].floatValue()==0.0f) {
+        System.err.println("WH1081: Invalid data..");
+        throw new Exception("Pressure is out of range - no data reception?");        
+      }
 
       String history = stdInput.readLine();
       //Check to make sure this is not the same data we have seen before
@@ -208,7 +212,8 @@ extends ExternalSystem
       {
         //New data
         itsLastInterval=interval;
-        itsLastHistory=history;   
+        itsLastHistory=history;
+        //System.err.println("WH1081: New data " + datachanged + " " + interval + " " + history);
       } else {
         //System.err.println("WH1081: repeated data.");
         return null;
@@ -216,15 +221,17 @@ extends ExternalSystem
 
       if (itsLastRain==null || thisrain.floatValue()<itsLastRain.floatValue()) {
         //Impossible to tell how much rain since the last reading
-        System.err.println("WH1081: Rainfall has reset.");
-        res=null;
-      } else {
-        res[8]=new Float(10*(thisrain.floatValue()-itsLastRain.floatValue()));
+        System.err.println("WH1081: Rainfall has reset or bad data received.");
+        res = null;
+      } else {        
+        res[8]=new Float(10*(thisrain.doubleValue()-itsLastRain.doubleValue()));
+        //System.err.println("WH1081: Rainfall " + (new AbsTime()).toString(AbsTime.Format.UTC_STRING) + " " + res[8] + " " + thisrain.floatValue() + " " + interval);
       }
       itsLastRain=thisrain;
       itsLastData=res;
-    } catch (Exception e) {          
-      System.err.println("WH1081: " + e.getClass());
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.err.println("WH1081: " + e);
       return null;
     }
     
@@ -237,7 +244,7 @@ extends ExternalSystem
     while (true) {
       Float[] newdata=ds.getNewWeather();
       if (newdata==null) {
-        System.out.println("null");
+        System.out.println("No Data");
       } else {
         for (int i=0; i<theirNumElements; i++) {
           System.out.print(newdata[i] + " ");

@@ -117,22 +117,6 @@ public class DataMaintainer implements Runnable {
       }
     }
 
-    // Ensure all of the specified points are being collected
-    for (int i = 0; i < points.size(); i++) {
-      PointDescription pd = PointDescription.getPoint(points.get(i));
-      synchronized (theirQueue) {
-        if (!alreadyCollecting(points.get(i))) {
-          if (pd == null) {
-            System.err.println("DataMaintainer.subscribe1: Point " + points.get(i) + " was still null");
-          } else {
-            addPoint(pd);
-          }
-        }
-        // Add the listener to this point
-        pd.addPointListener(pl);
-      }
-    }
-    
     // Force a data collection so the new subscriber gets an update
     Vector<PointData> resdata = null;
     try {
@@ -140,8 +124,10 @@ public class DataMaintainer implements Runnable {
     } catch (Exception e) {
     }
     if (resdata != null) {
-      for (int i = 0; i < points.size(); i++) {
+      for (int i = 0; i < points.size(); i++) {      
         PointDescription pm = PointDescription.getPoint(points.get(i));
+        // Add the listener to this point
+        pm.addPointListener(pl);
         if (resdata.get(i) != null) {
           // Got new data for this point okay
           pm.distributeData(new PointEvent(pm, resdata.get(i), false));
@@ -154,7 +140,20 @@ public class DataMaintainer implements Runnable {
       // Got no data back at all
       for (int i = 0; i < points.size(); i++) {
         PointDescription pm = PointDescription.getPoint(points.get(i));
+        // Add the listener to this point
+        pm.addPointListener(pl);
+        // Inform listeners about the failure to collect data
         pm.distributeData(new PointEvent(pm, new PointData(pm.getFullName()), false));
+      }
+    }    
+    
+    // Ensure all of the specified points are being collected
+    for (int i = 0; i < points.size(); i++) {
+      PointDescription pd = PointDescription.getPoint(points.get(i));
+      synchronized (theirQueue) {
+        if (!alreadyCollecting(points.get(i))) {
+          addPoint(pd);
+        }
       }
     }
   }
