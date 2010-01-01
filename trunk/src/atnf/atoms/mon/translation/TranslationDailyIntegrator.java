@@ -93,9 +93,9 @@ public class TranslationDailyIntegrator extends Translation {
     // Check if it is time to reset the integrator
     Calendar c = Calendar.getInstance(itsTZ);
     if (c.get(Calendar.DAY_OF_YEAR) != itsLastReset
-        && c.get(Calendar.HOUR_OF_DAY) > itsHour
+        && (c.get(Calendar.HOUR_OF_DAY) > itsHour
         || c.get(Calendar.HOUR_OF_DAY) == itsHour
-        && c.get(Calendar.MINUTE) >= itsMinute) {
+        && c.get(Calendar.MINUTE) >= itsMinute)) {
       // Yep, we need to reset. This lastest update counts towards new sum
       itsLastReset = c.get(Calendar.DAY_OF_YEAR);
       itsSum = thisvalue;
