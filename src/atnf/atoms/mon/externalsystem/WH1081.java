@@ -225,7 +225,7 @@ extends ExternalSystem
         res = null;
       } else {        
         res[8]=new Float(10*(thisrain.doubleValue()-itsLastRain.doubleValue()));
-        //System.err.println("WH1081: Rainfall " + (new AbsTime()).toString(AbsTime.Format.UTC_STRING) + " " + res[8] + " " + thisrain.floatValue() + " " + interval);
+        System.err.println("WH1081: Rainfall " + (new AbsTime()).toString(AbsTime.Format.UTC_STRING) + " " + res[8] + " " + thisrain.floatValue());
       }
       itsLastRain=thisrain;
       itsLastData=res;
@@ -233,6 +233,17 @@ extends ExternalSystem
       e.printStackTrace();
       System.err.println("WH1081: " + e);
       return null;
+    }
+    
+    //Temporary debugging
+    if (res==null) {
+      System.err.println("WH1081: res=null");
+    } else {
+      System.err.print("WH1081: ");
+      for (int i=0; i<res.length; i++) {
+        System.err.print(res[i] + " ");
+      }
+      System.err.println();
     }
     
     return res;
