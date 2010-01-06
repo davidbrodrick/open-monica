@@ -224,7 +224,7 @@ public class PointArchiverASCII extends PointArchiver {
     if (files == null || files.size() == 0) {
       return null;
     }
-    // Ensure the preceeding file is also included
+    // Ensure the preceding file is also included
     String preceding = getPrecedingFile(dir, (String) files.get(0));
     if (preceding != null) {
       files.insertElementAt(preceding, 0);
@@ -235,7 +235,7 @@ public class PointArchiverASCII extends PointArchiver {
       loadFile(tempbuf, pm, dir + FSEP + files.get(i), null, null);
     }
 
-    // Try to find the update which preceeds the argument timestamp
+    // Try to find the update which precedes the argument timestamp
     PointData res = null;
     for (int i = 1; i < tempbuf.size(); i++) {
       PointData p1 = (PointData) (tempbuf.get(i - 1));
@@ -245,6 +245,10 @@ public class PointArchiverASCII extends PointArchiver {
         res = p1;
         break;
       }
+    }
+    if (res==null && tempbuf.size()>0) {
+      // Request must be for most recent data in the archive
+      res = tempbuf.get(tempbuf.size()-1);
     }
     return res;
   }

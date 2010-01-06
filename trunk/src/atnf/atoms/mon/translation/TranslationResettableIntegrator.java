@@ -14,24 +14,28 @@ import java.awt.event.ActionListener;
 
 import javax.swing.Timer;
 
-import atnf.atoms.mon.PointData;
-import atnf.atoms.mon.PointDescription;
-import atnf.atoms.mon.PointEvent;
-import atnf.atoms.mon.PointListener;
+import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.time.AbsTime;
 
 /**
  * Integrates the input and resets the integral sum whenever the listened-to
- * point is "True". The listened-to point is expected to have boolean values (or
- * numeric values which are interpreted as booleans).
+ * point is "true". The listened-to point is expected to have boolean values (or
+ * numeric values, which are interpreted as booleans).
  * 
  * <P>
- * Constructor arguments is just the name of the listened-to point.
+ * Constructor arguments are: <bl>
+ * <li><b>Point:</b> Name of the listened-to point which controls when the
+ * integral is reset.
+ * <li><b>Reload:</b> Optional argument which determines whether the integral
+ * will reload its last value from the archive when the system starts up. This
+ * can be used to prevent resetting the integral if the MoniCA server is
+ * restarted. Set this argument to "true" to enable this functionality.
+ * </bl>
  * 
  * <P>
- * Remember it is the normal input from the Transaction which is integrated, the
- * listened-to points just control when to reset the integral.
+ * Remember it is the normal input to the Translation which is integrated, while the
+ * listened-to point is what control when to reset the integral.
  * 
  * @author David Brodrick
  */
@@ -48,7 +52,10 @@ public class TranslationResettableIntegrator extends Translation implements
 
   /** Name of the reset-control listened-to point. */
   protected String itsPointName;
-
+  
+  /** Do we need to load our last value from the archive, on system startup. */
+  protected boolean itsGetArchive = false;
+  
   public TranslationResettableIntegrator(PointDescription parent, String[] init) {
     super(parent, init);
     if (init == null || init.length < 1) {
@@ -62,14 +69,28 @@ public class TranslationResettableIntegrator extends Translation implements
     if (itsPointName.indexOf("$1") > -1) {
       itsPointName = MonitorUtils.replaceTok(itsPointName, parent.getSource());
     }
+    
+    //Check for the optional 'reload last value at startup' argument
+    if (init.length==2 && init[1].equalsIgnoreCase("true")) {
+      itsGetArchive = true;
+    }
 
     // Start the timer which subscribes us to updates from the points
     itsTimer = new Timer(100, this);
     itsTimer.start();
   }
 
-  /** Calculate the average and return an averaged value. */
+  /** Calculate the current value of the integral. */
   public PointData translate(PointData data) {
+    if (itsGetArchive) {
+      //Need to reload last value from the archive, since system has just restarted
+      PointData archiveval = PointBuffer.getPreceding(itsParent.getFullName(), new AbsTime());
+      if (archiveval!=null && archiveval.getData() instanceof Number) {
+        itsSum = ((Number)archiveval.getData()).doubleValue();
+      }
+      itsGetArchive = false;
+    }
+    
     if (itsLastState != null && itsLastState.booleanValue()) {
       // Need to reset the integral
       itsSum = 0.0;
