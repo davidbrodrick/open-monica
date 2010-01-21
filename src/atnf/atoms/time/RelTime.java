@@ -770,11 +770,6 @@ implements
   throws
     NumberFormatException
   {
-    // The first char has to be a "+" or "-".
-    if((str.charAt(0) != '+') && (str.charAt(0) != '-')) {
-      throw new NumberFormatException("bad relative time: \"" + str + "\"");
-    }
-
     // Then parse the string as a decimal number.
     try {
       // If first char is a "+", need to remove it first.

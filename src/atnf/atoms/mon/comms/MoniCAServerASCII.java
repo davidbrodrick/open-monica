@@ -452,7 +452,7 @@ public class MoniCAServerASCII extends Thread {
                 units = "?";
               }
               itsWriter.println(pointname + "\t" + pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t" + pd.getData() + "\t"
-                      + units + "\t" + pd.getAlarm());
+                      + units + "\t" + !pd.getAlarm());
             }
           }
         } else {
