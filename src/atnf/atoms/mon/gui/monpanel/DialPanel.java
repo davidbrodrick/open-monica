@@ -109,17 +109,26 @@ public class DialPanel extends MonPanel
 
             setup.put("label" + number, itsTitleField.getText());
 
+            boolean swapscales = false;
             try {
-                Double.parseDouble(itsScaleMax.getText());
-                Double.parseDouble(itsScaleMin.getText());
+                double max = Double.parseDouble(itsScaleMax.getText());
+                double min = Double.parseDouble(itsScaleMin.getText());
+                if (max < min) {
+                    swapscales = true;
+                }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "The fields for minimum and maximum\n"
                                 + "scales must contain numbers, eg, \"42\"\n" + "or \"99.9\".", "Bad Scale Entered",
                                 JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            setup.put("min" + number, itsScaleMin.getText());
-            setup.put("max" + number, itsScaleMax.getText());
+            if (swapscales) {
+                setup.put("max" + number, itsScaleMin.getText());
+                setup.put("min" + number, itsScaleMax.getText());
+            } else {
+                setup.put("min" + number, itsScaleMin.getText());
+                setup.put("max" + number, itsScaleMax.getText());
+            }
         }
 
         public void showSetup(SavedSetup setup, int number)
@@ -347,11 +356,25 @@ public class DialPanel extends MonPanel
                         PointData pd = evt.getPointData();
                         double val = ((Number) pd.getData()).doubleValue();
                         StandardDialScale scale = ((StandardDialScale) itsDial.getScale(0));
-                        if (val < scale.getLowerBound()) {
-                            scale.setLowerBound(val);
-                        } else if (val > scale.getUpperBound()) {
-                            scale.setUpperBound(val);
+                        boolean newscale = false;
+                        double lower = scale.getLowerBound();
+                        double upper = scale.getUpperBound();                        
+                        if (val < lower) {
+                            newscale = true;
+                            lower = val;
+                        } else if (val > upper) {
+                            newscale = true;
+                            upper = val;
                         }
+                        if (newscale) {
+                            double increment = getTickIncrement(lower, upper);
+                            scale.setMajorTickIncrement(increment);
+                            lower = increment * ((int) (lower / increment));
+                            upper = increment * ((int) (upper / increment)) + increment;
+                            scale.setLowerBound(lower);
+                            scale.setUpperBound(upper);
+                        }
+
                         if (pd.getAlarm()) {
                             itsPointer.setFillPaint(Color.RED);
                         } else {
@@ -437,10 +460,13 @@ public class DialPanel extends MonPanel
 
         // Set dial scale
         StandardDialScale scale = new StandardDialScale();
-        scale.setLowerBound(Float.parseFloat(setup.get("min" + num)));
-        scale.setUpperBound(Float.parseFloat(setup.get("max" + num)));
+        double lower = Float.parseFloat(setup.get("min" + num));
+        double upper = Float.parseFloat(setup.get("max" + num));
+        scale.setLowerBound(lower);
+        scale.setUpperBound(upper);
         scale.setStartAngle(-120);
         scale.setExtent(-300);
+        scale.setMajorTickIncrement(getTickIncrement(lower, upper));
         plot.addScale(0, scale);
 
         // Only show the value if we are only displaying one point
@@ -517,6 +543,19 @@ public class DialPanel extends MonPanel
         }
         itsSetup = setup;
         return true;
+    }
+
+    /** Get a sensible major tick increment for the given bounds. */
+    protected double getTickIncrement(double lower, double upper)
+    {
+        double range = upper - lower;
+        double increment = Math.pow(10, Math.floor(Math.log10(range)));
+        if (range == increment) {
+            increment /= 10;
+        } else if ((range / increment) < 5) {
+            increment /= 4;
+        }
+        return increment;
     }
 
     public void vaporise()
