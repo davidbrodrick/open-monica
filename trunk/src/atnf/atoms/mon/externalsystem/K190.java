@@ -9,6 +9,7 @@ package atnf.atoms.mon.externalsystem;
 
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.transaction.*;
+import atnf.atoms.time.RelTime;
 import java.util.Vector;
 
 /**
@@ -83,6 +84,9 @@ extends ASCIISocket
     itsWriter.write("T" + thischan);
     itsWriter.flush();
 
+    // Sleep for a short while. Introduced to stop spurious relay switching
+    RelTime.factory(50000l).sleep();
+
     // Parse response
     String response = itsReader.readLine();
     //System.err.println("K190(" + itsHostName + ":" + itsPort + "): Got response \"" + response + "\"");
@@ -141,6 +145,9 @@ extends ASCIISocket
           itsWriter.write("F" + thischan);
         }
         itsWriter.flush();
+        
+        // Sleep for a short while. Introduced to stop spurious relay switching
+        RelTime.factory(50000l).sleep();
       } catch (Exception e) {
         disconnect();
         throw e;
