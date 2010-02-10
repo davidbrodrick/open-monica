@@ -14,7 +14,7 @@ External systems may accept instantiation-time arguments defined in the `monitor
 
 Monitor/control points (`PointDescription` instances) encapsulate all of the meta-data for a single parameter that the system is monitoring and/or controlling. This includes information such as the description of the point, units, source name (eg the network address of which particular UPS this datum comes from), update interval, etc. Points are defined in the `monitor-points.txt` config file or may be dynamically created by external systems (eg, after the systems discovers what data is available from the specific device at run-time).
 
-The PointDescrption object has fields for other objects related to this point, such as to tell the system under what conditions this point's values should be archived, or how to translate the raw value read from hardware into a meaningful value. Some of these classes are explored below.
+The `PointDescription` object has fields for other objects related to this point, such as to tell the system under what conditions this point's values should be archived, or how to translate the raw value read from hardware into a meaningful value. Some of these classes are explored below.
 
 == Transactions ==
 
