@@ -8,10 +8,6 @@ This page gives a brief introduction to some of the different classes/packages u
 
 An 'external system' (instance of an `ExternalSystem` sub-class) is usually responsible for collecting monitor data and/or writing control data from one remote device/process. For instance you may have one external system which talks to your UPS and a different one which communicates with your weather station. Each external system may update values for multiple monitor points corresponding to different parameters available from the UPS or weather station (for example).
 
-Data sources can use at least two basic philosophies:
-  * *Pulled:* The data source queries the remote device to obtain a new value for each monitor point whenever MoniCA's internal scheduler determines that the point is due for an update.
-  * *Pushed:* The remote device may send unsolicited updates to the data source, so the data source only needs to parse the data and fire the new values off as updates to the relevant monitor points. The internal update scheduler is not used in this case.
-
 External systems may accept instantiation-time arguments defined in the `monitor-sources.txt` config file, for instance to tell it the network address of which UPS you wish to monitor. In this fashion, you may monitor many instances of one kind of device without needing to make any software changes.
 
 = Point Descriptions =
