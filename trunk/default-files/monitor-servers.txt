@@ -20,5 +20,5 @@
 #The first server definition is number 1 (not 0).
 default	0
 
-David's Place	fringes.org
+David's Place	narrabri.ozforecast.com.au
 Localhost	localhost
