@@ -12,7 +12,7 @@ import java.io.*;
 
 /**
  * Provides an interface to control relays on a TCTEC Super-4 USB relay board.
- * This class is basically just a wrapper which expects the <i>irset</i> Linux executable
+ * This class is basically just a wrapper which expects the <i>Irelayset</i> Linux executable
  * provided by the manufacturer to be in the current PATH.
  * 
  * <P>The manufacturers website is <tt>http://www.emx.net.au/</tt>
@@ -99,15 +99,16 @@ extends ExternalSystem
       String command;
 	    if (relayset) {
 		    //Turn ON
-        command = "irset -s" + itsSerialNum + "," + relayword;
+        command = "Irelayset -s" + itsSerialNum + "," + relayword;
 	    } else {
 		    //Turn OFF
-        command = "irset -u" + itsSerialNum + "," + relayword;
+        command = "Irelayset -u" + itsSerialNum + "," + relayword;
 	    }
       //System.err.println("Super4(" + itsIdentifier + "): Executing command \"" + command + "\"");
       
       //Execute the command and write to STDERR if there are any problems
       Process p = Runtime.getRuntime().exec(command);
+      p.waitFor();
       BufferedReader Resultset = new BufferedReader(new InputStreamReader(p.getInputStream()));
       String line;
       while ((line = Resultset.readLine()) != null) {
