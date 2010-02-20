@@ -93,9 +93,9 @@ public class WH1081 extends ExternalSystem {
           .getErrorStream()));
 
       p.waitFor();
-      
+
       String err = stdError.readLine();
-      if (err != null || p.exitValue()!=0) {
+      if (err != null || p.exitValue() != 0) {
         System.err.println("WH1081: Error running \"wwsr\"");
         RelTime.factory(1000000).sleep();
         itsIgnoreNextData = true;
@@ -184,7 +184,13 @@ public class WH1081 extends ExternalSystem {
       line = stdInput.readLine();
       Float thisrain = new Float(line.substring(20, line.length()).trim());
       line = stdInput.readLine();
+      int other1 = Integer.parseInt(line.substring(20, line.length()).trim());
       line = stdInput.readLine();
+      int other2 = Integer.parseInt(line.substring(20, line.length()).trim());
+      if (other1 != 0 || other2 != 0) {
+        System.err.println("WH1081: Invalid data..");
+        throw new Exception("'Other' data fields are non-zero");
+      }
       line = stdInput.readLine();
       // Pressure
       res[7] = new Float(line.substring(20, line.length()).trim());
@@ -219,10 +225,10 @@ public class WH1081 extends ExternalSystem {
         // New data
         itsLastInterval = interval;
         itsLastHistory = history;
-        //System.err.println("WH1081: New data " + datachanged + " " + interval
+        // System.err.println("WH1081: New data " + datachanged + " " + interval
         // + " " + history);
       } else {
-        //System.err.println("WH1081: repeated data.");
+        // System.err.println("WH1081: repeated data.");
         return null;
       }
 
@@ -253,17 +259,17 @@ public class WH1081 extends ExternalSystem {
       System.err.println("WH1081: " + e);
       return null;
     }
-    
-/*    if (res == null) {
+
+    if (res == null) {
       System.err.println("WH1081: res=null");
     } else {
-      System.err.print("WH1081: ");
-      for (int i = 0; i < res.length; i++) {
-        System.err.print(res[i] + " ");
-      }
-      System.err.println();
+//      System.err.print("WH1081: ");
+//      for (int i = 0; i < res.length; i++) {
+//        System.err.print(res[i] + " ");
+//      }
+//      System.err.println();
     }
-*/
+
     return res;
   }
 
