@@ -17,7 +17,7 @@ import atnf.atoms.mon.PointDescription;
 import atnf.atoms.time.AbsTime;
 
 /**
- * Integrate every update of the input and reset once per day at the specified
+ * Integrate every positive update of the input and reset once per day at the specified
  * time in the specified timezone.<BR>
  * 
  * For instance, this was initially implemented for the Parkes Telescope weather
@@ -30,7 +30,7 @@ import atnf.atoms.time.AbsTime;
  * 
  * @author David Brodrick
  */
-public class TranslationDailyIntegrator extends Translation {
+public class TranslationDailyIntegratorPosOnly extends Translation {
   /** The hour to reset. */
   protected int itsHour = 0;
 
@@ -46,17 +46,17 @@ public class TranslationDailyIntegrator extends Translation {
   /** The accumulated input for the day so far. */
   protected double itsSum = 0.0;
 
-  public TranslationDailyIntegrator(PointDescription parent, String[] init) {
+  public TranslationDailyIntegratorPosOnly(PointDescription parent, String[] init) {
     super(parent, init);
 
     if (init.length != 2) {
-      System.err.println("TranslationDailyIntegrator: " + parent.getFullName()
+      System.err.println("TranslationDailyIntegratorPosOnly: " + parent.getFullName()
           + ": NEED TWO INIT ARGUMENTS!");
     } else {
       // First argument is time
       int colon = init[0].indexOf(":");
       if (colon == -1 || init[0].length() > 5) {
-        System.err.println("TranslationDailyIntegrator: " + parent.getFullName()
+        System.err.println("TranslationDailyIntegratorPosOnly: " + parent.getFullName()
             + ": NEED TIME IN HH:MM 24-HOUR FORMAT!");
       } else {
         try {
@@ -64,14 +64,14 @@ public class TranslationDailyIntegrator extends Translation {
           itsMinute = Integer.parseInt(init[0].substring(colon + 1, init[0]
               .length()));
         } catch (Exception e) {
-          System.err.println("TranslationDailyIntegrator: " + parent.getFullName()
+          System.err.println("TranslationDailyIntegratorPosOnly: " + parent.getFullName()
               + ": NEED TIME IN HH:MM 24-HOUR FORMAT!");
         }
       }
       // TimeZone is second argument
       itsTZ = TimeZone.getTimeZone(init[1]);
       if (itsTZ == null) {
-        System.err.println("TranslationDailyIntegrator: " + parent.getFullName()
+        System.err.println("TranslationDailyIntegratorPosOnly: " + parent.getFullName()
             + ": UNKNOWN TIMEZONE \"" + init[1] + "\"");
       }
     }
@@ -85,9 +85,14 @@ public class TranslationDailyIntegrator extends Translation {
       if (data.getData() instanceof Number) {
         thisvalue = ((Number) (data.getData())).doubleValue();
       } else {
-        System.err.println("TranslationDailyIntegrator: " + itsParent.getFullName()
+        System.err.println("TranslationDailyIntegratorPosOnly: " + itsParent.getFullName()
             + ": REQUIRES NUMERIC INPUT!");
       }
+    }
+    
+    // Only integrate positive increments
+    if (thisvalue<0.0) {
+        thisvalue = 0.0;
     }
 
     // Check if it is time to reset the integrator

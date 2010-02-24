@@ -8,7 +8,6 @@
 
 package atnf.atoms.mon.externalsystem;
 
-import java.io.*;
 import java.util.*;
 
 import atnf.atoms.time.*;
@@ -30,11 +29,11 @@ import atnf.atoms.mon.*;
  * power.ups.I2IN    "Input Current, Phase 2"   "I2IN"        "A"    site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"I2IN", NumDecimals-"1"}  Range-"20"70"   {COUNTER-6} 10000000 -
  * power.ups.I3IN    "Input Current, Phase 3"   "I3IN"        "A"    site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"I3IN", NumDecimals-"1"}  Range-"20"70"   {COUNTER-6} 10000000 -
  * power.ups.P1IN_R  "Real Input Power, Phase 1"      ""      "kW"   site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"P1INW",  NumDecimals-"1"} Range-"5"18"   {COUNTER-6} 10000000 -
- * power.ups.P1IN_I  "Complex Input Power, Phase 1" "  "      "kVA"  site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"P1INVA", NumDecimals-"1"} Range-"5"18"   {COUNTER-6} 10000000 -
+ * power.ups.P1IN_I  "Complex Input Power, Phase 1"   ""      "kVA"  site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"P1INVA", NumDecimals-"1"} Range-"5"18"   {COUNTER-6} 10000000 -
  * power.ups.P2IN_R  "Real Input Power, Phase 2"      ""      "kW"   site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"P2INW",  NumDecimals-"1"} Range-"5"18"   {COUNTER-6} 10000000 -
- * power.ups.P2IN_I  "Complex Input Power, Phase 2" "  "      "kVA"  site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"P2INVA", NumDecimals-"1"} Range-"5"18"   {COUNTER-6} 10000000 -
+ * power.ups.P2IN_I  "Complex Input Power, Phase 2"   ""      "kVA"  site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"P2INVA", NumDecimals-"1"} Range-"5"18"   {COUNTER-6} 10000000 -
  * power.ups.P3IN_R  "Real Input Power, Phase 3"      ""      "kW"   site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"P3INW",  NumDecimals-"1"} Range-"5"18"   {COUNTER-6} 10000000 -
- * power.ups.P3IN_I  "Complex Input Power, Phase 3" "  "      "kVA"  site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"P3INVA", NumDecimals-"1"} Range-"5"18"   {COUNTER-6} 10000000 -
+ * power.ups.P3IN_I  "Complex Input Power, Phase 3"   ""      "kVA"  site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"P3INVA", NumDecimals-"1"} Range-"5"18"   {COUNTER-6} 10000000 -
  * power.ups.V1OUT   "Output Voltage, Phase 1"  "V1OUT"       "V"    site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"V1OUT", NumDecimals-"1"} Range-"220"250" {COUNTER-6} 10000000 -
  * power.ups.V2OUT   "Output Voltage, Phase 2"  "V2OUT"       "V"    site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"V2OUT", NumDecimals-"1"} Range-"220"250" {COUNTER-6} 10000000 -
  * power.ups.V3OUT   "Output Voltage, Phase 3"  "V3OUT"       "V"    site  T  Listen-"site.hidden.ups.alldata"  -   {NV-"V3OUT", NumDecimals-"1"} Range-"220"250" {COUNTER-6} 10000000 -

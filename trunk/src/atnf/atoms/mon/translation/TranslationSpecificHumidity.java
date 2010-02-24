@@ -12,75 +12,53 @@ package atnf.atoms.mon.translation;
 import atnf.atoms.mon.PointDescription;
 
 /**
- * Calculate the specific humidity (in grams of water vapour per kilogram
- * of air) by listening to the values of two other points: one representing
- * the water vapour pressure in kiloPascals and the other being the
- * atmospheric pressure in HectoPascals.
+ * Calculate the specific humidity (in grams of water vapour per kilogram of air) by
+ * listening to the values of two other points: one representing the water vapour pressure
+ * in hectoPascals and the other being the atmospheric pressure in hectoPascals.
  * <P>
- * <I>Should really modify this for consistancy in the units..</I>
- * <P>
- * The names of the two points to listen to must be given as constructor
- * <i>init</i> arguments, with vapour pressure being the first argument.
+ * The names of the two points to listen to must be given as constructor <i>init</i>
+ * arguments, with vapour pressure being the first argument.
  * <P>
  * The methods follow this site:<BR>
  * <TT>http://www.agsci.kvl.dk/~bek/relhum.htm</TT><BR>
- * Which follows the technique of <i>Jensen et al. (1990) ASCE Manual No.
- * 70 (pages 176 & 177)</i>.
- *
+ * Which follows the technique of <i>Jensen et al. (1990) ASCE Manual No. 70 (pages 176 &
+ * 177)</i>.
+ * 
  * @author David Brodrick
  * @author David McConnell
- * @version $Id: TranslationSpecificHumidity.java,v 1.2 2004/10/20 01:08:45 bro764 Exp $
  */
-public class
-TranslationSpecificHumidity
-extends TranslationDualListen
+public class TranslationSpecificHumidity extends TranslationDualListen
 {
-
-  protected static String[] itsArgs = new String[]{
-    "Specific Humidity", "what goes here",
-    "Water Vapour Pressure Point", "java.lang.String",
-    "Atmospheric Pressure Point", "java.lang.String",
-  };
-   
-  public
-  TranslationSpecificHumidity(PointDescription parent, String[] init)
-  {
-    super(parent, init);
-  }
-
-
-  /** Calculate the specific humidity from the water vapour pressure and
-   * atmospheric pressure.
-   *@param val1 Most recent vapour pressure (in kPa)
-   *@param val2 Most recent atmospheric pressure (in HPa)
-   *@return Float containing the specific humidity in grams of water per
-   * kilogram of air. */
-  protected
-  Object
-  doCalculations(Object val1, Object val2)
-  {
-    if (! (val1 instanceof Number) || ! (val2 instanceof Number)) {
-      System.err.println("TranslationSpecificHumidity: " + itsParent.getName()
-                         + ": ERROR got non-numeric data!");
-      return null;
+    public TranslationSpecificHumidity(PointDescription parent, String[] init)
+    {
+        super(parent, init);
     }
 
-    final double Rl_Rv = 0.622;
-    double e = ((Number)val1).floatValue(); //Get vapour pressure
-    double p = ((Number)val2).floatValue()/10.0; //Get atmospheric pressure
+    /**
+     * Calculate the specific humidity from the water vapour pressure and atmospheric
+     * pressure.
+     * @param val1 Most recent vapour pressure (in hPa)
+     * @param val2 Most recent atmospheric pressure (in hPa)
+     * @return Float containing the specific humidity in grams of water per kilogram of
+     * air.
+     */
+    protected Object doCalculations(Object val1, Object val2)
+    {
+        if (!(val1 instanceof Number) || !(val2 instanceof Number)) {
+            System.err.println("TranslationSpecificHumidity: " + itsParent.getFullName() + ": ERROR got non-numeric data!");
+            return null;
+        }
 
-    //Calculate the specific humidity
-    double sh = 1000.0 * ( Rl_Rv*e / ( p + e*(Rl_Rv - 1.0)) );
+        final double Rl_Rv = 0.622;
+        double e = ((Number) val1).doubleValue() / 10.0; // Get vapour pressure
+        double p = ((Number) val2).doubleValue() / 10.0; // Get atmospheric pressure
 
-    //Round off insignificant digits
-    sh = sh - Math.IEEEremainder(sh, 0.01);
+        // Calculate the specific humidity
+        double sh = 1000.0 * (Rl_Rv * e / (p + e * (Rl_Rv - 1.0)));
 
-    return new Float(sh);
-  }
+        // Round off insignificant digits
+        sh = sh - Math.IEEEremainder(sh, 0.1);
 
-
-  public static String[] getArgs()
-  {
-     return itsArgs;
-  }
+        return new Float(sh);
+    }
 }
