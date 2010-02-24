@@ -27,7 +27,7 @@ Please maintain lists in lexigraphic order.
 || !DailyIntegrator || Accumulate the input and reset once per day. || *Time:* Time of day to reset the integrator, in "HH:MM" 24-hour format. *!TimeZone:* The time zone that the time should be interpreted in, eg "Australia/Sydney". ||
 || !DailyIntegratorPosOnly || Accumulate only positive increments of the input and reset once per day. || *Time:* Time of day to reset the integrator, in "HH:MM" 24-hour format. *!TimeZone:* The time zone that the time should be interpreted in, eg "Australia/Sydney". ||
 || !DailyPulse || Generates a single "True" pulse at a specified time each day. || *Time:* Time of day to generate the pulse, in "HH:MM" 24-hour format. *!TimeZone:* The time zone that the time should be interpreted in, eg "Australia/Sydney". ||
-|| Delta || Calculate the difference between successive input values. || ||
+|| Delta || Calculate the difference between successive input values, as prev_val - new_val. || ||
 || Difference || !DualListen implementation which returns the difference between the two values being monitored. _deprecated use Calculation_ || *Point1:* Name of listened-to point 1. *Point2:* Name of listened-to point 2. ||
 || EQ || Apply an arbitrary equation to numerical input. Uses JEP for expression parsing. || *Equation:* Use x to represent the input number. ||
 || !EnumMap || Map numbers into strings. || *Maps:* As many number to string mappings as required, each having the format `number:string`. *Default:* Any argument without a `:` is treated as the default string to be used when no explicit map exists for the input. ||
