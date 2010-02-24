@@ -7,14 +7,14 @@
 
 package atnf.atoms.mon.externalsystem;
 
-import java.net.*;
 import java.io.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.transaction.TransactionStrings;
 
 /**
- * Class for DataSources which need to read and/or write ASCII data over TCP socket
- * connection to a remote end-point.
+ * Class for ExternalSystems which need to read and/or write ASCII data over TCP socket
+ * connection to a remote end-point. This class derives from the TCPSocket class but also
+ * provides BufferedReader and BufferedWriter fields.
  * <P>
  * The constructor argument defined in <tt>monitor-sources.txt</tt> must include the
  * remote machine, port and optionally timeout in
@@ -22,6 +22,8 @@ import atnf.atoms.mon.transaction.TransactionStrings;
  * <P>
  * You can override the <tt>parseData</tt> method to perform whatever response parsing
  * and/or request formatting is required, and return an appropriate data object.
+ * Alternately you may override the <i>getData</i> method in which case the <i>parseData</i>
+ * method will not be called.
  * <P>
  * The default <tt>parseData</tt> implementation expects the points to have a
  * <tt>TransactionStrings</tt> input transaction, which has the query string to be sent
@@ -30,145 +32,103 @@ import atnf.atoms.mon.transaction.TransactionStrings;
  * 
  * @author David Brodrick
  */
-public class ASCIISocket extends ExternalSystem {
-  /** The socket used for communicating with the remote service. */
-  protected Socket itsSocket = null;
+public class ASCIISocket extends TCPSocket
+{
+    /** The output stream for writing text to the remote service. */
+    protected BufferedWriter itsWriter = null;
 
-  /** The output stream for writing text to the remote service. */
-  protected BufferedWriter itsWriter = null;
+    /** The input stream for reading responses from the remote service. */
+    protected BufferedReader itsReader = null;
 
-  /** The input stream for reading responses from the remote service. */
-  protected BufferedReader itsReader = null;
-
-  /** The port to connect to the remote end-point. */
-  protected int itsPort = -1;
-
-  /** The hostname or IP of the remote end-point. */
-  protected String itsHostName = null;
-
-  /** Socket timeout period, in ms. */
-  protected int itsTimeout = 5000;
-
-  /** Argument must include host:port and optionally :timeout_ms */
-  public ASCIISocket(String[] args) {
-    super(args[0] + ":" + args[1]);
-    itsHostName = args[0];
-    itsPort = Integer.parseInt(args[1]);
-    if (args.length > 2) {
-      itsTimeout = Integer.parseInt(args[2]);
+    /** Argument must include host:port and optionally :timeout_ms */
+    public ASCIISocket(String[] args)
+    {
+        super(args);
     }
-  }
 
-  /** Set the socket timeout to use (ms). */
-  protected void setTimeout(int ms) {
-    itsTimeout = ms;
-    if (itsConnected) {
-      try {
-        itsSocket.setSoTimeout(itsTimeout);
-      } catch (Exception e) {
+    /** Make a new socket connection. */
+    public boolean connect() throws Exception
+    {
         try {
-          disconnect();
-        } catch (Exception f) {
+            super.connect();
+            itsWriter = new BufferedWriter(new OutputStreamWriter(itsSocket.getOutputStream()));
+            itsReader = new BufferedReader(new InputStreamReader(itsSocket.getInputStream()));
+            System.err.println("ASCIISocket (" + getClass() + "): Connected to " + itsHostName + ":" + itsPort);
+        } catch (Exception e) {
+            itsReader = null;
+            itsWriter = null;
+            super.disconnect();
+            throw e;
         }
-      }
-    }
-  }
-
-  /** Make a new socket connection. */
-  public boolean connect() throws Exception {
-    // Don't connect if already connected
-    if (itsConnected) {
-      return true;
+        return itsConnected;
     }
 
-    try {
-      itsSocket = new Socket(itsHostName, itsPort);
-      itsSocket.setSoTimeout(itsTimeout);
-      itsConnected = true;
-      itsWriter = new BufferedWriter(new OutputStreamWriter(itsSocket.getOutputStream()));
-      itsReader = new BufferedReader(new InputStreamReader(itsSocket.getInputStream()));
-
-      System.err.println("ASCIISocket (" + getClass() + "): Connected to " + itsHostName + ":" + itsPort);
-      itsNumTransactions = 0;
-    } catch (Exception e) {
-      itsSocket = null;
-      itsReader = null;
-      itsWriter = null;
-      itsConnected = false;
-      throw e;
+    /** Close the socket, unless it is already closed. */
+    public void disconnect() throws Exception
+    {
+        itsReader = null;
+        itsWriter = null;
+        super.disconnect();
     }
-    return itsConnected;
-  }
 
-  /** Close the socket, unless it is already closed. */
-  public void disconnect() throws Exception {
-    if (itsSocket != null) {
-      itsSocket.close();
-    }
-    itsSocket = null;
-    itsReader = null;
-    itsWriter = null;
-    itsConnected = false;
-  }
+    /**
+     * You can override this method in your class to perform any response parsing and/or
+     * request formatting that is required. This default implementation sends the request
+     * string to the server and then returns all response lines as a single string.
+     */
+    public Object parseData(PointDescription requestor) throws Exception
+    {
+        // Get the Transaction which associates the point with us
+        TransactionStrings thistrans = (TransactionStrings) getMyTransactions(requestor.getInputTransactions()).get(0);
 
-  /**
-   * You can override this method in your class to perform any response parsing and/or
-   * request formatting that is required. This default implementation sends the request
-   * string to the server and then returns all response lines as a single string.
-   */
-  public Object parseData(PointDescription requestor) throws Exception
-  {
-    // Get the Transaction which associates the point with us
-    TransactionStrings thistrans=(TransactionStrings)getMyTransactions(requestor.getInputTransactions()).get(0);
-
-    // The Transaction should contain a query string to be issued to the server
-    if (thistrans.getNumStrings()<1) {
-      throw new Exception("ASCIISocket: Not enough arguments in Transaction");
-    }
-    
-    String query = thistrans.getString();
-    // Substitute EOL characters
-    query=query.replaceAll("\\\\n", "\n").replaceAll("\\\\r", "\r");
-
-    // Clear input buffer
-    while (itsReader.ready()) {
-      itsReader.readLine();
-    }   
-    
-    // Send the query to the server
-    itsWriter.write(query);
-    itsWriter.flush();
-    
-    // Read response
-    String result = itsReader.readLine() + "\n";
-    while (itsReader.ready()) {
-      String line = itsReader.readLine() + "\n";
-      result = result + line;
-    }
-    
-    return result;
-  }
-
-  /** Collect data and fire events to queued monitor points. */
-  protected void getData(PointDescription[] points) throws Exception {
-    Object[] buf = points;
-    try {
-      for (int i = 0; i < buf.length; i++) {
-        Object o = null;
-        PointDescription pm = (PointDescription) buf[i];
-        o = parseData(pm);
-        // Count successful transactions
-        if (o != null) {
-          itsNumTransactions += buf.length;
+        // The Transaction should contain a query string to be issued to the server
+        if (thistrans.getNumStrings() < 1) {
+            throw new Exception("ASCIISocket: Not enough arguments in Transaction");
         }
-        // Fire the new data off for this point
-        pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), o), true));
-      }
-    } catch (Exception e) {
-      // Probably a comms error.
-      disconnect();
-      System.err.println("ASCIISocket: " + e.getClass() + ": " + e.getMessage());
-      MonitorMap.logger.error(e.getMessage());
+
+        String query = thistrans.getString();
+        // Substitute EOL characters
+        query = query.replaceAll("\\\\n", "\n").replaceAll("\\\\r", "\r");
+
+        // Clear input buffer
+        while (itsReader.ready()) {
+            itsReader.readLine();
+        }
+
+        // Send the query to the server
+        itsWriter.write(query);
+        itsWriter.flush();
+
+        // Read response
+        String result = itsReader.readLine() + "\n";
+        while (itsReader.ready()) {
+            String line = itsReader.readLine() + "\n";
+            result = result + line;
+        }
+
+        return result;
     }
-  }
+
+    /** Collect data and fire events to queued monitor points. */
+    protected void getData(PointDescription[] points) throws Exception
+    {
+        try {
+            for (int i = 0; i < points.length; i++) {
+                Object o;
+                PointDescription pm = points[i];
+                o = parseData(pm);
+                // Count successful transactions
+                if (o != null) {
+                    itsNumTransactions++;
+                }
+                // Fire the new data off for this point
+                pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), o), true));
+            }
+        } catch (Exception e) {
+            // Probably a comms error.
+            disconnect();
+            System.err.println("ASCIISocket: " + e.getClass() + ": " + e.getMessage());
+            MonitorMap.logger.error(e.getMessage());
+        }
+    }
 }
