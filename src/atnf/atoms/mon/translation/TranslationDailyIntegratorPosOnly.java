@@ -90,11 +90,11 @@ public class TranslationDailyIntegratorPosOnly extends Translation {
       }
     }
     
-    // Only integrate positive increments
-    if (thisvalue<0.0) {
+    // Only integrate positive increments, and don't allow -0.0
+    if (!(thisvalue>0.0)) {
         thisvalue = 0.0;
     }
-
+    
     // Check if it is time to reset the integrator
     Calendar c = Calendar.getInstance(itsTZ);
     if (c.get(Calendar.DAY_OF_YEAR) != itsLastReset
@@ -102,7 +102,7 @@ public class TranslationDailyIntegratorPosOnly extends Translation {
         || c.get(Calendar.HOUR_OF_DAY) == itsHour
         && c.get(Calendar.MINUTE) >= itsMinute)) {
       // Yep, we need to reset. This lastest update counts towards new sum
-      itsLastReset = c.get(Calendar.DAY_OF_YEAR);
+      itsLastReset = c.get(Calendar.DAY_OF_YEAR);      
       itsSum = thisvalue;
     } else {
       // Not time to reset, so accumulate this value
