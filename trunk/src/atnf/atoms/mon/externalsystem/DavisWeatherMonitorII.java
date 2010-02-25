@@ -80,7 +80,7 @@ public class DavisWeatherMonitorII extends DataSocket
     /** Decode weather from the raw bytes and populate a HashMap with the data values. */
     protected HashMap parseSensorImage(int[] rawbytes)
     {
-        HashMap<String, Float> res = new HashMap<String, Float>();
+        HashMap<String, Number> res = new HashMap<String, Number>();
 
         // Check for valid Start Of Block
         if (rawbytes[0] != 1)
@@ -103,12 +103,12 @@ public class DavisWeatherMonitorII extends DataSocket
         res.put("PRES", new Float(temp / 29.5287));
 
         // Humidity
-        res.put("INHUMID", new Float(rawbytes[10]));
-        res.put("OUTHUMID", new Float(rawbytes[11]));
+        res.put("INHUMID", new Integer(rawbytes[10]));
+        res.put("OUTHUMID", new Integer(rawbytes[11]));
 
         // Rain
         temp = rawbytes[12] + 256 * rawbytes[13];
-        res.put("RAIN", new Float(temp)); // In tips
+        res.put("RAIN", new Integer(temp)); // In tips
 
         return res;
     }
