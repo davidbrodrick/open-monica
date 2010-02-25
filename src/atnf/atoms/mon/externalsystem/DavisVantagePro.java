@@ -44,8 +44,8 @@ import atnf.atoms.mon.*;
  * DavisVantagePro 130.155.177.158:10000
  * </tt>
  * 
- * An basic set of monitor point definitions is shown below, these can be expanded using
- * the definitions above:
+ * An basic set of monitor point definitions is shown below, these can be expanded for
+ * additional sensors using the definitions above:
  * 
  * <P>
  * <tt>
@@ -55,6 +55,10 @@ import atnf.atoms.mon.*;
  * weather.OutTemp             "Outside Temperature"         "Out Temp"    "C"    site T Listen-"$1.hidden.davis.data"     -  {NV-"OUTTEMP", Mean-"60", NumDecimals-"1"}  -             {TIMER-60}           1500000  -
  * weather.InTemp              "Inside Temperature"          "In Temp"     "C"    site T Listen-"$1.hidden.davis.data"     -  {NV-"INTEMP", Mean-"60", NumDecimals-"1"}   -             {TIMER-60}           1500000  -
  * weather.ExtraTemp1          "Extra Temperature 1"         "Ex Temp 1"   "C"    site T Listen-"$1.hidden.davis.data"     -  {NV-"EXTEMP1", Mean-"60", NumDecimals-"1"}  -             {TIMER-60}           1500000  -
+ * weather.SoilTemp1           "Soil Temperature 1"          "Soil Temp1"  "C"    site T Listen-"$1.hidden.davis.data"     -  {NV-"SOILTEMP1", Mean-"60", NumDecimals-"1"}  -           {TIMER-60}           1500000  -
+ * weather.LeafTemp1           "Leaf Temperature 1"          "Leaf Temp1"  "C"    site T Listen-"$1.hidden.davis.data"     -  {NV-"LEAFTEMP1", Mean-"60", NumDecimals-"1"}  -           {TIMER-60}           1500000  -
+ * weather.SoilMoisture1       "Soil Moisture 1"             "Soil Mst 1"  "cBa"  site T Listen-"$1.hidden.davis.data"     -  {NV-"SOILMOIST1", Mean-"60", NumDecimals-"1"} -           {TIMER-60}           1500000  -
+ * weather.LeafWetness1        "Leaf Wetness 1"              "Leaf Wet 1"  ""     site T Listen-"$1.hidden.davis.data"     -  {NV-"LEAFWET1", Mean-"60", NumDecimals-"1"} -             {TIMER-60}           1500000  -
  * weather.OutHumid            "Outside Relative Humidity"   "Out Humid"   "%"    site T Listen-"$1.hidden.davis.data"     -  {NV-"OUTHUMID", Mean-"60", NumDecimals-"1"} -             {TIMER-60}           1500000  -
  * weather.InHumid             "Inside Relative Humidity"    "In Humid"    "%"    site T Listen-"$1.hidden.davis.data"     -  {NV-"INHUMID", Mean-"60", NumDecimals-"1"}  -             {TIMER-60}           1500000  -
  * weather.ExtraHumid1         "Extra Relative Humidity 1"   "Ex Humid 1"  "%"    site T Listen-"$1.hidden.davis.data"     -  {NV-"EXHUMID1", Mean-"60", NumDecimals-"1"} -             {TIMER-60}           1500000  -
@@ -141,7 +145,7 @@ public class DavisVantagePro extends DataSocket
 
         // Transmitter battery status
         res.put("TXBATT", new Integer(rawbytes[87]));
-        
+
         // Battery voltage
         temp = rawbytes[88] + 256 * rawbytes[89];
         res.put("BATTVOLTS", new Float(((temp * 300) / 512) / 100));
