@@ -26,7 +26,7 @@ import atnf.atoms.mon.*;
  * <li><b>INHUMID</b> Inside relative humidity as a percentage.
  * <li><b>EXHUMIDx</b> Extra relative humidity sensor as a percentage, x=1-7.
  * <li><b>SOILMOISTx</b> Soil moisture in centibar, x=1-4.
- * <li><b>LEAFWETx</b> Leaf wetness, x=1-4.
+ * <li><b>LEAFWETx</b> Leaf wetness, 0=very dry, 15=very wet, x=1-4.
  * <li><b>RAIN</b> Total number of rainfall tips.
  * <li><b>PRES</b> Atmospheric pressure.
  * <li><b>WINDSPD</b> Wind speed in km/h.
@@ -61,7 +61,8 @@ import atnf.atoms.mon.*;
  * weather.Pressure            "Atmospheric Pressure"        "Pressure"    "hPa"  site T Listen-"$1.hidden.davis.data"     -  {NV-"PRES", Mean-"60", NumDecimals-"1"}     -             {TIMER-180}          1500000  -
  * weather.SolarRad            "Solar Radiation"             "Solar Rad"  "W/m^2" site T Listen-"$1.hidden.davis.data"     -  {NV-"SOLRAD", NumDecimals-"1"}              -             {TIMER-180}          1500000  -
  * weather.UV                  "Ultraviolet Radiation"       "UV Rad"      ""     site T Listen-"$1.hidden.davis.data"     -  {NV-"UV", NumDecimals-"1"}                  -             {TIMER-180}          1500000  -
- * weather.Battery             "Battery Voltage"             "Batt Volts"  "V"    site T Listen-"$1.hidden.davis.data"     -  {NV-"BATTVOLTS"}                            -             {TIMER-60}           1500000  - 
+ * weather.Battery             "Battery Voltage"             "Batt Volts"  "V"    site T Listen-"$1.hidden.davis.data"     -  {NV-"BATTVOLTS"}                            -             {TIMER-60}           1500000  -
+ * weather.TxBattery           "Transmitter Battery Status"  "Tx Batt"     ""     site T Listen-"$1.hidden.davis.data"     -  {NV-"TXBATT"}                               -             {CHANGE-, TIMER-180} 1500000  - 
  * weather.Wind                "Wind Speed"                  "Wind Spd"    "km/h" site T Listen-"$1.hidden.davis.data"     -  {NV-"WINDSPD"}                              Range-"0""45" {COUNTER-1}          1500000  2 
  * #NB: Need to set the angle correction for your wind vane here, 0 by default
  * weather.WindDir             "Wind Direction"              "Wind Dir"    "deg"  site T Listen-"$1.hidden.davis.data"     -  {NV-"WINDDIR", EQ-"(x+0)%360"}              -             {COUNTER-1}          1500000  2
@@ -98,7 +99,7 @@ public class DavisVantagePro extends DataSocket
     /** Decode weather from the raw bytes and populate a HashMap with the data values. */
     protected HashMap parseSensorImage(int[] rawbytes)
     {
-        HashMap<String, Float> res = new HashMap<String, Float>();
+        HashMap<String, Number> res = new HashMap<String, Number>();
 
         // Check for valid Start Of Block
         if (rawbytes[0] != 1)
@@ -127,17 +128,20 @@ public class DavisVantagePro extends DataSocket
         res.put("LEAFTEMP4", new Float(5 * ((rawbytes[33] - 90) - 32) / 9.0));
 
         // Soil moistures, in centibar
-        res.put("SOILMOIST1", new Float(rawbytes[63]));
-        res.put("SOILMOIST2", new Float(rawbytes[64]));
-        res.put("SOILMOIST3", new Float(rawbytes[65]));
-        res.put("SOILMOIST4", new Float(rawbytes[66]));
+        res.put("SOILMOIST1", new Integer(rawbytes[63]));
+        res.put("SOILMOIST2", new Integer(rawbytes[64]));
+        res.put("SOILMOIST3", new Integer(rawbytes[65]));
+        res.put("SOILMOIST4", new Integer(rawbytes[66]));
 
         // Leaf wetness, 0=very dry, 15=very wet
-        res.put("LEAFWET1", new Float(rawbytes[67]));
-        res.put("LEAFWET2", new Float(rawbytes[68]));
-        res.put("LEAFWET3", new Float(rawbytes[69]));
-        res.put("LEAFWET4", new Float(rawbytes[70]));
+        res.put("LEAFWET1", new Integer(rawbytes[67]));
+        res.put("LEAFWET2", new Integer(rawbytes[68]));
+        res.put("LEAFWET3", new Integer(rawbytes[69]));
+        res.put("LEAFWET4", new Integer(rawbytes[70]));
 
+        // Transmitter battery status
+        res.put("TXBATT", new Integer(rawbytes[87]));
+        
         // Battery voltage
         temp = rawbytes[88] + 256 * rawbytes[89];
         res.put("BATTVOLTS", new Float(((temp * 300) / 512) / 100));
@@ -152,27 +156,27 @@ public class DavisVantagePro extends DataSocket
         res.put("PRES", new Float(temp / 29.5287));
 
         // Humidity
-        res.put("INHUMID", new Float(rawbytes[12]));
-        res.put("OUTHUMID", new Float(rawbytes[34]));
-        res.put("EXHUMID1", new Float(rawbytes[35]));
-        res.put("EXHUMID2", new Float(rawbytes[36]));
-        res.put("EXHUMID3", new Float(rawbytes[37]));
-        res.put("EXHUMID4", new Float(rawbytes[38]));
-        res.put("EXHUMID5", new Float(rawbytes[39]));
-        res.put("EXHUMID6", new Float(rawbytes[40]));
-        res.put("EXHUMID7", new Float(rawbytes[41]));
+        res.put("INHUMID", new Integer(rawbytes[12]));
+        res.put("OUTHUMID", new Integer(rawbytes[34]));
+        res.put("EXHUMID1", new Integer(rawbytes[35]));
+        res.put("EXHUMID2", new Integer(rawbytes[36]));
+        res.put("EXHUMID3", new Integer(rawbytes[37]));
+        res.put("EXHUMID4", new Integer(rawbytes[38]));
+        res.put("EXHUMID5", new Integer(rawbytes[39]));
+        res.put("EXHUMID6", new Integer(rawbytes[40]));
+        res.put("EXHUMID7", new Integer(rawbytes[41]));
 
         // Rain
         temp = rawbytes[55] + 256 * rawbytes[56];
-        res.put("RAIN", new Float(temp)); // In tips
+        res.put("RAIN", new Integer(temp)); // In tips
 
         // Solar radiation
         temp = rawbytes[45] + 256 * rawbytes[46];
-        res.put("SOLRAD", new Float(temp)); // In Watts
+        res.put("SOLRAD", new Integer(temp)); // In Watts per square metre
 
         // UV
         temp = rawbytes[44];
-        res.put("UV", new Float(temp)); // In UV Index
+        res.put("UV", new Integer(temp)); // In UV Index
 
         return res;
     }
