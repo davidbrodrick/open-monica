@@ -110,22 +110,22 @@ public class MoniCAServerASCII extends Thread {
           }
           line = line.trim();
           if (line.equalsIgnoreCase("poll")) {
-            state_poll();
+            poll();
           } else if (line.equalsIgnoreCase("poll2")) {
-            state_poll2();
+            poll2();
           } else if (line.equalsIgnoreCase("since")) {
-            state_since();
+            since();
           } else if (line.equalsIgnoreCase("between")) {
-            state_between();
+            between();
           } else if (line.equalsIgnoreCase("preceding") || line.equalsIgnoreCase("preceeding")) {
             // Original interface had spelling error
-            state_preceding();
+            preceding();
           } else if (line.equalsIgnoreCase("following")) {
-            state_following();
+            following();
           } else if (line.equalsIgnoreCase("names")) {
-            state_names();
+            names();
           } else if (line.equalsIgnoreCase("details")) {
-            state_details();
+            details();
           }
         }
       } catch (Exception f) {
@@ -145,7 +145,7 @@ public class MoniCAServerASCII extends Thread {
   }
 
   /** Return the names of all monitor points. */
-  protected void state_names() {
+  protected void names() {
     try {
       // Get the list of all names
       String[] names = PointDescription.getAllPointNames();
@@ -165,7 +165,7 @@ public class MoniCAServerASCII extends Thread {
     }
   }
 
-  protected void state_between() {
+  protected void between() {
     try {
       String tempstr = itsReader.readLine().trim();
       // Line should say <TIMESTAMP> <TIMESTAMP> <POINTNAME>
@@ -233,7 +233,7 @@ public class MoniCAServerASCII extends Thread {
     }
   }
 
-  protected void state_since() {
+  protected void since() {
     try {
       String tempstr = itsReader.readLine().trim();
       // Line should say <TIMESTAMP> <POINTNAME>
@@ -285,7 +285,7 @@ public class MoniCAServerASCII extends Thread {
     }
   }
 
-  protected void state_details() {
+  protected void details() {
     try {
       // First line tells us how many points are going to be specified
       String tempstr = itsReader.readLine().trim();
@@ -308,7 +308,7 @@ public class MoniCAServerASCII extends Thread {
   }
 
   /** Return latest values for specified monitor points. */
-  protected void state_poll() {
+  protected void poll() {
     try {
       // First line tells us how many points are going to be specified
       String tempstr = itsReader.readLine().trim();
@@ -334,7 +334,7 @@ public class MoniCAServerASCII extends Thread {
   }
 
   /** Return next update >= specified times, for specified monitor points. */
-  protected void state_following() {
+  protected void following() {
     try {
       // First line tells us how many points are going to be specified
       String tempstr = itsReader.readLine().trim();
@@ -380,7 +380,7 @@ public class MoniCAServerASCII extends Thread {
   }
 
   /** Return last update <= specified times, for specified monitor points. */
-  protected void state_preceding() {
+  protected void preceding() {
     try {
       // First line tells us how many points are going to be specified
       String tempstr = itsReader.readLine().trim();
@@ -428,7 +428,7 @@ public class MoniCAServerASCII extends Thread {
   /**
    * Return latest values, units, and boolean for range check of specified monitor points.
    */
-  protected void state_poll2() {
+  protected void poll2() {
     try {
       // First line tells us how many points are going to be specified
       String tempstr = itsReader.readLine().trim();

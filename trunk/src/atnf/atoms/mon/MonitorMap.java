@@ -14,74 +14,11 @@
 
 package atnf.atoms.mon;
 
-import java.util.*;
-import atnf.atoms.mon.util.*;
 import atnf.atoms.mon.archiver.*;
 import atnf.atoms.util.*;
 
 public class MonitorMap
 {
-   /** Archiver used for archiving data to disk, database, etc. */
-   private static PointArchiver theirArchiver;
-   
-   /** Holds all known <i>'saved setups</i> for the clients to use. */
-   private static TreeMap itsSetupMap = new TreeMap();
-
    /** System logger. */
    public static final Logger logger = new Logger("MoniCA");
-   
-   /** Specify the archiver to be used for archiving all data. */
-   public static synchronized void setPointArchiver(PointArchiver archiver)
-   {
-     theirArchiver = archiver;
-   }
-   
-   public static synchronized PointArchiver getPointArchiver()
-   {
-      return theirArchiver;
-   }
-
-   public static long getTotalMemory()
-   {
-      return Runtime.getRuntime().totalMemory();
-   }
-   
-   public static long getFreeMemory()
-   {
-      return Runtime.getRuntime().freeMemory();
-   }
-      
-   /** Add the new SavedSetup to the system. */
-   public static synchronized void addSetup(SavedSetup setup)
-   {
-     if (itsSetupMap.get(setup.getLongName())!=null) {
-       //Map already contains a setup with that name. Remove and reinsert.
-       itsSetupMap.remove(setup.getLongName());
-     }
-     itsSetupMap.put(setup.getLongName(), setup);
-   }
-
-   /** Remove the setup with the given name from the system. */
-   public static synchronized void removeSetup(String setupname)
-   {
-     SavedSetup setup = (SavedSetup)itsSetupMap.get(setupname);
-     if (setup!=null) {
-      itsSetupMap.remove(setup);
-    }
-   }
-
-   /** Return all SavedSetups on the system. */
-   public static synchronized SavedSetup[] getAllSetups()
-   {
-     Object[] allkeys = itsSetupMap.keySet().toArray();
-     if (allkeys==null || allkeys.length==0) {
-      return null;
-    }
-
-     SavedSetup[] res = new SavedSetup[allkeys.length];
-     for (int i=0; i<allkeys.length; i++) {
-       res[i] = (SavedSetup)itsSetupMap.get(allkeys[i]);
-     }
-     return res;
-   }
 }

@@ -26,7 +26,7 @@ public class ArchivePolicyCHANGE extends ArchivePolicy
     {
     }
 
-    public boolean newData(PointData data)
+    public boolean checkArchiveThis(PointData data)
     {
         Object newData = data.getData();
         if (newData == null && itsLastSaveData == null) {

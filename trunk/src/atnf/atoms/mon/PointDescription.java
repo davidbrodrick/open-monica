@@ -466,7 +466,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /** Get the archive policies used by this point. */
-  public ArchivePolicy[] getArchive() {
+  public ArchivePolicy[] getArchivePolicies() {
     return itsArchive;
   }
 
@@ -624,22 +624,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     }
 
     // Assign archiver for this point
-    setArchiver(MonitorMap.getPointArchiver());
-  }
-
-  /**
-   * Parse a line from the point definitions file and generate all the points defined
-   * there. The returned array may be null if the line does not define any active sources
-   * for the point.
-   */
-  public static PointDescription[] parsePoints(String line) {
-    line = line.trim();
-    if (line.startsWith("#")) {
-      // Comment line
-      return null;
-    } else {
-      return PointDescription.parsePoints(line);
-    }
+    setArchiver(PointArchiver.getPointArchiver());
   }
 
   /**
@@ -836,7 +821,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       // Archive data
       if (itsArchiver != null && itsEnabled) {
         for (int i = 0; i < itsArchive.length; i++) {
-          if (itsArchive[i].newData(data)) {
+          if (itsArchive[i].checkArchiveThis(data)) {
             itsArchiver.archiveData(this, data);
             break;
           }

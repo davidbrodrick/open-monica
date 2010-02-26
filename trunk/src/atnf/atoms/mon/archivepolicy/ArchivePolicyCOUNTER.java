@@ -24,7 +24,7 @@ public class ArchivePolicyCOUNTER extends ArchivePolicy
       itsCycles = cycles;
    }
    
-   public boolean newData(PointData data)
+   public boolean checkArchiveThis(PointData data)
    {
       itsRunningCycles++;
       if (itsRunningCycles >= itsCycles) {

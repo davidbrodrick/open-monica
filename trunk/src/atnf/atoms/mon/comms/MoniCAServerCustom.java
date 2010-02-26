@@ -284,7 +284,7 @@ implements Runnable
   PointData
   getAllSetups()
   {
-    return new PointData("", MonitorUtils.compress(MonitorMap.getAllSetups()));
+    return new PointData("", MonitorUtils.compress(SavedSetup.getAllSetups()));
   }
 
 
@@ -308,7 +308,7 @@ implements Runnable
 
     //Retrieve the SavedSetup and add it to the system
     SavedSetup setup = (SavedSetup)req.Args[2];
-    MonitorMap.addSetup(setup);
+    SavedSetup.addSetup(setup);
     saveSetupToFile(setup, username);
 
     return new PointData("", new Boolean(true));
