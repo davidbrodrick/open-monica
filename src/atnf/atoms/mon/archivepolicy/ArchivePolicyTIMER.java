@@ -37,7 +37,7 @@ public class ArchivePolicyTIMER extends ArchivePolicy
         itsPeriod = RelTime.factory(period);
     }
 
-    public boolean newData(PointData data)
+    public boolean checkArchiveThis(PointData data)
     {
         if (data.getTimestamp().isAfter(itsLastSaved.add(itsPeriod))) {
             itsSaveNow = true;

@@ -69,7 +69,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
 
   /** Return the string representation of all saved setups stored on the server. */
   public String[] getAllSetups(Ice.Current __current) {
-    SavedSetup[] allsetups = MonitorMap.getAllSetups();
+    SavedSetup[] allsetups = SavedSetup.getAllSetups();
     String[] stringsetups = new String[allsetups.length];
     for (int i = 0; i < allsetups.length; i++) {
       stringsetups[i] = allsetups[i].toString();

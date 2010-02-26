@@ -42,7 +42,7 @@ public class MoniCAMain {
     try {
       Class archiverClass = Class.forName("atnf.atoms.mon.archiver.PointArchiver" + MonitorConfig.getProperty("Archiver"));
       pa = (PointArchiver) (archiverClass.newInstance());
-      MonitorMap.setPointArchiver(pa);
+      PointArchiver.setPointArchiver(pa);
     } catch (Exception e) {
       System.err.println("ERROR: While creating PointArchiver:");
       return false;
@@ -80,7 +80,7 @@ public class MoniCAMain {
         Vector setups = SavedSetup.parseFile(new InputStreamReader(setupfile));
         System.err.println("Recovered " + setups.size() + " SavedSetups from " + setupfile);
         for (int i = 0; i < setups.size(); i++) {
-          MonitorMap.addSetup((SavedSetup) setups.get(i));
+          SavedSetup.addSetup((SavedSetup) setups.get(i));
         }
       } catch (Exception e) {
         System.err.println("ERROR: Can't parse saved setup file: " + setupfile);

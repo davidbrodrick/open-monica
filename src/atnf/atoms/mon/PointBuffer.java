@@ -153,7 +153,7 @@ public class PointBuffer
     }
 
     //OK, we need archived data as well
-    PointArchiver arc = MonitorMap.getPointArchiver();
+    PointArchiver arc = PointArchiver.getPointArchiver();
     Vector<PointData> arcdata = arc.extract(pm, start_time, end_time);
     if (arcdata==null) {
       arcdata = new Vector<PointData>(); //Ensure not null
@@ -281,7 +281,7 @@ public class PointBuffer
 
     //Check if the requested data is still in our memory buffer
     synchronized(bufferTable) {
-      Vector bufferdata = getBufferData(pm);
+      Vector bufferdata = bufferTable.get(pm);
 
       if (bufferdata!=null && bufferdata.size()>1 && 
           ((PointData)bufferdata.get(0)).getTimestamp().isBeforeOrEquals(timestamp)) {
@@ -301,7 +301,7 @@ public class PointBuffer
     
     if (res==null) {
       //The data is no longer buffered - need to ask the archive
-      PointArchiver arc = MonitorMap.getPointArchiver();
+      PointArchiver arc = PointArchiver.getPointArchiver();
       res = arc.getPreceding(pm, timestamp);
     }
     
@@ -329,7 +329,7 @@ public class PointBuffer
     
     //Check if the requested data is still in our memory buffer
     synchronized(bufferTable) {
-      Vector bufferdata = getBufferData(pm);
+      Vector bufferdata = bufferTable.get(pm);
       if (bufferdata!=null && bufferdata.size()>0) {
         if (((PointData)bufferdata.get(0)).getTimestamp().isBeforeOrEquals(timestamp)) {
           //That which we seek is certainly in the buffer
@@ -353,7 +353,7 @@ public class PointBuffer
     
     if (res==null) {
       //The data may not be buffered so ask the archive
-      PointArchiver arc = MonitorMap.getPointArchiver();
+      PointArchiver arc = PointArchiver.getPointArchiver();
       res = arc.getFollowing(pm, timestamp);
       if (res==null) {
         //Nothing from archive so oldest data in buffer is best match
@@ -363,22 +363,6 @@ public class PointBuffer
     
     return res;
   }
-  
-
-  /** Return the latest data for the specified point. This call will block
-   * until at least one piece of data is available for the given point.
-   * @param pm Monitor point to get the latest data for.
-   * @return Latest data for the specified point. */
-  public static
-  PointData
-  getPointDataBlock(PointDescription pm)
-  {
-    synchronized(bufferTable) {
-      blockOn(pm);
-      return (PointData)((Vector)bufferTable.get(pm)).lastElement();
-    }
-  }
-
 
   /** Return data for the given point from the memory buffer between
    * the specified times. NOTE: This data is from the memory buffer only,
@@ -388,7 +372,7 @@ public class PointBuffer
    * @param end_time The most recent time in the range of interest.
    * @return Vector of buffer data in the given time range. <tt>null</tt>
    *                will be returned if no data were found. */
-  public static
+  private static
   Vector<PointData>
   getPointDataBuffer(PointDescription pm,
                      AbsTime start_time,
@@ -412,53 +396,6 @@ public class PointBuffer
         res.remove(res.lastElement());
       }
       return res;
-    }
-  }
-
-
-  /** Return all buffered data for the given point. NOTE: This data is
-   * from the memory buffer only, the disk archive is not accessed for
-   * this operation.
-   * @param pm The point to get the data for.
-   * @return Vector of all buffer data. <tt>null</tt> will be returned
-   *         if no data were found in the memory buffer. */
-  public static
-  Vector
-  getBufferData(PointDescription pm)
-  {
-    return (Vector)bufferTable.get(pm);
-  }
-
-
-  /** Return all buffered data for the given point. NOTE: This data is
-   * from the memory buffer only, the disk archive is not accessed for
-   * this operation. This call will block until at least one piece of
-   * data has been processed for the specified point.
-   * @param pm The point to get the data for.
-   * @return Vector of all buffer data. */
-  public static
-  Vector
-  getBufferDataBlock(PointDescription pm)
-  {
-    synchronized(bufferTable) {
-      blockOn(pm);
-      return (Vector)bufferTable.get(pm);
-    }
-  }
-
-
-  /** Waits until data becomes available for the given point.
-   * @param pm The point to wait on. */
-  public static
-  void
-  blockOn(PointDescription pm)
-  {
-    synchronized(bufferTable) {
-      while (bufferTable.get(pm) == null) {
-        try {
-          bufferTable.wait();
-        } catch (Exception e) {}
-      }
     }
   }
 }

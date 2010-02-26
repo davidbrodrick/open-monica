@@ -50,18 +50,8 @@ public abstract class ArchivePolicy extends MonitorPolicy
    }
    
    // Override this method with the correct procedures
-   public abstract boolean newData(PointData data);
-   
-   public boolean doArchiving()
-   {
-      return itsSaveNow;
-   }
-   
-   public void saved()
-   {
-      itsSaveNow = false;
-   }
-   
+   public abstract boolean checkArchiveThis(PointData data);
+       
    public static String[] getArgs()
    {
       return itsArgs;

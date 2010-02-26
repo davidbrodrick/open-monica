@@ -16,7 +16,7 @@ public class ArchivePolicyDUMMY extends ArchivePolicy
    {
    }
    
-   public boolean newData(PointData data)
+   public boolean checkArchiveThis(PointData data)
    {
       return false;
    }

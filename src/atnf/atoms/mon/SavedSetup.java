@@ -38,12 +38,49 @@ implements NamedObject, Comparable
   /** Serialized version id. */
   static final long serialVersionUID = -4564836140257941860L;
 
+  /** Holds all known <i>'saved setups</i> for the clients to use. */
+  private static TreeMap<String,SavedSetup> itsSetupMap = new TreeMap<String,SavedSetup>();
+  
   /** Class that this setup information belongs to. */
   String itsClass = null;
 
   /** Hierarchical name for this setup. */
   String itsName = "";
 
+  /** Add the new SavedSetup to the system. */
+  public static synchronized void addSetup(SavedSetup setup)
+  {
+    if (itsSetupMap.get(setup.getLongName())!=null) {
+      //Map already contains a setup with that name. Remove and reinsert.
+      itsSetupMap.remove(setup.getLongName());
+    }
+    itsSetupMap.put(setup.getLongName(), setup);
+  }
+
+  /** Remove the setup with the given name from the system. */
+  public static synchronized void removeSetup(String setupname)
+  {
+    SavedSetup setup = (SavedSetup)itsSetupMap.get(setupname);
+    if (setup!=null) {
+     itsSetupMap.remove(setup);
+   }
+  }
+
+  /** Return all SavedSetups on the system. */
+  public static synchronized SavedSetup[] getAllSetups()
+  {
+    Object[] allkeys = itsSetupMap.keySet().toArray();
+    if (allkeys==null || allkeys.length==0) {
+     return null;
+   }
+
+    SavedSetup[] res = new SavedSetup[allkeys.length];
+    for (int i=0; i<allkeys.length; i++) {
+      res[i] = (SavedSetup)itsSetupMap.get(allkeys[i]);
+    }
+    return res;
+  }
+  
   /** Construct an empty setup. */
   public
   SavedSetup()
