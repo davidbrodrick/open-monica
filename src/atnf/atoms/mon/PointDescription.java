@@ -85,14 +85,14 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   /** String representation of Translations. */
   protected String itsTranslationString = "";
 
-  /** The limit/alarm criteria for this point. */
-  protected AlarmCheck[] itsLimits = null;
+  /** The alarm criteria for this point. */
+  protected AlarmCheck[] itsAlarmChecks = null;
 
-  /** String representation of the limits. */
-  protected String[] itsLimitsStrings = {};
+  /** String representation of the individual alarm criteria. */
+  protected String[] itsAlarmCheckStrings = {};
 
-  /** String representation of the limits. */
-  protected String itsLimitsString = "";
+  /** Complete string representation of the alarm criteria. */
+  protected String itsAlarmCheckString = "";
 
   /** The policies that define when to archive this point. */
   protected ArchivePolicy[] itsArchive = null;
@@ -110,7 +110,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   protected int itsArchiveLongevity = -1;
 
   /** Listeners for data value updates. */
-  protected EventListenerList itsPLList = new EventListenerList();
+  protected EventListenerList itsListenerList = new EventListenerList();
 
   /**
    * The interval between updates. If the period is set to 0, then this point has no
@@ -362,15 +362,15 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   public int getNumListeners() {
-    return itsPLList.getListenerCount();
+    return itsListenerList.getListenerCount();
   }
 
   public void addPointListener(PointListener listener) {
-    itsPLList.add(PointListener.class, listener);
+    itsListenerList.add(PointListener.class, listener);
   }
 
   public void removePointListener(PointListener listener) {
-    itsPLList.remove(PointListener.class, listener);
+    itsListenerList.remove(PointListener.class, listener);
   }
 
   public void actionPerformed(ActionEvent e) {
@@ -415,42 +415,42 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     }
   }
 
-  /** Get the limit/alarm checking criteria used by this point. */
-  public AlarmCheck[] getLimits() {
-    return itsLimits;
+  /** Get the alarm checking criteria used by this point. */
+  public AlarmCheck[] getAlarmChecks() {
+    return itsAlarmChecks;
   }
 
-  public String getLimitsString() {
-    return itsLimitsString;
+  public String getAlarmCheckString() {
+    return itsAlarmCheckString;
   }
 
-  public String[] getLimitsAsStrings() {
-    return itsLimitsStrings;
+  public String[] getAlarmChecksAsStrings() {
+    return itsAlarmCheckStrings;
   }
 
-  /** Set the limit string. */
-  public void setLimitsString(String[] limits) {
-    itsLimitsStrings = limits;
-    if (limits == null || limits.length == 0) {
-      itsLimitsString = "-";
-    } else if (limits.length == 1) {
-      itsLimitsString = limits[0];
+  /** Set the alarm criteri string. */
+  public void setAlarmCheckString(String[] alarms) {
+    itsAlarmCheckStrings = alarms;
+    if (alarms == null || alarms.length == 0) {
+      itsAlarmCheckString = "-";
+    } else if (alarms.length == 1) {
+      itsAlarmCheckString = alarms[0];
     } else {
-      itsLimitsString = "{";
-      for (int i = 0; i < limits.length - 1; i++) {
-        itsLimitsString += limits[i] + ",";
+      itsAlarmCheckString = "{";
+      for (int i = 0; i < alarms.length - 1; i++) {
+        itsAlarmCheckString += alarms[i] + ",";
       }
-      itsLimitsString += limits[limits.length - 1] + "}";
+      itsAlarmCheckString += alarms[alarms.length - 1] + "}";
     }
   }
 
-  /** Make the point's limit objects. */
-  protected void makeLimits() {
-    AlarmCheck[] limitsa = new AlarmCheck[itsLimitsStrings.length];
-    for (int i = 0; i < itsLimitsStrings.length; i++) {
-      limitsa[i] = AlarmCheck.factory(itsLimitsStrings[i]);
+  /** Make the point's alarm check objects. */
+  protected void makeAlarmChecks() {
+    AlarmCheck[] alarms = new AlarmCheck[itsAlarmCheckStrings.length];
+    for (int i = 0; i < itsAlarmCheckStrings.length; i++) {
+      alarms[i] = AlarmCheck.factory(itsAlarmCheckStrings[i]);
     }
-    itsLimits = limitsa;
+    itsAlarmChecks = alarms;
   }
 
   /**
@@ -458,9 +458,9 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
    * is in an alarm state, otherwise leave the current alarm value unchanged.
    */
   public void evaluateAlarms(PointData pd) {
-    if (itsLimits != null && itsLimits.length > 0) {
-      for (int i = 0; i < itsLimits.length && pd.getAlarm() == false; i++) {
-        itsLimits[i].checkAlarm(pd);
+    if (itsAlarmChecks != null && itsAlarmChecks.length > 0) {
+      for (int i = 0; i < itsAlarmChecks.length && pd.getAlarm() == false; i++) {
+        itsAlarmChecks[i].checkAlarm(pd);
       }
     }
   }
@@ -607,7 +607,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     makeTransactions();
     makeTranslations();
     makeArchivePolicies();
-    makeLimits();
+    makeAlarmChecks();
     // Assign to appropriate ExternalSystem(s) for data collection
     for (int i = 0; i < itsInputTransactions.length; i++) {
       Transaction t = itsInputTransactions[i];
@@ -743,7 +743,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     result.setInputTransactionString(inputs);
     result.setOutputTransactionString(outputs);
     result.setTranslationString(translate);
-    result.setLimitsString(limits);
+    result.setAlarmCheckString(limits);
     result.setArchiveString(archive);
     result.setArchiveLongevity(archivelife);
     result.setPeriod(period);
@@ -755,7 +755,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   /** Distribute data to listeners. */
   public synchronized void distributeData(PointEvent pe) {
     // Pass the event on to all listeners
-    Object[] listeners = itsPLList.getListenerList();
+    Object[] listeners = itsListenerList.getListenerList();
     for (int i = 0; i < listeners.length; i += 2) {
       if (listeners[i] == PointListener.class) {
         ((PointListener) listeners[i + 1]).onPointEvent(this, pe);
@@ -900,7 +900,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     res.append(' ');
     res.append(itsTranslationString);
     res.append(' ');
-    res.append(itsLimitsString);
+    res.append(itsAlarmCheckString);
     res.append(' ');
     res.append(itsArchiveString);
     res.append(' ');
