@@ -63,7 +63,7 @@ public class MoniCAIceUtil {
     String[] inputtransactions = pd.getInputTransactionsAsStrings();
     String[] outputtransactions = pd.getOutputTransactionsAsStrings();
     String[] translations = pd.getTranslationsAsStrings();
-    String[] limits = pd.getLimitsAsStrings();
+    String[] limits = pd.getAlarmChecksAsStrings();
     String[] archivepolicies = pd.getArchivePoliciesAsStrings();
     long period = pd.getPeriod();
     int archivelongevity = pd.getArchiveLongevity();
