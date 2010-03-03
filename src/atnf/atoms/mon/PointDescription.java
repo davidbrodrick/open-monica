@@ -16,9 +16,9 @@ import atnf.atoms.util.*;
 import atnf.atoms.mon.translation.*;
 import atnf.atoms.mon.transaction.*;
 import atnf.atoms.mon.externalsystem.*;
+import atnf.atoms.mon.alarmcheck.*;
 import atnf.atoms.mon.archivepolicy.*;
 import atnf.atoms.mon.archiver.*;
-import atnf.atoms.mon.limit.*;
 import atnf.atoms.mon.util.*;
 
 /**
@@ -86,7 +86,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   protected String itsTranslationString = "";
 
   /** The limit/alarm criteria for this point. */
-  protected PointLimit[] itsLimits = null;
+  protected AlarmCheck[] itsLimits = null;
 
   /** String representation of the limits. */
   protected String[] itsLimitsStrings = {};
@@ -416,7 +416,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /** Get the limit/alarm checking criteria used by this point. */
-  public PointLimit[] getLimits() {
+  public AlarmCheck[] getLimits() {
     return itsLimits;
   }
 
@@ -446,9 +446,9 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
 
   /** Make the point's limit objects. */
   protected void makeLimits() {
-    PointLimit[] limitsa = new PointLimit[itsLimitsStrings.length];
+    AlarmCheck[] limitsa = new AlarmCheck[itsLimitsStrings.length];
     for (int i = 0; i < itsLimitsStrings.length; i++) {
-      limitsa[i] = PointLimit.factory(itsLimitsStrings[i]);
+      limitsa[i] = AlarmCheck.factory(itsLimitsStrings[i]);
     }
     itsLimits = limitsa;
   }
@@ -460,7 +460,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   public void evaluateAlarms(PointData pd) {
     if (itsLimits != null && itsLimits.length > 0) {
       for (int i = 0; i < itsLimits.length && pd.getAlarm() == false; i++) {
-        itsLimits[i].checkLimits(pd);
+        itsLimits[i].checkAlarm(pd);
       }
     }
   }

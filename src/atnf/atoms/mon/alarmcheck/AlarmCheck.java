@@ -6,31 +6,31 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.limit;
+package atnf.atoms.mon.alarmcheck;
 
 import java.lang.reflect.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
 
 /**
- * Base-class for classes which indicate if a point is in an alarm state.
+ * Base-class for classes which check if a point is in an alarm state.
  * <P>
- * Sub-classes must implement an appropriate <i>checkLimits</i> method. <i>checkLimits</i>
+ * Sub-classes must implement an appropriate <i>checkAlarm</i> method. <i>checkAlarm</i>
  * should set the PointData's alarm field to True when an alarm condition is detected or
  * leave the field unchanged otherwise.
  * 
  * @author Le Cuong Nguyen
  * @author David Brodrick
  */
-public abstract class PointLimit extends MonitorPolicy
+public abstract class AlarmCheck extends MonitorPolicy
 {
-    public static PointLimit factory(String arg)
+    public static AlarmCheck factory(String arg)
     {
         if (arg.equalsIgnoreCase("null")) {
             arg = "-";
         }
 
-        PointLimit result = null;
+        AlarmCheck result = null;
 
         // Find the specific informations
         String specifics = arg.substring(arg.indexOf("-") + 1);
@@ -42,12 +42,12 @@ public abstract class PointLimit extends MonitorPolicy
         }
 
         try {
-            Constructor Limit_con = Class.forName("atnf.atoms.mon.limit.PointLimit" + type).getConstructor(
+            Constructor Limit_con = Class.forName("atnf.atoms.mon.alarmcheck.AlarmCheck" + type).getConstructor(
                     new Class[] { String[].class });
-            result = (PointLimit) (Limit_con.newInstance(new Object[] { limitArgs }));
+            result = (AlarmCheck) (Limit_con.newInstance(new Object[] { limitArgs }));
         } catch (Exception e) {
             e.printStackTrace();
-            result = new PointLimitNONE(new String[] {});
+            result = new AlarmCheckNONE(new String[] {});
         }
 
         result.setStringEquiv(arg);
@@ -59,5 +59,5 @@ public abstract class PointLimit extends MonitorPolicy
      * Check the value against the alarm criteria.
      * @param data New data value to check.
      */
-    public abstract void checkLimits(PointData data);
+    public abstract void checkAlarm(PointData data);
 }
