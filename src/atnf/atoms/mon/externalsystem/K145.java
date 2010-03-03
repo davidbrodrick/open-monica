@@ -120,6 +120,11 @@ extends ASCIISocket
         try {
           while (true) {
             String line = itsReader.readLine();
+            if (line==null) {
+              System.err.println("K145: Got null from reader");
+              disconnect();
+              break;
+            }
             String[] tokens=line.split(" ");
 	    
             //Check correct number of tokens in string
