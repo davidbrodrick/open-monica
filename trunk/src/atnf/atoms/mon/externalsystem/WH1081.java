@@ -109,42 +109,51 @@ public class WH1081 extends ExternalSystem {
       res[0] = new Float(line.substring(20, line.length()).trim());
       line = stdInput.readLine();
       res[1] = new Float(line.substring(20, line.length()).trim());
-      if (res[1].floatValue() < 0 || res[1].floatValue() > 100) {
-        System.err.println("WH1081: Invalid data..");
-        itsIgnoreNextData = true;
-        throw new Exception("Outside humidity out of range");
-      }
       line = stdInput.readLine();
       res[2] = new Float(line.substring(20, line.length()).trim());
-      // Check for invalid values
-      if (res[2].floatValue() > 80 || res[2].floatValue() < -20) {
-        System.err.println("WH1081: Invalid data..");
-        itsIgnoreNextData = true;
-        throw new Exception("Inside temperature out of range");
-      }
       line = stdInput.readLine();
       res[3] = new Float(line.substring(20, line.length()).trim());
-      // Check for invalid values
-      if (res[3].floatValue() > 80 || res[3].floatValue() < -20) {
-        System.err.println("WH1081: Invalid data..");
-        itsIgnoreNextData = true;
-        throw new Exception("Outside temperature out of range");
-      }
       line = stdInput.readLine();
       res[4] = new Float(Float.parseFloat(line.substring(20, line.length())
           .trim()) * 3.6);
       line = stdInput.readLine();
       res[5] = new Float(Float.parseFloat(line.substring(20, line.length())
           .trim()) * 3.6);
+      line = stdInput.readLine();
+      String wind_dir_temp = line.substring(20, line.length()).trim();
+      line = stdInput.readLine();
+      line = stdInput.readLine();
+      Float thisrain = new Float(line.substring(20, line.length()).trim());
+      line = stdInput.readLine();
+      int other1 = Integer.parseInt(line.substring(20, line.length()).trim());
+      line = stdInput.readLine();
+      int other2 = Integer.parseInt(line.substring(20, line.length()).trim());
+      line = stdInput.readLine();
+      res[7] = new Float(line.substring(20, line.length()).trim());
+
+      // Check for invalid values
+      if (other1 != 0 || other2 != 0) {
+        itsIgnoreNextData = true;
+        throw new Exception("No data from remote sensors");
+      }
+      if (res[1].floatValue() < 0 || res[1].floatValue() > 100) {
+        itsIgnoreNextData = true;
+        throw new Exception("Outside humidity out of range");
+      }
+      if (res[2].floatValue() > 80 || res[2].floatValue() < -20) {
+        itsIgnoreNextData = true;
+        throw new Exception("Inside temperature out of range");
+      }
+      if (res[3].floatValue() > 80 || res[3].floatValue() < -20) {
+        itsIgnoreNextData = true;
+        throw new Exception("Outside temperature out of range");
+      }
       // If avg wind exceeds gust then the message is corrupted
       if (res[4].floatValue() > res[5].floatValue()
           || res[4].floatValue() > 162 || res[5].floatValue() > 162) {
-        System.err.println("WH1081: Invalid data..");
         itsIgnoreNextData = true;
         throw new Exception("Wind data is invalid");
       }
-      line = stdInput.readLine();
-      String wind_dir_temp = line.substring(20, line.length()).trim();
       double wdir;
       if (wind_dir_temp.equals("N")) {
         wdir = 0;
@@ -180,22 +189,7 @@ public class WH1081 extends ExternalSystem {
         wdir = 337.5;
       }
       res[6] = new Float(wdir);
-      line = stdInput.readLine();
-      line = stdInput.readLine();
-      Float thisrain = new Float(line.substring(20, line.length()).trim());
-      line = stdInput.readLine();
-      int other1 = Integer.parseInt(line.substring(20, line.length()).trim());
-      line = stdInput.readLine();
-      int other2 = Integer.parseInt(line.substring(20, line.length()).trim());
-      if (other1 != 0 || other2 != 0) {
-        System.err.println("WH1081: Invalid data..");
-        throw new Exception("'Other' data fields are non-zero");
-      }
-      line = stdInput.readLine();
-      // Pressure
-      res[7] = new Float(line.substring(20, line.length()).trim());
       if (res[7].floatValue() == 0.0f) {
-        System.err.println("WH1081: Invalid data..");
         itsIgnoreNextData = true;
         throw new Exception("Pressure is out of range.");
       }
@@ -249,9 +243,9 @@ public class WH1081 extends ExternalSystem {
       } else {
         res[8] = new Float(10 * (thisrain.doubleValue() - itsLastRain
             .doubleValue()));
-//        System.err.println("WH1081: Rainfall "
-//            + (new AbsTime()).toString(AbsTime.Format.UTC_STRING) + " "
-//            + res[8] + " " + thisrain.floatValue());
+        System.err.println("WH1081: Rainfall "
+            + (new AbsTime()).toString(AbsTime.Format.UTC_STRING) + " "
+            + res[8] + " " + thisrain.floatValue());
       }
       itsLastRain = thisrain;
     } catch (Exception e) {
@@ -263,11 +257,11 @@ public class WH1081 extends ExternalSystem {
     if (res == null) {
       System.err.println("WH1081: res=null");
     } else {
-//      System.err.print("WH1081: ");
-//      for (int i = 0; i < res.length; i++) {
-//        System.err.print(res[i] + " ");
-//      }
-//      System.err.println();
+      System.err.print("WH1081: ");
+      for (int i = 0; i < res.length; i++) {
+        System.err.print(res[i] + " ");
+      }
+      System.err.println();
     }
 
     return res;
