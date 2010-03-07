@@ -40,22 +40,16 @@ import atnf.atoms.mon.*;
  */
 public class WH1081 extends ExternalSystem {
   /** The number of elements in the data array we produce. */
-  private static final int theirNumElements = 9;
+  private static final int theirNumElements = 11;
 
   /** The entry in the data array which corresponds to rainfall. */
   private static final int theirRainElement = 8;
 
-  /** The last 'interval' reading. */
-  private String itsLastInterval = null;
-
-  /** The last 'history pos' reading. */
-  private String itsLastHistory = null;
-
   /** The last reading of total rainfall. */
-  private Float itsLastRain = null;
+  private Integer itsLastRain = null;
 
   /** The last valid data we collected. */
-  private Float[] itsLastData = null;
+  private Number[] itsLastData = null;
 
   /** Whether the next data collected should be ignored. */
   private boolean itsIgnoreNextData = false;
@@ -67,7 +61,7 @@ public class WH1081 extends ExternalSystem {
   /** Collect new data for requesting monitor points. */
   protected void getData(PointDescription[] points) throws Exception {
     // Get the actual data
-    Float[] newdata = getNewWeather();
+    Number[] newdata = getNewWeather();
     if (newdata == null)
       return;
 
@@ -81,19 +75,17 @@ public class WH1081 extends ExternalSystem {
   }
 
   /** Execute wwsr and return array of new data, or null if error. */
-  protected Float[] getNewWeather() {
-    Float[] res = new Float[theirNumElements];
+  protected Number[] getSensorImage() {
+    Number[] res = new Number[theirNumElements];
 
     try {
+      // Run wwsr, using 'timeout', and read output and status
       Process p = Runtime.getRuntime().exec("timeout 10 wwsr -a");
-
       BufferedReader stdInput = new BufferedReader(new InputStreamReader(p
           .getInputStream()));
       BufferedReader stdError = new BufferedReader(new InputStreamReader(p
           .getErrorStream()));
-
       p.waitFor();
-
       String err = stdError.readLine();
       if (err != null || p.exitValue() != 0) {
         System.err.println("WH1081: Error running \"wwsr\"");
@@ -102,57 +94,67 @@ public class WH1081 extends ExternalSystem {
         return null;
       }
 
-      String line = stdInput.readLine();
+      String line = stdInput.readLine(); // Interval
       line = stdInput.readLine();
-      String interval = stdInput.readLine();
       line = stdInput.readLine();
-      res[0] = new Float(line.substring(20, line.length()).trim());
-      line = stdInput.readLine();
-      res[1] = new Float(line.substring(20, line.length()).trim());
-      line = stdInput.readLine();
+      res[9] = new Integer(Integer.parseInt(line.substring(20, line.length())
+          .trim(), 16));
+      line = stdInput.readLine(); // Inside humidity
+      res[0] = new Integer(line.substring(20, line.length()).trim());
+      line = stdInput.readLine(); // Outside humidity
+      res[1] = new Integer(line.substring(20, line.length()).trim());
+      line = stdInput.readLine(); // Inside temp
       res[2] = new Float(line.substring(20, line.length()).trim());
-      line = stdInput.readLine();
+      line = stdInput.readLine(); // Outside temp
       res[3] = new Float(line.substring(20, line.length()).trim());
-      line = stdInput.readLine();
+      line = stdInput.readLine(); // Wind speed
       res[4] = new Float(Float.parseFloat(line.substring(20, line.length())
           .trim()) * 3.6);
-      line = stdInput.readLine();
+      line = stdInput.readLine(); // Wind gust
       res[5] = new Float(Float.parseFloat(line.substring(20, line.length())
           .trim()) * 3.6);
-      line = stdInput.readLine();
+      line = stdInput.readLine(); // Wind direction
       String wind_dir_temp = line.substring(20, line.length()).trim();
-      line = stdInput.readLine();
-      line = stdInput.readLine();
-      Float thisrain = new Float(line.substring(20, line.length()).trim());
-      line = stdInput.readLine();
+      line = stdInput.readLine(); // Rain - unused
+      line = stdInput.readLine(); // Rain 2
+      res[8] = new Integer(Math.round((new Float(line.substring(20,
+          line.length()).trim())).floatValue() * 10));
+      line = stdInput.readLine(); // Other 1
       int other1 = Integer.parseInt(line.substring(20, line.length()).trim());
-      line = stdInput.readLine();
+      line = stdInput.readLine(); // Other 2
       int other2 = Integer.parseInt(line.substring(20, line.length()).trim());
-      line = stdInput.readLine();
+      line = stdInput.readLine(); // Pressure
       res[7] = new Float(line.substring(20, line.length()).trim());
+      line = stdInput.readLine(); // History position
+      res[10] = new Integer(Integer.parseInt(line.substring(20, line.length())
+          .trim(), 16));
 
       // Check for invalid values
       if (other1 != 0 || other2 != 0) {
-        itsIgnoreNextData = true;
-        throw new Exception("No data from remote sensors");
+        System.err.println("WH1081: No data from remote sensors");
+        return null;
+      }
+      if (res[0].floatValue() < 0 || res[0].floatValue() > 100) {
+        System.err.println("WH1081: Inside humidity out of range");
+        return null;
       }
       if (res[1].floatValue() < 0 || res[1].floatValue() > 100) {
-        itsIgnoreNextData = true;
-        throw new Exception("Outside humidity out of range");
+        System.err.println("WH1081: Outside humidity out of range");
+        return null;
       }
       if (res[2].floatValue() > 80 || res[2].floatValue() < -20) {
-        itsIgnoreNextData = true;
-        throw new Exception("Inside temperature out of range");
+        System.err.println("WH1081: Inside temperature out of range");
+        return null;
       }
-      if (res[3].floatValue() > 80 || res[3].floatValue() < -20) {
-        itsIgnoreNextData = true;
-        throw new Exception("Outside temperature out of range");
+      if (res[3].floatValue() > 80 || res[3].floatValue() < -40) {
+        System.err.println("WH1081: Outside temperature out of range");
+        return null;
       }
       // If avg wind exceeds gust then the message is corrupted
       if (res[4].floatValue() > res[5].floatValue()
           || res[4].floatValue() > 162 || res[5].floatValue() > 162) {
-        itsIgnoreNextData = true;
-        throw new Exception("Wind data is invalid");
+        System.err.println("WH1081: Wind data is invalid");
+        return null;
       }
       double wdir;
       if (wind_dir_temp.equals("N")) {
@@ -190,88 +192,94 @@ public class WH1081 extends ExternalSystem {
       }
       res[6] = new Float(wdir);
       if (res[7].floatValue() == 0.0f) {
-        itsIgnoreNextData = true;
-        throw new Exception("Pressure is out of range.");
+        System.err.println("WH1081: Pressure is out of range.");
+        return null;
       }
+    } catch (Exception e) {
+      System.err.println("WH1081.getSensorImage: " + e);
+      return null;
+    }
+    return res;
+  }
 
-      String history = stdInput.readLine();
-      // Check to make sure this is not the same data we have seen before
-      // We need to compare data as well as the interval and history position
-      // because sometimes they don't change even though the data does
-      boolean datachanged = false;
-      if (itsLastData == null) {
-        datachanged = true;
-      } else {
-        // Compare all elements except rain
-        for (int i = 0; i < theirNumElements; i++) {
-          if (i == theirRainElement) {
-            continue;
-          }
-          if (itsLastData[i].floatValue() != res[i].floatValue()) {
-            datachanged = true;
-            break;
-          }
+  /** Execute wwsr and return array of new data, or null if error. */
+  protected Number[] getNewWeather() {
+    // Ensure we get consistent set of readings twice in a row
+    Number[] newdata1 = getSensorImage();
+    Number[] newdata2 = getSensorImage();
+    if (newdata1 == null || newdata2 == null) {
+      System.err.println("WH1081: Invalid data returned by wwsr");
+      itsIgnoreNextData = true;
+      return null;
+    }
+    for (int i = 0; i < theirNumElements; i++) {
+      if (newdata1[i].floatValue() != newdata2[i].floatValue()) {
+        System.err.println("WH1081: Inconsistent data returned by wwsr");
+        // itsIgnoreNextData = true;
+        return null;
+      }
+    }
+
+    // Ensure this isn't the same data we have already processed
+    if (itsLastData != null) {
+      boolean fieldchanged = false;
+      for (int i = 0; i < theirNumElements; i++) {
+        if (i!=theirRainElement && newdata1[i].floatValue() != itsLastData[i].floatValue()) {
+          fieldchanged = true;
+          break;
         }
       }
-      if (datachanged || itsLastInterval == null
-          || !interval.equals(itsLastInterval) || itsLastHistory == null
-          || !history.equals(itsLastHistory)) {
-        // New data
-        itsLastInterval = interval;
-        itsLastHistory = history;
-        // System.err.println("WH1081: New data " + datachanged + " " + interval
-        // + " " + history);
-      } else {
-        // System.err.println("WH1081: repeated data.");
+      if (!fieldchanged) {
+        //System.err.println("WH1081: Repeated data");
         return null;
       }
+    }
 
-      // Keep a record to this data
-      itsLastData = res;
+    // New data, keep a reference for comparison next time
+    itsLastData = newdata1;
 
-      if (itsIgnoreNextData) {
-        System.err.println("WH1081: Was told to ignore this data");
-        itsIgnoreNextData = false;
-        return null;
-      }
-
-      if (itsLastRain == null
-          || thisrain.floatValue() < itsLastRain.floatValue()) {
-        // Impossible to tell how much rain since the last reading
-        System.err.println("WH1081: Rainfall has reset..");
-        res = null;
-      } else {
-        res[8] = new Float(10 * (thisrain.doubleValue() - itsLastRain
-            .doubleValue()));
-        System.err.println("WH1081: Rainfall "
-            + (new AbsTime()).toString(AbsTime.Format.UTC_STRING) + " "
-            + res[8] + " " + thisrain.floatValue());
-      }
-      itsLastRain = thisrain;
-    } catch (Exception e) {
-      e.printStackTrace();
-      System.err.println("WH1081: " + e);
+    System.err.print("WH1081: pre: " + (new AbsTime()).toString(AbsTime.Format.UTC_STRING) + " ");
+    for (int i = 0; i < newdata1.length; i++) {
+      System.err.print(newdata1[i] + " ");
+    }
+    System.err.println();
+    
+    
+    // Check if we have reason to think this data is suspicious
+    if (itsIgnoreNextData) {
+      System.err.println("WH1081: Was told to ignore this data");
+      itsIgnoreNextData = false;
       return null;
     }
 
-    if (res == null) {
-      System.err.println("WH1081: res=null");
+    int temprain = newdata1[theirRainElement].intValue();
+    if (itsLastRain == null
+        || newdata1[theirRainElement].intValue() < itsLastRain.intValue()) {
+      // Impossible to tell how much rain since the last reading
+      System.err.println("WH1081: Rainfall has reset..");
+      newdata1 = null;
     } else {
+      newdata1[theirRainElement] = newdata1[theirRainElement].intValue()
+          - itsLastRain.intValue();
+    }
+    itsLastRain = temprain;
+
+    if (newdata1 != null) {
       System.err.print("WH1081: ");
-      for (int i = 0; i < res.length; i++) {
-        System.err.print(res[i] + " ");
+      for (int i = 0; i < newdata1.length; i++) {
+        System.err.print(newdata1[i] + " ");
       }
       System.err.println();
     }
 
-    return res;
+    return newdata1;
   }
 
   /** Simple test program. */
   public static final void main(String[] args) {
     WH1081 ds = new WH1081(null);
     while (true) {
-      Float[] newdata = ds.getNewWeather();
+      Number[] newdata = ds.getNewWeather();
       if (newdata == null) {
         System.out.println("No Data");
       } else {
