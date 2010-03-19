@@ -4,6 +4,8 @@
 
 This page gives a brief introduction to some of the different classes/packages used by the MoniCA server. It is intended to assist new developers to get a feel for the basic architecture of the server.
 
+http://www.narrabri.atnf.csiro.au/people/bro764/MoniCA-classdiagram.png
+
 = External System =
 
 An 'external system' (instance of an `ExternalSystem` sub-class) is usually responsible for collecting monitor data and/or writing control data from one remote device/process. For instance you may have one external system which talks to your UPS and a different one which communicates with your weather station. Each external system may update values for multiple monitor points corresponding to different parameters available from the UPS or weather station (for example).
@@ -20,7 +22,7 @@ The `PointDescription` object has fields for other objects related to this point
 
 When a monitor point is scheduled to be updated, it is handed to the appropriate external system so that a new value can be obtained. The point's `Transaction` field has two roles to play in this process:
 
-  * The transaction `channel` name is combined with the point's `source` field to identify the external system responsible for updating this point.
+  * The transaction `channel` name is used to identify the external system responsible for updating this point.
   * If the external system requires additional information to obtain the new value for each point, eg an address of the hardware register where this point's value is located, then the transaction subclass can contain the additional fields required by the data source. These fields are populated by transaction arguments in the monitor point definitions file.
 
 `TransactionListen` allows monitor points to receive updates whenever other specific points are updated, and is a useful tool in agregating points to create new information or higher-level constructs.
@@ -37,7 +39,7 @@ There are very few limitations on what operations translations can perform, for 
 
 == Value Alarm Checking ==
 
-A point can have one or more associated `PointLimit` objects which determines whether the current value is okay, or in an alarm state. Essentially any logic may be used by a `PointLimit` subclass, common examples include checking whether a numeric value is inside a specified range, or checking a string value against a known set of alarm strings.
+A point can have one or more associated `AlarmCheck` objects which determines whether the current value is okay, or in an alarm state. Essentially any logic may be used by an `AlarmCheck` subclass, typical examples include checking whether a numeric value is inside a specified range, or checking a string value against a known set of alarm strings.
 
 == Archiving ==
 
