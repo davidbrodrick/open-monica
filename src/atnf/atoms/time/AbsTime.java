@@ -1245,9 +1245,6 @@ final public class AbsTime implements Cloneable, Serializable, Immutable, Compar
      */
     public static void main(String args[])
     {
-        AbsTime nowmjd = new AbsTime();
-        System.out.println("MJD=" + nowmjd.getAsMJD());
-
         // Check for no arguments.
         if (args.length == 0) {
             usage();
