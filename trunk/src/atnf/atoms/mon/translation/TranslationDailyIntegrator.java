@@ -12,6 +12,7 @@ package atnf.atoms.mon.translation;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import atnf.atoms.mon.PointBuffer;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.time.AbsTime;
@@ -26,7 +27,18 @@ import atnf.atoms.time.AbsTime;
  * and reset the rain gauge at 9:01 local time.
  * 
  * <P>
- * The two init arguments for this are <tt>"09:01""Australia/Sydney"</tt>
+ * Constructor arguments are: <bl>
+ * <li><b>Time:</b> The time to reset the integral in 24-hour HH:MM format.
+ * <li><b>Timezone:</b> The timezone in which the specified time should be
+ * interpreted.
+ * <li><b>Reload:</b> Optional argument which determines whether the integral
+ * will reload its last value from the archive when the system starts up. This
+ * can be used to prevent resetting the integral if the MoniCA server is
+ * restarted. Set this argument to "true" to enable this functionality. </bl>
+ * 
+ * <P>
+ * The two init arguments for the rainfall example above are
+ * <tt>"09:01""Australia/Sydney"</tt>
  * 
  * @author David Brodrick
  */
@@ -46,12 +58,14 @@ public class TranslationDailyIntegrator extends Translation {
   /** The accumulated input for the day so far. */
   protected double itsSum = 0.0;
 
+  /** Do we need to load our last value from the archive, on system startup. */
+  protected boolean itsGetArchive = false;
+
   public TranslationDailyIntegrator(PointDescription parent, String[] init) {
     super(parent, init);
 
-    if (init.length != 2) {
-      System.err.println("TranslationDailyIntegrator: " + parent.getFullName()
-          + ": NEED TWO INIT ARGUMENTS!");
+    if (init.length < 2) {
+      System.err.println("TranslationDailyIntegrator: " + parent.getFullName() + ": NEED TWO OR THREE INIT ARGUMENTS!");
     } else {
       // First argument is time
       int colon = init[0].indexOf(":");
@@ -61,8 +75,7 @@ public class TranslationDailyIntegrator extends Translation {
       } else {
         try {
           itsHour = Integer.parseInt(init[0].substring(0, colon));
-          itsMinute = Integer.parseInt(init[0].substring(colon + 1, init[0]
-              .length()));
+          itsMinute = Integer.parseInt(init[0].substring(colon + 1, init[0].length()));
         } catch (Exception e) {
           System.err.println("TranslationDailyIntegrator: " + parent.getFullName()
               + ": NEED TIME IN HH:MM 24-HOUR FORMAT!");
@@ -71,31 +84,58 @@ public class TranslationDailyIntegrator extends Translation {
       // TimeZone is second argument
       itsTZ = TimeZone.getTimeZone(init[1]);
       if (itsTZ == null) {
-        System.err.println("TranslationDailyIntegrator: " + parent.getFullName()
-            + ": UNKNOWN TIMEZONE \"" + init[1] + "\"");
+        System.err.println("TranslationDailyIntegrator: " + parent.getFullName() + ": UNKNOWN TIMEZONE \"" + init[1]
+            + "\"");
+      }
+      // Check for the optional 'reload last value at startup' argument
+      if (init.length == 3 && init[2].equalsIgnoreCase("true")) {
+        itsGetArchive = true;
       }
     }
   }
 
   /** Calculate the average and return the integrated value. */
   public PointData translate(PointData data) {
+    if (itsGetArchive) {
+      // Need to reload last value from the archive
+      PointData archiveval = PointBuffer.getPreceding(itsParent.getFullName(), new AbsTime());
+      if (archiveval != null && archiveval.getData() instanceof Number) {
+        // Calculate when the integral would have last reset
+        Calendar c = Calendar.getInstance(itsTZ);
+        c.set(Calendar.HOUR_OF_DAY, itsHour);
+        c.set(Calendar.MINUTE, itsMinute);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        AbsTime lastreset = AbsTime.factory(c.getTime());
+        if (lastreset.isAfter(new AbsTime())) {
+          // Calculated reset time is in the future, so subtract one day
+          lastreset = lastreset.add(-86400000000l);
+        }
+        c.setTime(lastreset.getAsDate());
+        if (lastreset.isBeforeOrEquals(archiveval.getTimestamp())) {
+          // Archive value is after last reset, so use it as starting value
+          itsSum = ((Number) archiveval.getData()).doubleValue();
+          itsLastReset = c.get(Calendar.DAY_OF_YEAR);
+        }
+      }
+      itsGetArchive = false;
+    }
+
     // Extract the numeric value from this new input
     double thisvalue = 0.0;
     if (data != null && data.getData() != null) {
       if (data.getData() instanceof Number) {
         thisvalue = ((Number) (data.getData())).doubleValue();
       } else {
-        System.err.println("TranslationDailyIntegrator: " + itsParent.getFullName()
-            + ": REQUIRES NUMERIC INPUT!");
+        System.err.println("TranslationDailyIntegrator: " + itsParent.getFullName() + ": REQUIRES NUMERIC INPUT!");
       }
     }
 
     // Check if it is time to reset the integrator
     Calendar c = Calendar.getInstance(itsTZ);
     if (c.get(Calendar.DAY_OF_YEAR) != itsLastReset
-        && (c.get(Calendar.HOUR_OF_DAY) > itsHour
-        || c.get(Calendar.HOUR_OF_DAY) == itsHour
-        && c.get(Calendar.MINUTE) >= itsMinute)) {
+        && (c.get(Calendar.HOUR_OF_DAY) > itsHour || c.get(Calendar.HOUR_OF_DAY) == itsHour
+            && c.get(Calendar.MINUTE) >= itsMinute)) {
       // Yep, we need to reset. This lastest update counts towards new sum
       itsLastReset = c.get(Calendar.DAY_OF_YEAR);
       itsSum = thisvalue;
