@@ -33,10 +33,11 @@ import atnf.atoms.mon.*;
  * <li>Wind gust speed (km/h)
  * <li>Wind direction (degrees of azimuth)
  * <li>Pressure (hPa)
- * <li>Rain since last reading (tips) </bl>
+ * <li>Rain since last reading (tips)
+ * <li>Interval (for debugging)
+ * <li>History location (for debugging) </bl>
  * 
  * @author David Brodrick
- * @version $Id: $
  */
 public class WH1081 extends ExternalSystem {
   /** The number of elements in the data array we produce. */
@@ -81,15 +82,17 @@ public class WH1081 extends ExternalSystem {
     try {
       // Run wwsr, using 'timeout', and read output and status
       Process p = Runtime.getRuntime().exec("timeout 10 wwsr -a");
-      BufferedReader stdInput = new BufferedReader(new InputStreamReader(p
-          .getInputStream()));
-      BufferedReader stdError = new BufferedReader(new InputStreamReader(p
-          .getErrorStream()));
+      BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+      BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
       p.waitFor();
       String err = stdError.readLine();
       if (err != null || p.exitValue() != 0) {
-        System.err.println("WH1081: Error running \"wwsr\"");
-        RelTime.factory(1000000).sleep();
+        System.err.println("WH1081.getSensorImage: Error running \"wwsr\"");
+        while (err!=null) {
+          System.err.println("\t" + err);
+          err = stdError.readLine();
+        }
+        RelTime.factory(5000000).sleep();
         itsIgnoreNextData = true;
         return null;
       }
@@ -97,8 +100,7 @@ public class WH1081 extends ExternalSystem {
       String line = stdInput.readLine(); // Interval
       line = stdInput.readLine();
       line = stdInput.readLine();
-      res[9] = new Integer(Integer.parseInt(line.substring(20, line.length())
-          .trim(), 16));
+      res[9] = new Integer(Integer.parseInt(line.substring(20, line.length()).trim(), 16));
       line = stdInput.readLine(); // Inside humidity
       res[0] = new Integer(line.substring(20, line.length()).trim());
       line = stdInput.readLine(); // Outside humidity
@@ -108,17 +110,14 @@ public class WH1081 extends ExternalSystem {
       line = stdInput.readLine(); // Outside temp
       res[3] = new Float(line.substring(20, line.length()).trim());
       line = stdInput.readLine(); // Wind speed
-      res[4] = new Float(Float.parseFloat(line.substring(20, line.length())
-          .trim()) * 3.6);
+      res[4] = new Float(Float.parseFloat(line.substring(20, line.length()).trim()) * 3.6);
       line = stdInput.readLine(); // Wind gust
-      res[5] = new Float(Float.parseFloat(line.substring(20, line.length())
-          .trim()) * 3.6);
+      res[5] = new Float(Float.parseFloat(line.substring(20, line.length()).trim()) * 3.6);
       line = stdInput.readLine(); // Wind direction
       String wind_dir_temp = line.substring(20, line.length()).trim();
       line = stdInput.readLine(); // Rain - unused
       line = stdInput.readLine(); // Rain 2
-      res[8] = new Integer(Math.round((new Float(line.substring(20,
-          line.length()).trim())).floatValue() * 10));
+      res[8] = new Integer(Math.round((new Float(line.substring(20, line.length()).trim())).floatValue() * 10));
       line = stdInput.readLine(); // Other 1
       int other1 = Integer.parseInt(line.substring(20, line.length()).trim());
       line = stdInput.readLine(); // Other 2
@@ -126,34 +125,32 @@ public class WH1081 extends ExternalSystem {
       line = stdInput.readLine(); // Pressure
       res[7] = new Float(line.substring(20, line.length()).trim());
       line = stdInput.readLine(); // History position
-      res[10] = new Integer(Integer.parseInt(line.substring(20, line.length())
-          .trim(), 16));
+      res[10] = new Integer(Integer.parseInt(line.substring(20, line.length()).trim(), 16));
 
       // Check for invalid values
       if (other1 != 0 || other2 != 0) {
-        System.err.println("WH1081: No data from remote sensors");
+        System.err.println("WH1081.getSensorImage: No data from remote sensors");
         return null;
       }
       if (res[0].floatValue() < 0 || res[0].floatValue() > 100) {
-        System.err.println("WH1081: Inside humidity out of range");
+        System.err.println("WH1081.getSensorImage: Inside humidity out of range");
         return null;
       }
       if (res[1].floatValue() < 0 || res[1].floatValue() > 100) {
-        System.err.println("WH1081: Outside humidity out of range");
+        System.err.println("WH1081.getSensorImage: Outside humidity out of range");
         return null;
       }
       if (res[2].floatValue() > 80 || res[2].floatValue() < -20) {
-        System.err.println("WH1081: Inside temperature out of range");
+        System.err.println("WH1081.getSensorImage: Inside temperature out of range");
         return null;
       }
       if (res[3].floatValue() > 80 || res[3].floatValue() < -40) {
-        System.err.println("WH1081: Outside temperature out of range");
+        System.err.println("WH1081.getSensorImage: Outside temperature out of range");
         return null;
       }
       // If avg wind exceeds gust then the message is corrupted
-      if (res[4].floatValue() > res[5].floatValue()
-          || res[4].floatValue() > 162 || res[5].floatValue() > 162) {
-        System.err.println("WH1081: Wind data is invalid");
+      if (res[4].floatValue() > res[5].floatValue() || res[4].floatValue() > 162 || res[5].floatValue() > 162) {
+        System.err.println("WH1081.getSensorImage: Wind data is invalid");
         return null;
       }
       double wdir;
@@ -192,7 +189,7 @@ public class WH1081 extends ExternalSystem {
       }
       res[6] = new Float(wdir);
       if (res[7].floatValue() == 0.0f) {
-        System.err.println("WH1081: Pressure is out of range.");
+        System.err.println("WH1081.getSensorImage: Pressure is out of range.");
         return null;
       }
     } catch (Exception e) {
@@ -202,7 +199,11 @@ public class WH1081 extends ExternalSystem {
     return res;
   }
 
-  /** Execute wwsr and return array of new data, or null if error. */
+  /**
+   * Get the latest data from the weather station, with rainfall representing
+   * the number of new rain tips since last time we checked. May return null if
+   * new valid data is not available.
+   */
   protected Number[] getNewWeather() {
     // Ensure we get consistent set of readings twice in a row
     Number[] newdata1 = getSensorImage();
@@ -224,13 +225,13 @@ public class WH1081 extends ExternalSystem {
     if (itsLastData != null) {
       boolean fieldchanged = false;
       for (int i = 0; i < theirNumElements; i++) {
-        if (i!=theirRainElement && newdata1[i].floatValue() != itsLastData[i].floatValue()) {
+        if (i != theirRainElement && newdata1[i].floatValue() != itsLastData[i].floatValue()) {
           fieldchanged = true;
           break;
         }
       }
       if (!fieldchanged) {
-        //System.err.println("WH1081: Repeated data");
+        // System.err.println("WH1081: Repeated data");
         return null;
       }
     }
@@ -243,8 +244,7 @@ public class WH1081 extends ExternalSystem {
       System.err.print(newdata1[i] + " ");
     }
     System.err.println();
-    
-    
+
     // Check if we have reason to think this data is suspicious
     if (itsIgnoreNextData) {
       System.err.println("WH1081: Was told to ignore this data");
@@ -253,14 +253,12 @@ public class WH1081 extends ExternalSystem {
     }
 
     int temprain = newdata1[theirRainElement].intValue();
-    if (itsLastRain == null
-        || newdata1[theirRainElement].intValue() < itsLastRain.intValue()) {
+    if (itsLastRain == null || newdata1[theirRainElement].intValue() < itsLastRain.intValue()) {
       // Impossible to tell how much rain since the last reading
       System.err.println("WH1081: Rainfall has reset..");
       newdata1 = null;
     } else {
-      newdata1[theirRainElement] = newdata1[theirRainElement].intValue()
-          - itsLastRain.intValue();
+      newdata1[theirRainElement] = newdata1[theirRainElement].intValue() - itsLastRain.intValue();
     }
     itsLastRain = temprain;
 

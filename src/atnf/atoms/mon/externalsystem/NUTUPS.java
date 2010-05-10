@@ -56,6 +56,7 @@ extends ASCIISocket
     
       Vector<String> upsnames=new Vector<String>();
       itsWriter.write("LIST UPS\n");
+      itsWriter.flush();
       String line=itsReader.readLine();
       if (!line.equals("BEGIN LIST UPS")) {
         System.err.println("NUTUPS:discoverUPS: parse error listing UPSs");
@@ -84,6 +85,7 @@ extends ASCIISocket
         Vector<String> upsvars=new Vector<String>();
         String thisname=(String)upsnames.get(i);
         itsWriter.write("LIST VAR " + thisname + "\n");
+        itsWriter.flush();
         line=itsReader.readLine();
         if (!line.equals("BEGIN LIST VAR " + thisname)) {
           System.err.println("NUTUPS:discoverUPS: parse error listing VARs for " + thisname);
@@ -104,39 +106,32 @@ extends ASCIISocket
           System.err.println("NUTUPS:discoverUPS: No Variables defined for " + thisname);
           continue;
         }
-        
-        //Since we have data, add ourselves as another ExternalSystem
-        if (getExternalSystem("NUTUPS"+itsHostName+thisname)==null) {
-          System.err.println("Adding ExternalSystem: NUTUPS"+itsHostName+thisname);
-          addExternalSystem("NUTUPS"+itsHostName+thisname, this);
-        }
-        
+            
         //We got the list of this UPSs variables, now get info about each one
         for (int j=0; j<upsvars.size(); j++) {
           String thisvar=(String)upsvars.get(j);
           itsWriter.write("GET DESC " + thisname + " " + thisvar + "\n");
+          itsWriter.flush();
           line=itsReader.readLine();
           if (!line.startsWith("DESC " + thisname + " " + thisvar)) {
             System.err.println("NUTUPS:discoverUPS: expected DESC: " + line);
             continue;
           }
           String thisdesc=line.split("\"")[1];
-          if (thisdesc.toLowerCase().equals("unavailable")) {
+          if (thisdesc.toLowerCase().contains("unavailable")) {
             //No meaning full description. Substitute the point name
-            thisdesc=thisvar.replace(".", " ").replace(" ups ", " UPS ");
+            //thisdesc=thisvar.replace(".", " ").replace(" ups ", " UPS ");
             thisdesc=thisvar.replace(".", " ").replace("ups ", "UPS ");
           }
-          String[] pointnames={itsTreeBase+"."+thisvar.replace(".", "-")};
+          //Use '-' rather than '.' in point names because NUT has some points
+          //on non-leaf nodes and those points get lost by MoniCA
+          String[] pointnames={itsTreeBase+"."+thisvar.replace('.', '-')};
           String[] limits={"-"};
-          //Use a special limit for UPS status
-          if (pointnames[0].endsWith("ups-status")) {
-            limits[0]="StringMatch-\"true\"\"mains\"";
-          }
           String[] archivepolicy={"CHANGE-"};
           //Don't auto-create the point if it already exists
           if (!PointDescription.checkPointName(thisname+"."+pointnames[0])) {
             final String[] nullarray = {"-"};
-            String[] transaction = {"Strings-\"NUTUPS" + itsHostName + "\"\"" + thisname + "\"\"" + thisvar + "\""};
+            String[] transaction = {"Strings-\"" + itsHostName + ":" + itsPort + "\"\"" + thisname + "\"\"" + thisvar + "\""};
             PointDescription mp = PointDescription.factory(pointnames,
                thisdesc,
                thisdesc,
@@ -147,11 +142,12 @@ extends ASCIISocket
                nullarray,
                limits,
                archivepolicy,
-               "5000000",
+               "2000000",
                "-1",
                true);
         	  if (mp!=null) {
               PointDescription.addPoint(mp);
+              mp.populateServerFields();
             }
           }
         }
@@ -175,6 +171,7 @@ extends ASCIISocket
       itsReader.readLine();
     }
     itsWriter.write("GET VAR " + ts.getString(0) + " " + ts.getString(1) + "\n");
+    itsWriter.flush();
     String line = itsReader.readLine();
     if (!line.startsWith("VAR " + ts.getString(0) + " ")) {
       System.err.println("NUTUPS:discoverUPS: expected value");//, got: " + line);
@@ -194,18 +191,7 @@ extends ASCIISocket
     try {
       val=new Float((String)val);
     } catch (Exception e) {}
-    //If it is the UPS Status then remap it
-    if (requestor.getName().endsWith("ups-status")) {
-      if (((String)val).equals("OL")) {
-        val = "mains";
-      } else if (((String)val).equals("")) {
-        val=null;
-      } else {
-        val = "DISCHARGING";
-      }
-      
-        
-    }
+
     return val;
   }
   

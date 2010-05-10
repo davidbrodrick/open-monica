@@ -10,51 +10,96 @@ package atnf.atoms.mon.archivepolicy;
 
 import java.lang.reflect.*;
 import atnf.atoms.mon.*;
+import atnf.atoms.mon.util.MonitorUtils;
 
 /**
  * Archives data when the value changes.
  * 
  * @author: Le Cuong Nguyen
  */
-public class ArchivePolicyCHANGE extends ArchivePolicy
-{
-    Object itsLastSaveData = null;
+public class ArchivePolicyCHANGE extends ArchivePolicy {
+  /** The last data which was archived. */
+  Object itsLastSaveData = null;
 
-    protected static String itsArgs[] = new String[] { "Data Changed", "CHANGE" };
+  /** Whether we are running in percentage mode. */
+  boolean itsPercentage = false;
 
-    public ArchivePolicyCHANGE(String args)
-    {
+  /** Whether we are running in absolute delta mode. */
+  boolean itsDelta = false;
+
+  /** The absolute or relative change threshold. */
+  float itsChangeThreshold;
+
+  protected static String itsArgs[] = new String[] { "Data Changed", "CHANGE" };
+
+  public ArchivePolicyCHANGE(String args) {
+    String[] tokens = MonitorUtils.tokToStringArray(args);
+    if (tokens.length > 0) {
+      if (tokens[0].indexOf("%") != -1) {
+        tokens[0] = tokens[0].replace("%", "");
+        itsPercentage = true;
+      } else {
+        itsDelta = true;
+      }
+      itsChangeThreshold = Float.parseFloat(tokens[0]);
+    }
+  }
+
+  public boolean checkArchiveThis(PointData data) {
+    Object newData = data.getData();
+    if (newData == null && itsLastSaveData == null) {
+      itsSaveNow = false;
+      return itsSaveNow;
+    }
+    if (itsLastSaveData == null) {
+      itsLastSaveData = newData;
+      itsSaveNow = true;
+      return itsSaveNow;
+    } else if (newData == null) {
+      itsLastSaveData = null;
+      itsSaveNow = true;
+      return itsSaveNow;
     }
 
-    public boolean checkArchiveThis(PointData data)
-    {
-        Object newData = data.getData();
-        if (newData == null && itsLastSaveData == null) {
-            itsSaveNow = false;
-            return itsSaveNow;
+    if (newData instanceof Number && itsLastSaveData instanceof Number) {
+      float delta = Math.abs(((Number) (newData)).floatValue() - ((Number) (itsLastSaveData)).floatValue());
+      if (itsDelta) {
+        if (delta >= itsChangeThreshold) {
+          itsLastSaveData = newData;
+          itsSaveNow = true;
+        } else {
+          itsSaveNow = false;
         }
-        if (itsLastSaveData == null) {
-            itsLastSaveData = newData;
-            itsSaveNow = true;
-            return itsSaveNow;
-        } else if (newData == null) {
-            itsLastSaveData = null;
-            itsSaveNow = true;
-            return itsSaveNow;
+      } else if (itsPercentage) {
+        float percent = delta / Math.abs(((Number) (itsLastSaveData)).floatValue());
+        if (percent >= itsChangeThreshold) {
+          itsLastSaveData = newData;
+          itsSaveNow = true;
+        } else {
+          itsSaveNow = false;
         }
-        try {
-            Method equalsMethod = newData.getClass().getMethod("equals", new Class[] { Object.class });
-            Object res = equalsMethod.invoke(newData, new Object[] { itsLastSaveData });
-            itsSaveNow = !((Boolean) res).booleanValue();
-            itsLastSaveData = newData;
-        } catch (Exception e) {
-            e.printStackTrace();
+      } else {
+        if (delta != 0.0f) {
+          itsLastSaveData = newData;
+          itsSaveNow = true;
+        } else {
+          itsSaveNow = false;
         }
-        return itsSaveNow;
+      }
+    } else {
+      try {
+        Method equalsMethod = newData.getClass().getMethod("equals", new Class[] { Object.class });
+        Object res = equalsMethod.invoke(newData, new Object[] { itsLastSaveData });
+        itsSaveNow = !((Boolean) res).booleanValue();
+        itsLastSaveData = newData;
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
+    return itsSaveNow;
+  }
 
-    public static String[] getArgs()
-    {
-        return itsArgs;
-    }
+  public static String[] getArgs() {
+    return itsArgs;
+  }
 }
