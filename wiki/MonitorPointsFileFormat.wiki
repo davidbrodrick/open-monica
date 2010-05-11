@@ -29,9 +29,39 @@ Each point definition line must contain thirteen fields. Some fields may have mu
 }}}
 
 == Name ==
+The name field specifies where in the hierarchy of points the point being defined belongs. Is uses a `.` notation to delimit the different hierarchical components. Eg `environment.weather.Temperature`
 
 == Description ==
+The description contains a brief free-form description of the point, delimited by `"` double quotes. Eg `"Outside Ambient Temperature"`
 
 == Short Description ==
+The short description is intended to be used by display-limited clients and contains a very short description of the point which must be no more than ten characters long. This field is delimited by `"` double quotes. Eg `"Temperature"`
 
 == Units ==
+The units field contains the engineering units/dimensions of the quantity being measured. It is only used for display purposes. The field is delimited by `"` double quotes, eg `"kHz"`. The quotes may contain an empty string for dimensionless quantities (`""`).
+
+== Sources ==
+This specifies which 'sources' the point definition should be used to create points for. For instance just say you had six radio telescope antennas which had identical control/monitor hardware, you do not need to define each point six times on six separate lines, instead you can define the point once and specify the six antenna names as the sources for that point. MoniCA would then create six identical points, one for each antenna. Almost all transaction classes will substitute the source name whereever the macro `$1` is specified in the channel string, which is the mechanism you can use to ensure the multiple points actually interact with different end-points.
+
+If the point is defined for just a single source then you only need to specify the name of the source for this field, or for a point definition with multiple sources you use the compound semantics already described.
+
+== Enabled State ==
+This may be set to either `T` or `F` to specify whether a point should be actively collected/processed or not respectively. Normally this would be `T` however you may have a point that is no longer supported in your system but for which you would still like to make archival data available, in which case you could maintain the point definition but set it to disabled.
+
+== Input Transactions ==
+
+== Output Transactions ==
+
+== Translations ==
+
+== Alarm Criteria ==
+
+== Archive Policies ==
+
+== Update Interval ==
+This field tells MoniCA how often the point should be updated. It tells an !ExternalSystem subclass how often to poll for raw input data for the point, it is also used for instance by the !TranslationCalculationTimed to determine how freqently to read the input values and peform the calculation. On the client side this field is used to schedule when to poll the server for updated values for the point. The value is specified in integer microseconds and may be set to `-` for points which update aperiodically (ie points where the data is somehow pushed into MoniCA by an external agent rather than being polled).
+
+== Archive Longevity ==
+This defines, in integer days, how long data should be stored in the archive. A process will periodically purge old data from the archive if this field is defined. It may be set to `-` to maintain archival data forever.
+
+= Examples =
