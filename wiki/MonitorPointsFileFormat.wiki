@@ -1,6 +1,6 @@
 = Introduction =
 
-This document describes the file format for the monitor-points.txt file, which specifies the statically defined points you want created on your server.
+This document describes the file format for the monitor-points.txt file, which specifies the statically defined points you want created on your server. The meaning of some of the fields may make more sense after reading the IntroServerCode page.
 
 = Comments =
 
@@ -49,14 +49,19 @@ If the point is defined for just a single source then you only need to specify t
 This may be set to either `T` or `F` to specify whether a point should be actively collected/processed or not respectively. Normally this would be `T` however you may have a point that is no longer supported in your system but for which you would still like to make archival data available, in which case you could maintain the point definition but set it to disabled.
 
 == Input Transactions ==
+This field specifies which input transactions should be created for the point. Input transactions contain, for instance, hardware addressing information which can be used by an !ExternalSystem in order to specify which specific input on the external device should be polled to collect input data for the point. In principle this field may contain a compound expression specifying multiple transactions but in practice this rarely makes sense as the input is normally collected from a single place. This field may be set to `-` if the point doesn't define any input transactions.
 
 == Output Transactions ==
+All semantics for this is identical to the input transactions specification, the only difference is that output transaction fields are used by the !ExternalSystem to write control data rather than to collect monitor data. Compound expressions where the output is written to multiple outputs are more commonly used than for input transactions. This field may be set to `-` if the point doesn't define any output transactions.
 
 == Translations ==
+The translations tell MoniCA how to convert the raw input data into real world units, string mappings, etc.. Translations are commonly chained together using a compound statement however if you only need to define a single translation then the compound syntax is not required.
 
 == Alarm Criteria ==
+Alarm criteria check the value of the point and determine whether the current value is indicative of an alarm condition or not. Multiple alarm criteria may optionally be defined using the compound syntax.
 
 == Archive Policies ==
+Archive policies tell MoniCA when it is appropriate to archive the value of a point. There are various kinds of policy subclasses such as archive every Nth sample or archive when the point is in an alarm state. Compound syntax can be used to specify more than one alarm policy for the point if required. In this case the value will be archived when any of the policies flag that archiving is required.
 
 == Update Interval ==
 This field tells MoniCA how often the point should be updated. It tells an !ExternalSystem subclass how often to poll for raw input data for the point, it is also used for instance by the !TranslationCalculationTimed to determine how freqently to read the input values and peform the calculation. On the client side this field is used to schedule when to poll the server for updated values for the point. The value is specified in integer microseconds and may be set to `-` for points which update aperiodically (ie points where the data is somehow pushed into MoniCA by an external agent rather than being polled).
