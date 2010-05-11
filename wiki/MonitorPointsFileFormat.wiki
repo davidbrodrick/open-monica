@@ -72,3 +72,7 @@ This field tells MoniCA how often the point should be updated. It tells an !Exte
 This defines, in integer days, how long data should be stored in the archive. A process will periodically purge old data from the archive if this field is defined. It may be set to `-` to maintain archival data forever.
 
 = Examples =
+Below is a point which uses the pingcheck !ExternalSystem to test the connectivity to a host called ozforecast.com.au every five seconds. The name of the source is arbitrarily set as OzF. The !StringMatch alarm criteria tells the point to enter an alarm state whenever the value is not equal to true. The value will be archived whenever it changes state or when it is in an alarm state. The point has no translations or output transactions defined and data never expires from the archive.
+{{{
+network.connectivity  "Network Connectivity"  "Connectivity"  ""  OzF  T Strings-"pingcheck""ozforecast.com.au"  -  -  StringMatch-"true""true"  {Change-, Alarm-}  5000000  -
+}}}
