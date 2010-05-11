@@ -30,6 +30,18 @@ Each point definition line must contain thirteen fields. Some fields may have mu
 {server1, server2, testserver}
 }}}
 
+Several of the fields are used to tell MoniCA which classes should be created to populate the relevant fields of the !PointDescription object and may also specify a number of arguments for the created object. For these fields the format is to specify the class name followed by a hyphen (`-`) and then the arguments which each argument being surrounded by double quotes (`"`). Below is an example:
+
+{{{
+Mean-"60""true"
+}}}
+
+Normally MoniCA will search within the appropriate bundled package for the specified class but you may also implement and use your own subclasses for many of these fields by ensuring the class files are in your CLASSPATH and then specifying the fully qualified class name:
+
+{{{
+my.test.package.MySpecialMeanFilter-"60""true"
+}}}
+
 == Name ==
 The name field specifies where in the hierarchy of points the point being defined belongs. Is uses a `.` notation to delimit the different hierarchical components. Eg `environment.weather.Temperature`
 
