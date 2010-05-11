@@ -1,16 +1,2 @@
-/*
-Format of file:
-M <Name/s of Point> <long description> "" <sources> <enabled/disabled> <transaction-arguments> <translation-arguments> <limits> <archiving policy> <period>
-Multiple arguments must be enclosed in {}, spaces/tabs may be used in {} without affecting the general parsing.
-Arguments must be separated by whitespace.
-*/
-
-#Points for the Monitor system
-M hidden.monitorsys                      "All Data From Monitor System"       ""   ""     site       T Generic-"MonitorSystem"                   -                     -   -          5000000
-M monitorsys.MemoryUsed                  "Memory used by Monitor System"      ""   "MB"   site       T Listen-"$1.hidden.monitorsys"             NV-"TotalMemory"      -   -          5000000
-M monitorsys.NumJavaClnts                "Number of Java clients connected"   ""   ""     site       T Listen-"$1.hidden.monitorsys"             NV-"NumClntsJ"        -   -          5000000
-M monitorsys.NumASCIIClnts               "Number of ASCII clients connected"  ""   ""     site       T Listen-"$1.hidden.monitorsys"             NV-"NumClntsA"        -   -          5000000
-M monitorsys.TimeUTC                     "Current Time (UTC)"                 ""   ""     site       T Listen-"$1.hidden.monitorsys"             NV-"TimeUTC"          -   -          5000000
-
-M network.connectivity                   "Network Connectivity"               ""   ""     OzF        T Strings-"pingcheck""ozforecast.com.au"    -                     StringMatch-"true""true"  CHANGE-  5000000
-M network.connectivity                   "Network Connectivity"               ""   ""     localhost  T Strings-"pingcheck""localhost"            -                     StringMatch-"true""true"  CHANGE-  5000000
+network.connectivity                   "Network Connectivity"               ""   ""     OzF        T Strings-"pingcheck""ozforecast.com.au"   - - StringMatch-"true""true"  CHANGE-  5000000 -
+network.connectivity                   "Network Connectivity"               ""   ""     localhost  T Strings-"pingcheck""localhost"           - - StringMatch-"true""true"  CHANGE-  5000000 -

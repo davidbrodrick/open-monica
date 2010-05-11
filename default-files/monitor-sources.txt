@@ -1,4 +1,3 @@
-MonitorSystem
 PingCheck
 Simulator 10:1:10
 Simulator 10:1:10
