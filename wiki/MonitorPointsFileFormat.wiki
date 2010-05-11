@@ -1,14 +1,37 @@
 = Introduction =
 
-This document describes the file format for the monitor-points.txt file, which defines the fields for the monitor/control points you want created on your server.
+This document describes the file format for the monitor-points.txt file, which specifies the statically defined points you want created on your server.
 
 = Comments =
 
 The file may contain blank lines as well as comments. Comments may be single line style or block comments.
 
+{{{
 #This is a single line comment
 
 /*
  This is a block comment.
  It may span more than one line.
 */
+}}}
+
+= Point Definitions =
+
+== Introduction ==
+
+The file contains one definition per line, which specify the required fields for creating one or more points. One of the fields in the definition is the 'sources' field which is used to simplify the definition of essentially identical points for more than one source/end-point.
+
+Each point definition line must contain thirteen fields. Some fields may have multiple parts, in which case the parts are contained by curly brackets and the parts are delimited by commas. Below is an example of a sources field which defines multiple sources:
+
+{{{
+#Curly brackets and commas can be used for compound fields
+{server1, server2, testserver}
+}}}
+
+== Name ==
+
+== Description ==
+
+== Short Description ==
+
+== Units ==
