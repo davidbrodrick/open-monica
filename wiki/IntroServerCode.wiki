@@ -53,6 +53,6 @@ The server is configured using a number of text files which define things like w
 
   * *monitor-sources.txt:* This defines which external system objects should be instantiated and any arguments that are required for each one, for instance which IP address or port number to connect to.
 
-  * *monitor-points.txt:* The list of point definitions. Each line defines one point (or identical points from different sources), including appropriate subclasses and arguments for the different monitor point fields discussed above.
+  * *monitor-points.txt:* The list of point definitions. Each line defines one point (or identical points from different sources), including appropriate subclasses and arguments for the different monitor point fields discussed above. The format of this file is documented [MonitorPointsFileFormat here].
 
   * *monitor-setups.txt:* Contains information describing predefined GUI pages that is provided to clients when they connect to our server.
