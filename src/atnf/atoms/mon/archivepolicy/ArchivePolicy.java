@@ -50,4 +50,10 @@ public abstract class ArchivePolicy extends MonitorPolicy
 
         return result;
     }
+    
+    /** Override this method to implement the desired behaviour.
+     * 
+     * @param data The latest data which may or may not be archived.
+     * @return True if the data should be archived, False is no archiving should take place. */
+    public abstract boolean checkArchiveThis(PointData data);
 }
