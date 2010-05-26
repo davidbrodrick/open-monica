@@ -127,6 +127,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
         PointDescription thispoint = PointDescription.getPoint(names[i]);
         if (thispoint==null) {
           MonitorMap.logger.warning("MoniCAIceI.setData: Point " + names[i] + " does not exist");
+          System.err.println("MoniCAIceI.setData: Point " + names[i] + " does not exist");
           result = false;
           continue;
         }
@@ -134,6 +135,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
         thispoint.firePointEvent(new PointEvent(this, values.get(i), true));
       } catch (Exception e) {
         MonitorMap.logger.warning("MoniCAIceI.setData: Processing " + names[i] + ": " + e);
+        System.err.println("MoniCAIceI.setData: Processing " + names[i] + ": " + e);
         result = false;
       }
     }

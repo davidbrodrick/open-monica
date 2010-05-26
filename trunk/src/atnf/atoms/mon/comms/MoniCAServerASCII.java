@@ -62,9 +62,7 @@ public class MoniCAServerASCII extends Thread {
       theirServers.add(this);
     }
     theirNumClients++;
-    // MonitorMap.logger.debug("New ASCII Client Connection from: "
-    // + socket.getInetAddress().getHostAddress());
-    System.out.println("MonitorServerASCII: New Connection from " + socket.getInetAddress().getHostAddress());
+    //System.out.println("MonitorServerASCII: New Connection from " + socket.getInetAddress().getHostAddress());
     itsSocket = socket;
     itsReader = new BufferedReader(new InputStreamReader(itsSocket.getInputStream()));
     itsWriter = new PrintWriter(itsSocket.getOutputStream());

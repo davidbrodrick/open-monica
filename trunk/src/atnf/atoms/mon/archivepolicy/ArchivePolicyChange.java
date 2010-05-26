@@ -17,7 +17,7 @@ import atnf.atoms.mon.util.MonitorUtils;
  * 
  * @author: Le Cuong Nguyen
  */
-public class ArchivePolicyCHANGE extends ArchivePolicy {
+public class ArchivePolicyChange extends ArchivePolicy {
   /** The last data which was archived. */
   Object itsLastSaveData = null;
 
@@ -32,7 +32,7 @@ public class ArchivePolicyCHANGE extends ArchivePolicy {
 
   protected static String itsArgs[] = new String[] { "Data Changed", "CHANGE" };
 
-  public ArchivePolicyCHANGE(String args) {
+  public ArchivePolicyChange(String args) {
     String[] tokens = MonitorUtils.tokToStringArray(args);
     if (tokens.length > 0) {
       if (tokens[0].indexOf("%") != -1) {

@@ -16,23 +16,23 @@ import atnf.atoms.mon.*;
  * 
  * @author Le Coung Nguyen
  */
-public class ArchivePolicyTIMER extends ArchivePolicy
+public class ArchivePolicyTimer extends ArchivePolicy
 {
     RelTime itsPeriod = null;
 
     AbsTime itsLastSaved = AbsTime.factory();
 
-    public ArchivePolicyTIMER(String args)
+    public ArchivePolicyTimer(String args)
     {
         itsPeriod = RelTime.factory(1000000l*Long.parseLong(args));
     }
 
-    public ArchivePolicyTIMER(RelTime period)
+    public ArchivePolicyTimer(RelTime period)
     {
         itsPeriod = RelTime.factory(period);
     }
 
-    public ArchivePolicyTIMER(int period)
+    public ArchivePolicyTimer(int period)
     {
         itsPeriod = RelTime.factory(period);
     }
