@@ -1,2 +1,2 @@
-network.connectivity                   "Network Connectivity"               ""   ""     OzF        T Strings-"pingcheck""ozforecast.com.au"   - - StringMatch-"true""true"  CHANGE-  5000000 -
-network.connectivity                   "Network Connectivity"               ""   ""     localhost  T Strings-"pingcheck""localhost"           - - StringMatch-"true""true"  CHANGE-  5000000 -
+network.connectivity                   "Network Connectivity"               ""   ""     OzF        T Strings-"pingcheck""ozforecast.com.au"   - - StringMatch-"true""true"  Change-  5000000 -
+network.connectivity                   "Network Connectivity"               ""   ""     localhost  T Strings-"pingcheck""localhost"           - - StringMatch-"true""true"  Change-  5000000 -
