@@ -8,19 +8,19 @@ package atnf.atoms.mon.archivepolicy;
 
 import atnf.atoms.mon.*;
 
-public class ArchivePolicyCOUNTER extends ArchivePolicy {
+public class ArchivePolicyCounter extends ArchivePolicy {
   private int itsCycles = 0;
 
   private int itsRunningCycles = 0;
 
   protected static String itsArgs[] = new String[] { "Counter", "COUNTER", "Count", "java.lang.Integer" };
 
-  public ArchivePolicyCOUNTER(String args) {
+  public ArchivePolicyCounter(String args) {
     args = args.replace("\"", "");
     itsCycles = Integer.parseInt(args);
   }
 
-  public ArchivePolicyCOUNTER(int cycles) {
+  public ArchivePolicyCounter(int cycles) {
     itsCycles = cycles;
   }
 

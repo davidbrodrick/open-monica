@@ -8,11 +8,11 @@ package atnf.atoms.mon.archivepolicy;
 
 import atnf.atoms.mon.*;
 
-public class ArchivePolicyDUMMY extends ArchivePolicy
+public class ArchivePolicyNone extends ArchivePolicy
 {
    protected static String itsArgs[] = new String[]{"No Archiving", ""};
    
-   public ArchivePolicyDUMMY(String cmd)
+   public ArchivePolicyNone(String cmd)
    {
    }
    
