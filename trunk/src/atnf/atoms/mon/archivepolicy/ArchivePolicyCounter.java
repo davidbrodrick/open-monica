@@ -1,41 +1,46 @@
-/**
- * Class: ArchivePolicyCOUNTER
- * Description: determines whether archiving should be done based
- *              upon a running count of PointMonitors
- * @author Le Cuong Nguyen
- **/
+// Copyright (C) CSIRO Australia Telescope National Facility
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Library General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+
 package atnf.atoms.mon.archivepolicy;
 
 import atnf.atoms.mon.*;
 
-public class ArchivePolicyCounter extends ArchivePolicy {
-  private int itsCycles = 0;
+/**
+ * Archive every <i>Nth</i> update. This requires one argument which specifies the value of N.
+ * 
+ * Example: <code>Counter-"10"</code> Updates every 10th sample.
+ * 
+ * @author Le Coung Ngyuen, David Brodrick
+ */
+public class ArchivePolicyCounter extends ArchivePolicy
+{
+    private int itsCycles = 0;
 
-  private int itsRunningCycles = 0;
+    private int itsRunningCycles = 0;
 
-  protected static String itsArgs[] = new String[] { "Counter", "COUNTER", "Count", "java.lang.Integer" };
-
-  public ArchivePolicyCounter(String args) {
-    args = args.replace("\"", "");
-    itsCycles = Integer.parseInt(args);
-  }
-
-  public ArchivePolicyCounter(int cycles) {
-    itsCycles = cycles;
-  }
-
-  public boolean checkArchiveThis(PointData data) {
-    itsRunningCycles++;
-    if (itsRunningCycles >= itsCycles) {
-      itsSaveNow = true;
-      itsRunningCycles = 0;
-    } else {
-      itsSaveNow = false;
+    public ArchivePolicyCounter(String[] args)
+    {
+        itsCycles = Integer.parseInt(args[0]);
     }
-    return itsSaveNow;
-  }
 
-  public static String[] getArgs() {
-    return itsArgs;
-  }
+    public ArchivePolicyCounter(int cycles)
+    {
+        itsCycles = cycles;
+    }
+
+    public boolean checkArchiveThis(PointData data)
+    {
+        boolean savenow = false;
+        itsRunningCycles++;
+        if (itsRunningCycles >= itsCycles) {
+            savenow = true;
+            itsRunningCycles = 0;
+        }
+        return savenow;
+    }
 }

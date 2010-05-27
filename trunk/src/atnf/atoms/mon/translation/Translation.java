@@ -14,158 +14,103 @@ import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.util.MonitorUtils;
 
-
 /**
- * The <code>Translation</code> class is one of the core classes of
- * the monitor system. Translation sub-classes are responsible for
- * converting raw data into useful information. This might happen
- * any number of ways, for instance extracting a single value from an
- * array or by scaling a raw number into real-world units.
- *
- * <P>One of the strengths of this system is that Translations can
- * be chained together, so that multiple steps can be used to convert
- * from the raw data to the final information. This is a very powerful
- * feature and allows extensive reuse of existing translations. As an
- * example, the first translation might extract a single number from
- * an array and the second translation might scale that number to a
- * different range. This new value would be the final value of the
- * monitor point.
- *
- * <P>All Translations are constructed by calling the static
- * <code>factory</code> method in this class.
- *
- * <P>The actual data translation happens in the <code>translate</code>
- * method which much be implemented by each sub-class. This method takes
- * a <code>PointData</code> argument. The first translation which is
- * applied for a given monitor point would process the <i>raw</i> data from
- * the PointData. Subsequent translations in the chain will have an
- * argument set to indicate that they should manipulate pre-translated
- * data and leave the raw data alone. At the end of the translation
- * process the PointData will still have the original raw data value
- * from before translation and will also have the final value generated
- * by the last translation in the chain.
- *
- * <P>If all the information is available to complete the relevant
- * translation then the translate method should return a reference to
- * a PointData which contains the translated value (this will usually
- * be the same object that was passed as an argument). If the data
- * value is invalid by some criterion then a valid PointData should
- * be returned but it should have a null data field.
- *
- * <P>On the other hand, if there is insufficient data available to
- * complete the translation then null should be returned from the
- * translate method. No further translations in the chain will then
- * be called.
- *
- * <P>In general, Translations should leave the raw data field of the
- * PointData intact. However it might be useful for specific sub-classes
- * to null this field in some cases. For instance if the translation
- * just extracts one value from a very large array then it is
- * inefficient to continue to maintain a copy of the entire raw data array.
- * Such a translation could extract the value of interest and then null
- * the raw data field.
- *
+ * The <code>Translation</code> class is one of the core classes of the monitor system.
+ * Translation sub-classes are responsible for converting raw data into useful
+ * information. This might happen any number of ways, for instance extracting a single
+ * value from an array or by scaling a raw number into real-world units.
+ * 
+ * <P>
+ * One of the strengths of this system is that Translations can be chained together, so
+ * that multiple steps can be used to convert from the raw data to the final information.
+ * This is a very powerful feature and allows extensive reuse of existing translations. As
+ * an example, the first translation might extract a single number from an array and the
+ * second translation might scale that number to a different range. This new value would
+ * be the final value of the monitor point.
+ * 
+ * <P>
+ * All Translations are constructed by calling the static <code>factory</code> method in
+ * this class.
+ * 
+ * <P>
+ * The actual data translation happens in the <code>translate</code> method which much
+ * be implemented by each sub-class. This method takes a <code>PointData</code>
+ * argument.
+ * 
+ * <P>
+ * If all the information is available to complete the relevant translation then the
+ * translate method should return a reference to a PointData which contains the translated
+ * value. If the data value is invalid by some criterion then a valid PointData should be
+ * returned but it should have a null data field.
+ * 
+ * <P>
+ * On the other hand, if there is insufficient data available to complete the translation
+ * then null should be returned from the translate method. No further translations in the
+ * chain will then be called.
+ * 
  * @author Le Cuong Nguyen
  * @author David Brodrick
- * @version $Id: $
- **/
-public abstract class
-Translation
-extends MonitorPolicy
-//implements PointListener, ActionListener
+ */
+public abstract class Translation extends MonitorPolicy
 {
-   protected String[] itsInit = null;
-   protected PointDescription itsParent = null;
-//   protected MonitorTimer itsSubscriptionTimer = new MonitorTimer(20, this);
-   
-   /** Override this. Use format fullname, shortname, argname, argtype, argname, argtype, ...
-   */
-   protected static String itsArgs[] = new String[]{"Translation",""};
-   
-   protected
-   Translation(PointDescription parent, String[] init)
-   {
-      itsInit = init;
-      itsParent = parent;
-      //itsParent.addPointListener(this);
-      //itsSubscriptionTimer.setRepeats(true);
-   }
+    protected String[] itsInit = null;
 
+    protected PointDescription itsParent = null;
 
-   // Needs a reference back to parent in order to inform that PointDescription
-   // that data has been translated
-   public static
-   Translation
-   factory(PointDescription parent, String arg)
-   {
-     //Enable use of "null" keyword
-     if (arg.equalsIgnoreCase("null")) {
-      arg= "-";
+    protected Translation(PointDescription parent, String[] init)
+    {
+        itsInit = init;
+        itsParent = parent;
     }
 
-     Translation result = null;
-     
-     try {
-       // Find the specific informations
-       String specifics = arg.substring(arg.indexOf("-") + 1);
-       String[] transArgs = MonitorUtils.tokToStringArray(specifics);
+    // Needs a reference back to parent in order to inform that PointDescription
+    // that data has been translated
+    public static Translation factory(PointDescription parent, String arg)
+    {
+        // Enable use of "null" keyword
+        if (arg.equalsIgnoreCase("null")) {
+            arg = "-";
+        }
 
-       // Find the type of translation
-       String type = arg.substring(0, arg.indexOf("-"));
-       if (type == "" || type == null || type.length()<1) {
-        type = "None";
-      }
+        Translation result = null;
 
-       Constructor Translation_con;
-       try {
-         //Try to find class by assuming argument is full class name
-         Translation_con = Class.forName(type).getConstructor(new Class[]{PointDescription.class,String[].class});
-       } catch (Exception f) {
-         //Supplied name was not a full path
-         //Look in atnf.atoms.mon.translation package
-         Translation_con = Class.forName("atnf.atoms.mon.translation.Translation"+type).getConstructor(new Class[]{PointDescription.class,String[].class});
-       }
-       result = (Translation)(Translation_con.newInstance(new Object[]{parent,transArgs}));
-     } catch (Exception e) {
-       System.err.println("Translation: Error Creating Translation!!");
-       System.err.println("\tFor Monitor Point: " + parent.getName());
-       System.err.println("\tFor Translation:   " + arg);
-       System.err.println("\tException: " + e);
-       //substitute a no-op translation instead, dunno if it is best course
-       //of action but at least system keeps running..
-       result = new TranslationNone(parent, new String[]{});
-     }
+        try {
+            // Find the argument strings
+            String specifics = arg.substring(arg.indexOf("-") + 1);
+            String[] transArgs = MonitorUtils.tokToStringArray(specifics);
 
-     result.setStringEquiv(arg);
+            // Find the type of translation
+            String type = arg.substring(0, arg.indexOf("-"));
+            if (type == "" || type == null || type.length() < 1) {
+                type = "None";
+            }
 
-     return result;
-   }
+            Constructor Translation_con;
+            try {
+                // Try to find class by assuming argument is full class name
+                Translation_con = Class.forName(type).getConstructor(new Class[] { PointDescription.class, String[].class });
+            } catch (Exception f) {
+                // Supplied name was not a full path
+                // Look in atnf.atoms.mon.translation package
+                Translation_con = Class.forName("atnf.atoms.mon.translation.Translation" + type).getConstructor(
+                        new Class[] { PointDescription.class, String[].class });
+            }
+            result = (Translation) (Translation_con.newInstance(new Object[] { parent, transArgs }));
+        } catch (Exception e) {
+            System.err.println("Translation: Error Creating Translation!!");
+            System.err.println("\tFor Point: " + parent.getFullName());
+            System.err.println("\tFor Translation:   " + arg);
+            System.err.println("\tException: " + e);
+            // substitute a no-op translation instead, dunno if it is best course
+            // of action but at least system keeps running..
+            result = new TranslationNone(parent, new String[] {});
+        }
 
+        result.setStringEquiv(arg);
 
-   /** Override this method to perform work. */
-   public abstract
-   PointData
-   translate(PointData data);
+        return result;
+    }
 
-
-   // Data has been collected
-/*   public
-   void
-   onPointEvent(Object source, PointEvent evt)
-   {
-
-     PointData newData = translate(evt.getPointData());
-     if (newData != null) {
-       PointEvent newDataEvt = new PointEvent(this, newData, false);
-       itsParent.firePointEvent(newDataEvt);
-     }
-   }
-*/
-
-   public static String[] getArgs()
-   {
-      return itsArgs;
-   }
-
-//   public void actionPerformed(ActionEvent ae){}
+    /** Override this method to perform work. */
+    public abstract PointData translate(PointData data);
 }

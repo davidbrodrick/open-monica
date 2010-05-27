@@ -45,37 +45,35 @@ public class ArchivePolicyChange extends ArchivePolicy
     /** The absolute or relative change threshold. */
     float itsChangeThreshold;
 
-    protected static String itsArgs[] = new String[] { "Data Changed", "CHANGE" };
-
-    public ArchivePolicyChange(String args)
+    public ArchivePolicyChange(String[] args)
     {
-        String[] tokens = MonitorUtils.tokToStringArray(args);
-        if (tokens.length > 0) {
-            if (tokens[0].indexOf("%") != -1) {
-                tokens[0] = tokens[0].replace("%", "");
+        if (args!=null && args.length > 0) {
+            if (args[0].indexOf("%") != -1) {
+                args[0] = args[0].replace("%", "");
                 itsPercentage = true;
             } else {
                 itsDelta = true;
             }
-            itsChangeThreshold = Float.parseFloat(tokens[0]);
+            itsChangeThreshold = Float.parseFloat(args[0]);
         }
     }
 
     public boolean checkArchiveThis(PointData data)
     {
+        boolean savenow = false;
         Object newData = data.getData();
         if (newData == null && itsLastSaveData == null) {
-            itsSaveNow = false;
-            return itsSaveNow;
+            savenow = false;
+            return savenow;
         }
         if (itsLastSaveData == null) {
             itsLastSaveData = newData;
-            itsSaveNow = true;
-            return itsSaveNow;
+            savenow = true;
+            return savenow;
         } else if (newData == null) {
             itsLastSaveData = null;
-            itsSaveNow = true;
-            return itsSaveNow;
+            savenow = true;
+            return savenow;
         }
 
         if (newData instanceof Number && itsLastSaveData instanceof Number) {
@@ -83,41 +81,30 @@ public class ArchivePolicyChange extends ArchivePolicy
             if (itsDelta) {
                 if (delta >= itsChangeThreshold) {
                     itsLastSaveData = newData;
-                    itsSaveNow = true;
-                } else {
-                    itsSaveNow = false;
+                    savenow = true;
                 }
             } else if (itsPercentage) {
                 float percent = delta / Math.abs(((Number) (itsLastSaveData)).floatValue());
                 if (percent >= itsChangeThreshold) {
                     itsLastSaveData = newData;
-                    itsSaveNow = true;
-                } else {
-                    itsSaveNow = false;
+                    savenow = true;
                 }
             } else {
                 if (delta != 0.0f) {
                     itsLastSaveData = newData;
-                    itsSaveNow = true;
-                } else {
-                    itsSaveNow = false;
+                    savenow = true;
                 }
             }
         } else {
             try {
                 Method equalsMethod = newData.getClass().getMethod("equals", new Class[] { Object.class });
                 Object res = equalsMethod.invoke(newData, new Object[] { itsLastSaveData });
-                itsSaveNow = !((Boolean) res).booleanValue();
+                savenow = !((Boolean) res).booleanValue();
                 itsLastSaveData = newData;
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        return itsSaveNow;
-    }
-
-    public static String[] getArgs()
-    {
-        return itsArgs;
+        return savenow;
     }
 }
