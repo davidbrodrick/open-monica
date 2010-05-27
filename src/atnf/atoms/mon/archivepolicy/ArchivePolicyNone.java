@@ -1,28 +1,28 @@
-/**
- * Class: ArchivePolicyDUMMY
- * Description: A test class to test ArchivePolicy
- * @author Le Cuong Nguyen
- **/
+// Copyright (C) CSIRO Australia Telescope National Facility
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Library General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
 
 package atnf.atoms.mon.archivepolicy;
 
 import atnf.atoms.mon.*;
 
+/**
+ * Archives nothing.
+ * 
+ * @author Le Coung Ngyuen
+ */
 public class ArchivePolicyNone extends ArchivePolicy
 {
-   protected static String itsArgs[] = new String[]{"No Archiving", ""};
-   
-   public ArchivePolicyNone(String cmd)
+   public ArchivePolicyNone(String[] cmd)
    {
    }
    
    public boolean checkArchiveThis(PointData data)
    {
       return false;
-   }
-   
-   public static String[] getArgs()
-   {
-      return itsArgs;
    }
 }

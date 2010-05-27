@@ -14,37 +14,30 @@ import atnf.atoms.mon.*;
 /**
  * Periodic archiver. Argument must be the archive interval in integer seconds.
  * 
- * @author Le Coung Nguyen
+ * Example: <code>Timer-"60"</code> Archives data every 60 seconds.
+ * 
+ * @author Le Coung Nguyen, David Brodrick
  */
 public class ArchivePolicyTimer extends ArchivePolicy
 {
+    /** The interval at which data should be saved. */
     RelTime itsPeriod = null;
 
+    /** Timestamp for when data was last saved. */
     AbsTime itsLastSaved = AbsTime.factory();
 
-    public ArchivePolicyTimer(String args)
+    public ArchivePolicyTimer(String[] args)
     {
-        itsPeriod = RelTime.factory(1000000l*Long.parseLong(args));
-    }
-
-    public ArchivePolicyTimer(RelTime period)
-    {
-        itsPeriod = RelTime.factory(period);
-    }
-
-    public ArchivePolicyTimer(int period)
-    {
-        itsPeriod = RelTime.factory(period);
+        itsPeriod = RelTime.factory(1000000l*Long.parseLong(args[0]));
     }
 
     public boolean checkArchiveThis(PointData data)
     {
+        boolean savenow = false;
         if (data.getTimestamp().isAfter(itsLastSaved.add(itsPeriod))) {
-            itsSaveNow = true;
+            savenow = true;
             itsLastSaved = data.getTimestamp();
-        } else {
-            itsSaveNow = false;
         }
-        return itsSaveNow;
+        return savenow;
     }
 }

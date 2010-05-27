@@ -17,7 +17,7 @@ import atnf.atoms.mon.*;
  */
 public class ArchivePolicyAlarm extends ArchivePolicy
 {
-    public ArchivePolicyAlarm(String args)
+    public ArchivePolicyAlarm(String[] args)
     {
     }
 

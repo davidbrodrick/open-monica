@@ -505,7 +505,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   protected void makeArchivePolicies() {
     ArchivePolicy[] archives = new ArchivePolicy[itsArchiveStrings.length];
     for (int i = 0; i < archives.length; i++) {
-      archives[i] = ArchivePolicy.factory(itsArchiveStrings[i]);
+      archives[i] = ArchivePolicy.factory(this, itsArchiveStrings[i]);
     }
     itsArchive = archives;
   }
