@@ -127,7 +127,7 @@ extends ASCIISocket
           //on non-leaf nodes and those points get lost by MoniCA
           String[] pointnames={itsTreeBase+"."+thisvar.replace('.', '-')};
           String[] limits={"-"};
-          String[] archivepolicy={"CHANGE-"};
+          String[] archivepolicy={"Change-"};
           //Don't auto-create the point if it already exists
           if (!PointDescription.checkPointName(thisname+"."+pointnames[0])) {
             final String[] nullarray = {"-"};
