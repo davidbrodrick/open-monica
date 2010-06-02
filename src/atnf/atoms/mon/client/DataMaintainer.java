@@ -7,25 +7,28 @@ import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
 
 /**
- * Class: DataMaintainer Description: handles client-side collection and buffering of
- * Points
+ * Class: DataMaintainer Description: handles client-side collection and
+ * buffering of Points
  * 
  * @author Le Cuong Nguyen
  */
 
-public class DataMaintainer implements Runnable {
-  //Create a thread to do the polling of the server
+public class DataMaintainer implements Runnable
+{
+  // Create a thread to do the polling of the server
   static {
     new Thread(new DataMaintainer(), "DataMaintainer Collector").start();
   }
-  
+
   /**
-   * Comparator to compare PointDescriptions and/or AbsTimes. We need to use this
-   * Comparator with the SortedLinkedList class.
+   * Comparator to compare PointDescriptions and/or AbsTimes. We need to use
+   * this Comparator with the SortedLinkedList class.
    */
-  private static class TimeComp implements Comparator {
+  private static class TimeComp implements Comparator
+  {
     /** Return a timestamp for any known class type. */
-    private long getTimeStamp(Object o) {
+    private long getTimeStamp(Object o)
+    {
       if (o instanceof PointDescription) {
         return ((PointDescription) o).getNextEpoch();
       } else if (o instanceof AbsTime) {
@@ -39,7 +42,8 @@ public class DataMaintainer implements Runnable {
     }
 
     /** Compare PointDescriptions and/or AbsTimes. */
-    public int compare(Object o1, Object o2) {
+    public int compare(Object o1, Object o2)
+    {
       long val1 = getTimeStamp(o1);
       long val2 = getTimeStamp(o2);
 
@@ -53,7 +57,8 @@ public class DataMaintainer implements Runnable {
     }
 
     /** Test if equivalent to the given Comparator. */
-    public boolean equals(Object o) {
+    public boolean equals(Object o)
+    {
       if (o instanceof TimeComp) {
         return true;
       } else {
@@ -64,33 +69,37 @@ public class DataMaintainer implements Runnable {
 
   /** Queue of points sorted by time of next collection. */
   protected static SortedLinkedList theirQueue = new SortedLinkedList(new TimeComp());
-  
+
   /** All points currently being collected. */
-  protected static HashMap<String,PointDescription> theirPoints = new HashMap<String,PointDescription>();
+  protected static HashMap<String, PointDescription> theirPoints = new HashMap<String, PointDescription>();
 
   public DataMaintainer()
   {
   }
 
   /** Check if the named point is already being collected. */
-  public static boolean alreadyCollecting(String name) {
+  public static boolean alreadyCollecting(String name)
+  {
     return theirPoints.containsKey(name);
   }
-  
+
   /** Schedules a point */
-  protected static void addPoint(PointDescription pd) {
+  protected static void addPoint(PointDescription pd)
+  {
     theirPoints.put(pd.getFullName(), pd);
     theirQueue.add(pd);
     theirQueue.notifyAll();
   }
 
   /** Unschedules a point. */
-  public static void removePoint(PointDescription pd) {
+  public static void removePoint(PointDescription pd)
+  {
     theirPoints.remove(pd.getFullName());
   }
 
   /** Subscribe the specified listener to updates from all of the given points. */
-  public static void subscribe(Vector<String> points, PointListener pl) {
+  public static void subscribe(Vector<String> points, PointListener pl)
+  {
     // Identify any points we dont have full definitions for yet
     Vector<String> newpoints = new Vector<String>();
     for (int i = 0; i < points.size(); i++) {
@@ -105,8 +114,10 @@ public class DataMaintainer implements Runnable {
     if (newpoints.size() > 0) {
       Vector<PointDescription> queryres = null;
       try {
-        // Points will get added to static fields when the downloaded definitions are
-        // instanciated - so simply requesting the points from the server meets our goals.
+        // Points will get added to static fields when the downloaded
+        // definitions are
+        // instanciated - so simply requesting the points from the server meets
+        // our goals.
         queryres = (MonClientUtil.getServer()).getPoints(newpoints);
       } catch (Exception e) {
         queryres = null;
@@ -124,16 +135,18 @@ public class DataMaintainer implements Runnable {
     } catch (Exception e) {
     }
     if (resdata != null) {
-      for (int i = 0; i < points.size(); i++) {      
+      for (int i = 0; i < points.size(); i++) {
         PointDescription pm = PointDescription.getPoint(points.get(i));
-        // Add the listener to this point
-        pm.addPointListener(pl);
-        if (resdata.get(i) != null) {
-          // Got new data for this point okay
-          pm.distributeData(new PointEvent(pm, resdata.get(i), false));
-        } else {
-          // Got no data back for this point
-          pm.distributeData(new PointEvent(pm, new PointData(pm.getFullName()), false));
+        if (pm != null) {
+          // Add the listener to this point
+          pm.addPointListener(pl);
+          if (resdata.get(i) != null) {
+            // Got new data for this point okay
+            pm.distributeData(new PointEvent(pm, resdata.get(i), false));
+          } else {
+            // Got no data back for this point
+            pm.distributeData(new PointEvent(pm, new PointData(pm.getFullName()), false));
+          }
         }
       }
     } else {
@@ -145,41 +158,46 @@ public class DataMaintainer implements Runnable {
         // Inform listeners about the failure to collect data
         pm.distributeData(new PointEvent(pm, new PointData(pm.getFullName()), false));
       }
-    }    
-    
+    }
+
     // Ensure all of the specified points are being collected
     for (int i = 0; i < points.size(); i++) {
       PointDescription pd = PointDescription.getPoint(points.get(i));
-      synchronized (theirQueue) {
-        if (!alreadyCollecting(points.get(i))) {
-          addPoint(pd);
+      if (pd != null) {
+        synchronized (theirQueue) {
+          if (!alreadyCollecting(points.get(i))) {
+            addPoint(pd);
+          }
         }
       }
     }
   }
 
   /** Subscribe the specified listener to updates from the specified point. */
-  public static void subscribe(String point, PointListener pl) {
+  public static void subscribe(String point, PointListener pl)
+  {
     Vector<String> pointnames = new Vector<String>(1);
     pointnames.add(point);
     subscribe(pointnames, pl);
   }
 
   /** Unsubscribe the listener from all points contained in the vector. */
-  public static void unsubscribe(Vector points, PointListener pl) {
+  public static void unsubscribe(Vector points, PointListener pl)
+  {
     for (int i = 0; i < points.size(); i++) {
       unsubscribe((String) points.get(i), pl);
     }
   }
 
   /** Unsubscribe the listener from the specified point. */
-  public static void unsubscribe(String point, PointListener pl) {
+  public static void unsubscribe(String point, PointListener pl)
+  {
     // Get the reference to the full point
     PointDescription pd = PointDescription.getPoint(point);
-    if (pd!=null) {
+    if (pd != null) {
       // Point exists
       pd.removePointListener(pl);
-      if (pd.getNumListeners()==0) {
+      if (pd.getNumListeners() == 0) {
         // No listeners left so stop collecting this point
         removePoint(pd);
       }
@@ -187,7 +205,8 @@ public class DataMaintainer implements Runnable {
   }
 
   /** Determine when to next collect the point. */
-  public static void updateCollectionTime(PointDescription point) {
+  public static void updateCollectionTime(PointDescription point)
+  {
     // A short interval
     final long shortinterval = 1000000l;
 
@@ -204,7 +223,8 @@ public class DataMaintainer implements Runnable {
   }
 
   /** Determine when to next collect the point. */
-  public static void updateCollectionTime(PointDescription point, PointData data) {
+  public static void updateCollectionTime(PointDescription point, PointData data)
+  {
     // A short interval
     final long shortinterval = 1000000l;
 
@@ -219,7 +239,8 @@ public class DataMaintainer implements Runnable {
       nexttime = now;
     } else if (period <= 0) {
       // Point is aperiodic. For now all we can do is try again shortly to see
-      // if it has updated yet. A proper publish/subscribe to replace this polling
+      // if it has updated yet. A proper publish/subscribe to replace this
+      // polling
       // will be the ultimate solution.
       nexttime = now + shortinterval;
     } else if (datatime + period > now) {
@@ -234,7 +255,8 @@ public class DataMaintainer implements Runnable {
   }
 
   /** Main loop for collection thread. */
-  public void run() {
+  public void run()
+  {
     while (true) {
       Vector<PointDescription> getpoints = null;
       AbsTime nextTime = AbsTime.factory("ASAP");
@@ -253,7 +275,7 @@ public class DataMaintainer implements Runnable {
 
       if (getpoints.size() > 0) {
         Vector<String> getnames = new Vector<String>();
-        for (int i=0; i<getpoints.size(); i++) {
+        for (int i = 0; i < getpoints.size(); i++) {
           getnames.add(getpoints.get(i).getFullName());
         }
         Vector<PointData> resdata = null;
@@ -282,7 +304,7 @@ public class DataMaintainer implements Runnable {
             updateCollectionTime(pm);
           }
         }
-        
+
         // Need to reinsert the points to reschedule collection
         for (int i = 0; i < getpoints.size(); i++) {
           // Ensure point subscription hasn't been cancelled in meantime

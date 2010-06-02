@@ -80,6 +80,7 @@ module atnf {
           //Return the names of all points on the system
           idempotent stringarray getAllPointNames();
           //Return full details for the specified points
+          //Result array may be shorter than the request array if some points were not found
           idempotent pointarray getPoints(stringarray names);
           //Return full details for all points on the system
           idempotent pointarray getAllPoints();
@@ -91,11 +92,14 @@ module atnf {
           //
           //Return historical data for the given points
           //Set maxsamples to zero to impose no limit
+          //Server may impose a limit on the size of the return structure, so the client needs
+          //to use a loop, advancing the start epoch, until all require data has been collected
           idempotent pointdatasetarray getArchiveData(stringarray names, long start, long end, long maxsamples);
           //Get latest data for the given points
           idempotent pointdataset getData(stringarray names);
-          //Set new values for the given points.
-          bool setData(stringarray names, pointdataset rawvalues, string username, string passwd);
+          //Set new values for the given points
+          //If israw is true then translation will be applied to the specified values
+          bool setData(stringarray names, pointdataset values, string username, string passwd);
 
           ////////////
           //Operations relating to 'SavedSetups'. These are basically pickled
