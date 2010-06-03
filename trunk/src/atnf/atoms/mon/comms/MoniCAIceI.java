@@ -106,11 +106,19 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     AbsTime absend = AbsTime.factory(end);
     PointDataIce[][] res = new PointDataIce[names.length][];
     for (int i = 0; i < names.length; i++) {
+      // Get the requested data from the buffer/archive
       Vector<PointData> thisdata = PointBuffer.getPointData(names[i], absstart, absend, (int) maxsamples);
       if (thisdata == null) {
+        // Ice doesn't like null, so replace with empty return structure
         thisdata = new Vector<PointData>(0);
       }
+      // Convert to Ice representation
       res[i] = MoniCAIceUtil.getPointDataAsIce(thisdata);
+      // Blank the name to minimise network traffic
+      for (int j = 0; j < res[i].length; j++) {
+        res[i][j].name = "";
+      }
+
     }
     return res;
   }
