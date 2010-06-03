@@ -261,21 +261,24 @@ public class MoniCAClientIce extends MoniCAClient
       // Get data for each point in turn, as server may only return part of the
       // data each time, so we need to iterate until all data has been retrieved
       for (int thispoint = 0; thispoint < pointnames.size(); thispoint++) {
+        String thisname = pointnames.get(thispoint);
         Vector<PointData> thisdata = new Vector<PointData>();
         AbsTime thisstart = start;
         while (true) {
-          PointDataIce[][] icedata = itsIceClient.getArchiveData(new String[] { pointnames.get(thispoint) }, thisstart.getValue(),
-                  end.getValue(), maxsamples);
+          PointDataIce[][] icedata = itsIceClient.getArchiveData(new String[] { thisname }, thisstart.getValue(), end.getValue(),
+                  maxsamples);
           if (icedata != null && icedata.length > 0 && icedata[0].length > 0) {
             // Convert data to native representation
-            // System.err.println("MoniCAClientIce.getArchiveData: " +
-            // pointnames.get(thispoint) + ": " + icedata[0].length + " New
-            // Data");
+            Vector<PointData> newdata = MoniCAIceUtil.getPointDataFromIce(icedata[0]);
+            // Reinsert name fields dropped by server to minimise bandwidth
+            for (int j = 0; j < newdata.size(); j++) {
+              newdata.get(j).setName(thisname);
+            }
             thisdata.addAll(MoniCAIceUtil.getPointDataFromIce(icedata[0]));
             if (icedata[0].length == 1) {
               // No data will be returned to subsequent queries so stop now
               break;
-            }
+            }            
           } else {
             // System.err.println("MoniCAClientIce.getArchiveData: " +
             // pointnames.get(thispoint) + ": No New Data");

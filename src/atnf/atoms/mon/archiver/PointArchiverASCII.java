@@ -20,26 +20,29 @@ import atnf.atoms.time.*;
  * Archiver which stores data into ASCII text files, which are then compressed.
  * 
  * <P>
- * Each record is appened to a text file which lives in a directory hierarchy which
- * corresponds to the heirarchical name of the monitor point. When files either get too
- * large or too old they are compressed and any subsequent data will be stored in a new
- * file.
+ * Each record is appened to a text file which lives in a directory hierarchy
+ * which corresponds to the heirarchical name of the monitor point. When files
+ * either get too large or too old they are compressed and any subsequent data
+ * will be stored in a new file.
  * 
  * <P>
- * The compression is transparent to the user as the archiver will decompress files when a
- * archive request is made.
+ * The compression is transparent to the user as the archiver will decompress
+ * files when a archive request is made.
  * 
  * @author David Brodrick
  * @author Le Cuong Ngyuen
  */
-public class PointArchiverASCII extends PointArchiver {
+public class PointArchiverASCII extends PointArchiver
+{
   /**
-   * Directory for writing temporary files. <i>This shouldn't be hard-coded OS-specific!!</i>
+   * Directory for writing temporary files. <i>This shouldn't be hard-coded
+   * OS-specific!!</i>
    */
   static private File theirTempDir = new File("/tmp/mon-temp/");
 
   /**
-   * Base directory for the data archive. Derived from the property <tt>LogDir</tt>.
+   * Base directory for the data archive. Derived from the property
+   * <tt>LogDir</tt>.
    */
   public static final String SAVEPATH = MonitorConfig.getProperty("LogDir");
 
@@ -47,7 +50,8 @@ public class PointArchiverASCII extends PointArchiver {
   protected static final char FSEP = System.getProperty("file.separator").charAt(0);
 
   /**
-   * Maximum size for an archive file. Derived from the property <tt>ArchiveSize</tt>.
+   * Maximum size for an archive file. Derived from the property
+   * <tt>ArchiveSize</tt>.
    */
   protected static final int MAXLENGTH = Integer.parseInt(MonitorConfig.getProperty("ArchiveSize"));
 
@@ -58,15 +62,18 @@ public class PointArchiverASCII extends PointArchiver {
   protected static final int MAXAGE = 1000 * Integer.parseInt(MonitorConfig.getProperty("ArchiveMaxAge"));
 
   /** Constructor. */
-  public PointArchiverASCII() {
+  public PointArchiverASCII()
+  {
     super();
   }
 
   /**
-   * Purge all data for the given point that is older than the specified age in days.
+   * Purge all data for the given point that is older than the specified age in
+   * days.
    * @param point The point whos data we wish to purge.
    */
-  protected void purgeOldData(PointDescription point) {
+  protected void purgeOldData(PointDescription point)
+  {
     if (point.getArchiveLongevity() < 0)
       return;
 
@@ -88,7 +95,8 @@ public class PointArchiverASCII extends PointArchiver {
    * @param pm The point whos data we wish to archive.
    * @param data Vector of data to be archived.
    */
-  protected void saveNow(PointDescription pm, Vector data) {
+  protected void saveNow(PointDescription pm, Vector data)
+  {
     try {
       // Find the right directory and get a listing of the files
       String path = getDir(pm);
@@ -183,8 +191,9 @@ public class PointArchiverASCII extends PointArchiver {
    * @param end Most recent time in the range of interest.
    * @return Vector containing all data for the point over the time range.
    */
-  public Vector<PointData> extract(PointDescription pm, AbsTime start, AbsTime end) {
-    //AbsTime starttime = new AbsTime();
+  public Vector<PointData> extract(PointDescription pm, AbsTime start, AbsTime end)
+  {
+    // AbsTime starttime = new AbsTime();
     Vector<PointData> res = new Vector<PointData>(1000, 8000);
     // Get the archive directory for the given point
     String dir = getDir(pm);
@@ -197,26 +206,28 @@ public class PointArchiverASCII extends PointArchiver {
       loadFile(res, pm, dir + FSEP + files.get(j), start, end);
       if (res.size() > MAXNUMRECORDS) {
         // Max size limit to prevent server bogging down
-        // MonitorMap.logger.warning("MoniCA Server: Truncating archive request to " +
+        // MonitorMap.logger.warning("MoniCA Server: Truncating archive request
+        // to " +
         // res.size() + " records");
         break;
       }
     }
-    //AbsTime endtime = new AbsTime();
-    //RelTime diff = Time.diff(endtime, starttime);
-    //System.err.println("Request for " + pm.getName() + " took "
-    //+ (diff.getValue()/1000) + " ms for " + res.size() + " records");
+    // AbsTime endtime = new AbsTime();
+    // RelTime diff = Time.diff(endtime, starttime);
+    // System.err.println("Request for " + pm.getName() + " took "
+    // + (diff.getValue()/1000) + " ms for " + res.size() + " records");
     return res;
   }
 
   /**
-   * Return the last update which precedes the specified time. We interpret 'precedes' to
-   * mean data_time<=req_time.
+   * Return the last update which precedes the specified time. We interpret
+   * 'precedes' to mean data_time<=req_time.
    * @param pm Point to extract data for.
    * @param ts Find data preceding this timestamp.
    * @return PointData for preceding update or null if none found.
    */
-  public PointData getPreceding(PointDescription pm, AbsTime ts) {
+  public PointData getPreceding(PointDescription pm, AbsTime ts)
+  {
     // Get the archive directory for the given point
     String dir = getDir(pm);
     // Get any the archive files relevant to the period of interest
@@ -246,21 +257,22 @@ public class PointArchiverASCII extends PointArchiver {
         break;
       }
     }
-    if (res==null && tempbuf.size()>0) {
+    if (res == null && tempbuf.size() > 0) {
       // Request must be for most recent data in the archive
-      res = tempbuf.get(tempbuf.size()-1);
+      res = tempbuf.get(tempbuf.size() - 1);
     }
     return res;
   }
 
   /**
-   * Return the first update which follows the specified time. We interpret 'follows' to
-   * mean data_time>=req_time.
+   * Return the first update which follows the specified time. We interpret
+   * 'follows' to mean data_time>=req_time.
    * @param pm Point to extract data for.
    * @param ts Find data following this timestamp.
    * @return PointData for following update or null if none found.
    */
-  public PointData getFollowing(PointDescription pm, AbsTime ts) {
+  public PointData getFollowing(PointDescription pm, AbsTime ts)
+  {
     // Get the archive directory for the given point
     String dir = getDir(pm);
     // Get any the archive files relevant to the period of interest
@@ -295,15 +307,20 @@ public class PointArchiverASCII extends PointArchiver {
   }
 
   /** Convert the PointData to a line of ASCII text. */
-  protected String getStringForPD(PointData pd) {
+  protected String getStringForPD(PointData pd)
+  {
     Object data = pd.getData();
     String res = pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t";
     res += getStringForObject(data);
+    if (pd.getAlarm()) {
+      res += "A";
+    }
     return res;
   }
 
   /** Recover the PointData from a line of ASCII text. */
-  protected PointData getPDForString(PointDescription pm, String data) {
+  protected PointData getPDForString(PointDescription pm, String data)
+  {
     PointData res = null;
     StringTokenizer st = new StringTokenizer(data, "\t");
     if (st.countTokens() < 3) {
@@ -329,21 +346,30 @@ public class PointArchiverASCII extends PointArchiver {
       System.err.println(e.getMessage());
       return null;
     }
-    res = new PointData(pm.getFullName(), ts, d1);
+
+    // Check if the record has an active alarm condition saved
+    boolean alarm = false;
+    if (st.countTokens() == 1) {
+      if (st.nextToken().equals("A")) {
+        alarm = true;
+      }
+    }
+    res = new PointData(pm.getFullName(), ts, d1, alarm);
     return res;
   }
 
   /**
-   * Get a string representation of the Object. The string includes a type specifier as
-   * well as an ASCII representation of the data. These fields are separated by tabs. The
-   * <i>getObjectForString</i> method is able to decode this representation and recover
-   * the original Object.
+   * Get a string representation of the Object. The string includes a type
+   * specifier as well as an ASCII representation of the data. These fields are
+   * separated by tabs. The <i>getObjectForString</i> method is able to decode
+   * this representation and recover the original Object.
    * <P>
    * <i>null</i> objects are properly handled.
    * @param data The Object to encode into ASCII text.
    * @return An ASCII String representation of the data.
    */
-  protected String getStringForObject(Object data) throws IllegalArgumentException {
+  protected String getStringForObject(Object data) throws IllegalArgumentException
+  {
     String res = null;
     if (data == null) {
       res = "null\tnull\t";
@@ -385,14 +411,15 @@ public class PointArchiverASCII extends PointArchiver {
   }
 
   /**
-   * Use the ASCII <i>type</i> and <i>data</i> to reconstruct the data Object. This
-   * method essentially performs the opposite procedure to that implemented by
-   * <i>getStringForObject</i>.
+   * Use the ASCII <i>type</i> and <i>data</i> to reconstruct the data Object.
+   * This method essentially performs the opposite procedure to that implemented
+   * by <i>getStringForObject</i>.
    * @param type Short string representing the class of the data.
    * @param data The actual data in ASCII text form.
    * @return The reconstructed object.
    */
-  protected Object getObjectForString(String type, String data) {
+  protected Object getObjectForString(String type, String data)
+  {
     Object res = null;
     if (type.equals("dbl")) {
       res = new Double(data);
@@ -430,13 +457,15 @@ public class PointArchiverASCII extends PointArchiver {
   }
 
   /**
-   * Get the names of archive files relevant to the given time range for the point.
+   * Get the names of archive files relevant to the given time range for the
+   * point.
    * @param dir Archive directory to search.
    * @param start Earliest time in the range of interest.
    * @param end Most recent time in the range of interest.
    * @return Vector containing all filenames of relevance.
    */
-  private Vector<String> getFiles(String dir, AbsTime start, AbsTime end) {
+  private Vector<String> getFiles(String dir, AbsTime start, AbsTime end)
+  {
     Vector<String> res = new Vector<String>();
     TreeMap<Long, String> map = new TreeMap<Long, String>();
 
@@ -521,7 +550,8 @@ public class PointArchiverASCII extends PointArchiver {
    * @param fname The argument file.
    * @return Next chronological file name, or null if none exist.
    */
-  private String getFollowingFile(String dir, String fname) {
+  private String getFollowingFile(String dir, String fname)
+  {
     // Get timestamp corresponding to argument file
     AbsTime argdate = null;
     if (isCompressed(fname)) {
@@ -570,7 +600,8 @@ public class PointArchiverASCII extends PointArchiver {
    * @param fname The argument file.
    * @return Previous chronological file name, or null if none exist.
    */
-  private String getPrecedingFile(String dir, String fname) {
+  private String getPrecedingFile(String dir, String fname)
+  {
     // Get timestamp corresponding to argument file
     AbsTime argdate = null;
     if (isCompressed(fname)) {
@@ -622,7 +653,8 @@ public class PointArchiverASCII extends PointArchiver {
    * @param start The earliest time of interest, null to ignore.
    * @param end The most recent time of interest, null to ignore.
    */
-  private void loadFile(Vector<PointData> res, PointDescription pm, String fname, AbsTime start, AbsTime end) {
+  private void loadFile(Vector<PointData> res, PointDescription pm, String fname, AbsTime start, AbsTime end)
+  {
     try {
       // If the file's compressed we need to decompress it first
       boolean hadtodecompress = false;
@@ -667,23 +699,26 @@ public class PointArchiverASCII extends PointArchiver {
   }
 
   /**
-   * Test if the specified filename corresponds to a compressed file. In practice this
-   * just means we check for a <i>.zip</i> extension.
+   * Test if the specified filename corresponds to a compressed file. In
+   * practice this just means we check for a <i>.zip</i> extension.
    * @param filename The file name to check.
    * @return <code>True</code> if the file is compressed, <code>False</code>
    * otherwise.
    */
-  private boolean isCompressed(String filename) {
+  private boolean isCompressed(String filename)
+  {
     return filename.endsWith(".zip");
   }
 
   /**
-   * Decompress the specified file and return the path to a temporary file. The temporary
-   * file should generally be deleted by the caller once it is no longer required.
+   * Decompress the specified file and return the path to a temporary file. The
+   * temporary file should generally be deleted by the caller once it is no
+   * longer required.
    * @param filename Full path to the file to decompress.
    * @return Name of temporary file containing the decompressed data.
    */
-  private String decompress(String filename) {
+  private String decompress(String filename)
+  {
     File f = null;
     InputStream compressed = null;
     PrintWriter uncompressed = null;
@@ -696,7 +731,8 @@ public class PointArchiverASCII extends PointArchiver {
       ZipEntry ze = zip.getEntry(foo);
       compressed = zip.getInputStream(ze);
       if (!theirTempDir.isDirectory()) {
-        // Some systems have a tmp reaper, so need to check this directory each time
+        // Some systems have a tmp reaper, so need to check this directory each
+        // time
         theirTempDir.mkdirs();
       }
       f = File.createTempFile("foo", ".tmp", theirTempDir);
@@ -729,11 +765,12 @@ public class PointArchiverASCII extends PointArchiver {
   }
 
   /**
-   * Compress the specified file. The file location is not not changed but the file will
-   * be renamed with a <i>.zip</i> extension.
+   * Compress the specified file. The file location is not not changed but the
+   * file will be renamed with a <i>.zip</i> extension.
    * @param filename The name of the file to be compressed.
    */
-  public void compress(String filename) {
+  public void compress(String filename)
+  {
     try {
       File fin = new File(filename);
       FileInputStream uncompressed = new FileInputStream(fin);
@@ -757,7 +794,8 @@ public class PointArchiverASCII extends PointArchiver {
       }
 
       compressed.close();
-      // System.err.println("PointArchiverASCII:compress: Compressed " + filename);
+      // System.err.println("PointArchiverASCII:compress: Compressed " +
+      // filename);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -767,7 +805,8 @@ public class PointArchiverASCII extends PointArchiver {
    * Get the appropriate filename representation of the current time.
    * @return Filename representation of the current time.
    */
-  public static String getDateTimeNow() {
+  public static String getDateTimeNow()
+  {
     return getDateTime(new Date());
   }
 
@@ -776,7 +815,8 @@ public class PointArchiverASCII extends PointArchiver {
    * @param date Date to translate into a filename.
    * @return Filename corresponding to the given Date.
    */
-  public static String getDateTime(Date date) {
+  public static String getDateTime(Date date)
+  {
     GregorianCalendar calendar = new GregorianCalendar();
     calendar.setTime(date);
     calendar.setTimeZone(SimpleTimeZone.getTimeZone("GMT"));
@@ -808,7 +848,8 @@ public class PointArchiverASCII extends PointArchiver {
    * @param parseDate The filename to parse.
    * @return Date represented by the given filename.
    */
-  public static Date getDateTime(String parseDate) {
+  public static Date getDateTime(String parseDate)
+  {
     try {
       int i = 0;
       // YYYYMMDD-HHMM format
@@ -831,18 +872,20 @@ public class PointArchiverASCII extends PointArchiver {
    * @param pm Point to get the archive directory for.
    * @return Name of appropriate archive directory.
    */
-  public static String getDir(PointDescription pm) {
+  public static String getDir(PointDescription pm)
+  {
     String tempname = pm.getName();
     tempname = tempname.replace('.', FSEP);
     return SAVEPATH + FSEP + tempname + FSEP + pm.getSource();
   }
 
-  public static final void main(String args[]) {
+  public static final void main(String args[])
+  {
     PointArchiverASCII paa = new PointArchiverASCII();
     paa.getPrecedingFile("/home/ozforeca/open-monica/archive/weather/in_temp/home/", "20080709-0954.zip");
     /*
-     * if (args.length<1) { System.err.println("USAGE: Specify a file to be compressed");
-     * System.exit(1); }
+     * if (args.length<1) { System.err.println("USAGE: Specify a file to be
+     * compressed"); System.exit(1); }
      * 
      * System.out.println("Will compress " + args[0]); paa.compress(args[0]);
      * paa.decompress(args[0]+".zip");

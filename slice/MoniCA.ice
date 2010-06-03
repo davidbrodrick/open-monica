@@ -90,10 +90,13 @@ module atnf {
           ////////////
           //Operations relating to getting/setting data
           //
-          //Return historical data for the given points
-          //Set maxsamples to zero to impose no limit
+          //Return historical data for the given points.
+          //Set maxsamples to zero to impose no limit.
           //Server may impose a limit on the size of the return structure, so the client needs
-          //to use a loop, advancing the start epoch, until all require data has been collected
+          //to use a loop, advancing the start epoch, until all require data has been collected.
+          //Note that the name field within the PointDataIce objects will be set to blank by the
+          //server to minimise network bandwidth. The client can reinsert this name in each datum
+          //if required by matching it with the name of the requested point.
           idempotent pointdatasetarray getArchiveData(stringarray names, long start, long end, long maxsamples);
           //Get latest data for the given points
           idempotent pointdataset getData(stringarray names);
