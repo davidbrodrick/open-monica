@@ -5,7 +5,7 @@ sub new {
   my $class = ref($proto) || $proto;
 
   my $monline = shift;
-  my $self = [split ' ', $monline];
+  my $self = [$monline =~ /^(\S+)\s+(\S+)\s+(\S.*)$/];
 
   bless ($self, $class);
 }
@@ -35,7 +35,7 @@ sub new {
   my $class = ref($proto) || $proto;
 
   my $monline = shift;
-  my $self = [split ' ', $monline];
+  my $self = [$monline =~ /^(\S+)\s+(\S.*)$/];
 
   bless ($self, $class);
 }
