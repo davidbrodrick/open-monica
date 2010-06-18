@@ -63,7 +63,7 @@ extends TranslationCalculation
       //Update the value for this variable
       String thisvar=""+((char)(('a')+i));
       if (!(itsValues[i].getData() instanceof Boolean)) {
-        itsParser.addVariableAsObject(thisvar,itsValues[i].getData());
+        itsParser.addVariable(thisvar,itsValues[i].getData());
       } else {
         boolean boolval = ((Boolean)itsValues[i].getData()).booleanValue();
         if (boolval) {
