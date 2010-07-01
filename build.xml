@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0"?>
 <project name="open-monica" basedir="." default="jar">
 
   <!-- Define some names/properties -->
@@ -61,7 +61,7 @@
 
     <!-- Generate some scripts in bin area -->
     <property name="bindir" value="${prefix}/bin"/>
-    <property name="server_invocation" value="java -DIce.MessageSizeMax=32768 -jar ${jarname}"/>
+    <property name="server_invocation" value="java -DIce.ThreadPool.Server.SizeMax=20 -DIce.MessageSizeMax=32768 -jar ${jarname}"/>
     <mkdir dir="${bindir}"/>
     <echo file="${bindir}/open-monica-server.sh" append="false">#!/bin/sh
 
