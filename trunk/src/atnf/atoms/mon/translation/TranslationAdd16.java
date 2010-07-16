@@ -65,7 +65,7 @@ extends Translation
       Short s = new Short((short)(((Number)d).shortValue() + itsOffset));
       //System.err.println("TranslationAdd16: " + s.shortValue() + " = " + ((Number)d).shortValue() + " + " + itsOffset);
       //Translation is now complete
-      return new PointData(data.getName(), data.getTimestamp(), s);
+      return new PointData(itsParent.getFullName(), data.getTimestamp(), s);
     } else {
       //We can only translate Numbers using this class
       if (MonitorMap.logger!=null) {
