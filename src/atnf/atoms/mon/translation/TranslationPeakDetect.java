@@ -72,8 +72,7 @@ extends Translation
     Double peak=getPeak();
 
     //Return the peak value
-    return new PointData(itsParent.getName()+"."+itsParent.getSource(),
-                         new AbsTime(), peak);
+    return new PointData(itsParent.getFullName(), new AbsTime(), peak);
   }
 
 

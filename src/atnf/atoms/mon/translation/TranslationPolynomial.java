@@ -11,28 +11,26 @@ package atnf.atoms.mon.translation;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
 
-
 /**
  * Listens to a number and applies an arbitrary order polynomial to it.
- *
- * <P>The first argument is the number of terms in the polynomial. The
- * second argument is the 0th order term (output value for zero input).
- * All remaining coefficients must be given as additional arguments.
- *
- * <P>Note this class can only perform the translation when the raw data
- * is a <i>Number</i>.
- *
+ * 
+ * <P>
+ * The first argument is the number of terms in the polynomial. The second
+ * argument is the 0th order term (output value for zero input). All remaining
+ * coefficients must be given as additional arguments.
+ * 
+ * <P>
+ * Note this class can only perform the translation when the raw data is a
+ * <i>Number</i>.
+ * 
  * @author David Brodrick
  * @version $Id: TranslationPolynomial.java,v 1.1 2005/07/28 02:23:58 bro764 Exp $
  */
-public class TranslationPolynomial
-extends Translation
+public class TranslationPolynomial extends Translation
 {
   /** Required arguments. */
-  protected static String itsArgs[] = new String[]{
-    "Polynomial","Polynomial",
-    "Scale",  "java.lang.String",
-    "Offset", "java.lang.String" };
+  protected static String itsArgs[] = new String[] { "Polynomial", "Polynomial", "Scale", "java.lang.String", "Offset",
+      "java.lang.String" };
 
   /** Order of polynomial. */
   int itsOrder = 1;
@@ -40,65 +38,53 @@ extends Translation
   /** Polynomial coefficients. */
   double[] itsCoeffs = null;
 
-  public
-  TranslationPolynomial(PointDescription parent, String[] init)
+  public TranslationPolynomial(PointDescription parent, String[] init)
   {
     super(parent, init);
 
-    if (init.length<3) {
-      System.err.println("TranslationPolynomial for " + parent.getName() +
-			 ": Need at least two arguments");
+    if (init.length < 3) {
+      System.err.println("TranslationPolynomial for " + parent.getName() + ": Need at least two arguments");
     } else {
       itsOrder = Integer.parseInt(init[0]);
-      if (itsOrder<1 || itsOrder>20) {
-	System.err.println("TranslationPolynomial for " + parent.getName() +
-			   ": Expect polynomial order 1-20");
+      if (itsOrder < 1 || itsOrder > 20) {
+        System.err.println("TranslationPolynomial for " + parent.getName() + ": Expect polynomial order 1-20");
       } else {
         itsCoeffs = new double[itsOrder];
-	for (int i=0; i<itsOrder; i++) {
-          itsCoeffs[i] = Double.parseDouble(init[i+1]);
-	}
+        for (int i = 0; i < itsOrder; i++) {
+          itsCoeffs[i] = Double.parseDouble(init[i + 1]);
+        }
       }
     }
   }
 
-
   /** Perform the actual data translation. */
-  public
-  PointData
-  translate(PointData data)
+  public PointData translate(PointData data)
   {
-    //Ensure there is raw data for us to translate!
-    if (data==null || data.getData()==null) {
+    // Ensure there is raw data for us to translate!
+    if (data == null || data.getData() == null) {
       return null;
     }
 
     Object d = data.getData();
     if (d instanceof Number) {
-      double val  = ((Number)d).doubleValue();
+      double val = ((Number) d).doubleValue();
       double term = val;
       double res = itsCoeffs[0];
-      for (int i=1; i<itsOrder; i++) {
-	res += itsCoeffs[i]*term;
-	term*=val;
+      for (int i = 1; i < itsOrder; i++) {
+        res += itsCoeffs[i] * term;
+        term *= val;
       }
 
-      //Translation is now complete
-      return new PointData(itsParent.getFullName(),
-			   data.getTimestamp(),
-			   new Double(res));
+      // Translation is now complete
+      return new PointData(itsParent.getFullName(), data.getTimestamp(), new Double(res));
     } else {
-      //We can only translate Numbers using this class
-      System.err.println("TranslationPolynomial for " + itsParent.getName() +
-			 ": GOT NON-NUMERIC ARGUMENT!");
+      // We can only translate Numbers using this class
+      System.err.println("TranslationPolynomial for " + itsParent.getFullName() + ": GOT NON-NUMERIC ARGUMENT!");
       return null;
     }
   }
 
-
-  public static
-  String[]
-  getArgs()
+  public static String[] getArgs()
   {
     return itsArgs;
   }

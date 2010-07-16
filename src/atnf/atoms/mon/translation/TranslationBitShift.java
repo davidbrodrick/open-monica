@@ -71,7 +71,7 @@ extends Translation
       //Shift the correct number of places
       temp = temp >> itsNumShift;
       //Translation is now complete
-      return new PointData(data.getName(), data.getTimestamp(), new Integer(temp));
+      return new PointData(itsParent.getFullName(), data.getTimestamp(), new Integer(temp));
     } else {
       //We can only translate Numbers using this class
       if (MonitorMap.logger!=null) {
