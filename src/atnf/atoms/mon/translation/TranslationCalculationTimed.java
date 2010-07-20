@@ -16,61 +16,61 @@ import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.PointEvent;
 import atnf.atoms.time.AbsTime;
+import atnf.atoms.util.Angle;
 
 /**
- * Subclass of TranslationCalculation which performs processing based on the period of
- * the parent point rather than triggering when listen-to points update.
- *
+ * Subclass of TranslationCalculation which performs processing based on the
+ * period of the parent point rather than triggering when listen-to points
+ * update.
+ * 
  * @author David Brodrick
  */
-public class
-TranslationCalculationTimed
-extends TranslationCalculation
+public class TranslationCalculationTimed extends TranslationCalculation
 {
   /** Timer used to trigger processing. */
   protected Timer itsProcessTimer = null;
-  
-  public
-  TranslationCalculationTimed(PointDescription parent, String[] init)
+
+  public TranslationCalculationTimed(PointDescription parent, String[] init)
   {
     super(parent, init);
-    
-    itsProcessTimer = new Timer((int)(parent.getPeriod()/1000), this);
+
+    itsProcessTimer = new Timer((int) (parent.getPeriod() / 1000), this);
     itsProcessTimer.start();
   }
-  
-  /** Always returns false because we base trigger off timer, not off listened-to points. */
-  protected
-  boolean
-  matchData()
+
+  /**
+   * Always returns false because we base trigger off timer, not off listened-to
+   * points.
+   */
+  protected boolean matchData()
   {
     return false;
   }
 
   /** Provide the current input values to the expression parser. */
-  protected
-  Object
-  doCalculations()
+  protected Object doCalculations()
   {
-    Object res=null;
+    Object res = null;
     boolean missingdata = false;
-    
-    for (int i=0; i<itsNumPoints; i++) {
-      if (itsValues[i]==null || itsValues[i].getData()==null) {
-        missingdata=true;
+
+    for (int i = 0; i < itsNumPoints; i++) {
+      if (itsValues[i] == null || itsValues[i].getData() == null) {
+        missingdata = true;
         break;
       }
-      //Update the value for this variable
-      String thisvar=""+((char)(('a')+i));
-      if (!(itsValues[i].getData() instanceof Boolean)) {
-        itsParser.addVariable(thisvar,itsValues[i].getData());
-      } else {
-        boolean boolval = ((Boolean)itsValues[i].getData()).booleanValue();
-        if (boolval) {
+      // Update the value for this variable
+      String thisvar = "" + ((char) (('a') + i));
+      Object thisval = itsValues[i].getData();
+      if (thisval instanceof Boolean) {
+        if (((Boolean) thisval).booleanValue()) {
           itsParser.addVariable(thisvar, 1.0);
         } else {
           itsParser.addVariable(thisvar, 0.0);
         }
+      } else if (thisval instanceof Angle) {
+        itsParser.addVariable(thisvar, ((Angle) thisval).getValue());
+      } else {
+        itsParser.addVariable(thisvar, thisval);
       }
     }
 
@@ -85,15 +85,13 @@ extends TranslationCalculation
     }
     return res;
   }
-  
+
   /** Called when timer expires. */
-  public
-  void
-  actionPerformed(ActionEvent evt)
+  public void actionPerformed(ActionEvent evt)
   {
     super.actionPerformed(evt);
-    if (evt.getSource()==itsProcessTimer) {
-      //It's time to perform the calculation and fire an update of the point
+    if (evt.getSource() == itsProcessTimer) {
+      // It's time to perform the calculation and fire an update of the point
       Object resval = doCalculations();
       PointData res = new PointData(itsParent.getFullName(), new AbsTime(), resval);
       itsParent.firePointEvent(new PointEvent(this, res, true));
