@@ -51,7 +51,8 @@ public class TranslationCalculation extends TranslationListener
     itsParser.setAllowUndeclared(true);
     // itsParser.addStandardConstants();
     itsParser.addStandardFunctions();
-    itsParser.parseExpression(init[itsNumPoints + 1]);
+    String expr = init[itsNumPoints + 1].replaceAll("'", "\"");
+    itsParser.parseExpression(expr);
   }
 
   /**

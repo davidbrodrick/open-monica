@@ -45,7 +45,8 @@ public class TranslationEQ extends Translation
       itsParser.setAllowUndeclared(true);
       itsParser.addStandardConstants();
       itsParser.addStandardFunctions();
-      itsParser.parseExpression(init[0]);
+      String expr = init[0].replaceAll("'", "\"");
+      itsParser.parseExpression(expr);
     }
   }
 
