@@ -671,17 +671,17 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
         throw new Exception("Expect " + NUMTOKENS + " tokens, found " + toks.length);
       }
 
-      String[] pointNameArray = getTokens(toks[0]);
+      String[] pointNameArray = MonitorUtils.getTokens(toks[0]);
       String pointLongDesc = toks[1];
       String pointShortDesc = toks[2];
       String pointUnits = toks[3];
-      String[] pointSourceArray = getTokens(toks[4]);
+      String[] pointSourceArray = MonitorUtils.getTokens(toks[4]);
       String pointEnabled = toks[5];
-      String[] pointInputArray = getTokens(toks[6]);
-      String[] pointOutputArray = getTokens(toks[7]);
-      String[] pointTranslateArray = getTokens(toks[8]);
-      String[] pointLimitsArray = getTokens(toks[9]);
-      String[] pointArchiveArray = getTokens(toks[10]);
+      String[] pointInputArray = MonitorUtils.getTokens(toks[6]);
+      String[] pointOutputArray = MonitorUtils.getTokens(toks[7]);
+      String[] pointTranslateArray = MonitorUtils.getTokens(toks[8]);
+      String[] pointLimitsArray = MonitorUtils.getTokens(toks[9]);
+      String[] pointArchiveArray = MonitorUtils.getTokens(toks[10]);
       String pointPeriod = toks[11];
       String archiveLife = toks[12];
 
@@ -718,16 +718,6 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       }
     }
     return res;
-  }
-
-  /** Breaks a line into tokens */
-  protected static String[] getTokens(String line) {
-    StringTokenizer tok = new StringTokenizer(line, ", \t\r\n");
-    String[] result = new String[tok.countTokens()];
-    for (int i = 0; i < result.length; i++) {
-      result[i] = tok.nextToken().trim();
-    }
-    return result;
   }
 
   /** Construct a new monitor point from the given fields. */
