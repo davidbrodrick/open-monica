@@ -2,7 +2,7 @@
 
 = Introduction =
 
-Rather than use the Ice interface to directly interface a client application to a MoniCA server, Java programmers can take advantage of classes provided with the MoniCA distribution. These are the same classes that the MoniCA GUI client uses. This makes the application immune from transport implementation changes and provides a much higher level interface to facilitate faster development.
+Rather than using Ice to directly interface a client application to a MoniCA server, Java programmers can take advantage of classes provided with the MoniCA distribution. These are the same classes that the MoniCA GUI client uses. This makes the application immune from transport implementation changes and provides a much higher level interface to facilitate faster development.
 
 
 = Select Server =
