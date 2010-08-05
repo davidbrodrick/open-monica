@@ -20,23 +20,25 @@ import atnf.atoms.mon.gui.*;
 import atnf.atoms.mon.util.*;
 
 /**
- * MonClientUtil is a client-side class which contains various methods to perform useful
- * client-side operations. This class doesn't really encapsulate a well defined object,
- * but rather it ties together various pieces of functionality so that most of the useful
- * methods are available in one spot.
+ * MonClientUtil is a client-side class which contains various methods to
+ * perform useful client-side operations. This class doesn't really encapsulate
+ * a well defined object, but rather it ties together various pieces of
+ * functionality so that most of the useful methods are available in one spot.
  * 
  * <P>
- * One of the things it does it control what server the client will connect to. This is
- * normally done by presenting the user with a dialog box, however the server name can
- * also be specified as a property called "server", eg
+ * One of the things it does it control what server the client will connect to.
+ * This is normally done by presenting the user with a dialog box, however the
+ * server name can also be specified as a property called "server", eg
  * <tt>-Dserver=monhost-nar.atnf.csiro.au</tt>.
  * 
  * @author David Brodrick
  * @version $Id: MonClientUtil.java,v 1.9 2008/03/18 00:52:10 bro764 Exp bro764 $
  */
-public class MonClientUtil {
+public class MonClientUtil
+{
   /**
-   * Hashmap contains a Hashtable of SavedSetups for each class, indexed by class name .
+   * Hashmap contains a Hashtable of SavedSetups for each class, indexed by
+   * class name .
    */
   private static Hashtable<String, Hashtable<String, SavedSetup>> theirSetups;
 
@@ -55,7 +57,11 @@ public class MonClientUtil {
     Vector chosenserver = null;
 
     String headless = System.getProperty("java.awt.headless", "false");
-    String targethost = System.getProperty("server", null);
+    String targethost = System.getProperty("MoniCA.server", null);
+    if (targethost == null) {
+      // Provide support for deprecated property name
+      targethost = System.getProperty("server", null);
+    }
 
     if (targethost != null) {
       host = targethost;
@@ -181,7 +187,8 @@ public class MonClientUtil {
         System.err.println("MonClientUtil: ERROR: Couldn't connect to server. Goodbye.");
         System.exit(1);
       } else if (locator) {
-        // Cannot currently connect via locator service through tunnelled connection
+        // Cannot currently connect via locator service through tunnelled
+        // connection
         JOptionPane.showMessageDialog(MonFrame.theirWindowManager.getWindow(0), "ERROR CONTACTING LOCATOR\n\n" + "Server: " + host
                 + ":" + port + "\n" + "Error: " + (e.getMessage() == null ? e.getClass().getName() : e.getMessage()) + "\n\n"
                 + "The application will now exit.", "Error Contacting Server", JOptionPane.WARNING_MESSAGE);
@@ -215,17 +222,20 @@ public class MonClientUtil {
   }
 
   /** Get the short name of the server. */
-  public static synchronized String getServerName() {
+  public static synchronized String getServerName()
+  {
     return theirServerName;
   }
 
   /** Get a reference to the network connection to the server. */
-  public static synchronized MoniCAClient getServer() {
+  public static synchronized MoniCAClient getServer()
+  {
     return theirServer;
   }
 
   /** Cache the list of points available from the server. */
-  private static void cachePointNames() {
+  private static void cachePointNames()
+  {
     try {
       theirPointNameCache = theirServer.getAllPointNames();
     } catch (Exception e) {
@@ -235,18 +245,20 @@ public class MonClientUtil {
   }
 
   /** Return the cached list of all point names. */
-  public static String[] getAllPointNames() {
+  public static String[] getAllPointNames()
+  {
     return theirPointNameCache;
   }
 
   /**
-   * Return the names of all sources for each of the given points. The return Vector will
-   * be of the same length as the argument Vector. Each entry will be an array of Strings
-   * or possibly <tt>null</tt>.
+   * Return the names of all sources for each of the given points. The return
+   * Vector will be of the same length as the argument Vector. Each entry will
+   * be an array of Strings or possibly <tt>null</tt>.
    * @param names Vector containing String names for the points.
    * @return Vector containing an array of names for each requested point.
    */
-  public static Vector<Vector<String>> getSources(Vector points) {
+  public static Vector<Vector<String>> getSources(Vector points)
+  {
     if (points == null || points.size() == 0) {
       return null;
     }
@@ -278,17 +290,19 @@ public class MonClientUtil {
   }
 
   /**
-   * Download all the SavedSetups which are available on the server and add them to our
-   * collection.
+   * Download all the SavedSetups which are available on the server and add them
+   * to our collection.
    */
-  public static void addServerSetups() {
+  public static void addServerSetups()
+  {
     try {
       Vector<SavedSetup> setups = theirServer.getAllSetups();
       if (setups != null && setups.size() > 0) {
-        System.err.println("MonClientUtil:addServerSetups: Loaded " + setups.size() + " setups from server");
+        // System.err.println("MonClientUtil:addServerSetups: Loaded " +
+        // setups.size() + " setups from server");
         mergeSetups(setups);
       } else {
-        System.err.println("MonClientUtil:addServerSetups: None available");
+        // System.err.println("MonClientUtil:addServerSetups: None available");
       }
     } catch (Exception e) {
       System.err.println("MonClientUtil.addServerSetups: " + e.getClass() + " " + e.getMessage());
@@ -297,9 +311,11 @@ public class MonClientUtil {
   }
 
   /**
-   * Download all the SavedSetups which available locally and add them to our collection.
+   * Download all the SavedSetups which available locally and add them to our
+   * collection.
    */
-  public static void addLocalSetups() {
+  public static void addLocalSetups()
+  {
     // Figure out which platform we are on.
     String osname = System.getProperty("os.name").toLowerCase();
     String monfile = null;
@@ -322,17 +338,20 @@ public class MonClientUtil {
 
     if (setups != null && setups.size() > 0) {
       // We found some local setups, print message and add them
-      System.err.print("MonClientUtil:addLocalSetups: Loaded " + setups.size() + " setups from:");
-      System.err.println(monfile);
+      // System.err.print("MonClientUtil:addLocalSetups: Loaded " +
+      // setups.size() + " setups from:");
+      // System.err.println(monfile);
       mergeSetups(setups);
     } else {
-      System.err.println("MonClientUtil:addLocalSetups: No setups found in:");
-      System.err.println(monfile);
+      // System.err.println("MonClientUtil:addLocalSetups: No setups found
+      // in:");
+      // System.err.println(monfile);
     }
   }
 
   /** Merge the Vector of SavedSetups with our collection. */
-  public static void mergeSetups(Vector<SavedSetup> setups) {
+  public static void mergeSetups(Vector<SavedSetup> setups)
+  {
     if (setups == null || setups.size() == 0) {
       return;
     }
@@ -360,7 +379,8 @@ public class MonClientUtil {
   }
 
   /** Merge the given SavedSetup with our collection. */
-  public static void mergeSetup(SavedSetup setup) {
+  public static void mergeSetup(SavedSetup setup)
+  {
     if (setup == null) {
       System.err.println("MonClientUtil:mergeSetup: Warning NULL setup");
       return;
@@ -384,7 +404,8 @@ public class MonClientUtil {
    * Return a TreeUtil of the SavedSetups available for the specified class.
    * @return TreeUtil for available SavedSetups.
    */
-  protected static TreeUtil getSetupTreeUtil(Class c) {
+  protected static TreeUtil getSetupTreeUtil(Class c)
+  {
     return getSetupTreeUtil(c.getName());
   }
 
@@ -392,7 +413,8 @@ public class MonClientUtil {
    * Return a TreeUtil of the SavedSetups available for the specified class.
    * @return TreeUtil for available SavedSetups.
    */
-  protected static TreeUtil getSetupTreeUtil(String c) {
+  protected static TreeUtil getSetupTreeUtil(String c)
+  {
     TreeUtil res = new NavigatorTree("Setups");
 
     // Get the container of all setups for the required class
@@ -420,7 +442,8 @@ public class MonClientUtil {
    * @param c Name of the class to obtain the setup names for.
    * @return Array of setup names, never <tt>null</tt>.
    */
-  public static String[] getSetupNames(String c) {
+  public static String[] getSetupNames(String c)
+  {
     // Get the container of all setups for the required class
     Hashtable setups = (Hashtable) theirSetups.get(c);
     if (setups == null) {
@@ -441,7 +464,8 @@ public class MonClientUtil {
    * @param name Name of the setup to fetch.
    * @return The requested setup, or <tt>null</tt> if it doesn't exist.
    */
-  public static SavedSetup getSetup(String c, String name) {
+  public static SavedSetup getSetup(String c, String name)
+  {
     // Get the container of all setups for the required class
     Hashtable setups = (Hashtable) theirSetups.get(c);
     if (setups == null) {
@@ -456,15 +480,18 @@ public class MonClientUtil {
    * @param name Name of the setup to fetch.
    * @return The requested setup, or <tt>null</tt> if it doesn't exist.
    */
-  public static SavedSetup getSetup(Class c, String name) {
+  public static SavedSetup getSetup(Class c, String name)
+  {
     return getSetup(c.getName(), name);
   }
 
-  public static JMenuItem getSetupMenu(Class c) {
+  public static JMenuItem getSetupMenu(Class c)
+  {
     return getSetupMenu(c.getName());
   }
 
-  public static JMenuItem getSetupMenu(String c) {
+  public static JMenuItem getSetupMenu(String c)
+  {
     TreeUtil res = getSetupTreeUtil(c);
     if (res == null) {
       return null;
@@ -472,11 +499,13 @@ public class MonClientUtil {
     return res.getMenus();
   }
 
-  public static void getSetupMenu(Class c, JMenu menu) {
+  public static void getSetupMenu(Class c, JMenu menu)
+  {
     getSetupMenu(c.getName(), menu);
   }
 
-  public static void getSetupMenu(String c, JMenu menu) {
+  public static void getSetupMenu(String c, JMenu menu)
+  {
     TreeUtil res = getSetupTreeUtil(c);
     if (res == null) {
       return;
@@ -484,11 +513,13 @@ public class MonClientUtil {
     res.getMenus(menu);
   }
 
-  public static JMenuItem getSetupMenu(Class c, ActionListener listener) {
+  public static JMenuItem getSetupMenu(Class c, ActionListener listener)
+  {
     return getSetupMenu(c.getName(), listener);
   }
 
-  public static JMenuItem getSetupMenu(String c, ActionListener listener) {
+  public static JMenuItem getSetupMenu(String c, ActionListener listener)
+  {
     TreeUtil res = getSetupTreeUtil(c);
     if (res == null) {
       return null;
@@ -497,11 +528,13 @@ public class MonClientUtil {
     return res.getMenus();
   }
 
-  public static void getSetupMenu(Class c, ActionListener listener, JMenu parent) {
+  public static void getSetupMenu(Class c, ActionListener listener, JMenu parent)
+  {
     getSetupMenu(c.getName(), listener, parent);
   }
 
-  public static void getSetupMenu(String c, ActionListener listener, JMenu parent) {
+  public static void getSetupMenu(String c, ActionListener listener, JMenu parent)
+  {
     TreeUtil res = getSetupTreeUtil(c);
     if (res == null) {
       return;
@@ -513,7 +546,8 @@ public class MonClientUtil {
   /**
    * Prompt the user to choose a site, and return the hostname.
    */
-  public static class SiteChooser extends JFrame implements ActionListener {
+  public static class SiteChooser extends JFrame implements ActionListener
+  {
     /** The server host name that will be returned. */
     Vector itsServer = null;
 
@@ -532,7 +566,8 @@ public class MonClientUtil {
     /** The countdown Timer. */
     Timer itsTimer = null;
 
-    public SiteChooser(Vector servers, Vector def) {
+    public SiteChooser(Vector servers, Vector def)
+    {
       itsServers = servers;
       itsDefault = def;
 
@@ -567,7 +602,8 @@ public class MonClientUtil {
       // Do this on the AWT threads time to avoid deadlocks
       final SiteChooser realthis = this;
       final Runnable choosenow = new Runnable() {
-        public void run() {
+        public void run()
+        {
           realthis.pack();
           if (itsDefault != null) {
             realthis.setSize(new Dimension(240, 74 + 28 * itsServers.size()));
@@ -589,7 +625,8 @@ public class MonClientUtil {
       }
     }
 
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e)
+    {
       if (e.getSource() == itsTimer) {
         // timer update
         itsTimeout--;
@@ -613,7 +650,8 @@ public class MonClientUtil {
       }
     }
 
-    public Vector getSite() {
+    public Vector getSite()
+    {
       try {
         synchronized (this) {
           wait();
@@ -625,20 +663,24 @@ public class MonClientUtil {
   }
 
   /**
-   * Sub-class of TreeUtil for building the Navigator window, which knows to put the
-   * "favourites" menu at the top, and to put a separator item beneath it when building a
-   * Menu tree.
+   * Sub-class of TreeUtil for building the Navigator window, which knows to put
+   * the "favourites" menu at the top, and to put a separator item beneath it
+   * when building a Menu tree.
    */
-  public static class NavigatorTree extends TreeUtil {
-    public NavigatorTree(String name, Object root) {
+  public static class NavigatorTree extends TreeUtil
+  {
+    public NavigatorTree(String name, Object root)
+    {
       super(name, root);
     }
 
-    public NavigatorTree(String name) {
+    public NavigatorTree(String name)
+    {
       super(name);
     }
 
-    public void addNode(String name, Object obj) {
+    public void addNode(String name, Object obj)
+    {
       itsMap.put(name, obj);
       DefaultMutableTreeNode tempNode = itsRootNode;
       StringTokenizer tok = new StringTokenizer(name, ".");
@@ -658,8 +700,10 @@ public class MonClientUtil {
         if (createNew) {
           DefaultMutableTreeNode aNode = new DefaultMutableTreeNode(myTok);
           itsTreeMap.put(currentName, aNode);
-          // Let's give some consideration to where in the tree we place the new node.
-          // We want any nodes with children to be listed first, in alphabetical order.
+          // Let's give some consideration to where in the tree we place the new
+          // node.
+          // We want any nodes with children to be listed first, in alphabetical
+          // order.
           // Then come nodes with no children, in alphabetical order.
           if (tok.hasMoreTokens()) {
             // This node is not a leaf node
@@ -692,10 +736,11 @@ public class MonClientUtil {
     }
 
     /**
-     * Make a Menu structure, without the root node. The children of the root node will be
-     * added to the specified menu element.
+     * Make a Menu structure, without the root node. The children of the root
+     * node will be added to the specified menu element.
      */
-    public void getMenus(JMenu menu) {
+    public void getMenus(JMenu menu)
+    {
       int numChild = itsRootNode.getChildCount();
       for (int i = 0; i < numChild; i++) {
         DefaultMutableTreeNode thisnode = (DefaultMutableTreeNode) itsRootNode.getChildAt(i);

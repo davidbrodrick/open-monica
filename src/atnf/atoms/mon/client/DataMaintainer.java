@@ -7,12 +7,11 @@ import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
 
 /**
- * Class: DataMaintainer Description: handles client-side collection and
- * buffering of Points
+ * The DataMaintainer provides a simple interface for listeners to subscribe to
+ * updates for nominated points.
  * 
- * @author Le Cuong Nguyen
+ * @author Le Cuong Nguyen, David Brodrick
  */
-
 public class DataMaintainer implements Runnable
 {
   // Create a thread to do the polling of the server
@@ -73,6 +72,9 @@ public class DataMaintainer implements Runnable
   /** All points currently being collected. */
   protected static HashMap<String, PointDescription> theirPoints = new HashMap<String, PointDescription>();
 
+  /** Record of the latest data reported to subscribers for each point. */
+  protected static HashMap<String, PointData> theirLastData = new HashMap<String, PointData>();
+
   public DataMaintainer()
   {
   }
@@ -80,97 +82,143 @@ public class DataMaintainer implements Runnable
   /** Check if the named point is already being collected. */
   public static boolean alreadyCollecting(String name)
   {
-    return theirPoints.containsKey(name);
+    boolean res;
+    synchronized (theirPoints) {
+      res = theirPoints.containsKey(name);
+    }
+    return res;
   }
 
   /** Schedules a point */
   protected static void addPoint(PointDescription pd)
   {
-    theirPoints.put(pd.getFullName(), pd);
-    theirQueue.add(pd);
-    theirQueue.notifyAll();
+    synchronized (theirPoints) {
+      theirPoints.put(pd.getFullName(), pd);
+    }
+    synchronized (theirQueue) {
+      theirQueue.add(pd);
+      theirQueue.notifyAll();
+    }
   }
 
   /** Unschedules a point. */
   public static void removePoint(PointDescription pd)
   {
-    theirPoints.remove(pd.getFullName());
+    String thisname = pd.getFullName();
+    synchronized (theirPoints) {
+      theirPoints.remove(thisname);
+    }
+    synchronized (theirQueue) {
+      theirQueue.remove(pd);
+    }
+    synchronized (theirLastData) {
+      theirLastData.remove(thisname);
+    }
   }
 
   /** Subscribe the specified listener to updates from all of the given points. */
-  public static void subscribe(Vector<String> points, PointListener pl)
+  public static void subscribe(final Vector<String> points, final PointListener pl)
   {
     // Identify any points we dont have full definitions for yet
-    Vector<String> newpoints = new Vector<String>();
+    Vector<String> needdefs = new Vector<String>();
     for (int i = 0; i < points.size(); i++) {
       String pname = points.get(i);
       if (PointDescription.getPoint(pname) == null) {
         // We don't already have this point
-        newpoints.add(pname);
+        needdefs.add(pname);
       }
     }
 
-    // Get the new definitions from the server
-    if (newpoints.size() > 0) {
+    // Get the new definitions from the server. This is done by calling thread
+    // because caller will assume point definitions are available when call
+    // returns.
+    if (needdefs.size() > 0) {
       Vector<PointDescription> queryres = null;
       try {
         // Points will get added to static fields when the downloaded
-        // definitions are
-        // instanciated - so simply requesting the points from the server meets
-        // our goals.
-        queryres = (MonClientUtil.getServer()).getPoints(newpoints);
+        // definitions are instanciated - so simply requesting the points
+        // from
+        // the server meets our goals.
+        queryres = (MonClientUtil.getServer()).getPoints(needdefs);
       } catch (Exception e) {
         queryres = null;
       }
       if (queryres == null) {
-        System.err.println("DataMaintainer.subscribe: GOT NULL RESULT!");
+        System.err.println("DataMaintainer.subscribe: COULD NOT SUBSCRIBE - GOT NULL RESULT!");
         return;
       }
     }
 
-    // Force a data collection so the new subscriber gets an update
-    Vector<PointData> resdata = null;
-    try {
-      resdata = MonClientUtil.getServer().getData(points);
-    } catch (Exception e) {
-    }
-    if (resdata != null) {
-      for (int i = 0; i < points.size(); i++) {
-        PointDescription pm = PointDescription.getPoint(points.get(i));
-        if (pm != null) {
+    // Do all further IO on new thread
+    new Thread() {
+      public void run()
+      {
+        // Fire last collected value or queue for immediate collection
+        Vector<String> needvals = new Vector<String>();
+        for (int i = 0; i < points.size(); i++) {
+          String thisname = points.get(i);
+          PointDescription thispoint = PointDescription.getPoint(thisname);
           // Add the listener to this point
-          pm.addPointListener(pl);
-          if (resdata.get(i) != null) {
-            // Got new data for this point okay
-            pm.distributeData(new PointEvent(pm, resdata.get(i), false));
+          thispoint.addPointListener(pl);
+          if (alreadyCollecting(thisname)) {
+            PointData lastdata;
+            synchronized (theirLastData) {
+              lastdata = theirLastData.get(thisname);
+            }
+            if (lastdata != null) {
+              pl.onPointEvent(thispoint, new PointEvent(thispoint, lastdata, false));
+            }
           } else {
-            // Got no data back for this point
-            pm.distributeData(new PointEvent(pm, new PointData(pm.getFullName()), false));
+            needvals.add(thisname);
           }
         }
-      }
-    } else {
-      // Got no data back at all
-      for (int i = 0; i < points.size(); i++) {
-        PointDescription pm = PointDescription.getPoint(points.get(i));
-        // Add the listener to this point
-        pm.addPointListener(pl);
-        // Inform listeners about the failure to collect data
-        pm.distributeData(new PointEvent(pm, new PointData(pm.getFullName()), false));
-      }
-    }
 
-    // Ensure all of the specified points are being collected
-    for (int i = 0; i < points.size(); i++) {
-      PointDescription pd = PointDescription.getPoint(points.get(i));
-      if (pd != null) {
-        synchronized (theirQueue) {
-          if (!alreadyCollecting(points.get(i))) {
-            addPoint(pd);
+        if (needvals.size() > 0) {
+          // Need to collect values for these points
+          Vector<PointData> resdata = null;
+          try {
+            // Do the actual data collection
+            resdata = MonClientUtil.getServer().getData(needvals);
+          } catch (Exception e) {
+          }
+          if (resdata != null) {
+            for (int i = 0; i < needvals.size(); i++) {
+              String thisname = needvals.get(i);
+              PointDescription thispoint = PointDescription.getPoint(thisname);
+              PointData thisval = resdata.get(i);
+              if (thisval != null) {
+                // Got new data for this point okay
+                pl.onPointEvent(thispoint, new PointEvent(thispoint, thisval, false));
+                synchronized (theirLastData) {
+                  // Record new data
+                  theirLastData.put(thisname, resdata.get(i));
+                }
+              } else {
+                // Got no data back for this point
+                pl.onPointEvent(thispoint, new PointEvent(thispoint, null, false));
+              }
+            }
+          } else {
+            // Got no data back at all
+            for (int i = 0; i < needvals.size(); i++) {
+              PointDescription thispoint = PointDescription.getPoint(needvals.get(i));
+              // Inform listeners about the failure to collect data
+              pl.onPointEvent(thispoint, new PointEvent(thispoint, null, false));
+            }
+          }
+        }
+
+        // Ensure all of the specified points are being collected
+        for (int i = 0; i < points.size(); i++) {
+          PointDescription thispoint = PointDescription.getPoint(points.get(i));
+          if (thispoint != null) {
+            if (!alreadyCollecting(points.get(i))) {
+              addPoint(thispoint);
+            }
           }
         }
       }
-    }
+    }.start();
   }
 
   /** Subscribe the specified listener to updates from the specified point. */
@@ -182,10 +230,10 @@ public class DataMaintainer implements Runnable
   }
 
   /** Unsubscribe the listener from all points contained in the vector. */
-  public static void unsubscribe(Vector points, PointListener pl)
+  public static void unsubscribe(Vector<String> points, PointListener pl)
   {
     for (int i = 0; i < points.size(); i++) {
-      unsubscribe((String) points.get(i), pl);
+      unsubscribe(points.get(i), pl);
     }
   }
 
@@ -193,13 +241,13 @@ public class DataMaintainer implements Runnable
   public static void unsubscribe(String point, PointListener pl)
   {
     // Get the reference to the full point
-    PointDescription pd = PointDescription.getPoint(point);
-    if (pd != null) {
+    PointDescription thispoint = PointDescription.getPoint(point);
+    if (thispoint != null) {
       // Point exists
-      pd.removePointListener(pl);
-      if (pd.getNumListeners() == 0) {
-        // No listeners left so stop collecting this point
-        removePoint(pd);
+      thispoint.removePointListener(pl);
+      if (thispoint.getNumListeners() == 0) {
+        // No listeners left so stop collecting and clear old data
+        removePoint(thispoint);
       }
     }
   }
@@ -286,9 +334,25 @@ public class DataMaintainer implements Runnable
         if (resdata != null) {
           for (int i = 0; i < getpoints.size(); i++) {
             PointDescription pm = getpoints.get(i);
+
             if (resdata.get(i) != null) {
-              // Got new data for this point okay
-              pm.distributeData(new PointEvent(pm, resdata.get(i), false));
+              // Got data, but check if it is new or repeated
+              PointData lastdata;
+              synchronized (theirLastData) {
+                lastdata = theirLastData.get(getnames.get(i));
+              }
+              if (lastdata == null || lastdata.getTimestamp().compare(resdata.get(i).getTimestamp()) != 0) {
+                // Got data for this point
+                synchronized (theirLastData) {
+                  theirLastData.put(getnames.get(i), resdata.get(i));
+                }
+                pm.distributeData(new PointEvent(pm, resdata.get(i), false));
+                // System.err.println("DataMaintainer.run: " + getnames.get(i) +
+                // " got new data " + resdata.get(i).getTimestamp());
+              } else {
+                // System.err.println("DataMaintainer.run: " + getnames.get(i) +
+                // " got repeated data");
+              }
               updateCollectionTime(pm, resdata.get(i));
             } else {
               // Got no data back for this point
