@@ -5,9 +5,9 @@
 Rather than use the Ice interface to directly interface a client application to a MoniCA server, Java programmers can take advantage of classes provided with the MoniCA distribution. This makes the application immune from transport implementation changes and provides a much higher level interface to facilitate faster development.
 
 
-= Server Specification =
+= Select Server =
 
-In order to tell the MoniCA library which server you require it to connect to, you would normally specify a value for the system property *MoniCA.server*. This may take either _my.hostname_ or _my.hostname:port_ syntax, or if you are using an Ice locator service you can assign the property a value like _locator://my.locator.hostname:port_.
+In order to tell the MoniCA library which server you require it to connect to, you would normally specify a value for the system property *MoniCA.server*. The value may take either _hostname_ or _hostname:port_ syntax, or if you are using an Ice locator service you can assign the property a value like _locator://hostname:port_.
 
 {{{
 -DMoniCA.server=my.server.com
@@ -58,7 +58,7 @@ Once you have defined your _!PointListener_ subclass it is trivial to use the _D
 
 = Obtaining a Reference =
 
-Client applications can obtain a reference to the _MoniCAClient_ instance which has been connected to the server by invoking the _atnf.atoms.mon.client.!MonClientUtil.getServer()_ method.
+To access the full functionality of the interface client applications can obtain a reference to a _MoniCAClient_ instance by invoking the _atnf.atoms.mon.client.!MonClientUtil.getServer()_ method. _MoniCAClient_ is an abstract class which is transport independent and the intention will be to maintain the same interface if and when alternative transports to Ice become available.
 
 {{{
    import atnf.atoms.mon.comms.MoniCAClient;
@@ -66,4 +66,49 @@ Client applications can obtain a reference to the _MoniCAClient_ instance which 
    ...
    MoniCAClient myref = MonClientUtil.getServer();
    ...
+}}}
+
+= Interface Methods =
+
+The javadoc provides detailed information for the _MoniCAClient_ class. The javadoc's can be produced by invoking ant and the resulting documentation will be generated into a directory called *javadoc*.
+
+{{{
+ant javadoc
+}}}
+
+== Example: Archival Data ==
+
+As a brief example of one of the most frequently used operations, the _MoniCAClient_ instance can be used to retrieve archival data values for specified points. This involves calculating the time range over which you would like the values to be extracted. There are several forms of the method, the basic one is:
+
+{{{
+  /** Return archived data for the given point.
+   * @param pointname Point to get data for.
+   * @param start The oldest data to be retrieved.
+   * @param end The most recent data to be retrieved.
+   * @return Data from the archive between the specified times. */
+  public Vector<PointData> getArchiveData(String pointname, AbsTime start, AbsTime end);
+}}}
+
+A demonstration class which makes both an archival data query and also subscribes to realtime updates is bundled with MoniCA in the _atnf.atoms.mon.apps.TestApp_ class. An example of building and running this class, to connect to a publicly available server, is:
+
+{{{
+ant
+java -DMoniCA.server=narrabri.ozforecast.com.au -cp open-monica.jar atnf.atoms.mon.apps.TestApp home.weather.wind_avg_speed
+}}}
+
+This will produce output along the lines of:
+
+{{{
+MonClientUtil: Connecting to host "narrabri.ozforecast.com.au" on port 8052
+ARCHIVE QUERY RESULTS FOR home.weather.wind_avg_speed
+        (2010-08-05 03:22:01.639)       2.52
+        (2010-08-05 03:22:50.320)       3.6
+        (2010-08-05 03:23:38.065)       7.2
+        (2010-08-05 03:24:25.762)       8.64
+        (2010-08-05 03:25:13.523)       8.64
+        (2010-08-05 03:26:02.173)       5.04
+SUBSCRIBING TO REAL-TIME UPDATES:
+home.weather.wind_avg_speed     (2010-08-05 03:26:02.173)       5.04
+home.weather.wind_avg_speed     (2010-08-05 03:26:49.966)       6.12
+... etc ...
 }}}
