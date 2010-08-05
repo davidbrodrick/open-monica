@@ -1,0 +1,69 @@
+#summary Writing a Java client application.
+
+= Introduction =
+
+Rather than use the Ice interface to directly interface a client application to a MoniCA server, Java programmers can take advantage of classes provided with the MoniCA distribution. This makes the application immune from transport implementation changes and provides a much higher level interface to facilitate faster development.
+
+
+= Server Specification =
+
+In order to tell the MoniCA library which server you require it to connect to, you would normally specify a value for the system property *MoniCA.server*. This may take either _my.hostname_ or _my.hostname:port_ syntax, or if you are using an Ice locator service you can assign the property a value like _locator://my.locator.hostname:port_.
+
+{{{
+-DMoniCA.server=my.server.com
+}}}
+
+If no value is specified for this property then MoniCA will present a graphical display element allowing the user to choose between the servers specified in the _monitor-servers.txt_ resource. If the *java.awt.headless* property is set to _true_ then this will prevent the MoniCA library from issuing the graphical prompt to the user, and the application will not be able to run.
+
+= Subscribing to Realtime Updates =
+
+If your application only needs to subscribe to updates for specific points in realtime you can use the _atnf.atoms.mon.client.!DataMaintainer_ class which provides a very high level interface. This involves implementing a class to receive updates as they happen and then subscribing to updates from the set of points you are interested in.
+
+== Callback Interface ==
+
+You need to implement a class which implements the _atnf.atoms.mon.!PointListener_ interface.
+
+{{{
+import atnf.atoms.mon.*;
+
+public class Example implements PointListener
+{
+   public void onPointEvent(Object source, PointEvent evt)
+   {
+      PointData data = evt.getPointData();
+      System.out.println("New data value for " + data.getName() + " is " + data.getData());
+   }
+}
+}}}
+
+Usually the only field of the _atnf.atoms.mon.!PointEvent_ argument you will need to access is the _getPointData()_ method. This returns the latest _atnf.atoms.mon.!PointData_ object to be collected for one of the points you have subscribed to.
+
+== Subscribing ==
+
+Once you have defined your _!PointListener_ subclass it is trivial to use the _DataMaintainer_ to subscribe or unsubscribe from realtime updates. The relevant methods are:
+
+{{{
+  /** Subscribe the specified listener to updates from the specified point. */
+  DataMaintainer.subscribe(String pointname, PointListener pl);
+
+  /** Subscribe the specified listener to updates from all of the given points. */
+  DataMaintainer.subscribe(Vector<String> pointnames, final PointListener pl);
+
+  /** Unsubscribe the listener from the specified point. */
+  DataMaintainer.unsubscribe(String pointname, PointListener pl);
+
+  /** Unsubscribe the listener from all points contained in the vector. */
+  DataMaintainer.unsubscribe(Vector<String> pointnames, PointListener pl);
+}}}
+
+= Obtaining a Reference =
+
+Client applications can obtain a reference to the _MoniCAClient_ instance which has been connected to the server by invoking the _atnf.atoms.mon.client.!MonClientUtil.getServer()_ method.
+
+{{{
+   import atnf.atoms.mon.comms.MoniCAClient;
+   import atnf.atoms.mon.client.MonClientUtil;
+   ...
+   MoniCAClient myref = MonClientUtil.getServer();
+   ...
+}}}
