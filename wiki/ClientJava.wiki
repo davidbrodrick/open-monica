@@ -78,7 +78,7 @@ ant javadoc
 
 = Example =
 
-A class which demonstrates both an archival data query and also subscribes to realtime updates is bundled with MoniCA in the _atnf.atoms.mon.apps.TestApp_ class. An example of building and running this class, to connect to a publicly available server, is:
+A class which demonstrates both an archival data query and also subscribes to realtime updates is bundled with MoniCA in the _atnf.atoms.mon.apps.!TestApp_ class. An example of building and running this class, to connect to a publicly available server, is:
 
 {{{
 ant
