@@ -2,7 +2,7 @@
 
 = Introduction =
 
-Rather than use the Ice interface to directly interface a client application to a MoniCA server, Java programmers can take advantage of classes provided with the MoniCA distribution. This makes the application immune from transport implementation changes and provides a much higher level interface to facilitate faster development.
+Rather than use the Ice interface to directly interface a client application to a MoniCA server, Java programmers can take advantage of classes provided with the MoniCA distribution. These are the same classes that the MoniCA GUI client uses. This makes the application immune from transport implementation changes and provides a much higher level interface to facilitate faster development.
 
 
 = Select Server =
@@ -13,11 +13,11 @@ In order to tell the MoniCA library which server you require it to connect to, y
 -DMoniCA.server=my.server.com
 }}}
 
-If no value is specified for this property then MoniCA will present a graphical display element allowing the user to choose between the servers specified in the _monitor-servers.txt_ resource. If the *java.awt.headless* property is set to _true_ then this will prevent the MoniCA library from issuing the graphical prompt to the user, and the application will not be able to run.
+If no value is specified for this property then MoniCA will present a graphical display element allowing the user to choose between the servers specified in the _monitor-servers.txt_ resource. If the _java.awt.headless_ property is set to _true_ then this will prevent the MoniCA library from issuing the graphical prompt to the user, and the application will not be able to run.
 
 = Subscribing to Realtime Updates =
 
-If your application only needs to subscribe to updates for specific points in realtime you can use the _atnf.atoms.mon.client.!DataMaintainer_ class which provides a very high level interface. This involves implementing a class to receive updates as they happen and then subscribing to updates from the set of points you are interested in.
+If your application needs to subscribe to updates for specific points in realtime, you can use the _atnf.atoms.mon.client.!DataMaintainer_ class which provides a very high level interface. This involves implementing a class to receive updates as they happen and then subscribing to the set of points you are interested in.
 
 == Callback Interface ==
 
@@ -40,14 +40,14 @@ Usually the only field of the _atnf.atoms.mon.!PointEvent_ argument you will nee
 
 == Subscribing ==
 
-Once you have defined your _!PointListener_ subclass it is trivial to use the _DataMaintainer_ to subscribe or unsubscribe from realtime updates. The relevant methods are:
+Once you have defined your _!PointListener_ subclass it is trivial to use the _!DataMaintainer_ to subscribe or unsubscribe from realtime updates. The relevant methods are:
 
 {{{
   /** Subscribe the specified listener to updates from the specified point. */
   DataMaintainer.subscribe(String pointname, PointListener pl);
 
   /** Subscribe the specified listener to updates from all of the given points. */
-  DataMaintainer.subscribe(Vector<String> pointnames, final PointListener pl);
+  DataMaintainer.subscribe(Vector<String> pointnames, PointListener pl);
 
   /** Unsubscribe the listener from the specified point. */
   DataMaintainer.unsubscribe(String pointname, PointListener pl);
@@ -58,7 +58,7 @@ Once you have defined your _!PointListener_ subclass it is trivial to use the _D
 
 = Obtaining a Reference =
 
-To access the full functionality of the interface client applications can obtain a reference to a _MoniCAClient_ instance by invoking the _atnf.atoms.mon.client.!MonClientUtil.getServer()_ method. _MoniCAClient_ is an abstract class which is transport independent and the intention will be to maintain the same interface if and when alternative transports to Ice become available.
+To access the complete functionality of the interface, client applications can obtain a reference to a _MoniCAClient_ instance by invoking the _atnf.atoms.mon.client.!MonClientUtil.getServer()_ method. _MoniCAClient_ is an abstract class which is transport independent and the intention will be to maintain the same interface if and when alternative transports to Ice become available.
 
 {{{
    import atnf.atoms.mon.comms.MoniCAClient;
@@ -76,20 +76,9 @@ The javadoc provides detailed information for the _MoniCAClient_ class. The java
 ant javadoc
 }}}
 
-== Example: Archival Data ==
+== Example ==
 
-As a brief example of one of the most frequently used operations, the _MoniCAClient_ instance can be used to retrieve archival data values for specified points. This involves calculating the time range over which you would like the values to be extracted. There are several forms of the method, the basic one is:
-
-{{{
-  /** Return archived data for the given point.
-   * @param pointname Point to get data for.
-   * @param start The oldest data to be retrieved.
-   * @param end The most recent data to be retrieved.
-   * @return Data from the archive between the specified times. */
-  public Vector<PointData> getArchiveData(String pointname, AbsTime start, AbsTime end);
-}}}
-
-A demonstration class which makes both an archival data query and also subscribes to realtime updates is bundled with MoniCA in the _atnf.atoms.mon.apps.TestApp_ class. An example of building and running this class, to connect to a publicly available server, is:
+A class which demonstrates both an archival data query and also subscribes to realtime updates is bundled with MoniCA in the _atnf.atoms.mon.apps.TestApp_ class. An example of building and running this class, to connect to a publicly available server, is:
 
 {{{
 ant
