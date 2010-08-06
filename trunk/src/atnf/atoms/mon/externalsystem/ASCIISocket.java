@@ -71,6 +71,37 @@ public class ASCIISocket extends TCPSocket
         super.disconnect();
     }
 
+    /** */
+    public synchronized void putData(PointDescription desc, PointData pd) throws Exception
+    {
+      if (!isConnected()) {
+        connect();
+      }
+      
+try{
+      // Get the Transaction which associates the point with us
+      TransactionStrings thistrans = (TransactionStrings) getMyTransactions(desc.getOutputTransactions()).get(0);
+
+      // The Transaction should contain a query string to be issued to the server
+      if (thistrans.getNumStrings() < 1) {
+          throw new Exception("ASCIISocket: Not enough arguments in Transaction");
+      }
+
+      String cmdstring = thistrans.getString();
+      // Substitute EOL characters
+      cmdstring = cmdstring.replaceAll("\\\\n", "\n").replaceAll("\\\\r", "\r");
+      // Substitute the data value for $V
+      cmdstring = cmdstring.replaceAll("\\$V", pd.getData().toString());
+      
+      // Send the command to the server
+      itsWriter.write(cmdstring);
+      itsWriter.flush();
+} catch (Exception e) {
+  e.printStackTrace();
+  throw e;
+}
+    }
+    
     /**
      * You can override this method in your class to perform any response parsing and/or
      * request formatting that is required. This default implementation sends the request
@@ -110,7 +141,7 @@ public class ASCIISocket extends TCPSocket
     }
 
     /** Collect data and fire events to queued monitor points. */
-    protected void getData(PointDescription[] points) throws Exception
+    protected synchronized void getData(PointDescription[] points) throws Exception
     {
         try {
             for (int i = 0; i < points.length; i++) {
