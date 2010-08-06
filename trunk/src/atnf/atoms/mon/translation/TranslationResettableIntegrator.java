@@ -30,37 +30,37 @@ import atnf.atoms.time.AbsTime;
  * <li><b>Reload:</b> Optional argument which determines whether the integral
  * will reload its last value from the archive when the system starts up. This
  * can be used to prevent resetting the integral if the MoniCA server is
- * restarted. Set this argument to "true" to enable this functionality.
- * </bl>
+ * restarted. Set this argument to "true" to enable this functionality. </bl>
  * 
  * <P>
- * Remember it is the normal input to the Translation which is integrated, while the
- * listened-to point is what control when to reset the integral.
+ * Remember it is the normal input to the Translation which is integrated, while
+ * the listened-to point is what control when to reset the integral.
  * 
  * @author David Brodrick
  */
-public class TranslationResettableIntegrator extends Translation implements
-    PointListener, ActionListener {
+public class TranslationResettableIntegrator extends Translation implements PointListener, ActionListener {
   /** The accumulated input. */
   protected double itsSum = 0.0;
 
   /** The last state of the reset-control point. */
   protected Boolean itsLastState = null;
 
+  /** Whether or not the reset-control point requires an integral reset. */
+  protected boolean itsNeedsReset = false;
+
   /** Timer used when listened-to point hasn't been created yet. */
   protected Timer itsTimer = null;
 
   /** Name of the reset-control listened-to point. */
   protected String itsPointName;
-  
+
   /** Do we need to load our last value from the archive, on system startup. */
   protected boolean itsGetArchive = false;
-  
+
   public TranslationResettableIntegrator(PointDescription parent, String[] init) {
     super(parent, init);
     if (init == null || init.length < 1) {
-      System.err.println("TranslationResettableIntegrator: NO ARGUMENTS: for "
-          + parent.getFullName());
+      System.err.println("TranslationResettableIntegrator: NO ARGUMENTS: for " + parent.getFullName());
       return;
     }
 
@@ -69,9 +69,9 @@ public class TranslationResettableIntegrator extends Translation implements
     if (itsPointName.indexOf("$1") > -1) {
       itsPointName = MonitorUtils.replaceTok(itsPointName, parent.getSource());
     }
-    
-    //Check for the optional 'reload last value at startup' argument
-    if (init.length==2 && init[1].equalsIgnoreCase("true")) {
+
+    // Check for the optional 'reload last value at startup' argument
+    if (init.length == 2 && init[1].equalsIgnoreCase("true")) {
       itsGetArchive = true;
     }
 
@@ -83,19 +83,23 @@ public class TranslationResettableIntegrator extends Translation implements
   /** Calculate the current value of the integral. */
   public PointData translate(PointData data) {
     if (itsGetArchive) {
-      //Need to reload last value from the archive, since system has just restarted
+      // Need to reload last value from the archive, since system has just
+      // restarted
       PointData archiveval = PointBuffer.getPreceding(itsParent.getFullName(), new AbsTime());
-      if (archiveval!=null && archiveval.getData() instanceof Number) {
-        itsSum = ((Number)archiveval.getData()).doubleValue();
+      if (archiveval != null && archiveval.getData() instanceof Number) {
+        itsSum = ((Number) archiveval.getData()).doubleValue();
       }
       itsGetArchive = false;
     }
-    
+
     if (itsLastState != null && itsLastState.booleanValue()) {
-      // Need to reset the integral
+      // Need to reset the integral due to current state of control point
       itsSum = 0.0;
-      return new PointData(itsParent.getFullName(), new AbsTime(), new Double(
-          0.0));
+      return new PointData(itsParent.getFullName(), new AbsTime(), new Double(0.0));
+    } else if (itsNeedsReset) {
+      // Need to reset but control point has since changed state again
+      itsSum = 0.0;
+      itsNeedsReset = false;
     }
 
     // Extract the numeric value from the new input
@@ -103,14 +107,12 @@ public class TranslationResettableIntegrator extends Translation implements
       if (data.getData() instanceof Number) {
         itsSum += ((Number) (data.getData())).doubleValue();
       } else {
-        System.err.println("TranslationResettableIntegrator: "
-            + itsParent.getFullName() + ": REQUIRES NUMERIC INPUT!");
+        System.err.println("TranslationResettableIntegrator: " + itsParent.getFullName() + ": REQUIRES NUMERIC INPUT!");
       }
     }
 
     // Return the integrated sum
-    return new PointData(itsParent.getFullName(), new AbsTime(), new Double(
-        itsSum));
+    return new PointData(itsParent.getFullName(), new AbsTime(), new Double(itsSum));
   }
 
   /** Called when a listened-to point updates. */
@@ -131,13 +133,17 @@ public class TranslationResettableIntegrator extends Translation implements
         newvalue = new Boolean(true);
       }
     } else {
-      System.err.println("TranslationResettableIntegrator ("
-          + itsParent.getFullName() + ": Listened-to point " + itsPointName
-          + " MUST HAVE BOOLEAN OR NUMERIC VALUES");
+      System.err.println("TranslationResettableIntegrator (" + itsParent.getFullName() + ": Listened-to point "
+          + itsPointName + " MUST HAVE BOOLEAN OR NUMERIC VALUES");
     }
 
     if (newvalue != null) {
       itsLastState = newvalue;
+      if (itsLastState.booleanValue()) {
+        // Flag this in case control point has changed state by next time
+        // translate is called
+        itsNeedsReset = true;
+      }
     }
   }
 
@@ -147,9 +153,8 @@ public class TranslationResettableIntegrator extends Translation implements
       PointDescription pd = PointDescription.getPoint(itsPointName);
       if (pd == null) {
         // Still couldn't find the point, perhaps it doesn't exist?!
-        System.err.println("WARNING: TranslationResettableIntegrator ("
-            + itsParent.getFullName() + "): LISTENED-TO POINT " + itsPointName
-            + " DOESN'T EXIST?!");
+        System.err.println("WARNING: TranslationResettableIntegrator (" + itsParent.getFullName()
+            + "): LISTENED-TO POINT " + itsPointName + " DOESN'T EXIST?!");
       } else {
         pd.addPointListener(this);
         itsTimer.stop();
