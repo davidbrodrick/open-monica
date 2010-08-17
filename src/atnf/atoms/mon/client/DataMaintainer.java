@@ -158,6 +158,9 @@ public class DataMaintainer implements Runnable
         for (int i = 0; i < points.size(); i++) {
           String thisname = points.get(i);
           PointDescription thispoint = PointDescription.getPoint(thisname);
+          if (thispoint == null) {
+            continue;
+          }
           // Add the listener to this point
           thispoint.addPointListener(pl);
           if (alreadyCollecting(thisname)) {
