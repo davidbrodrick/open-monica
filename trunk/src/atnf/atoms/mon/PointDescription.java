@@ -778,7 +778,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       }
 
     } catch (Exception e) {
-      e.printStackTrace();
+      System.err.println("PointDescription.parseLine: " + e);
       result = null;
     }
     return result;
