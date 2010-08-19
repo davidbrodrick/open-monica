@@ -18,6 +18,7 @@ import atnf.atoms.util.*;
 
 import java.util.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.lang.Number;
@@ -36,10 +37,10 @@ import org.jfree.chart.renderer.xy.*;
  * archival mode or a dynamic updating mode, and also has other features.
  * 
  * @author David Brodrick
- * @version $Id: ATTimeSeries.java,v 1.11 2006/06/22 04:39:07 bro764 Exp $
  * @see MonPanel
  */
-public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
+public class ATTimeSeries extends MonPanel implements ActionListener, Runnable
+{
   static {
     MonPanel.registerMonPanel("Time Series", ATTimeSeries.class);
   }
@@ -49,10 +50,138 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    * Nested class to provide GUI controls for configuring an ATTimeSeries
    * MonPanel.
    */
-  public class ATTimeSeriesSetupPanel extends MonPanelSetupPanel
-    implements ActionListener {
+  public class ATTimeSeriesSetupPanel extends MonPanelSetupPanel implements ActionListener
+  {
     /** Nested class provides the panel to setup each axis. */
-    public class AxisSetup extends JPanel implements ActionListener {
+    public class AxisSetup extends JPanel implements ActionListener
+    {
+      /** Nested class provides the panel to setup a marker. */
+      public class AxisMarkerSetup extends JPanel implements ActionListener
+      {
+        /** Types of markers. */
+        public String[] itsMarkerTypes = { "Value", "Interval" };
+
+        /** Combo box for selecting marker type. */
+        public JComboBox itsMarkerType = new JComboBox(itsMarkerTypes);
+
+        /** Textfield to hold the scale minimum. */
+        public JTextField itsValue1 = new JTextField(8);
+
+        /** Textfield to hold the scale maximum. */
+        public JTextField itsValue2 = new JTextField(8);
+
+        /** Button for selecting colour. */
+        public JButton itsColourBut = new JButton("Colour");
+
+        /** Selected Color. */
+        public Color itsColour = null;
+
+        AxisMarkerSetup()
+        {
+          super();
+          setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+          JPanel temppanel = new JPanel();
+          temppanel.add(new JLabel("Marker: "));
+          itsMarkerType.addActionListener(this);
+          itsMarkerType.setToolTipText("Select the marker type");
+          temppanel.add(itsMarkerType);
+          itsValue1.setToolTipText("The value for the marker");
+          itsValue2.setToolTipText("The second value for the marker interval");
+          temppanel.add(new JLabel("Value1: "));
+          temppanel.add(itsValue1);
+          temppanel.add(new JLabel("Value2: "));
+          temppanel.add(itsValue2);
+          if (itsMarkerType.getSelectedIndex() == 0) {
+            itsValue2.setEnabled(false);
+            itsValue2.setBackground(Color.lightGray);
+          }
+          itsColourBut.setActionCommand("colour");
+          itsColourBut.addActionListener(this);
+          itsColourBut.setToolTipText("Select the marker colour");
+          temppanel.add(itsColourBut);
+          add(temppanel);
+        }
+
+        /** Return a string summary of the current setup. */
+        public void getSetup(SavedSetup setup, int axis, int number) throws Exception
+        {
+          setup.put("markertype" + axis + "_" + number, ((String) itsMarkerType.getSelectedItem()).toLowerCase());
+          if (itsColour != null) {
+            setup.put("markercol" + axis + "_" + number, "" + itsColour.getRGB());
+          }
+          if (itsMarkerType.getSelectedIndex() == 0) {
+            // Value marker
+            try {
+              Float.parseFloat(itsValue1.getText());
+              setup.put("markerval" + axis + "_" + number, itsValue1.getText());
+            } catch (Exception e) {
+              JOptionPane.showMessageDialog(this, "The value field for markers must contain\n"
+                      + "valid numbers, eg, \"42\" or \"99.9\".", "Bad Marker Value Entered", JOptionPane.WARNING_MESSAGE);
+              throw e;
+            }
+          } else {
+            // Interval marker
+            try {
+              Float.parseFloat(itsValue1.getText());
+              Float.parseFloat(itsValue2.getText());
+              setup.put("markerval" + axis + "_" + number + "_1", itsValue1.getText());
+              setup.put("markerval" + axis + "_" + number + "_2", itsValue2.getText());
+            } catch (Exception e) {
+              JOptionPane.showMessageDialog(this, "The value fields for markers must contain\n"
+                      + "valid numbers, eg, \"42\" or \"99.9\".", "Bad Marker Value Entered", JOptionPane.WARNING_MESSAGE);
+              throw e;
+            }
+          }
+        }
+
+        /** Configure GUI to indicate state specified by the string. */
+        public void showSetup(SavedSetup setup, int axis, int number)
+        {
+          try {
+            String temp = setup.get("markertype" + axis + "_" + number);
+            if (temp.equals("value")) {
+              itsMarkerType.setSelectedIndex(0);
+              itsValue1.setText(setup.get("markerval" + axis + "_" + number));
+            } else {
+              itsMarkerType.setSelectedIndex(1);
+              itsValue1.setText(setup.get("markerval" + axis + "_" + number + "_1"));
+              itsValue2.setText(setup.get("markerval" + axis + "_" + number + "_2"));
+            }
+            temp = setup.get("markercol" + axis + "_" + number);
+            if (temp != null) {
+              itsColour = new Color(Integer.parseInt(temp));
+              // Set alpha channel
+              Color newcol = new Color(itsColour.getRed(), itsColour.getGreen(), itsColour.getBlue());              
+              itsColourBut.setBackground(newcol);
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+
+        public void actionPerformed(ActionEvent e)
+        {
+          if (e.getSource() == itsMarkerType) {
+            if (itsMarkerType.getSelectedIndex() == 0) {
+              itsValue2.setEnabled(false);
+              itsValue2.setBackground(Color.lightGray);
+            } else {
+              itsValue2.setEnabled(true);
+              itsValue2.setBackground(Color.white);
+            }
+          } else if (e.getSource() == itsColourBut) {
+            Color newcol = JColorChooser.showDialog(itsFrame, "Dialog Title", Color.darkGray);
+            if (newcol != null) {
+              itsColourBut.setBackground(newcol);
+              // Set alpha channel
+              itsColour = new Color(newcol.getRed(), newcol.getGreen(), newcol.getBlue(), 48);
+              itsColourBut.invalidate();
+              itsColourBut.repaint();
+            }
+          }
+        }
+      }
+
       /** Reference to the point source selector for this axis. */
       public PointSourceSelector itsPoints = new PointSourceSelector();
 
@@ -86,7 +215,14 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       /** Radio button for drawing data with symbols. */
       public JRadioButton itsDrawSymbols = new JRadioButton("Shapes");
 
-      public AxisSetup() {
+      /** The markers applied to this axis. */
+      public Vector<AxisMarkerSetup> itsMarkers = new Vector<AxisMarkerSetup>();
+
+      /** Label showing the number of markers. */
+      public JLabel itsNumMarkers = new JLabel("0");
+
+      public AxisSetup()
+      {
         super();
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createLineBorder(Color.red));
@@ -124,8 +260,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
         add(temppanel);
 
         temppanel = new JPanel();
-        itsSpecifyScale
-            .setToolTipText("Manually specify max and min range for the axis");
+        itsSpecifyScale.setToolTipText("Manually specify max and min range for the axis");
         itsSpecifyScale.addActionListener(this);
         itsSpecifyScale.setActionCommand("Specify-Scale");
         temppanel.add(itsSpecifyScale);
@@ -152,18 +287,36 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
         itsDrawLines.setSelected(true);
         temppanel.add(itsDrawLines);
         itsDiscontinuousLines.setSelected(true);
-        itsDiscontinuousLines
-            .setToolTipText("Allow breaks in the line where data is missing");
+        itsDiscontinuousLines.setToolTipText("Allow breaks in the line where data is missing");
         temppanel.add(itsDiscontinuousLines);
         itsDrawDots.setToolTipText("Draw a dot for each data point");
         temppanel.add(itsDrawDots);
-        itsDrawSymbols
-            .setToolTipText("Draw an unfilled shape for each data point");
+        itsDrawSymbols.setToolTipText("Draw an unfilled shape for each data point");
         temppanel.add(itsDrawSymbols);
+        add(temppanel);
+
+        temppanel = new JPanel();
+        templabel = new JLabel("Number of Value Markers:");
+        templabel.setForeground(Color.black);
+        temppanel.add(templabel);
+        temppanel.add(Box.createRigidArea(new Dimension(5, 0)));
+        temppanel.add(itsNumMarkers);
+        temppanel.add(Box.createRigidArea(new Dimension(5, 0)));
+        JButton tempbut = new JButton("+");
+        tempbut.addActionListener(this);
+        tempbut.setActionCommand("Add-Marker");
+        tempbut.setToolTipText("Add another value marker");
+        temppanel.add(tempbut);
+        tempbut = new JButton("-");
+        tempbut.addActionListener(this);
+        tempbut.setActionCommand("Remove-Marker");
+        tempbut.setToolTipText("Remove the last value marker");
+        temppanel.add(tempbut);
         add(temppanel);
       }
 
-      public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent e)
+      {
         String cmd = e.getActionCommand();
         if (cmd.equals("Auto-Scale")) {
           itsScaleMin.setEnabled(false);
@@ -177,11 +330,30 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           itsScaleMin.setBackground(Color.white);
           itsScaleMax.setBackground(Color.white);
           itsAutoZero.setEnabled(false);
+        } else if (cmd.equals("Add-Marker")) {
+          AxisMarkerSetup addme = new AxisMarkerSetup();
+          itsMarkers.add(addme);
+          itsNumMarkers.setText("" + itsMarkers.size());
+          add(addme);
+          invalidate();
+          repaint();          
+        } else if (cmd.equals("Remove-Marker")) {
+          if (itsMarkers.size() > 0) {
+            AxisMarkerSetup removeme = itsMarkers.get(itsMarkers.size() - 1);
+            itsMarkers.remove(removeme);
+            itsNumMarkers.setText("" + itsMarkers.size());
+            remove(removeme);
+            invalidate();
+            repaint();
+          } else {
+            Toolkit.getDefaultToolkit().beep();
+          }
         }
       }
 
       /** Configure GUI to indicate state specified by the string. */
-      public void showSetup(SavedSetup setup, int number) {
+      public void showSetup(SavedSetup setup, int number)
+      {
         try {
           String temp = (String) setup.get("label" + number);
           itsAxisLabel.setText(temp);
@@ -231,19 +403,31 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
             points.add(st.nextToken());
           }
           itsPoints.setSelections(points);
+
+          temp = (String) setup.get("nummarkers" + number);
+          if (temp != null) {
+            int nummarkers = Integer.parseInt(temp);
+            itsNumMarkers.setText("" + nummarkers);
+            for (int i = 0; i < nummarkers; i++) {
+              AxisMarkerSetup marker = new AxisMarkerSetup();
+              itsMarkers.add(marker);
+              marker.showSetup(setup, number, i);
+              add(marker);
+            }
+          }
+
         } catch (Exception e) {
         }
       }
 
       /** Return a string summary of the current setup. */
-      public void getSetup(SavedSetup setup, int number) throws Exception {
+      public void getSetup(SavedSetup setup, int number) throws Exception
+      {
         // Ensure user has not entered any reserved characters
         if (!checkString(itsAxisLabel.getText())) {
-          JOptionPane.showMessageDialog(this, "The axis label:\n" + "\""
-              + itsAxisLabel.getText() + "\"\n"
-              + "contains reserved characters.\n"
-              + "You must not use ~ : or `\n", "Reserved Characters",
-              JOptionPane.WARNING_MESSAGE);
+          JOptionPane.showMessageDialog(this, "The axis label:\n" + "\"" + itsAxisLabel.getText() + "\"\n"
+                  + "contains reserved characters.\n" + "You must not use ~ : or `\n", "Reserved Characters",
+                  JOptionPane.WARNING_MESSAGE);
           return;
         }
         Vector selpoints = itsPoints.getSelections();
@@ -264,12 +448,9 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
             Double.parseDouble(itsScaleMax.getText());
             Double.parseDouble(itsScaleMin.getText());
           } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
-                "The fields for minimum and maximum\n"
-                    + "scales must contain numbers, eg, \"42\"\n"
-                    + "or \"99.9\". You can select the Auto-Scale\n"
-                    + "option if you don't know what scale to use.\n",
-                "Bad Scale Entered", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "The fields for minimum and maximum\n"
+                    + "scales must contain numbers, eg, \"42\"\n" + "or \"99.9\". You can select the Auto-Scale\n"
+                    + "option if you don't know what scale to use.\n", "Bad Scale Entered", JOptionPane.WARNING_MESSAGE);
             return;
           }
           setup.put("scalemin" + number, itsScaleMin.getText());
@@ -290,11 +471,9 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
 
         // Ensure the user selected at least one point for this axis!
         if (selpoints.size() == 0) {
-          JOptionPane.showMessageDialog(this,
-              "No points were selected for axis\n" + "number " + (number + 1)
-                  + ". You need to select\n"
-                  + "at least one point for each axis!", "No Points Selected!",
-              JOptionPane.WARNING_MESSAGE);
+          JOptionPane.showMessageDialog(this, "No points were selected for axis\n" + "number " + (number + 1)
+                  + ". You need to select\n" + "at least one point for each axis!", "No Points Selected!",
+                  JOptionPane.WARNING_MESSAGE);
           throw new Exception();
         }
 
@@ -304,6 +483,11 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           temp += (String) selpoints.get(i) + ":";
         }
         setup.put("points" + number, temp);
+
+        setup.put("nummarkers" + number, "" + itsMarkers.size());
+        for (int i = 0; i < itsMarkers.size(); i++) {
+          itsMarkers.get(i).getSetup(setup, number, i);
+        }
       }
     }
 
@@ -353,21 +537,20 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
     protected JTextField itsStart = new JTextField(16);
 
     /** The format of the dates we parse. */
-    protected SimpleDateFormat itsFormatter = new SimpleDateFormat(
-        "yyyy/MM/dd HH:mm");
+    protected SimpleDateFormat itsFormatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 
     /** How often to update the graph in seconds. */
     protected JTextField itsUpdateRate = new JTextField("60", 4);
 
     /** Check box, should we supser-speed the graph? */
-    protected JCheckBox itsSuperSpeed = new JCheckBox(
-        "Enable Fast Graphs. Max samples displayed = ");
+    protected JCheckBox itsSuperSpeed = new JCheckBox("Enable Fast Graphs. Max samples displayed = ");
 
     /** Max number of samples to be displayed. */
     protected JTextField itsMaxSamps = new JTextField("500", 6);
 
     /** Construct the setup editor for the specified panel. */
-    public ATTimeSeriesSetupPanel(ATTimeSeries panel, JFrame frame) {
+    public ATTimeSeriesSetupPanel(ATTimeSeries panel, JFrame frame)
+    {
       super(panel, frame);
 
       itsSetupPanel.setLayout(new BorderLayout());
@@ -423,18 +606,15 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       temppanel2.add(Box.createRigidArea(new Dimension(20, 0)));
       templabel = new JLabel("Time Zone:");
       templabel.setForeground(Color.black);
-      templabel
-          .setToolTipText("Data will be displayed for the specified timezone");
+      templabel.setToolTipText("Data will be displayed for the specified timezone");
       temppanel2.add(templabel);
-      itsZone
-          .setToolTipText("Data will be displayed for the specified timezone");
+      itsZone.setToolTipText("Data will be displayed for the specified timezone");
       temppanel2.add(itsZone);
       temppanel.add(temppanel2);
 
       itsStart.addActionListener(this);
       temppanel2 = new JPanel();
-      itsDynamic
-          .setToolTipText("Graph will automatically update to show new data");
+      itsDynamic.setToolTipText("Graph will automatically update to show new data");
       temppanel.add(itsDynamic);
       temppanel2 = new JPanel();
       itsStatic.setToolTipText("Graph will only show the specified data");
@@ -443,8 +623,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       templabel.setForeground(Color.black);
       templabel.setToolTipText("Enter data start time - yyyy/MM/dd HH:mm");
       temppanel2.add(templabel);
-      itsStart
-          .setToolTipText("Format: yyyy/MM/dd HH:mm in timezone selected above");
+      itsStart.setToolTipText("Format: yyyy/MM/dd HH:mm in timezone selected above");
       itsStart.setText(itsFormatter.format(new Date()));
       temppanel2.add(itsStart);
       temppanel.add(temppanel2);
@@ -455,15 +634,12 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       itsMaxSamps.addActionListener(this);
       temppanel2 = new JPanel();
       temppanel2.setLayout(new GridLayout(2, 2));
-      itsUpdateRate.setToolTipText("How often to update/redraw the graph "
-          + "(faster chews more CPU)");
+      itsUpdateRate.setToolTipText("How often to update/redraw the graph " + "(faster chews more CPU)");
       templabel = new JLabel("Graph update/redraw interval (in seconds) = ");
-      templabel.setToolTipText("How often to update/redraw the graph "
-          + "(faster chews more CPU)");
+      templabel.setToolTipText("How often to update/redraw the graph " + "(faster chews more CPU)");
       temppanel2.add(templabel);
       temppanel2.add(itsUpdateRate);
-      itsSuperSpeed
-          .setToolTipText("Makes graph redraws faster but shows less data");
+      itsSuperSpeed.setToolTipText("Makes graph redraws faster but shows less data");
       temppanel2.add(itsSuperSpeed);
       temppanel2.add(itsMaxSamps);
       temppanel2.setBorder(BorderFactory.createLineBorder(Color.black));
@@ -506,12 +682,12 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       add(itsSetupPanel, BorderLayout.CENTER);
     }
 
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e)
+    {
       super.actionPerformed(e);
       String cmd = e.getActionCommand();
-      if (e.getSource() == itsTitleField || e.getSource() == itsUpdateRate
-          || e.getSource() == itsMaxSamps || e.getSource() == itsStart
-          || e.getSource() == itsPeriod) {
+      if (e.getSource() == itsTitleField || e.getSource() == itsUpdateRate || e.getSource() == itsMaxSamps
+              || e.getSource() == itsStart || e.getSource() == itsPeriod) {
         okClicked();
         return;
       }
@@ -556,20 +732,19 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
      * format.
      * 
      * @return SavedSetup specified by GUI controls, or <tt>null</tt> if no
-     *         setup can be extracted from the GUI at present.
+     * setup can be extracted from the GUI at present.
      */
-    protected SavedSetup getSetup() {
+    protected SavedSetup getSetup()
+    {
       // Ensure user has not entered any reserved characters
       if (!checkString(itsTitleField.getText())) {
-        JOptionPane.showMessageDialog(this, "The Graph Title:\n" + "\""
-            + itsTitleField.getText() + "\"\n"
-            + "contains reserved characters.\n" + "You must not use \"`\"\n",
-            "Bad Characters in Title", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, "The Graph Title:\n" + "\"" + itsTitleField.getText() + "\"\n"
+                + "contains reserved characters.\n" + "You must not use \"`\"\n", "Bad Characters in Title",
+                JOptionPane.WARNING_MESSAGE);
         return null;
       }
 
-      SavedSetup setup = new SavedSetup("temp",
-          "atnf.atoms.mon.gui.monpanel.ATTimeSeries");
+      SavedSetup setup = new SavedSetup("temp", "atnf.atoms.mon.gui.monpanel.ATTimeSeries");
       // Save the graph title
       String temp = itsTitleField.getText();
       if (temp == null || temp.equals("")) {
@@ -589,10 +764,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       try {
         Double.parseDouble(itsPeriod.getText());
       } catch (Exception e) {
-        JOptionPane.showMessageDialog(this,
-            "The field for the Graph Time Span must contain\n"
-                + "a valid number, eg, \"42\" or \"99.9\".\n",
-            "Bad Period Entered", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, "The field for the Graph Time Span must contain\n"
+                + "a valid number, eg, \"42\" or \"99.9\".\n", "Bad Period Entered", JOptionPane.WARNING_MESSAGE);
         return null;
       }
       double numtime = Double.parseDouble(itsPeriod.getText());
@@ -618,12 +791,9 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           date = null;
         }
         if (date == null) {
-          JOptionPane.showMessageDialog(this,
-              "The Graph Start Time you entered\n"
-                  + "could not be parsed. The time must\n"
-                  + "be in \"yyyy/MM/dd HH:mm\" format, eg:\n" + "\""
-                  + itsFormatter.format(new Date()) + "\"\n", "Bad Start Time",
-              JOptionPane.WARNING_MESSAGE);
+          JOptionPane.showMessageDialog(this, "The Graph Start Time you entered\n" + "could not be parsed. The time must\n"
+                  + "be in \"yyyy/MM/dd HH:mm\" format, eg:\n" + "\"" + itsFormatter.format(new Date()) + "\"\n", "Bad Start Time",
+                  JOptionPane.WARNING_MESSAGE);
           return null;
         }
         AbsTime start = AbsTime.factory(date);
@@ -642,18 +812,14 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       try {
         upd = Long.parseLong(itsUpdateRate.getText());
       } catch (Exception e) {
-        JOptionPane.showMessageDialog(this,
-            "The field for the graph update/redraw interval\n"
-                + "must contain a valid integer, eg, \"60\".\n",
-            "Bad Update Rate", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, "The field for the graph update/redraw interval\n"
+                + "must contain a valid integer, eg, \"60\".\n", "Bad Update Rate", JOptionPane.WARNING_MESSAGE);
         return null;
       }
       // Do a reality check on the actual value
       if (upd < 1 || upd > 1000000) {
-        JOptionPane.showMessageDialog(this,
-            "The field for the graph update/redraw interval\n"
-                + "contains an unreasonable value...\n", "Bad Update Rate",
-            JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, "The field for the graph update/redraw interval\n"
+                + "contains an unreasonable value...\n", "Bad Update Rate", JOptionPane.WARNING_MESSAGE);
         return null;
 
       }
@@ -665,10 +831,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
         try {
           maxsamps = Integer.parseInt(itsMaxSamps.getText());
         } catch (Exception e) {
-          JOptionPane.showMessageDialog(this,
-              "The field for maximum number of samples\n"
-                  + "must contain a valid integer, eg, \"500\".\n",
-              "Bad Maximum Samples", JOptionPane.WARNING_MESSAGE);
+          JOptionPane.showMessageDialog(this, "The field for maximum number of samples\n"
+                  + "must contain a valid integer, eg, \"500\".\n", "Bad Maximum Samples", JOptionPane.WARNING_MESSAGE);
           return null;
         }
         setup.put("maxsamps", "" + maxsamps);
@@ -688,7 +852,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
     }
 
     /** Make the controls show information about the given setup. */
-    public void showSetup(SavedSetup setup) {
+    public void showSetup(SavedSetup setup)
+    {
       try {
         // title
         String temp = (String) setup.get("title");
@@ -798,8 +963,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           itsAxisPanel.add(thisaxis);
         }
       } catch (Exception e) {
-        System.err.println("ATTimeSeriesSetupPanel:showSetup: "
-            + e.getMessage());
+        System.err.println("ATTimeSeriesSetupPanel:showSetup: " + e.getMessage());
       }
     }
   }
@@ -877,7 +1041,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
 
   /** Timezone string to display data in, or <tt>null</tt> for local time. */
   private String itsTimeZone = null;
-  
+
   /** Actual TimeZone object to be used for display. */
   private TimeZone itsTZ = null;
 
@@ -896,11 +1060,11 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
 
   private int itsOldHeight = 0;
 
-  private JLabel itsPleaseWait = new JLabel(
-      "Downloading graph data from server " + "- PLEASE WAIT", JLabel.CENTER);
+  private JLabel itsPleaseWait = new JLabel("Downloading graph data from server " + "- PLEASE WAIT", JLabel.CENTER);
 
   /** C'tor. */
-  public ATTimeSeries() {
+  public ATTimeSeries()
+  {
     setLayout(new java.awt.BorderLayout());
     findServer();
 
@@ -912,13 +1076,14 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
   }
 
   /** Main loop for data-update thread. */
-  public void run() {
+  public void run()
+  {
     final JPanel realthis = this;
 
     Runnable notsetup = new Runnable() {
-      public void run() {
-        add(new JLabel("Configure graph options under the \"Time Series\" tab",
-            JLabel.CENTER));
+      public void run()
+      {
+        add(new JLabel("Configure graph options under the \"Time Series\" tab", JLabel.CENTER));
         // realthis.repaint();
       }
     };
@@ -945,8 +1110,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
 
       if (itsChartPanel != null && itsChartPanel.getChart() != null) {
         // Update the time/date axis of the graph
-        DateAxis timeaxis = (DateAxis) itsChartPanel.getChart().getXYPlot()
-            .getDomainAxis();
+        DateAxis timeaxis = (DateAxis) itsChartPanel.getChart().getXYPlot().getDomainAxis();
         timeaxis.setAutoRange(false);
         timeaxis.setMaximumDate((itsStart.add(itsPeriod)).getAsDate());
         timeaxis.setMinimumDate(itsStart.getAsDate());
@@ -965,8 +1129,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
               if (itsMaxSamps > 1 && v != null && v.size() > 0) {
                 Vector newv = new Vector();
                 AbsTime next = last;
-                RelTime increment = RelTime.factory(itsPeriod.getValue()
-                    / itsMaxSamps);
+                RelTime increment = RelTime.factory(itsPeriod.getValue() / itsMaxSamps);
                 int s = 0;
                 while (s < v.size()) {
                   next = next.add(increment);
@@ -994,11 +1157,10 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       if (itsNumAxis > 0) {
         // Let the graph know that the data sets have been updated
         Runnable ud = new Runnable() {
-          public void run() {
-            ((TimeSeriesCollection) itsData.get(0)).getSeries(0)
-                .setNotify(true);
-            ((TimeSeriesCollection) itsData.get(0)).getSeries(0).setNotify(
-                false);
+          public void run()
+          {
+            ((TimeSeriesCollection) itsData.get(0)).getSeries(0).setNotify(true);
+            ((TimeSeriesCollection) itsData.get(0)).getSeries(0).setNotify(false);
           }
         };
         try {
@@ -1017,7 +1179,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
 
         // Redraw our display using new image - also done by event thread
         Runnable ud2 = new Runnable() {
-          public void run() {
+          public void run()
+          {
             realthis.removeAll();
             realthis.repaint();
           }
@@ -1052,7 +1215,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    * Draw our cached image of the graph to the screen. Also checks for resize
    * events and resizes the image if required.
    */
-  public void paintComponent(Graphics g) {
+  public void paintComponent(Graphics g)
+  {
     super.paintComponent(g);
 
     if (itsImage != null) {
@@ -1070,7 +1234,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
   }
 
   /** Free all resources so that this MonPanel can disappear. */
-  public void vaporise() {
+  public void vaporise()
+  {
     // synchronized (itsPointNames) {
     itsKeepRunning = false;
     // Awake our thread so it can clean-up and die
@@ -1085,13 +1250,13 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    * activities need to be performed by calling the GUI event thread to prevent
    * the data sets from becoming corrupted.
    */
-  private void mergeData(int axis, int series, Vector data) {
+  private void mergeData(int axis, int series, Vector data)
+  {
     if (data == null) {
       data = new Vector(); // Create dummy data
     }
 
-    final TimeSeries ts = ((TimeSeriesCollection) itsData.get(axis))
-        .getSeries(series);
+    final TimeSeries ts = ((TimeSeriesCollection) itsData.get(axis)).getSeries(series);
     synchronized (ts) {
       // We need to knock any old data off the end
       int end = 0;
@@ -1111,7 +1276,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
         // We found some data to remove
         // Need to use swing, in case redraw happens mid-deletion
         Runnable delOldData = new Runnable() {
-          public void run() {
+          public void run()
+          {
             ts.delete(0, last - 1);
           }
         };
@@ -1137,13 +1303,13 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
 
       // Use the event-dispatch thread to alert the GUI of the update
       Runnable newDataAdded = new Runnable() {
-        public void run() {
+        public void run()
+        {
           for (int i = 0; i < newdata.size(); i++) {
             try {
               ts.add((TimeSeriesDataItem) newdata.get(i));
             } catch (Exception e) {
-              System.err.println("ProviderATTimeSeries:mergeData2: "
-                  + e.getClass().getName() + "\"" + e.getMessage() + "\"");
+              System.err.println("ProviderATTimeSeries:mergeData2: " + e.getClass().getName() + "\"" + e.getMessage() + "\"");
             }
           }
         }
@@ -1157,20 +1323,21 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
     }
     if (data.size() > 0) {
       // Record the timestamp of the most recent data
-      itsPointEpochs.get(axis).set(series, ((PointData) data
-          .lastElement()).getTimestamp());
+      itsPointEpochs.get(axis).set(series, ((PointData) data.lastElement()).getTimestamp());
     }
   }
 
   /** */
-  public void actionPerformed(ActionEvent e) {
+  public void actionPerformed(ActionEvent e)
+  {
     synchronized (this) {
       this.notifyAll();
     }
   }
 
   /** Clear any current setup. */
-  public void blankSetup() {
+  public void blankSetup()
+  {
     itsPointNames.clear();
     itsPointEpochs.clear();
     for (int i = 0; i < itsNumAxis; i++) {
@@ -1178,7 +1345,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
     }
     itsData.clear();
     itsTimeZone = null;
-    itsTZ=null;
+    itsTZ = null;
     synchronized (this) {
       this.notifyAll();
     }
@@ -1189,15 +1356,14 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    * to restore saved states, eg what monitor points to graph and over what time
    * range.
    * 
-   * @param setup
-   *          class-specific setup information.
+   * @param setup class-specific setup information.
    * @return <tt>true</tt> if setup could be parsed or <tt>false</tt> if
-   *         there was a problem and the setup cannot be used.
+   * there was a problem and the setup cannot be used.
    */
-  public boolean loadSetup(SavedSetup setup) {
+  public boolean loadSetup(SavedSetup setup)
+  {
     if (!setup.checkClass(this)) {
-      System.err.println("ATTimeSeries:loadSetup: setup not for "
-          + this.getClass().getName());
+      System.err.println("ATTimeSeries:loadSetup: setup not for " + this.getClass().getName());
       return false;
     }
     // the copy of the setup held by the frame is now incorrect
@@ -1215,7 +1381,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
     return true;
   }
 
-  public boolean loadSetupReal() {
+  public boolean loadSetupReal()
+  {
     try {
       itsReInit = false;
       SavedSetup setup = itsSetup;
@@ -1230,12 +1397,11 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       temp = (String) setup.get("timezone");
       if (temp == null) {
         itsTimeZone = null;
-        itsTZ= TimeZone.getDefault();
+        itsTZ = TimeZone.getDefault();
       } else {
         itsTimeZone = temp;
-        itsTZ= TimeZone.getTimeZone(itsTimeZone);        
-        System.err.println("ATTimeSeries:loadData: Found TimeZone="
-            + itsTimeZone);
+        itsTZ = TimeZone.getTimeZone(itsTimeZone);
+        System.err.println("ATTimeSeries:loadData: Found TimeZone=" + itsTimeZone);
       }
 
       // period
@@ -1254,8 +1420,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       temp = (String) setup.get("mode");
       if (temp.equals("dynamic")) {
         itsRealtime = true;
-        itsStart = AbsTime.factory((new AbsTime()).getValue()
-            - itsPeriod.getValue());
+        itsStart = AbsTime.factory((new AbsTime()).getValue() - itsPeriod.getValue());
       } else {
         itsRealtime = false;
         // Read the start epoch for the static graph
@@ -1273,7 +1438,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
 
       // display a please wait message to the user
       Runnable pleasewait = new Runnable() {
-        public void run() {
+        public void run()
+        {
           removeAll();
           add(itsPleaseWait);
           repaint();
@@ -1309,9 +1475,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       if (itsTimeZone != null) {
         tunits = tunits + " (" + itsTZ.getDisplayName() + ")";
       }
-      final JFreeChart chart = ChartFactory.createTimeSeriesChart(itsTitle,
-          tunits, "Value", (TimeSeriesCollection) itsData.get(0),
-          itsShowLegend, true, false);
+      final JFreeChart chart = ChartFactory.createTimeSeriesChart(itsTitle, tunits, "Value", (TimeSeriesCollection) itsData.get(0),
+              itsShowLegend, true, false);
 
       XYPlot plot = chart.getXYPlot();
 
@@ -1334,6 +1499,61 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           plot.setRangeAxis(i, newaxis);
           plot.setDataset(i, (TimeSeriesCollection) itsData.get(i));
           plot.mapDatasetToRangeAxis(i, new Integer(i));
+        }
+
+        // Create value markers for this axis
+        int nummarkers = 0;
+        try {
+          temp = (String) setup.get("nummarkers" + i);
+          if (temp != null) {
+            nummarkers = Integer.parseInt(temp);
+          }
+        } catch (NumberFormatException e) {
+          System.err.println("ATTimeSeries.loadSetupReal: Error parsing number of markers");
+        }
+        for (int j = 0; j < nummarkers; j++) {
+          Marker marker = null;
+          temp = (String) setup.get("markercol" + i + "_" + j);
+          Color col = null;
+          if (temp != null) {
+            try {
+              col = new Color(Integer.parseInt(temp), true);
+            } catch (NumberFormatException e) {
+              System.err.println("ATTimeSeries.loadSetupReal: Error parsing marker colour definition");
+              col = null;
+            }
+          }
+          temp = (String) setup.get("markertype" + i + "_" + j);
+          if (temp != null) {
+            if (temp.equals("value")) {
+              try {
+                float val = Float.parseFloat(setup.get("markerval" + i + "_" + j));
+                if (col != null) {
+                  marker = new ValueMarker(val, col, new BasicStroke(4.0f));
+                } else {
+                  marker = new ValueMarker(val);
+                  marker.setStroke(new BasicStroke(4.0f)); // Stroke width
+                }
+              } catch (NumberFormatException e) {
+                System.err.println("ATTimeSeries.loadSetupReal: Error parsing marker value");
+              }
+            } else if (temp.equals("interval")) {
+              try {
+                float val1 = Float.parseFloat(setup.get("markerval" + i + "_" + j + "_1"));
+                float val2 = Float.parseFloat(setup.get("markerval" + i + "_" + j + "_2"));
+                if (col != null) {
+                  marker = new IntervalMarker(val1, val2, col);
+                } else {
+                  marker = new IntervalMarker(val1, val2);
+                }
+              } catch (NumberFormatException e) {
+                System.err.println("ATTimeSeries.loadSetupReal: Error parsing interval marker value");
+              }
+            }
+          }
+          if (marker != null) {
+            plot.addRangeMarker(i, marker, org.jfree.ui.Layer.BACKGROUND);
+          }
         }
 
         // Is there a limit to the number of samples to display?
@@ -1365,8 +1585,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           newaxis.setLowerBound(min);
           newaxis.setUpperBound(max);
         } else {
-          System.err.println("ATTimeSeries:loadData: Unknown mode \"" + temp
-              + "\"");
+          System.err.println("ATTimeSeries:loadData: Unknown mode \"" + temp + "\"");
           blankSetup();
           return false;
         }
@@ -1379,8 +1598,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           // Check if we should enable discontinuous lines
           temp = (String) setup.get("gaps" + i);
           if (temp.equals("true")) {
-            renderer = new StandardXYItemRenderer(
-                StandardXYItemRenderer.DISCONTINUOUS_LINES);
+            renderer = new StandardXYItemRenderer(StandardXYItemRenderer.DISCONTINUOUS_LINES);
             ((StandardXYItemRenderer) renderer).setPlotLines(true);
             // I don't actually understand what this threashold means!
             ((StandardXYItemRenderer) renderer).setGapThreshold(30.0);
@@ -1398,8 +1616,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           ((StandardXYItemRenderer) renderer).setBaseShapesVisible(true);
           ((StandardXYItemRenderer) renderer).setBaseShapesFilled(false);
         } else {
-          System.err.println("ATTimeSeries:loadData: Unknown style \"" + temp
-              + "\"");
+          System.err.println("ATTimeSeries:loadData: Unknown style \"" + temp + "\"");
           blankSetup();
           return false;
         }
@@ -1421,7 +1638,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       makeSeries(); // Create new containers for the data
 
       Runnable displaygraph = new Runnable() {
-        public void run() {
+        public void run()
+        {
           setGraph(chart);
         }
       };
@@ -1441,12 +1659,11 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           mergeData(a, i, v);
 
           Runnable drawnow = new Runnable() {
-            public void run() {
+            public void run()
+            {
               // Update our cached image of the graph
-              ((TimeSeriesCollection) itsData.get(0)).getSeries(0).setNotify(
-                  true);
-              ((TimeSeriesCollection) itsData.get(0)).getSeries(0).setNotify(
-                  false);
+              ((TimeSeriesCollection) itsData.get(0)).getSeries(0).setNotify(true);
+              ((TimeSeriesCollection) itsData.get(0)).getSeries(0).setNotify(false);
               int w = getSize().width;
               int h = getSize().height;
               if (itsGraph != null) {
@@ -1470,8 +1687,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       itsTimer.start();
 
     } catch (Exception e) {
-      System.err.println("ATTimeSeries:loadSetup: " + e.getClass().getName()
-          + " " + e.getMessage());
+      System.err.println("ATTimeSeries:loadSetup: " + e.getClass().getName() + " " + e.getMessage());
       e.printStackTrace();
       blankSetup();
       return false;
@@ -1487,7 +1703,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    * 
    * @return class-specific configuration information.
    */
-  public SavedSetup getSetup() {
+  public SavedSetup getSetup()
+  {
     return itsSetup;
   }
 
@@ -1495,10 +1712,10 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    * Configure this panel to display the new graph. This will also remove the
    * old graph if it exists.
    * 
-   * @param The
-   *          graph to display.
+   * @param The graph to display.
    */
-  private void setGraph(JFreeChart newgraph) {
+  private void setGraph(JFreeChart newgraph)
+  {
     if (itsChartPanel == null) {
       itsChartPanel = new ChartPanel(newgraph);
       itsChartPanel.setMouseZoomable(true, false);
@@ -1517,12 +1734,14 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    * Determine which monitor data server to use and try to establish a
    * connection to it.
    */
-  private void findServer() {
+  private void findServer()
+  {
     itsServer = MonClientUtil.getServer();
   }
 
   /** Request archival data from the monitor data server. */
-  protected Vector<PointData> getArchive(String pointname, AbsTime t1, AbsTime t2) {
+  protected Vector<PointData> getArchive(String pointname, AbsTime t1, AbsTime t2)
+  {
     Vector<PointData> v = null;
     try {
       v = itsServer.getArchiveData(pointname, t1, t2, itsMaxSamps);
@@ -1534,7 +1753,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
   /**
    * Request all data since the specified time from the monitor data server.
    */
-  protected Vector<PointData> getSince(String pointname, AbsTime t1) {
+  protected Vector<PointData> getSince(String pointname, AbsTime t1)
+  {
     Vector<PointData> v = null;
     try {
       v = itsServer.getArchiveData(pointname, t1, new AbsTime());
@@ -1548,7 +1768,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
   }
 
   /** Build container for data and invent sensible names for data series. */
-  private void makeSeries() {
+  private void makeSeries()
+  {
     synchronized (theirLock) {
       for (int a = 0; a < itsNumAxis; a++) {
         Vector points = (Vector) itsPointNames.get(a);
@@ -1559,8 +1780,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           int firstdot = label.indexOf(".");
           int lastdot = label.lastIndexOf(".");
           if (firstdot != -1 && lastdot != -1 && firstdot != lastdot) {
-            label = label.substring(0, firstdot) + " "
-                + label.substring(lastdot + 1);
+            label = label.substring(0, firstdot) + " " + label.substring(lastdot + 1);
           }
           TimeSeries ts = new TimeSeries(label);
           // Turn notify off so the graph doesn't redraw unnecessarily
@@ -1577,12 +1797,12 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    * a 'Number' type. If no conversion was possible, eg because we cannot
    * convert the data type into a Number, then <tt>null</tt> will be returned.
    * 
-   * @param pd
-   *          The PointData to convert
+   * @param pd The PointData to convert
    * @return TimeSeriesDataItem, or <tt>null</tt> if no conversion was
-   *         possible.
+   * possible.
    */
-  protected TimeSeriesDataItem toTimeSeriesDataItem(PointData pd) {
+  protected TimeSeriesDataItem toTimeSeriesDataItem(PointData pd)
+  {
     if (pd == null || pd.getTimestamp() == null || pd.getData() == null) {
       return null;
     }
@@ -1596,8 +1816,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       return new TimeSeriesDataItem(t, d);
     } catch (Exception e) {
       // Some odd problems happen in the code called above...
-      System.err
-          .println("ATTimeSeries:toTimeSeriesDataItem: " + e.getMessage());
+      System.err.println("ATTimeSeries:toTimeSeriesDataItem: " + e.getMessage());
       return null;
     }
   }
@@ -1606,7 +1825,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    * Convert the given data to a <i>Number</i>, if possible. <tt>null</tt>
    * will be returned if no conversion is possible.
    */
-  protected static Number toNumber(Object data) {
+  protected static Number toNumber(Object data)
+  {
     if (data == null) {
       return null;
     }
@@ -1648,7 +1868,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    * 
    * @return GUI controls to configure this data provider.
    */
-  public MonPanelSetupPanel getControls() {
+  public MonPanelSetupPanel getControls()
+  {
     return new ATTimeSeriesSetupPanel(this, itsFrame);
   }
 
@@ -1656,19 +1877,16 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    * Dump current data to the given output stream. This is the mechanism through
    * which data can be exported to a file.
    * 
-   * @param p
-   *          The print stream to write the data to.
+   * @param p The print stream to write the data to.
    */
-  public void export(PrintStream p) {
+  public void export(PrintStream p)
+  {
     final String rcsid = "$Id: ATTimeSeries.java,v 1.11 2006/06/22 04:39:07 bro764 Exp $";
     p.println("#Dump from ATTimeSeries " + rcsid);
-    p.println("#Data dumped at "
-        + (new AbsTime().toString(AbsTime.Format.UTC_STRING)));
+    p.println("#Data dumped at " + (new AbsTime().toString(AbsTime.Format.UTC_STRING)));
     p.println("#Each data sample has three, comma separated columns:");
-    p
-        .println("#1) Hex Binary Atomic Time (BAT) timestamp, e.g. 0x104f629d0c68e0");
-    p
-        .println("#2) Formatted time stamp, Universal Time, e.g. 2004-05-10 05:42:35.596");
+    p.println("#1) Hex Binary Atomic Time (BAT) timestamp, e.g. 0x104f629d0c68e0");
+    p.println("#2) Formatted time stamp, Universal Time, e.g. 2004-05-10 05:42:35.596");
     p.println("#3) Numeric data value, e.g. 7.49");
 
     for (int a = 0; a < itsNumAxis; a++) {
@@ -1679,8 +1897,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           continue;
         }
         // Print the header information for this series
-        p.println("#" + data.getItemCount() + " data for " + data.getDescription()
-            + " follow");
+        p.println("#" + data.getItemCount() + " data for " + data.getDescription() + " follow");
         for (int i = 0; i < data.getItemCount(); i++) {
           AbsTime tm = AbsTime.factory(data.getTimePeriod(i).getStart());
           p.print(tm.toString(AbsTime.Format.HEX_BAT) + ", ");
@@ -1695,7 +1912,8 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
     p.println();
   }
 
-  public String getLabel() {
+  public String getLabel()
+  {
     return null;
   }
 }
