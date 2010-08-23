@@ -109,6 +109,11 @@ public class ExternalSystem implements Runnable {
   public static ExternalSystem getExternalSystem(String name) {
     return theirExternalSystems.get(name);
   }
+  
+  /** Get an Iterator containing all ExternalSystem instances. */
+  public static Iterator<ExternalSystem> getAllExternalSystems() {
+    return theirExternalSystems.values().iterator();
+  }
 
   public ExternalSystem(String name) {
     itsName = name;
