@@ -15,19 +15,20 @@ import atnf.atoms.mon.*;
 import atnf.atoms.mon.archivepolicy.ArchivePolicy;
 
 /**
- * Transaction objects are basically used to store "address" information required to get
- * or set the appropriate value for a specific point.
+ * Transaction objects store the information required to inform MoniCA how to get or set a
+ * point's value, eg. what device to talk to and what address information to use within
+ * that device.
  * 
  * <P>
- * The Channel fields is used to locate the appropriate ExternalSystem class used to
- * interface with the end-point, and the ExternalSystem knows how to use any other fields
- * present in the Transaction to locate the appropriate specific datum (eg hardware
+ * The Channel field is used to locate the appropriate ExternalSystem class used to
+ * interface with the end-point. The ExternalSystem knows how to use any other fields
+ * present in the Transaction to locate the appropriate specific datum (eg. hardware
  * register).
  * 
  * @author Le Cuong Nguyen
  * @author David Brodrick
  */
-public abstract class Transaction extends MonitorPolicy
+public abstract class Transaction
 {
   /** The Point this Transaction is associated with. */
   protected PointDescription itsParent = null;

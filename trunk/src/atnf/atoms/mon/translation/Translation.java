@@ -11,10 +11,8 @@ import java.lang.reflect.Constructor;
 
 import org.apache.log4j.Logger;
 
-import atnf.atoms.mon.MonitorPolicy;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
-import atnf.atoms.mon.archivepolicy.ArchivePolicy;
 import atnf.atoms.mon.util.MonitorUtils;
 
 /**
@@ -47,7 +45,7 @@ import atnf.atoms.mon.util.MonitorUtils;
  * @author Le Cuong Nguyen
  * @author David Brodrick
  */
-public abstract class Translation extends MonitorPolicy
+public abstract class Translation
 {
   protected String[] itsInit = null;
 
