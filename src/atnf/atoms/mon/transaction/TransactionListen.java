@@ -12,6 +12,8 @@ import atnf.atoms.mon.util.*;
 import java.awt.event.*;
 import javax.swing.Timer;
 
+import org.apache.log4j.Logger;
+
 /**
  * 
  * @author David Brodrick
@@ -52,7 +54,7 @@ public class TransactionListen extends Transaction implements PointListener, Act
           // Either point name is wrong or point hasn't been created yet
           // Start timer which will try again shortly
           if (itsTimer == null) {
-            itsTimer = new Timer(100, this);
+            itsTimer = new Timer(500, this);
             itsTimer.start();
           }
         } else {
@@ -91,8 +93,8 @@ public class TransactionListen extends Transaction implements PointListener, Act
         if (itsPoints[i] == null) {
           // Still couldn't find the point, perhaps it doesn't exist?!
           stillmissing = true;
-          System.err.println("WARNING: TransactionListen for " + itsParent.getName());
-          System.err.println("LISTENED-TO POINT " + itsNames[i] + " DOESN'T EXIST?!");
+          Logger logger = Logger.getLogger(this.getClass().getName());
+          logger.warn("(" + itsParent.getFullName() + ") listened-to point " + itsNames[i] + " doesn't exist yet");
         } else {
           itsPoints[i].addPointListener(this);
         }
