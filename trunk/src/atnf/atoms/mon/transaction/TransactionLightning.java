@@ -27,6 +27,5 @@ extends Transaction
     super(parent, specifics);
 
     setChannel("lightning://");
-    itsName = specifics;
   }
 }

@@ -503,7 +503,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   {
     AlarmCheck[] alarms = new AlarmCheck[itsAlarmCheckStrings.length];
     for (int i = 0; i < itsAlarmCheckStrings.length; i++) {
-      alarms[i] = AlarmCheck.factory(itsAlarmCheckStrings[i]);
+      alarms[i] = AlarmCheck.factory(this, itsAlarmCheckStrings[i]);
     }
     itsAlarmChecks = alarms;
   }

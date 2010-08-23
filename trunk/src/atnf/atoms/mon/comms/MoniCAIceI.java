@@ -22,7 +22,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
 {
   /** The currently running server. */
   protected static MoniCAIceServerThread theirServer = null;
-  
+
   protected static Logger theirLogger = Logger.getLogger(MoniCAIceI.class.getName());
 
   public MoniCAIceI()
@@ -36,6 +36,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     String username = KeyKeeper.decrypt(encname);
     String password = KeyKeeper.decrypt(encpass);
     // TODO: Currently does nothing
+    theirLogger.warn("addPoints method called by " + username + " but is currently unimplemented");
     return false;
   }
 
@@ -88,6 +89,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     String username = KeyKeeper.decrypt(encname);
     String password = KeyKeeper.decrypt(encpass);
     // TODO: Currently does nothing
+    theirLogger.warn("addSetup method called by " + username + " but is currently unimplemented");
     return false;
   }
 
@@ -170,7 +172,9 @@ public final class MoniCAIceI extends _MoniCAIceDisp
           continue;
         }
         // Act on the new data value
-        thispoint.firePointEvent(new PointEvent(this, values.get(i), true));
+        PointData newval = values.get(i);
+        theirLogger.trace("Assigning value " + newval + " to point " + thispoint.getFullName() + " as requested by " + username);
+        thispoint.firePointEvent(new PointEvent(this, newval, true));
       } catch (Exception e) {
         theirLogger.warn("In setData method, while processing " + names[i] + ": " + e);
         result = false;
@@ -236,6 +240,9 @@ public final class MoniCAIceI extends _MoniCAIceDisp
 
     /** The adapter to start the server with. */
     protected Ice.ObjectAdapter itsAdapter = null;
+    
+    /** Logger. */
+    protected Logger itsLogger = Logger.getLogger(this.getClass().getName());
 
     public MoniCAIceServerThread()
     {
@@ -286,16 +293,14 @@ public final class MoniCAIceI extends _MoniCAIceDisp
         Ice.Object object = new MoniCAIceI();
         itsAdapter.add(object, ic.stringToIdentity(theirServiceName));
         ic.waitForShutdown();
-      } catch (Ice.LocalException e) {
-        e.printStackTrace();
       } catch (Exception e) {
-        System.err.println(e.getMessage());
+        theirLogger.error("In run method: " + e);
       }
       if (ic != null) {
         try {
           ic.destroy();
         } catch (Exception e) {
-          System.err.println(e.getMessage());
+          itsLogger.error("While destroying communicator: " + e);
         }
       }
     }
@@ -334,16 +339,14 @@ public final class MoniCAIceI extends _MoniCAIceDisp
         itsAdapter.add(object, ic.stringToIdentity(theirServiceName));
         itsAdapter.activate();
         ic.waitForShutdown();
-      } catch (Ice.LocalException e) {
-        e.printStackTrace();
       } catch (Exception e) {
-        System.err.println(e.getMessage());
+        itsLogger.error("In run method: " + e);        
       }
       if (ic != null) {
         try {
           ic.destroy();
         } catch (Exception e) {
-          System.err.println(e.getMessage());
+          itsLogger.error("While destroying communicator: " + e);
         }
       }
     }

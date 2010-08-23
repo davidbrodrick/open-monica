@@ -18,7 +18,5 @@ extends Transaction
   {
     super(parent, specifics);
     setChannel("NONE");
-    specifics = specifics.replace('\"','\0').trim();
-    itsName = specifics;
   }
 }
