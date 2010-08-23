@@ -21,6 +21,7 @@ The server uses a number of configuration files. Some of these are described on 
 {{{
 cd open-monica-read-only/
 cp default-files/monitor* config/
+cp default-files/log4j.properties config/
 }}}
 
 At this point you may wish to add an extra line to the `monitor-servers.txt` configuration file containing the name and IP address of the machine you plane to run the MoniCA server on. This will ensure that your server is available as an option when the client program starts.
