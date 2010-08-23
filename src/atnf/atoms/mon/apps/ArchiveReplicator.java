@@ -49,7 +49,7 @@ class ArchiveReplicator
     //CONNECT TO SERVER
     System.out.println("#Connecting to \"" + args[0] + "\"");
     try {
-      itsServer = new MoniCAClientCustom(args[0]);
+      itsServer = new MoniCAClientIce(args[0]);
     } catch (Exception e) {
       System.err.println(e.getMessage());
       e.printStackTrace();

@@ -9,6 +9,7 @@
 package atnf.atoms.mon.archivepolicy;
 
 import atnf.atoms.mon.*;
+import org.apache.log4j.Logger;
 
 /**
  * Archives data when the numeric value decreases.
@@ -17,32 +18,33 @@ import atnf.atoms.mon.*;
  */
 public class ArchivePolicyOnDecrease extends ArchivePolicy
 {
-    /** The last data value. */
-    Number itsLastData = null;
+  /** The last data value. */
+  Number itsLastData = null;
 
-    public ArchivePolicyOnDecrease(String[] args)
-    {
+  public ArchivePolicyOnDecrease(String[] args)
+  {
+  }
+
+  public boolean checkArchiveThis(PointData data)
+  {
+    if (data.getData() != null && !(data.getData() instanceof Number)) {
+      Logger logger = Logger.getLogger(this.getClass().getName());
+      logger.error("Require Numeric data for " + data.getName());
+      return false;
     }
 
-    public boolean checkArchiveThis(PointData data)
-    {
-        if (data.getData()!=null && !(data.getData() instanceof Number)) {
-            MonitorMap.logger.error("ArchivePolicyOnDecrease: Require Numeric data for " + data.getName());
-            return false;
-        }
-        
-        Number newdata = (Number)data.getData();
-        Number olddata = itsLastData;
-        itsLastData = newdata;
-        
-        if (olddata == null || newdata == null) {
-            return false;
-        } else {
-            if (newdata.doubleValue()<itsLastData.doubleValue()) {
-                return true;
-            } else {
-                return false;
-            }
-        }
+    Number newdata = (Number) data.getData();
+    Number olddata = itsLastData;
+    itsLastData = newdata;
+
+    if (olddata == null || newdata == null) {
+      return false;
+    } else {
+      if (newdata.doubleValue() < itsLastData.doubleValue()) {
+        return true;
+      } else {
+        return false;
+      }
     }
+  }
 }

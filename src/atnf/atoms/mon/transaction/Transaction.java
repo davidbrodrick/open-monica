@@ -8,6 +8,9 @@
 package atnf.atoms.mon.transaction;
 
 import java.lang.reflect.*;
+
+import org.apache.log4j.Logger;
+
 import atnf.atoms.mon.*;
 
 /**
@@ -127,7 +130,8 @@ extends MonitorPolicy
       }
       result = (Transaction)(Transaction_con.newInstance(new Object[]{parent, specifics}));
     } catch (Exception e) {
-      MonitorMap.logger.fatal("Transaction.factory: " + type + ", for " + parent.getName() + ": " + e.getClass() + " " + e.getMessage());
+      Logger logger = Logger.getLogger(Transaction.class.getName());
+      logger.fatal("In factory method: " + type + ", for " + parent.getFullName() + ": " + e);
       System.exit(1);
     }
 

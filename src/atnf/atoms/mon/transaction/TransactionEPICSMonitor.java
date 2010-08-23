@@ -11,6 +11,7 @@ import atnf.atoms.mon.*;
 import atnf.atoms.mon.externalsystem.*;
 import atnf.atoms.mon.util.MonitorUtils;
 import gov.aps.jca.dbr.DBRType;
+import org.apache.log4j.Logger;
 
 /**
  * Subscribe to updates via the EPICS Channel Access monitor mechanism. This Transaction
@@ -53,7 +54,8 @@ public class TransactionEPICSMonitor extends Transaction {
 
     EPICS es = (EPICS) ExternalSystem.getExternalSystem("EPICS");
     if (es == null) {
-      MonitorMap.logger.error("TransactionEPICS (" + itsParent.getFullName() + "): EPICS ExternalSystem is not running!");
+      Logger logger = Logger.getLogger(this.getClass().getName());
+      logger.error("(" + itsParent.getFullName() + "): EPICS ExternalSystem is not running!");
     } else {
       es.registerMonitor(parent, itsPV, itsType);
     }

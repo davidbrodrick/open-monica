@@ -17,6 +17,8 @@ import gov.aps.jca.*;
 import gov.aps.jca.dbr.*;
 import gov.aps.jca.event.*;
 
+import org.apache.log4j.Logger;
+
 /**
  * Interface between MoniCA and EPICS Channel Access, allowing CA monitors
  * (publish/subscribe) updates and gets (polling).
@@ -42,20 +44,23 @@ import gov.aps.jca.event.*;
  * @author David Brodrick
  */
 public class EPICS extends ExternalSystem {
+  /** Logger. */
+  protected static Logger theirLogger = Logger.getLogger(EPICS.class.getName());
+  
   /** JCA context. */
-  Context itsContext = null;
+  protected Context itsContext = null;
 
   /** Mapping between PV names and Channels. */
-  HashMap<String, Channel> itsChannelMap = new HashMap<String, Channel>();
+  protected HashMap<String, Channel> itsChannelMap = new HashMap<String, Channel>();
 
   /** Mapping between 'pointname:PVname' strings and EPICSListeners. */
-  HashMap<String, EPICSListener> itsListenerMap = new HashMap<String, EPICSListener>();
+  protected HashMap<String, EPICSListener> itsListenerMap = new HashMap<String, EPICSListener>();
 
   /**
    * Lists of MoniCA points which require 'monitor' updates for each PV which hasn't been
    * connected yet.
    */
-  HashMap<String, Vector<Vector<Object>>> itsRequiresMonitor = new HashMap<String, Vector<Vector<Object>>>();
+  protected HashMap<String, Vector<Vector<Object>>> itsRequiresMonitor = new HashMap<String, Vector<Vector<Object>>>();
 
   public EPICS(String[] args) {
     super("EPICS");
@@ -66,7 +71,7 @@ public class EPICS extends ExternalSystem {
       // Create context with default configuration values.
       itsContext = jca.createContext(JCALibrary.CHANNEL_ACCESS_JAVA);
     } catch (Exception e) {
-      MonitorMap.logger.error("EPICS(constructor): Creating Context: " + e);
+      theirLogger.error("Creating Context: " + e);
     }
 
     // Create thread to connect channels
@@ -74,7 +79,7 @@ public class EPICS extends ExternalSystem {
       ChannelConnector connector = new ChannelConnector();
       connector.start();
     } catch (Exception e) {
-      MonitorMap.logger.error("EPICS(constructor): Creating ChannelConnector: " + e);
+      theirLogger.error("Creating ChannelConnector: " + e);
     }
   }
 
@@ -147,18 +152,18 @@ public class EPICS extends ExternalSystem {
       // Flush all of the get requests
       itsContext.flushIO();
     } catch (Exception e) {
-      MonitorMap.logger.error("EPICS.getData: Flushing IO: " + e);
+      theirLogger.error("In getData method, while flushing IO: " + e);
     }
   }
 
   /** Send a value from MoniCA to EPICS. */
   public void putData(PointDescription desc, PointData pd) throws Exception {
-    MonitorMap.logger.error("EPICS: Unsupported control request from " + desc.getFullName());
+    theirLogger.error("Unsupported control request from " + desc.getFullName());
 
     try {
       itsContext.flushIO();
     } catch (Exception e) {
-      MonitorMap.logger.error("EPICS.putData: Flushing IO: " + e);
+      theirLogger.error("In putData method, while flushing IO: " + e); 
     }
   }
 
@@ -216,7 +221,7 @@ public class EPICS extends ExternalSystem {
               Channel thischan = itsContext.createChannel(thispv);
               newchannels.add(thischan);
             } catch (Exception e) {
-              MonitorMap.logger.warning("EPICS.ChannelConnector: Connecting Channel " + thispv + ": " + e);
+              theirLogger.warn("ChannelConnector: Connecting Channel " + thispv + ": " + e);
             }
           }
         }
@@ -241,7 +246,7 @@ public class EPICS extends ExternalSystem {
               try {
                 thischan.destroy();
               } catch (Exception e) {
-                MonitorMap.logger.error("EPICS: Destroying channel for " + thispv + ": " + e);
+                theirLogger.error("ChannelConnector: Destroying channel for " + thispv + ": " + e);
               }
             }
           }
@@ -271,14 +276,14 @@ public class EPICS extends ExternalSystem {
               nativetype = DBRType.forName(tempdbr.getType().getName().replaceAll("DBR_", "DBR_STS_")
                       .replaceAll("_ENUM", "_STRING"));
             } catch (Exception e) {
-              MonitorMap.logger.error("EPICS.ChannelConnector: ERROR determining native DBRType for " + thispv);
+              theirLogger.error("ChannelConnector: ERROR determining native DBRType for " + thispv);
               continue;
             }
 
             Vector<Vector<Object>> thesepoints = itsRequiresMonitor.get(thispv);
             if (thesepoints == null || thesepoints.size() == 0) {
               // Should never happen
-              MonitorMap.logger.error("EPICS.ChannelConnector: PV " + thispv
+              theirLogger.error("ChannelConnector: PV " + thispv
                       + " is queued for monitor connection but no points are waiting!");
               continue;
             } else {
@@ -305,7 +310,7 @@ public class EPICS extends ExternalSystem {
                   itsListenerMap.put(listenername, listener);
                   thesepoints.remove(thisvector);
                 } catch (Exception f) {
-                  MonitorMap.logger.error("EPICS: Establising Listener " + thispoint.getFullName() + "/" + thispv + ": " + f);
+                  theirLogger.error("ChannelConnector: Establising Listener " + thispoint.getFullName() + "/" + thispv + ": " + f);
                 }
               }
               if (thesepoints.size() == 0) {
@@ -324,7 +329,7 @@ public class EPICS extends ExternalSystem {
         try {
           itsContext.flushIO();
         } catch (Exception e) {
-          MonitorMap.logger.error("EPICS.ChannelConnector: Flushing IO: " + e);
+          theirLogger.error("ChannelConnector: While flushing IO: " + e);
         }
         try {
           // Sleep for a while before trying to connect remaining channels
@@ -368,7 +373,7 @@ public class EPICS extends ExternalSystem {
           pd = getPDforDBR(ev.getDBR(), itsPointName, itsPV);
         }
       } catch (Exception e) {
-        MonitorMap.logger.warning("EPICS:EPICSListener.monitorChanged: " + itsPV + ": " + e);
+        theirLogger.warn("EPICSListener.monitorChanged: " + itsPV + ": " + e);
       }
       itsPoint.firePointEvent(new PointEvent(this, pd, true));
     }
@@ -381,7 +386,7 @@ public class EPICS extends ExternalSystem {
           pd = getPDforDBR(ev.getDBR(), itsPointName, itsPV);
         }
       } catch (Exception e) {
-        MonitorMap.logger.warning("EPICS:EPICSListener.getCompleted: " + itsPV + ": " + e);
+        theirLogger.warn("EPICSListener.getCompleted: " + itsPV + ": " + e);
       }
       itsPoint.firePointEvent(new PointEvent(this, pd, true));
       // Return the point for rescheduling
@@ -411,7 +416,7 @@ public class EPICS extends ExternalSystem {
     try {
       int count = dbr.getCount();
       if (count > 1) {
-        MonitorMap.logger.warning("EPICS.getPDforDBR: " + pvname + ": >1 value received");
+        theirLogger.warn("getPDforDBR: " + pvname + ": >1 value received");
       }
       Object rawval = dbr.getValue();
       // Have to switch on type, don't think there's any simpler way
@@ -431,7 +436,7 @@ public class EPICS extends ExternalSystem {
       } else if (dbr instanceof ENUM) {
         newval = new Integer(((short[]) rawval)[0]);
       } else {
-        MonitorMap.logger.warning("EPICS.getPDforDBR: " + pvname + ": Unhandled DBR type: " + dbr.getType());
+        theirLogger.warn("getPDforDBR: " + pvname + ": Unhandled DBR type: " + dbr.getType());
       }
 
       // Check the alarm status, if information is available
@@ -461,8 +466,7 @@ public class EPICS extends ExternalSystem {
       pd.setAlarm(alarm);
       pd.setTimestamp(timestamp);
     } catch (Exception e) {
-      MonitorMap.logger.warning("EPICS.getPDforDBR: " + pvname + ": " + e);
-      e.printStackTrace();
+      theirLogger.warn("getPDforDBR: " + pvname + ": " + e);
     }
     return pd;
   }

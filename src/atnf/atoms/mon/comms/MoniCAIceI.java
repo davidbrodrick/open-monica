@@ -11,6 +11,7 @@ package atnf.atoms.mon.comms;
 import java.util.Vector;
 import atnf.atoms.mon.*;
 import atnf.atoms.time.AbsTime;
+import org.apache.log4j.Logger;
 
 /**
  * Concrete implementation of the Ice server for MoniCA.
@@ -21,6 +22,8 @@ public final class MoniCAIceI extends _MoniCAIceDisp
 {
   /** The currently running server. */
   protected static MoniCAIceServerThread theirServer = null;
+  
+  protected static Logger theirLogger = Logger.getLogger(MoniCAIceI.class.getName());
 
   public MoniCAIceI()
   {
@@ -162,16 +165,14 @@ public final class MoniCAIceI extends _MoniCAIceDisp
         // Get the specified point
         PointDescription thispoint = PointDescription.getPoint(names[i]);
         if (thispoint == null) {
-          MonitorMap.logger.warning("MoniCAIceI.setData: Point " + names[i] + " does not exist");
-          System.err.println("MoniCAIceI.setData: Point " + names[i] + " does not exist");
+          theirLogger.warn("In setData method: Point " + names[i] + " does not exist");
           result = false;
           continue;
         }
         // Act on the new data value
         thispoint.firePointEvent(new PointEvent(this, values.get(i), true));
       } catch (Exception e) {
-        MonitorMap.logger.warning("MoniCAIceI.setData: Processing " + names[i] + ": " + e);
-        System.err.println("MoniCAIceI.setData: Processing " + names[i] + ": " + e);
+        theirLogger.warn("In setData method, while processing " + names[i] + ": " + e);
         result = false;
       }
     }

@@ -13,6 +13,7 @@ import atnf.atoms.time.RelTime;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.time.AbsTime;
+import org.apache.log4j.Logger;
 
 /**
  * Superclass for all Archiver classes, which save and retrieve data from disk, databases,
@@ -25,6 +26,9 @@ public abstract class PointArchiver extends Thread
 {
     /** Archiver used for archiving data to disk, database, etc. */
     private static PointArchiver theirArchiver;
+    
+    /** Logger. */
+    protected static Logger theirLogger = Logger.getLogger(PointArchiver.class.getName());
 
     /**
      * Max number of records to be returned in response to a single archive request. The
@@ -117,7 +121,7 @@ public abstract class PointArchiver extends Thread
                         try {
                             sleeptime.sleep();
                         } catch (Exception e) {
-                            MonitorMap.logger.error("MoniCA Server: PointArchiver.run1: " + e.getMessage());
+                            theirLogger.error("run1: " + e);
                         }
                         // System.err.println("Skipping " + pm.getSource() + "." +
                         // pm.getName());
@@ -130,13 +134,13 @@ public abstract class PointArchiver extends Thread
                 try {
                     sleeptime.sleep();
                 } catch (Exception e) {
-                    MonitorMap.logger.error("MoniCA Server: PointArchiver.run2: " + e.getMessage());
+                    theirLogger.error("run2: " + e);
                 }
             }
             try {
                 sleeptime.sleep();
             } catch (Exception e) {
-                MonitorMap.logger.error("MoniCA Server: PointArchiver.run3: " + e.getMessage());
+                theirLogger.error("run3: " + e);
             }
         }
     }
