@@ -26,7 +26,7 @@ import atnf.atoms.mon.*;
  * 
  * @author David Brodrick
  */
-class AlarmCheckStringMatch extends AlarmCheck
+public class AlarmCheckStringMatch extends AlarmCheck
 {
   /** Does a match indicate ok (true) or error (false). */
   protected boolean itsMatchGood = true;

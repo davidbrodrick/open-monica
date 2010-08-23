@@ -20,7 +20,7 @@ import atnf.atoms.util.Angle;
  * @author David Brodrick
  * @author Le Cuong Nguyen
  */
-class AlarmCheckRange extends AlarmCheck
+public class AlarmCheckRange extends AlarmCheck
 {
   /** The lower limit of the range. */
   private double itsLower = 0.0;

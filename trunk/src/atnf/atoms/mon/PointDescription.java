@@ -272,7 +272,8 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     }
     Transaction[] outputtrans = new Transaction[itsOutputTransactionStrings.length];
     for (int i = 0; i < itsOutputTransactionStrings.length; i++) {
-      outputtrans[i] = (Transaction) Factory.factory(this, itsOutputTransactionStrings[i], "atnf.atoms.mon.transaction.Transaction");
+      outputtrans[i] = (Transaction) Factory
+              .factory(this, itsOutputTransactionStrings[i], "atnf.atoms.mon.transaction.Transaction");
     }
     itsInputTransactions = inputtrans;
     itsOutputTransactions = outputtrans;
@@ -721,63 +722,62 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     String[] lines = MonitorUtils.parseFile(pointsfile);
     if (lines != null) {
       for (int i = 0; i < lines.length; i++) {
-        ArrayList<PointDescription> al = parseLine(lines[i]);
+        ArrayList<PointDescription> al = null;
+        try {
+          al = parseLine(lines[i]);
+        } catch (Exception e) {
+          theirLogger.error("Exception \"" + e + "\" while parsing point definition line " + i + ": " + lines[i]);
+        }
         if (al != null) {
           result.addAll(al);
-        } else {
-          theirLogger.error("While parsing point definition line " + i + ": " + lines[i]);
         }
       }
     }
     return result;
   }
 
-  public static ArrayList<PointDescription> parseLine(String line)
+  public static ArrayList<PointDescription> parseLine(String line) throws Exception
   {
     // Number of tokens we expect for each point definition
     final int NUMTOKENS = 13;
 
     ArrayList<PointDescription> result = new ArrayList<PointDescription>();
-    try {
-      // Extract appropriate information and make point/s
-      String[] toks = MonitorUtils.getTokens(line);
-      if (toks.length != NUMTOKENS) {
-        throw new Exception("Expect " + NUMTOKENS + " tokens, found " + toks.length);
-      }
 
-      String[] pointNameArray = MonitorUtils.getTokens(toks[0]);
-      String pointLongDesc = toks[1];
-      String pointShortDesc = toks[2];
-      String pointUnits = toks[3];
-      String[] pointSourceArray = MonitorUtils.getTokens(toks[4]);
-      String pointEnabled = toks[5];
-      String[] pointInputArray = MonitorUtils.getTokens(toks[6]);
-      String[] pointOutputArray = MonitorUtils.getTokens(toks[7]);
-      String[] pointTranslateArray = MonitorUtils.getTokens(toks[8]);
-      String[] pointLimitsArray = MonitorUtils.getTokens(toks[9]);
-      String[] pointArchiveArray = MonitorUtils.getTokens(toks[10]);
-      String pointPeriod = toks[11];
-      String archiveLife = toks[12];
-
-      boolean[] pointEnabledArray = parseBoolean(pointEnabled);
-      if (pointEnabled.length() < pointSourceArray.length) {
-        boolean[] temp = new boolean[pointSourceArray.length];
-        for (int i = 0; i < temp.length; i++) {
-          temp[i] = pointEnabledArray[0];
-        }
-        pointEnabledArray = temp;
-      }
-
-      for (int i = 0; i < pointSourceArray.length; i++) {
-        result.add(PointDescription.factory(pointNameArray, pointLongDesc, pointShortDesc, pointUnits, pointSourceArray[i],
-                pointInputArray, pointOutputArray, pointTranslateArray, pointLimitsArray, pointArchiveArray, pointPeriod,
-                archiveLife, pointEnabledArray[i]));
-      }
-
-    } catch (Exception e) {
-      theirLogger.error("While parsing point definition string: " + line + " " + e);
-      result = null;
+    // Extract appropriate information and make point/s
+    String[] toks = MonitorUtils.getTokens(line);
+    if (toks.length != NUMTOKENS) {
+      throw new Exception("Expect " + NUMTOKENS + " tokens, found " + toks.length);
     }
+
+    String[] pointNameArray = MonitorUtils.getTokens(toks[0]);
+    String pointLongDesc = toks[1];
+    String pointShortDesc = toks[2];
+    String pointUnits = toks[3];
+    String[] pointSourceArray = MonitorUtils.getTokens(toks[4]);
+    String pointEnabled = toks[5];
+    String[] pointInputArray = MonitorUtils.getTokens(toks[6]);
+    String[] pointOutputArray = MonitorUtils.getTokens(toks[7]);
+    String[] pointTranslateArray = MonitorUtils.getTokens(toks[8]);
+    String[] pointLimitsArray = MonitorUtils.getTokens(toks[9]);
+    String[] pointArchiveArray = MonitorUtils.getTokens(toks[10]);
+    String pointPeriod = toks[11];
+    String archiveLife = toks[12];
+
+    boolean[] pointEnabledArray = parseBoolean(pointEnabled);
+    if (pointEnabled.length() < pointSourceArray.length) {
+      boolean[] temp = new boolean[pointSourceArray.length];
+      for (int i = 0; i < temp.length; i++) {
+        temp[i] = pointEnabledArray[0];
+      }
+      pointEnabledArray = temp;
+    }
+
+    for (int i = 0; i < pointSourceArray.length; i++) {
+      result.add(PointDescription.factory(pointNameArray, pointLongDesc, pointShortDesc, pointUnits, pointSourceArray[i],
+              pointInputArray, pointOutputArray, pointTranslateArray, pointLimitsArray, pointArchiveArray, pointPeriod,
+              archiveLife, pointEnabledArray[i]));
+    }
+
     return result;
   }
 
@@ -871,13 +871,14 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
             // operation
             ExternalSystem ds = ExternalSystem.getExternalSystem(thistrans.getChannel());
             if (ds == null) {
-              theirLogger.warn("(" + getFullName() + ") No ExternalSystem for output Transaction channel "
-                      + thistrans.getChannel());
+              theirLogger
+                      .warn("(" + getFullName() + ") No ExternalSystem for output Transaction channel " + thistrans.getChannel());
             } else {
               try {
                 ds.putData(this, data);
               } catch (Exception e) {
-                theirLogger.warn("(" + getFullName() + ") while writing output data, ExternalSystem " + ds.getName() + " threw exception \"" + e);
+                theirLogger.warn("(" + getFullName() + ") while writing output data, ExternalSystem " + ds.getName()
+                        + " threw exception \"" + e);
               }
             }
           }
