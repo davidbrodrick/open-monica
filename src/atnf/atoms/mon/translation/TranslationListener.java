@@ -159,11 +159,9 @@ public abstract class TranslationListener extends Translation implements PointLi
         break;
       }
     }
-
-    // Ensure we point the appropriate point
     if (i == itsNumPoints) {
       Logger logger = Logger.getLogger(this.getClass().getName());
-      logger.warn("(" + itsParent.getFullName() + ") Received unsolicited data from: " + fullname);
+      logger.warn("(" + itsParent.getFullName() + ") received unsolicited data from " + fullname);
       return;
     }
 

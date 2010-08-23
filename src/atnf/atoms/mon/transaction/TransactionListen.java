@@ -17,7 +17,6 @@ import org.apache.log4j.Logger;
 /**
  * 
  * @author David Brodrick
- * @version $Id: $
  */
 public class TransactionListen extends Transaction implements PointListener, ActionListener
 {
@@ -68,8 +67,6 @@ public class TransactionListen extends Transaction implements PointListener, Act
   /** Called when a listened-to point updates. */
   public void onPointEvent(Object source, PointEvent evt)
   {
-    // System.err.println("TransactionListen: " + itsParent.getName() + " GOT " + evt);
-
     // Need to repack the data into a new event object
     PointData pd = evt.getPointData();
     // Check that there's data.. ?
