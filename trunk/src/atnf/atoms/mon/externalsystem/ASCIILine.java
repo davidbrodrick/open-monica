@@ -119,6 +119,10 @@ public class ASCIILine extends ASCIISocket
             } else {
               Logger logger = Logger.getLogger(this.getClass().getName());
               logger.warn("(" + itsHostName + ":" + itsPort + "): Specified point " + itsMonitorPoint + " was not found");
+              try {
+                RelTime.factory(500000).sleep();
+              } catch (Exception f) {
+              }              
             }
           }
         } catch (Exception e) {

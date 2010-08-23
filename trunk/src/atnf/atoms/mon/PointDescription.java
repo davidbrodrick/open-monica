@@ -854,14 +854,14 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
           }
         }
       }
+      // Ensure data has our name on it (eg not name of a listened-to point)
+      if (data != null && !data.getName().equals(getFullName())) {
+        data = new PointData(data);
+        data.setName(getFullName());
+      }
+            
       // Translation has been completed so prepare new event and fire
       pe = new PointEvent(this, data, false);
-    }
-
-    // Ensure data has our name on it
-    if (data != null && !data.getName().equals(getFullName())) {
-      data = new PointData(data);
-      data.setName(getFullName());
     }
 
     if (data != null && data.isValid()) {
