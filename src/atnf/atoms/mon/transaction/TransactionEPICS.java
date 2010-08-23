@@ -26,7 +26,8 @@ import gov.aps.jca.dbr.DBRType;
  * 
  * @author David Brodrick
  */
-public class TransactionEPICS extends Transaction {
+public class TransactionEPICS extends Transaction
+{
   /** The EPICS Process Variable we need to monitor. */
   private String itsPV;
 
@@ -34,38 +35,41 @@ public class TransactionEPICS extends Transaction {
   private DBRType itsType = null;
 
   /** Constructor which registers the point for EPICS monitor updates. */
-  public TransactionEPICS(PointDescription parent, String specifics) {
-    super(parent, specifics);
+  public TransactionEPICS(PointDescription parent, String[] args)
+  {
+    super(parent, args);
+
     // Set the channel (to find the EPICS ExternalSystem)
     setChannel("EPICS");
 
-    String[] tokens = MonitorUtils.tokToStringArray(specifics);
-
     // Replace the macro $1 with source name if present
-    if (tokens[0].indexOf("$1") != -1) {
-      tokens[0] = MonitorUtils.replaceTok(tokens[0], parent.getSource());
+    if (args[0].indexOf("$1") != -1) {
+      args[0] = MonitorUtils.replaceTok(args[0], parent.getSource());
     }
     // Record name of the PV to communicate with
-    itsPV = tokens[0].trim();
+    itsPV = args[0].trim();
 
     // Get the data type to used, if specified
-    if (tokens.length > 1) {
-      itsType = DBRType.forName(tokens[1].trim());
+    if (args.length > 1) {
+      itsType = DBRType.forName(args[1].trim());
     }
   }
 
   /** Return the name of the PV to use for this point. */
-  public String getPVName() {
+  public String getPVName()
+  {
     return itsPV;
   }
 
   /** Return the DBRType to use. */
-  public DBRType getType() {
+  public DBRType getType()
+  {
     return itsType;
   }
 
   /** Specify the DBRType to use. */
-  public void setType(DBRType type) {
+  public void setType(DBRType type)
+  {
     itsType = type;
   }
 }

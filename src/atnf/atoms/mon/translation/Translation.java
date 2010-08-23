@@ -57,47 +57,6 @@ public abstract class Translation
     itsParent = parent;
   }
 
-  public static Translation factory(PointDescription parent, String strdef)
-  {
-    // Enable use of "null" keyword
-    if (strdef.equalsIgnoreCase("null")) {
-      strdef = "-";
-    }
-
-    Translation result = null;
-
-    try {
-      // Find the argument strings
-      String specifics = strdef.substring(strdef.indexOf("-") + 1);
-      String[] transArgs = MonitorUtils.tokToStringArray(specifics);
-
-      // Find the type of translation
-      String type = strdef.substring(0, strdef.indexOf("-"));
-      if (type == "" || type == null || type.length() < 1) {
-        type = "None";
-      }
-
-      Constructor Translation_con;
-      try {
-        // Try to find class by assuming argument is full class name
-        Translation_con = Class.forName(type).getConstructor(new Class[] { PointDescription.class, String[].class });
-      } catch (Exception f) {
-        // Supplied name was not a full path
-        // Look in atnf.atoms.mon.translation package
-        Translation_con = Class.forName("atnf.atoms.mon.translation.Translation" + type).getConstructor(
-                new Class[] { PointDescription.class, String[].class });
-      }
-      result = (Translation) (Translation_con.newInstance(new Object[] { parent, transArgs }));
-    } catch (Exception e) {
-      Logger logger = Logger.getLogger(Translation.class.getName());
-      logger.error("Error creating Translation \'" + strdef + "\' for point " + parent.getFullName() + ": " + e);
-      // substitute a no-op translation instead, dunno if it is best course of action but at least system keeps running..
-      result = new TranslationNone(parent, new String[] {});
-    }
-
-    return result;
-  }
-
   /** Override this method to perform work. */
   public abstract PointData translate(PointData data);
 }

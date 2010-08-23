@@ -22,15 +22,16 @@ public class ArchivePolicyOnIncrease extends ArchivePolicy
   /** The last data value. */
   Number itsLastData = null;
 
-  public ArchivePolicyOnIncrease(String[] args)
+  public ArchivePolicyOnIncrease(PointDescription parent, String[] args)
   {
+    super(parent, args);
   }
 
   public boolean checkArchiveThis(PointData data)
   {
     if (data.getData() != null && !(data.getData() instanceof Number)) {
       Logger logger = Logger.getLogger(this.getClass().getName());
-      logger.error("ArchivePolicyOnIncrease: Require Numeric data for " + data.getName());
+      logger.error("(" + itsParent.getFullName() + "): Require Numeric data for input point " + data.getName());
       return false;
     }
 

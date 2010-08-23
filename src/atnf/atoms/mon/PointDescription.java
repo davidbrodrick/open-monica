@@ -32,7 +32,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
 {
   /** Logger. */
   protected static Logger theirLogger = Logger.getLogger(PointDescription.class.getName());
-  
+
   /**
    * Array of names and aliases that belong to this point in dot "." delimited
    * heirarchical form.
@@ -49,20 +49,19 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   protected String itsShortDesc = "";
 
   /**
-   * Maximum length of the short description string. Any descriptions longer
-   * than this will be truncated at initialisation time.
+   * Maximum length of the short description string. Any descriptions longer than this
+   * will be truncated at initialisation time.
    */
   protected static final int theirMaxShortDescLen = 10;
 
   /**
-   * The engineering units of the point's data. For instance this might be
-   * "Volts" or "Amps" or "dBm". Leave as null for dimensionless points.
+   * The engineering units of the point's data. For instance this might be "Volts" or
+   * "Amps" or "dBm". Leave as null for dimensionless points.
    */
   protected String itsUnits = null;
 
   /**
-   * Should this point be active in the system or does it exist as metadata
-   * only.
+   * Should this point be active in the system or does it exist as metadata only.
    */
   protected boolean itsEnabled = false;
 
@@ -119,10 +118,10 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
 
   /** Listeners for data value updates. */
   protected EventListenerList itsListenerList = new EventListenerList();
-  
+
   /**
-   * The interval between updates. If the period is set to 0, then this point
-   * has no scheduled update frequency.
+   * The interval between updates. If the period is set to 0, then this point has no
+   * scheduled update frequency.
    */
   long itsPeriod = 0;
 
@@ -133,9 +132,9 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   protected transient long itsNextEpoch = 0;
 
   /**
-   * Return the period between updates for this monitor point. A period of zero
-   * has the special meaning that the update frequency is being handled through
-   * some other mechanism.
+   * Return the period between updates for this monitor point. A period of zero has the
+   * special meaning that the update frequency is being handled through some other
+   * mechanism.
    */
   public long getPeriod()
   {
@@ -167,8 +166,8 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /**
-   * Get the archive longevity. This is the period in days to keep archived
-   * data, or -1 for indefinitely.
+   * Get the archive longevity. This is the period in days to keep archived data, or -1
+   * for indefinitely.
    */
   public int getArchiveLongevity()
   {
@@ -176,8 +175,8 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /**
-   * Set the archive longevity. This is the period in days to keep archived
-   * data, or -1 for indefinitely.
+   * Set the archive longevity. This is the period in days to keep archived data, or -1
+   * for indefinitely.
    */
   public void setArchiveLongevity(int length)
   {
@@ -185,8 +184,8 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /**
-   * Set the archive longevity. This is the period in days to keep archived
-   * data, or "-1" or "null" or "-" to archive indefinitely.
+   * Set the archive longevity. This is the period in days to keep archived data, or "-1"
+   * or "null" or "-" to archive indefinitely.
    */
   public void setArchiveLongevity(String newperiod)
   {
@@ -269,11 +268,11 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   {
     Transaction[] inputtrans = new Transaction[itsInputTransactionStrings.length];
     for (int i = 0; i < itsInputTransactionStrings.length; i++) {
-      inputtrans[i] = Transaction.factory(this, itsInputTransactionStrings[i]);
+      inputtrans[i] = (Transaction) Factory.factory(this, itsInputTransactionStrings[i], "atnf.atoms.mon.transaction.Transaction");
     }
     Transaction[] outputtrans = new Transaction[itsOutputTransactionStrings.length];
     for (int i = 0; i < itsOutputTransactionStrings.length; i++) {
-      outputtrans[i] = Transaction.factory(this, itsOutputTransactionStrings[i]);
+      outputtrans[i] = (Transaction) Factory.factory(this, itsOutputTransactionStrings[i], "atnf.atoms.mon.transaction.Transaction");
     }
     itsInputTransactions = inputtrans;
     itsOutputTransactions = outputtrans;
@@ -302,7 +301,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   {
     Translation[] translations = new Translation[itsTranslationStrings.length];
     for (int i = 0; i < itsTranslationStrings.length; i++) {
-      translations[i] = Translation.factory(this, itsTranslationStrings[i]);
+      translations[i] = (Translation) Factory.factory(this, itsTranslationStrings[i], "atnf.atoms.mon.translation.Translation");
     }
     itsTranslations = translations;
   }
@@ -333,9 +332,8 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
 
   /**
    * Return the source for this point. The source field is used to indicate what
-   * real-world system the information contained in this point pertains to. For
-   * instance this could indicate which antenna some monitor data was collected
-   * from.
+   * real-world system the information contained in this point pertains to. For instance
+   * this could indicate which antenna some monitor data was collected from.
    */
   public String getSource()
   {
@@ -348,9 +346,8 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /**
-   * Set the names for this point. The objective of this is that all points
-   * sharing a common set of names can share a reference to the same set of
-   * names in memory.
+   * Set the names for this point. The objective of this is that all points sharing a
+   * common set of names can share a reference to the same set of names in memory.
    */
   protected void setNames(String[] newnames)
   {
@@ -438,8 +435,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /**
-   * Compare the next-collection timestamp with another PointInteraction or an
-   * AbsTime.
+   * Compare the next-collection timestamp with another PointInteraction or an AbsTime.
    */
   public int compareTo(Object obj)
   {
@@ -503,21 +499,22 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   {
     AlarmCheck[] alarms = new AlarmCheck[itsAlarmCheckStrings.length];
     for (int i = 0; i < itsAlarmCheckStrings.length; i++) {
-      alarms[i] = AlarmCheck.factory(this, itsAlarmCheckStrings[i]);
+      alarms[i] = (AlarmCheck) Factory.factory(this, itsAlarmCheckStrings[i], "atnf.atoms.mon.alarmcheck.AlarmCheck");
     }
     itsAlarmChecks = alarms;
   }
 
   /**
-   * Check the data value against the alarm criteria and set the alarm field if
-   * the point is in an alarm state, otherwise leave the current alarm value
-   * unchanged.
+   * Check the data value against the alarm criteria and set the alarm field if the point
+   * is in an alarm state, otherwise leave the current alarm value unchanged.
    */
   public void evaluateAlarms(PointData pd)
   {
     if (itsAlarmChecks != null && itsAlarmChecks.length > 0) {
       for (int i = 0; i < itsAlarmChecks.length && pd.getAlarm() == false; i++) {
-        itsAlarmChecks[i].checkAlarm(pd);
+        if (itsAlarmChecks[i] != null) {
+          itsAlarmChecks[i].checkAlarm(pd);
+        }
       }
     }
   }
@@ -567,14 +564,14 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   {
     ArchivePolicy[] archives = new ArchivePolicy[itsArchiveStrings.length];
     for (int i = 0; i < archives.length; i++) {
-      archives[i] = ArchivePolicy.factory(this, itsArchiveStrings[i]);
+      archives[i] = (ArchivePolicy) Factory.factory(this, itsArchiveStrings[i], "atnf.atoms.mon.archivepolicy.ArchivePolicy");
     }
     itsArchive = archives;
   }
 
   /**
-   * Return the time when this monitor point was last sampled. If the monitor
-   * point hasn't yet been sampled "NEVER" is returned.
+   * Return the time when this monitor point was last sampled. If the monitor point hasn't
+   * yet been sampled "NEVER" is returned.
    */
   public long getLastEpoch()
   {
@@ -587,8 +584,8 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /**
-   * Return the time when this monitor point will next be sampled. If the
-   * monitor point hasn't yet been sampled, "ASAP" will be returned.
+   * Return the time when this monitor point will next be sampled. If the monitor point
+   * hasn't yet been sampled, "ASAP" will be returned.
    */
   public long getNextEpoch()
   {
@@ -608,9 +605,8 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /**
-   * Get the number of data updates to keep buffered in memory. TODO: This
-   * currently just returns a fixed number. TODO: Do we want to buffer updates
-   * at all?
+   * Get the number of data updates to keep buffered in memory. TODO: This currently just
+   * returns a fixed number. TODO: Do we want to buffer updates at all?
    */
   public int getMaxBufferSize()
   {
@@ -618,10 +614,9 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /**
-   * Indicate if the point is in the process of being updated. This is useful
-   * for points which are updated asynchronously to prevent a subsequent
-   * collection from being scheduled while another collection is still
-   * happening.
+   * Indicate if the point is in the process of being updated. This is useful for points
+   * which are updated asynchronously to prevent a subsequent collection from being
+   * scheduled while another collection is still happening.
    */
   public void isCollecting(boolean collecting)
   {
@@ -662,8 +657,8 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /**
-   * Return the units of the monitor point's value. This string may be null if
-   * the point has no units.
+   * Return the units of the monitor point's value. This string may be null if the point
+   * has no units.
    */
   public String getUnits()
   {
@@ -677,8 +672,8 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /**
-   * Populate all point fields and manipulate any perform any other operations
-   * to make the point active on the server.
+   * Populate all point fields and manipulate any perform any other operations to make the
+   * point active on the server.
    */
   public void populateServerFields()
   {
@@ -688,15 +683,13 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     makeAlarmChecks();
     // Assign to appropriate ExternalSystem(s) for data collection
     for (int i = 0; i < itsInputTransactions.length; i++) {
-      Transaction t = itsInputTransactions[i];
-      if (t != null && t.getChannel() != null && !t.getChannel().equals("NONE")) {
-        ExternalSystem ds = ExternalSystem.getExternalSystem(t.getChannel());
+      Transaction thistrans = itsInputTransactions[i];
+      if (thistrans != null && thistrans.getChannel() != null && !thistrans.getChannel().equals("NONE")) {
+        ExternalSystem ds = ExternalSystem.getExternalSystem(thistrans.getChannel());
         if (ds != null) {
           ds.addPoint(this);
-          // System.err.println("PointDescription:addPoint: OK for "
-          // + pm + " (" + t.getChannel() + ")");
         } else {
-          System.err.println("PointDescription:addPoint: No ExternalSystem for " + this + " (" + t.getChannel() + ")");
+          theirLogger.warn("(" + getFullName() + ") No ExternalSystem found for Channel: " + thistrans.getChannel());
         }
       }
     }
@@ -713,7 +706,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     try {
       return parseFile(new FileReader(fname));
     } catch (Exception e) {
-      System.err.println("PointInteraction:parseFile(): " + e.getClass());
+      theirLogger.error("While parsing point definition file: " + e);
       e.printStackTrace();
       return null;
     }
@@ -732,7 +725,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
         if (al != null) {
           result.addAll(al);
         } else {
-          System.err.println("PointDescription.parseFile: ERROR parsing line " + i + ": " + lines[i]);
+          theirLogger.error("While parsing point definition line " + i + ": " + lines[i]);
         }
       }
     }
@@ -782,7 +775,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       }
 
     } catch (Exception e) {
-      System.err.println("PointDescription.parseLine: " + e);
+      theirLogger.error("While parsing point definition string: " + line + " " + e);
       result = null;
     }
     return result;
@@ -847,13 +840,12 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       if (data != null) {
         for (int i = 0; i < itsTranslations.length; i++) {
           try {
-            // Apply the next translation
-            data = itsTranslations[i].translate(data);
+            // Apply the next translation if it is defined
+            if (itsTranslations[i] != null) {
+              data = itsTranslations[i].translate(data);
+            }
           } catch (Throwable e) {
-            System.err.println("PointDescription:firePointevent: Translation Error:" + e.getMessage());
-            System.err.println("\tPOINT = " + getSource() + "." + getName());
-            System.err.println("\tTRANSLATION = " + itsTranslations[i].getClass());
-            System.err.println("\tEXCEPTION = " + e);
+            theirLogger.error("(" + getFullName() + ") Error on Translation " + (i + 1) + "/" + itsTranslations.length + ": " + e);
             data = null;
           }
           // If null was returned then stop translation process
@@ -873,22 +865,19 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       // Perform any required output transactions
       if (getEnabled() && itsOutputTransactions != null && itsOutputTransactions.length > 0) {
         for (int i = 0; i < itsOutputTransactions.length; i++) {
-          Transaction thistransaction = itsOutputTransactions[i];
-          if (!(thistransaction instanceof TransactionNONE)) {
+          Transaction thistrans = itsOutputTransactions[i];
+          if (thistrans != null) {
             // Find the ExternalSystem responsible for handling this control
             // operation
-            ExternalSystem ds = ExternalSystem.getExternalSystem(thistransaction.getChannel());
+            ExternalSystem ds = ExternalSystem.getExternalSystem(thistrans.getChannel());
             if (ds == null) {
-              System.err.println("PointDescription (" + getFullName() + "): No ExternalSystem for output Transaction channel "
-                      + thistransaction.getChannel());
+              theirLogger.warn("(" + getFullName() + ") No ExternalSystem for output Transaction channel "
+                      + thistrans.getChannel());
             } else {
-              // System.err.println("PointDescription.firePointEvent (" +
-              // getFullName()
-              // + "): Using ExternalSystem " + ds.getName() + " for output");
               try {
                 ds.putData(this, data);
               } catch (Exception e) {
-                System.err.println("ExternalSystem " + ds.getName() + " threw exception \"" + e + "\" for " + getFullName());
+                theirLogger.warn("(" + getFullName() + ") while writing output data, ExternalSystem " + ds.getName() + " threw exception \"" + e);
               }
             }
           }
@@ -898,7 +887,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       // Archive data
       if (itsArchiver != null && itsEnabled) {
         for (int i = 0; i < itsArchive.length; i++) {
-          if (itsArchive[i].checkArchiveThis(data)) {
+          if (itsArchive[i] != null && itsArchive[i].checkArchiveThis(data)) {
             itsArchiver.archiveData(this, data);
             break;
           }
@@ -943,8 +932,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /**
-   * Converts this point into a string which can be used to re-create an
-   * identical point
+   * Converts this point into a string which can be used to re-create an identical point
    */
   public String getStringEquiv()
   {

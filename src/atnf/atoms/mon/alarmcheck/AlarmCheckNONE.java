@@ -8,7 +8,7 @@
 
 package atnf.atoms.mon.alarmcheck;
 
-import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.*;
 
 /**
  * Trivial alarm checker which always indicates that data is okay.
@@ -17,8 +17,9 @@ import atnf.atoms.mon.PointData;
 public class AlarmCheckNONE extends AlarmCheck
 {
     /** Constructor. */
-    public AlarmCheckNONE(String[] args)
+    public AlarmCheckNONE(PointDescription parent, String[] args)
     {
+      super(parent, args);
     }
 
     /** Always indicates that data is okay. */

@@ -12,66 +12,61 @@ import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.util.MonitorUtils;
 
 /**
- * Generic transaction for DataSources which require strings to retrieve the
- * relevant data. The first string argument for the Transaction must be the
- * channel/protocol that corresponds to the appropriate ExternalSystem. Any
- * subsequent arguments are arbitrary strings that are made available for
- * use by the ExternalSystem.
- *
+ * Generic transaction for DataSources which require strings to retrieve the relevant
+ * data. The first string argument for the Transaction must be the channel/protocol that
+ * corresponds to the appropriate ExternalSystem. Any subsequent arguments are arbitrary
+ * strings that are made available for use by the ExternalSystem.
+ * 
  * @author David Brodrick
- * @version $Id: $
  */
-public class TransactionStrings
-extends Transaction
+public class TransactionStrings extends Transaction
 {
   /** The strings required to update the monitor point. */
   Vector<String> itsStrings = new Vector<String>();
 
-  protected static String itsArgs[] = new String[]{"", "", "", ""};
+  protected static String itsArgs[] = new String[] { "", "", "", "" };
 
-  public TransactionStrings(PointDescription parent, String specifics)
+  public TransactionStrings(PointDescription parent, String[] args)
   {
-    super(parent, specifics);
+    super(parent, args);
 
-    String[] tokens=MonitorUtils.tokToStringArray(specifics);
-    assert tokens.length>1;
-
-    //Replace the macro $1 with source name if present
-    if (tokens[0].indexOf("$1")!=-1) {
-      tokens[0]=MonitorUtils.replaceTok(tokens[0], parent.getSource());
+    if (args.length < 1) {
+      throw new IllegalArgumentException("Requires at least one argument");
     }
-    //Set the channel (used to determine which ExternalSystem to use)
-    setChannel(tokens[0]);
 
-    //Add the remaining strings to our list
-    for (int i=1; i<tokens.length; i++) {
-      itsStrings.add(tokens[i].replace("\"", "").trim());
+    // Replace the macro $1 with source name if present
+    if (args[0].indexOf("$1") != -1) {
+      args[0] = MonitorUtils.replaceTok(args[0], parent.getSource());
+    }
+    // Set the channel (used to determine which ExternalSystem to use)
+    setChannel(args[0]);
+
+    // Add the remaining strings to our list
+    for (int i = 1; i < args.length; i++) {
+      itsStrings.add(args[i].replace("\"", "").trim());
     }
   }
-    
+
   /** Return the first string. */
-  public String
-  getString()
+  public String getString()
   {
-    return (String)itsStrings.get(0);
+    return (String) itsStrings.get(0);
   }
 
   /** Return the string at the specified index. */
-  public String
-  getString(int i)
+  public String getString(int i)
   {
-    return (String)itsStrings.get(i);
+    return (String) itsStrings.get(i);
   }
 
   /** Return the number of strings. */
-	public int
-	getNumStrings()
-	{
-	  return itsStrings.size();
-	}
+  public int getNumStrings()
+  {
+    return itsStrings.size();
+  }
 
   public static String[] getArgs()
   {
-     return itsArgs;
+    return itsArgs;
   }
 }

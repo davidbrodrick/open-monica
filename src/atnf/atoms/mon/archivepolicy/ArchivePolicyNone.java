@@ -17,12 +17,13 @@ import atnf.atoms.mon.*;
  */
 public class ArchivePolicyNone extends ArchivePolicy
 {
-   public ArchivePolicyNone(String[] cmd)
-   {
-   }
-   
-   public boolean checkArchiveThis(PointData data)
-   {
-      return false;
-   }
+  public ArchivePolicyNone(PointDescription parent, String[] args)
+  {
+    super(parent, args);
+  }
+
+  public boolean checkArchiveThis(PointData data)
+  {
+    return false;
+  }
 }

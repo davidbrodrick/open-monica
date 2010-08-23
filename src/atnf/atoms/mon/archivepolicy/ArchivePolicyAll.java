@@ -17,12 +17,13 @@ import atnf.atoms.mon.*;
  */
 public class ArchivePolicyAll extends ArchivePolicy
 {
-    public ArchivePolicyAll(String[] args)
-    {
-    }
+  public ArchivePolicyAll(PointDescription parent, String[] args)
+  {
+    super(parent, args);
+  }
 
-    public boolean checkArchiveThis(PointData data)
-    {
-        return true;
-    }
+  public boolean checkArchiveThis(PointData data)
+  {
+    return true;
+  }
 }

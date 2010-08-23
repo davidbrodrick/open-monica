@@ -9,6 +9,7 @@
 package atnf.atoms.mon.archivepolicy;
 
 import atnf.atoms.mon.*;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -21,15 +22,16 @@ public class ArchivePolicyOnDecrease extends ArchivePolicy
   /** The last data value. */
   Number itsLastData = null;
 
-  public ArchivePolicyOnDecrease(String[] args)
+  public ArchivePolicyOnDecrease(PointDescription parent, String[] args)
   {
+    super(parent, args);
   }
 
   public boolean checkArchiveThis(PointData data)
   {
     if (data.getData() != null && !(data.getData() instanceof Number)) {
       Logger logger = Logger.getLogger(this.getClass().getName());
-      logger.error("Require Numeric data for " + data.getName());
+      logger.error("(" + itsParent.getFullName() + "): Require Numeric data for input point " + data.getName());
       return false;
     }
 

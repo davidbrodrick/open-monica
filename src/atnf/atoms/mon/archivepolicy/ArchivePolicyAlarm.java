@@ -17,12 +17,13 @@ import atnf.atoms.mon.*;
  */
 public class ArchivePolicyAlarm extends ArchivePolicy
 {
-    public ArchivePolicyAlarm(String[] args)
-    {
-    }
+  public ArchivePolicyAlarm(PointDescription parent, String[] args)
+  {
+    super(parent, args);
+  }
 
-    public boolean checkArchiveThis(PointData data)
-    {
-        return data.getAlarm();
-    }
+  public boolean checkArchiveThis(PointData data)
+  {
+    return data.getAlarm();
+  }
 }
