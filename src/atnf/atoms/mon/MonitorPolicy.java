@@ -14,7 +14,7 @@ package atnf.atoms.mon;
 
 public abstract class MonitorPolicy
 {
-   protected static String[] itsArgs = new String[]{"Policy",""};
+/*   protected static String[] itsArgs = new String[]{"Policy",""};
    protected String itsEquiv = "";
 
    protected MonitorPolicy() {}
@@ -32,5 +32,5 @@ public abstract class MonitorPolicy
    public String getStringEquiv()
    {
       return itsEquiv;
-   }
+   }*/
 }

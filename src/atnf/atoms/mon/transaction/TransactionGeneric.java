@@ -16,19 +16,15 @@ import atnf.atoms.mon.util.MonitorUtils;
  * have ExternalSystem specific fields.
  *
  * @author David Brodrick
- * @version $Id: TransactionGeneric.java,v 1.1 2008/03/12 01:36:35 bro764 Exp $
  **/
 public class TransactionGeneric
 extends Transaction
 {
-  protected static String itsArgs[] = new String[]{"", ""};
-
   public TransactionGeneric(PointDescription parent, String specifics)
   {
     super(parent, specifics);
     specifics = specifics.replace('\"','\0').trim();
     specifics = MonitorUtils.replaceTok(specifics, parent.getSource());
     setChannel(specifics);
-    itsName = specifics;
   }
 }

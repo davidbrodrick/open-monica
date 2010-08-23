@@ -7,7 +7,10 @@
 
 package atnf.atoms.mon.externalsystem;
 
+import org.apache.log4j.Logger;
+
 import java.io.*;
+
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 
@@ -39,7 +42,8 @@ import atnf.atoms.mon.*;
  * 
  * @author David Brodrick
  */
-public class WH1081 extends ExternalSystem {
+public class WH1081 extends ExternalSystem
+{
   /** The number of elements in the data array we produce. */
   private static final int theirNumElements = 11;
 
@@ -55,12 +59,17 @@ public class WH1081 extends ExternalSystem {
   /** Whether the next data collected should be ignored. */
   private boolean itsIgnoreNextData = false;
 
-  public WH1081(String[] args) {
+  /** Logger. */
+  private Logger itsLogger = Logger.getLogger(this.getClass().getName());
+
+  public WH1081(String[] args)
+  {
     super("wh1081");
   }
 
   /** Collect new data for requesting monitor points. */
-  protected void getData(PointDescription[] points) throws Exception {
+  protected void getData(PointDescription[] points) throws Exception
+  {
     // Get the actual data
     Number[] newdata = getNewWeather();
     if (newdata == null)
@@ -76,7 +85,8 @@ public class WH1081 extends ExternalSystem {
   }
 
   /** Execute wwsr and return array of new data, or null if error. */
-  protected Number[] getSensorImage() {
+  protected Number[] getSensorImage()
+  {
     Number[] res = new Number[theirNumElements];
 
     try {
@@ -87,11 +97,12 @@ public class WH1081 extends ExternalSystem {
       p.waitFor();
       String err = stdError.readLine();
       if (err != null || p.exitValue() != 0) {
-        System.err.println("WH1081.getSensorImage: Error running \"wwsr\"");
-        while (err!=null) {
-          System.err.println("\t" + err);
+        String logmsg = "Encountered error while running \"wwsr\": ";
+        while (err != null) {
+          logmsg = logmsg + err + " ";
           err = stdError.readLine();
         }
+        itsLogger.warn(logmsg);
         RelTime.factory(5000000).sleep();
         itsIgnoreNextData = true;
         return null;
@@ -129,28 +140,28 @@ public class WH1081 extends ExternalSystem {
 
       // Check for invalid values
       if (other1 != 0 || other2 != 0) {
-        System.err.println("WH1081.getSensorImage: No data from remote sensors");
+        itsLogger.warn("No data from remote sensors");
         return null;
       }
       if (res[0].floatValue() < 0 || res[0].floatValue() > 100) {
-        System.err.println("WH1081.getSensorImage: Inside humidity out of range");
+        itsLogger.warn("Inside humidity out of range");
         return null;
       }
       if (res[1].floatValue() < 0 || res[1].floatValue() > 100) {
-        System.err.println("WH1081.getSensorImage: Outside humidity out of range");
+        itsLogger.warn("Outside humidity out of range");
         return null;
       }
       if (res[2].floatValue() > 80 || res[2].floatValue() < -20) {
-        System.err.println("WH1081.getSensorImage: Inside temperature out of range");
+        itsLogger.warn("Inside temperature out of range");
         return null;
       }
       if (res[3].floatValue() > 80 || res[3].floatValue() < -40) {
-        System.err.println("WH1081.getSensorImage: Outside temperature out of range");
+        itsLogger.warn("Outside temperature out of range");
         return null;
       }
       // If avg wind exceeds gust then the message is corrupted
       if (res[4].floatValue() > res[5].floatValue() || res[4].floatValue() > 162 || res[5].floatValue() > 162) {
-        System.err.println("WH1081.getSensorImage: Wind data is invalid");
+        itsLogger.warn("Wind data is invalid");
         return null;
       }
       double wdir;
@@ -189,11 +200,11 @@ public class WH1081 extends ExternalSystem {
       }
       res[6] = new Float(wdir);
       if (res[7].floatValue() == 0.0f) {
-        System.err.println("WH1081.getSensorImage: Pressure is out of range.");
+        itsLogger.warn("Pressure is out of range.");
         return null;
       }
     } catch (Exception e) {
-      System.err.println("WH1081.getSensorImage: " + e);
+      itsLogger.error("In getSensorImage method: " + e);
       return null;
     }
     return res;
@@ -204,19 +215,20 @@ public class WH1081 extends ExternalSystem {
    * the number of new rain tips since last time we checked. May return null if
    * new valid data is not available.
    */
-  protected Number[] getNewWeather() {
+  protected Number[] getNewWeather()
+  {
     // Ensure we get consistent set of readings twice in a row
     Number[] newdata1 = getSensorImage();
     Number[] newdata2 = getSensorImage();
     if (newdata1 == null || newdata2 == null) {
-      System.err.println("WH1081: Invalid data returned by wwsr");
+      itsLogger.warn("Invalid data returned by wwsr");
       itsIgnoreNextData = true;
       return null;
     }
     for (int i = 0; i < theirNumElements; i++) {
       if (newdata1[i].floatValue() != newdata2[i].floatValue()) {
-        System.err.println("WH1081: Inconsistent data returned by wwsr");
-        // itsIgnoreNextData = true;
+        // This condition arises when new data comes in, so don't be verbose by
+        // logging it
         return null;
       }
     }
@@ -239,15 +251,15 @@ public class WH1081 extends ExternalSystem {
     // New data, keep a reference for comparison next time
     itsLastData = newdata1;
 
-    System.err.print("WH1081: pre: " + (new AbsTime()).toString(AbsTime.Format.UTC_STRING) + " ");
+    String logmsg = "pre: ";
     for (int i = 0; i < newdata1.length; i++) {
-      System.err.print(newdata1[i] + " ");
+      logmsg = logmsg + newdata1[i] + " ";
     }
-    System.err.println();
+    itsLogger.debug(logmsg);
 
     // Check if we have reason to think this data is suspicious
     if (itsIgnoreNextData) {
-      System.err.println("WH1081: Was told to ignore this data");
+      itsLogger.debug("Obtained new data but will ignore it due to previous errors");
       itsIgnoreNextData = false;
       return null;
     }
@@ -255,7 +267,7 @@ public class WH1081 extends ExternalSystem {
     int temprain = newdata1[theirRainElement].intValue();
     if (itsLastRain == null || newdata1[theirRainElement].intValue() < itsLastRain.intValue()) {
       // Impossible to tell how much rain since the last reading
-      System.err.println("WH1081: Rainfall has reset..");
+      itsLogger.warn("Rainfall reported by transmitter has reset..");
       newdata1 = null;
     } else {
       newdata1[theirRainElement] = newdata1[theirRainElement].intValue() - itsLastRain.intValue();
@@ -263,18 +275,19 @@ public class WH1081 extends ExternalSystem {
     itsLastRain = temprain;
 
     if (newdata1 != null) {
-      System.err.print("WH1081: ");
+      logmsg = "post: ";
       for (int i = 0; i < newdata1.length; i++) {
-        System.err.print(newdata1[i] + " ");
+        logmsg = logmsg + newdata1[i] + " ";
       }
-      System.err.println();
+      itsLogger.debug(logmsg);
     }
 
     return newdata1;
   }
 
   /** Simple test program. */
-  public static final void main(String[] args) {
+  public static final void main(String[] args)
+  {
     WH1081 ds = new WH1081(null);
     while (true) {
       Number[] newdata = ds.getNewWeather();

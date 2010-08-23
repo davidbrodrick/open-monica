@@ -25,7 +25,5 @@ extends Transaction
   {
     super(parent, specifics);
     setChannel("thyconups://");
-    specifics = specifics.replace('\"','\0').trim();
-    itsName = specifics;
   }
 }
