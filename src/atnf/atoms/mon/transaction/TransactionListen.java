@@ -53,7 +53,7 @@ public class TransactionListen extends Transaction implements PointListener, Act
           // Either point name is wrong or point hasn't been created yet
           // Start timer which will try again shortly
           if (itsTimer == null) {
-            itsTimer = new Timer(500, this);
+            itsTimer = new Timer(100, this);
             itsTimer.start();
           }
         } else {
@@ -87,11 +87,11 @@ public class TransactionListen extends Transaction implements PointListener, Act
     for (int i = 0; i < itsPoints.length; i++) {
       if (itsPoints[i] == null) {
         itsPoints[i] = PointDescription.getPoint(itsNames[i]);
-        if (itsPoints[i] == null) {
+        if (itsPoints[i] == null && PointDescription.getPointsCreated()) {
           // Still couldn't find the point, perhaps it doesn't exist?!
           stillmissing = true;
           Logger logger = Logger.getLogger(this.getClass().getName());
-          logger.warn("(" + itsParent.getFullName() + ") listened-to point " + itsNames[i] + " doesn't exist yet");
+          logger.warn("(" + itsParent.getFullName() + ") listened-to point " + itsNames[i] + " was not found");
         } else {
           itsPoints[i].addPointListener(this);
         }

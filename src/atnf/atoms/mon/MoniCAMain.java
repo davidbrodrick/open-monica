@@ -72,6 +72,7 @@ public class MoniCAMain {
       // Populate the appropriate fields for server use
       points.get(i).populateServerFields();
     }
+    PointDescription.setPointsCreated();
 
     // Create a thread to update the encryption key occasionally
     new KeyKeeper();
