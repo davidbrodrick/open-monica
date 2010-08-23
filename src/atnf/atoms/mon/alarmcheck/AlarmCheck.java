@@ -13,21 +13,20 @@ import java.lang.reflect.*;
 import org.apache.log4j.Logger;
 
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.archivepolicy.ArchivePolicy;
 import atnf.atoms.mon.util.*;
 
 /**
  * Base-class for classes which check if a point is in an alarm state.
  * <P>
- * Sub-classes must implement an appropriate <i>checkAlarm</i> method.
- * <i>checkAlarm</i> should set the PointData's alarm field to True when an
- * alarm condition is detected or leave the field unchanged otherwise.
+ * Sub-classes must implement an appropriate <i>checkAlarm</i> method. <i>checkAlarm</i>
+ * should set the PointData's alarm field to True when an alarm condition is detected or
+ * leave the field unchanged otherwise.
  * 
  * @author Le Cuong Nguyen
  * @author David Brodrick
  */
-public abstract class AlarmCheck extends MonitorPolicy
-{  
+public abstract class AlarmCheck
+{
   public static AlarmCheck factory(PointDescription parent, String strdef)
   {
     if (strdef.equalsIgnoreCase("null")) {
