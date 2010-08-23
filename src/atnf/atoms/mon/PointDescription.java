@@ -858,6 +858,12 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       pe = new PointEvent(this, data, false);
     }
 
+    // Ensure data has our name on it
+    if (data != null && !data.getName().equals(getFullName())) {
+      data = new PointData(data);
+      data.setName(getFullName());
+    }
+
     if (data != null && data.isValid()) {
       // Check alarm criteria
       evaluateAlarms(data);

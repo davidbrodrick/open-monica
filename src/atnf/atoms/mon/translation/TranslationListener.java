@@ -9,6 +9,8 @@
 
 package atnf.atoms.mon.translation;
 
+import org.apache.log4j.Logger;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Timer;
@@ -21,37 +23,35 @@ import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.time.AbsTime;
 
 /**
- * Generic base-class for Translations which need to listen to the values of one
- * or more other monitor points. It provides machinery for identifying the
- * source of data events and matching and storing the data from the different
- * points.
+ * Generic base-class for Translations which need to listen to the values of one or more
+ * other monitor points. It provides machinery for identifying the source of data events
+ * and matching and storing the data from the different points.
  * 
  * <P>
- * This class supercedes TranslationDualListen. This class subscribes to updates
- * from the various points directly and does not need to be used with a
- * TransactionListen.
+ * This class supercedes TranslationDualListen. This class subscribes to updates from the
+ * various points directly and does not need to be used with a TransactionListen.
  * <P>
- * The first constructor <i>init</i> argument needs to specify the number of
- * monitor points which are being listened to. The next arguments must be the
- * names of the points being listened to. Other, sub-class specific arguments
- * can then follow. After the super constructor has been called the index of the
- * first sub-class argument can be obtained by <i>itsNumPoints+1</i>.
+ * The first constructor <i>init</i> argument needs to specify the number of monitor
+ * points which are being listened to. The next arguments must be the names of the points
+ * being listened to. Other, sub-class specific arguments can then follow. After the super
+ * constructor has been called the index of the first sub-class argument can be obtained
+ * by <i>itsNumPoints+1</i>.
  * <P>
- * Sub-classes should implement the abstract <i>doCalculations</i> method in
- * order to achieve the desired functionality. This takes an array of inputs
- * which contain the same order you declared them as arguments.
+ * Sub-classes should implement the abstract <i>doCalculations</i> method in order to
+ * achieve the desired functionality. This takes an array of inputs which contain the same
+ * order you declared them as arguments.
  * <P>
- * The <i>matchData</i> method is responsible for indicating when we have the
- * appropriate data to call the <i>doCalculations</i> method. This base class
- * performs the calculation whenever we have new values for all points since the
- * last calculation was performed. Sub-classes can implement a <i>matchData</i>
- * method with more specialised behavior, such as checking that both data have
- * identical timestamps before allowing an output value to be calculated.
+ * The <i>matchData</i> method is responsible for indicating when we have the appropriate
+ * data to call the <i>doCalculations</i> method. This base class performs the
+ * calculation whenever we have new values for all points since the last calculation was
+ * performed. Sub-classes can implement a <i>matchData</i> method with more specialised
+ * behavior, such as checking that both data have identical timestamps before allowing an
+ * output value to be calculated.
  * 
  * @author David Brodrick
  */
-public abstract class TranslationListener extends Translation implements
-    PointListener, ActionListener {
+public abstract class TranslationListener extends Translation implements PointListener, ActionListener
+{
   /** The number of points we are listening to. */
   protected int itsNumPoints;
 
@@ -67,25 +67,21 @@ public abstract class TranslationListener extends Translation implements
   /** Timer used when listened-to points haven't been created yet. */
   protected Timer itsTimer = null;
 
-  protected static String[] itsArgs = new String[] { "Listener",
-      "Listens to two other points", "NumPoints", "Integer", "MonitorPoint 1",
-      "String", "MonitorPoint N", "String" };
+  protected static String[] itsArgs = new String[] { "Listener", "Listens to two other points", "NumPoints", "Integer",
+      "MonitorPoint 1", "String", "MonitorPoint N", "String" };
 
   /** Base-class constructor. */
-  public TranslationListener(PointDescription parent, String[] init) {
+  public TranslationListener(PointDescription parent, String[] init)
+  {
     super(parent, init);
-    if (init == null || init.length < 1) {
-      System.err.println("TranslationListener: NO ARGUMENTS: for "
-          + parent.getFullName());
-      return;
+    if (init.length < 1) {
+      throw new IllegalArgumentException("(" + itsParent.getFullName() + ") - require at least one argument");
     }
 
     try {
       itsNumPoints = Integer.parseInt(init[0]);
       if (init.length < itsNumPoints + 1) {
-        System.err.println("TranslationListener: INSUFFICIENT ARGUMENTS: for "
-            + parent.getFullName());
-        throw new Exception();
+        throw new IllegalArgumentException("(" + itsParent.getFullName() + ") - insufficient arguments provided");
       }
       itsNames = new String[itsNumPoints];
       itsPoints = new PointDescription[itsNumPoints];
@@ -100,18 +96,17 @@ public abstract class TranslationListener extends Translation implements
         itsNames[i] = thisname;
       }
     } catch (Exception e) {
-      System.err.println("TranslationListener: ERROR PARSING ARGUMENTS: for "
-          + parent.getFullName() + ": " + e);
-      itsNumPoints = 0;
+      throw new IllegalArgumentException("(" + itsParent.getFullName() + ") - error parsing arguments: " + e);
     }
 
     // Start the timer which subscribes us to updates from the points
-    itsTimer = new Timer(100, this);
+    itsTimer = new Timer(500, this);
     itsTimer.start();
   }
 
   /** Just returns the input (which is created by us) */
-  public PointData translate(PointData data) {
+  public PointData translate(PointData data)
+  {
     return data;
   }
 
@@ -122,15 +117,15 @@ public abstract class TranslationListener extends Translation implements
    * This method will be checked each time one of the input values updates.
    * 
    * <P>
-   * The behaviour can be specialised by sub-classes. The default behaviour of
-   * this super-class is to recalculate every time any of the inputs update,
-   * unless any of the inputs has never been set yet.
+   * The behaviour can be specialised by sub-classes. The default behaviour of this
+   * super-class is to recalculate every time any of the inputs update, unless any of the
+   * inputs has never been set yet.
    * 
-   * @return <tt>True</tt> if we can now calculate an output value,
-   *         <tt>False</tt> if the current data don't enable us to perform the
-   *         calculation.
+   * @return <tt>True</tt> if we can now calculate an output value, <tt>False</tt> if
+   * the current data don't enable us to perform the calculation.
    */
-  protected boolean matchData() {
+  protected boolean matchData()
+  {
     for (int i = 0; i < itsNumPoints; i++) {
       if (itsValues[i] == null || itsValues[i].getData() == null) {
         return false;
@@ -141,15 +136,15 @@ public abstract class TranslationListener extends Translation implements
 
   /**
    * Abstract method which must be implemented by sub-classes. This performs the
-   * manipulation of the input argument data required to produce the quantity of
-   * interest.
+   * manipulation of the input argument data required to produce the quantity of interest.
    * 
    * @return Arbitrary combination of the input values
    */
   protected abstract Object doCalculations();
 
   /** Called when a listened-to point updates. */
-  public void onPointEvent(Object source, PointEvent evt) {
+  public void onPointEvent(Object source, PointEvent evt)
+  {
     PointData pd = evt.getPointData();
     // Check that there's data.. ?
     if (pd == null || pd.getData() == null) {
@@ -167,9 +162,8 @@ public abstract class TranslationListener extends Translation implements
 
     // Ensure we point the appropriate point
     if (i == itsNumPoints) {
-      System.err.println("WARNING: TranslationListener ("
-          + itsParent.getSource() + "." + itsParent.getName()
-          + "): UNEXPECTED EVENT FROM " + fullname);
+      Logger logger = Logger.getLogger(this.getClass().getName());
+      logger.warn("(" + itsParent.getFullName() + ") Received unsolicited data from: " + fullname);
       return;
     }
 
@@ -180,14 +174,14 @@ public abstract class TranslationListener extends Translation implements
     if (matchData()) {
       // Recalculate output and fire update event
       Object resval = doCalculations();
-      PointData res = new PointData(itsParent.getFullName(), new AbsTime(),
-          resval);
+      PointData res = new PointData(itsParent.getFullName(), new AbsTime(), resval);
       itsParent.firePointEvent(new PointEvent(this, res, true));
     }
   }
 
   /** Only used to subscribe to monitor point updates via timer. */
-  public void actionPerformed(ActionEvent evt) {
+  public void actionPerformed(ActionEvent evt)
+  {
     if (evt.getSource() == itsTimer) {
       boolean stillmissing = false;
 
@@ -198,9 +192,8 @@ public abstract class TranslationListener extends Translation implements
           if (itsPoints[i] == null) {
             // Still couldn't find the point, perhaps it doesn't exist?!
             stillmissing = true;
-            System.err.println("WARNING: TranslationListener ("
-                + itsParent.getFullName() + "): LISTENED-TO POINT "
-                + itsNames[i] + " DOESN'T EXIST?!");
+            Logger logger = Logger.getLogger(this.getClass().getName());
+            logger.warn("(" + itsParent.getFullName() + ") listened-to point " + itsNames[i] + " doesn't exist yet");            
           } else {
             itsPoints[i].addPointListener(this);
           }
@@ -215,7 +208,8 @@ public abstract class TranslationListener extends Translation implements
     }
   }
 
-  public static String[] getArgs() {
+  public static String[] getArgs()
+  {
     return itsArgs;
   }
 }
