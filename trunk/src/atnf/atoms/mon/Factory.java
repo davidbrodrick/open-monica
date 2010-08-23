@@ -14,12 +14,14 @@ import atnf.atoms.mon.util.MonitorUtils;
  * <P>
  * Example: The string <tt>demo.com.FooBar-"abc""123"</tt> would create a new instance
  * of the class <tt>demo.com.FooBar</tt>. The string arguments would be <tt>abc</tt>
- * and <tt>123</tt> enoded in an array.
+ * and <tt>123</tt> presented as an array.
  * 
  * <P>
- * If the supplied class name cannot be found then the provided <i>defpackage</i>
+ * If the supplied class name cannot be found then the provided <i>defpackage</i> string
  * argument will be prepended to the class part of the string and an attempt will be made
- * to find an instanciate a class with the resulting name.
+ * to find an instanciate a class with the resulting name. Note that the string is
+ * prepended verbatim so if specifying a full package name you will need to include the
+ * trailing ".".
  * 
  * @author David Brodrick
  */
