@@ -34,21 +34,20 @@ public class TransactionEPICSMonitor extends Transaction {
   private DBRType itsType;
 
   /** Constructor which registers the point for EPICS monitor updates. */
-  public TransactionEPICSMonitor(PointDescription parent, String specifics) {
-    super(parent, specifics);
+  public TransactionEPICSMonitor(PointDescription parent, String[] args) {
+    super(parent, args);
 
-    String[] tokens = MonitorUtils.tokToStringArray(specifics);
     // Replace the macro $1 with source name if present
-    if (tokens[0].indexOf("$1") != -1) {
-      tokens[0] = MonitorUtils.replaceTok(tokens[0], parent.getSource());
+    if (args[0].indexOf("$1") != -1) {
+      args[0] = MonitorUtils.replaceTok(args[0], parent.getSource());
     }
     // Record name of the PV to monitor
-    itsPV = tokens[0].trim();
+    itsPV = args[0].trim();
 
     // Get the data type to used, if specified
-    if (tokens.length > 1) {
-      if (!tokens[1].equals("-")) {
-        itsType = DBRType.forName(tokens[1].trim());
+    if (args.length > 1) {
+      if (!args[1].equals("-")) {
+        itsType = DBRType.forName(args[1].trim());
       }
     }
 

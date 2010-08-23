@@ -14,7 +14,7 @@ extends Transaction
   protected static String itsArgs[] = new String[]{"Transaction - Loopback",
   "NONE"};
 
-  public TransactionNONE(PointDescription parent, String specifics)
+  public TransactionNONE(PointDescription parent, String[] specifics)
   {
     super(parent, specifics);
     setChannel("NONE");

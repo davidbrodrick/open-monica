@@ -40,10 +40,8 @@ import atnf.atoms.time.AbsTime;
  * @author David Brodrick
  * @version $Id: TransactionLimitCheck.java,v 1.1 2005/10/24 23:42:06 bro764 Exp $
  */
-public class TransactionLimitCheck extends Transaction implements ActionListener {
-  protected static String itsArgs[] = new String[] { "Translation limit check", "foo", "okay string", "ok string", "fail string",
-      "fail string", "point name 1", "point name 1" };
-
+public class TransactionLimitCheck extends Transaction implements ActionListener
+{
   /** String to use as output when all points are okay. */
   protected String itsOutput1 = null;
 
@@ -65,36 +63,34 @@ public class TransactionLimitCheck extends Transaction implements ActionListener
   /** The timer used to trigger the periodic check. */
   protected Timer itsTimer = null;
 
-  public TransactionLimitCheck(PointDescription parent, String specifics) {
-    super(parent, specifics);
+  public TransactionLimitCheck(PointDescription parent, String[] args)
+  {
+    super(parent, args);
     setChannel("NONE"); // Set the channel type - not used for us
 
-    // Get the individual arguments from the argument string
-    String[] init = MonitorUtils.tokToStringArray(specifics);
-
-    if (init.length < 5) {
-      // Really need a system for throwing exceptions
-      System.err.println("TranslationLimitCheck (" + parent.getName() + "): Needs at least 5 arguments!");
+    if (args.length < 5) {
+      throw new IllegalArgumentException("Requires at least 5 arguments");
     }
 
-    itsHistory = new Boolean[Integer.parseInt(init[1])];
-    itsOutput1 = init[2]; // String output for when data's okay
-    itsOutput2 = init[3]; // String output for when data's not okay
-    itsPoints = new String[init.length - 4];
-    for (int i = 4; i < init.length; i++) {
-      itsPoints[i - 4] = init[i];
+    itsHistory = new Boolean[Integer.parseInt(args[1])];
+    itsOutput1 = args[2]; // String output for when data's okay
+    itsOutput2 = args[3]; // String output for when data's not okay
+    itsPoints = new String[args.length - 4];
+    for (int i = 4; i < args.length; i++) {
+      itsPoints[i - 4] = args[i];
       // If the point has $1 source name macro, then expand it
       if (itsPoints[i - 4].indexOf("$1") > -1) {
         itsPoints[i - 4] = MonitorUtils.replaceTok(itsPoints[i - 4], itsParent.getSource());
       }
     }
-    long updatefreq = Long.parseLong(init[0]);
+    long updatefreq = Long.parseLong(args[0]);
     itsTimer = new Timer((int) (updatefreq / 1000), this);
     itsTimer.start();
   }
 
   /** Check all of the points and fire a new result. */
-  public void actionPerformed(java.awt.event.ActionEvent evt) {
+  public void actionPerformed(java.awt.event.ActionEvent evt)
+  {
     // System.err.println("TransactionLimitCheck: " + itsParent.getSource() + "." +
     // itsParent.getName() + ": Event Firing");
     PointData res = new PointData(itsParent.getFullName());
@@ -132,7 +128,8 @@ public class TransactionLimitCheck extends Transaction implements ActionListener
    * <tt>null</tt> if some points were unavilable, or <tt>false</tt> if no points are
    * outside their limits.
    */
-  protected Boolean doUpdate() {
+  protected Boolean doUpdate()
+  {
     Boolean[] vals = new Boolean[itsPoints.length];
     long now = (new AbsTime()).getValue();
 
@@ -179,9 +176,5 @@ public class TransactionLimitCheck extends Transaction implements ActionListener
     }
 
     return res;
-  }
-
-  public static String[] getArgs() {
-    return itsArgs;
   }
 }

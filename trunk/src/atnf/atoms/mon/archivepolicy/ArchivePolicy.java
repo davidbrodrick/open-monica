@@ -8,11 +8,6 @@
 package atnf.atoms.mon.archivepolicy;
 
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.MonitorUtils;
-
-import java.lang.reflect.*;
-
-import org.apache.log4j.Logger;
 
 /**
  * Base class for ArchivePolicy classes, which determine when it is appropriate
@@ -27,47 +22,13 @@ import org.apache.log4j.Logger;
  */
 public abstract class ArchivePolicy
 {
-  protected ArchivePolicy()
+  /** The point that we are archiving. */
+  protected PointDescription itsParent;
+  
+  /** Constructor. */
+  protected ArchivePolicy(PointDescription parent, String[] args)
   {
-  }
-
-  public static ArchivePolicy factory(PointDescription parent, String strdef)
-  {
-    // Enable use of "null" keyword
-    if (strdef.equalsIgnoreCase("null")) {
-      strdef = "-";
-    }
-
-    ArchivePolicy result = null;
-
-    try {
-      // Find the argument strings
-      String argstring = strdef.substring(strdef.indexOf("-") + 1);
-      String[] args = MonitorUtils.tokToStringArray(argstring);
-
-      // Find the type of ArchivePolicy
-      String type = strdef.substring(0, strdef.indexOf("-"));
-      if (type == "" || type == null || type.length() < 1) {
-        type = "None";
-      }
-
-      Constructor ctor;
-      try {
-        // Try to find class by assuming argument is full class name
-        ctor = Class.forName(type).getConstructor(new Class[] { String[].class });
-      } catch (Exception f) {
-        // Supplied name was not a full path
-        // Look in atnf.atoms.mon.archivepolicy package
-        ctor = Class.forName("atnf.atoms.mon.archivepolicy.ArchivePolicy" + type).getConstructor(new Class[] { String[].class });
-      }
-      result = (ArchivePolicy) (ctor.newInstance(new Object[] { args }));
-    } catch (Exception e) {
-      Logger logger = Logger.getLogger(ArchivePolicy.class.getName());
-      logger.error("Error creating ArchivePolicy \'" + strdef + "\' for point " + parent.getFullName() + ": " + e);
-      result = new ArchivePolicyNone(new String[] {});
-    }
-
-    return result;
+    itsParent = parent;
   }
 
   /**

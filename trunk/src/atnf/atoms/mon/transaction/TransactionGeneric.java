@@ -11,20 +11,24 @@ import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.util.MonitorUtils;
 
 /**
- * Set the channel to be the provided argument string, so that we don't
- * need to define a new Transaction class for channels which don't actually
- * have ExternalSystem specific fields.
- *
+ * Set the channel to be the provided argument string, so that we don't need to define a
+ * new Transaction class for channels which don't actually have ExternalSystem specific
+ * fields.
+ * 
  * @author David Brodrick
- **/
-public class TransactionGeneric
-extends Transaction
+ */
+public class TransactionGeneric extends Transaction
 {
-  public TransactionGeneric(PointDescription parent, String specifics)
+  public TransactionGeneric(PointDescription parent, String[] args)
   {
-    super(parent, specifics);
-    specifics = specifics.replace('\"','\0').trim();
-    specifics = MonitorUtils.replaceTok(specifics, parent.getSource());
-    setChannel(specifics);
+    super(parent, args);
+
+    String channel = args[0];
+    // Replace the macro $1 with source name if present
+    if (args[0].indexOf("$1") != -1) {
+      args[0] = MonitorUtils.replaceTok(args[0], parent.getSource());
+    }
+
+    setChannel(channel);
   }
 }

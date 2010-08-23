@@ -13,19 +13,12 @@ import java.awt.event.*;
 import javax.swing.Timer;
 
 /**
- *
+ * 
  * @author David Brodrick
  * @version $Id: $
  */
-public class
-TransactionListen
-extends Transaction
-implements PointListener, ActionListener
+public class TransactionListen extends Transaction implements PointListener, ActionListener
 {
-  /** Strings describing the expected arguments. */
-  protected static String itsArgs[] = new String[]{"Transaction - Listen",
-  "foo", "Arg1", "mp", "Arg2", "mp"};
-
   /** Reference to each of the monitor points we listen to. */
   protected PointDescription[] itsPoints = null;
 
@@ -35,63 +28,50 @@ implements PointListener, ActionListener
   /** Timer used when listened-to points haven't been created yet. */
   protected Timer itsTimer = null;
 
-  public TransactionListen(PointDescription parent, String specifics)
+  public TransactionListen(PointDescription parent, String[] args)
   {
-    //Call parent-class constructor
-    super(parent, specifics);
+    super(parent, args);
 
-    setChannel("NONE"); //Set the channel type
+    setChannel("NONE"); // Set the channel type
 
-    //Get the individual monitor point arguments from the argument
-    String[] args = MonitorUtils.tokToStringArray(specifics);
-
-    if (args==null || args.length<1) {
-      System.err.println("ERROR: TransactionListen for " + parent.getName());
-      System.err.println("EXPECT 1 OR MORE POINT-NAME ARGUMENTS!");
+    if (args == null || args.length < 1) {
+      throw new IllegalArgumentException("Requires one or more point-name arguments");
     } else {
-      //We got some arguments, so try to make use of them
+      // We got some arguments, so try to make use of them
       itsNames = args;
       itsPoints = new PointDescription[args.length];
-      for (int i=0; i<args.length; i++) {
-        //If the point has $1 source name macro, then expand it
+      for (int i = 0; i < args.length; i++) {
+        // If the point has $1 source name macro, then expand it
         if (args[i].indexOf("$1") > -1) {
           args[i] = MonitorUtils.replaceTok(args[i], itsParent.getSource());
         }
 
-        //Check that the point exists for the named source
+        // Check that the point exists for the named source
         itsPoints[i] = PointDescription.getPoint(args[i]);
-        if (itsPoints[i]==null) {
-          //Either point name is wrong or point hasn't been created yet
-          //Start timer which will try again shortly
-          if (itsTimer==null) {
+        if (itsPoints[i] == null) {
+          // Either point name is wrong or point hasn't been created yet
+          // Start timer which will try again shortly
+          if (itsTimer == null) {
             itsTimer = new Timer(100, this);
             itsTimer.start();
           }
         } else {
-          //Point already exists, we can subscribe to it now
+          // Point already exists, we can subscribe to it now
           itsPoints[i].addPointListener(this);
         }
       }
     }
   }
 
-  public static String[] getArgs()
-  {
-     return itsArgs;
-  }
-
-
   /** Called when a listened-to point updates. */
-  public
-  void
-  onPointEvent(Object source, PointEvent evt)
+  public void onPointEvent(Object source, PointEvent evt)
   {
-    //System.err.println("TransactionListen: " + itsParent.getName() + " GOT " + evt);
+    // System.err.println("TransactionListen: " + itsParent.getName() + " GOT " + evt);
 
-    //Need to repack the data into a new event object
+    // Need to repack the data into a new event object
     PointData pd = evt.getPointData();
-    //Check that there's data.. ?
-    if (pd==null) {
+    // Check that there's data.. ?
+    if (pd == null) {
       return;
     }
 
@@ -100,19 +80,16 @@ implements PointListener, ActionListener
     itsParent.firePointEvent(evt2);
   }
 
-
   /** Only used to subscribe to main monitor point via timer. */
-  public
-  void
-  actionPerformed(java.awt.event.ActionEvent evt)
+  public void actionPerformed(java.awt.event.ActionEvent evt)
   {
     boolean stillmissing = false;
-    //Try to fill out any point names that are still missing
-    for (int i=0; i<itsPoints.length; i++) {
-      if (itsPoints[i]==null) {
+    // Try to fill out any point names that are still missing
+    for (int i = 0; i < itsPoints.length; i++) {
+      if (itsPoints[i] == null) {
         itsPoints[i] = PointDescription.getPoint(itsNames[i]);
-        if (itsPoints[i]==null) {
-          //Still couldn't find the point, perhaps it doesn't exist?!
+        if (itsPoints[i] == null) {
+          // Still couldn't find the point, perhaps it doesn't exist?!
           stillmissing = true;
           System.err.println("WARNING: TransactionListen for " + itsParent.getName());
           System.err.println("LISTENED-TO POINT " + itsNames[i] + " DOESN'T EXIST?!");
@@ -123,7 +100,7 @@ implements PointListener, ActionListener
     }
 
     if (!stillmissing) {
-      //All points now found and all subscriptions complete
+      // All points now found and all subscriptions complete
       itsTimer.stop();
       itsTimer = null;
     }
