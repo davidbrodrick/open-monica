@@ -218,8 +218,7 @@ public class ThytecUPS extends ASCIISocket {
                     if (itsMonitorPoint == null) {
                       itsMonitorPoint = PointDescription.getPoint(itsMonitorPointName);
                       if (itsMonitorPoint == null) {
-                        MonitorMap.logger.error("MoniCA: ThytecUPS: No monitor point " + itsMonitorPointName);
-                        System.err.println("#############MoniCA: ThytecUPS: No monitor point " + itsMonitorPointName);
+                        System.err.println("ThytecUPS: No monitor point " + itsMonitorPointName);
                       }
                     }
                     if (itsMonitorPoint != null) {

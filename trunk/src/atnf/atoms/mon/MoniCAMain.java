@@ -7,6 +7,8 @@
 
 package atnf.atoms.mon;
 
+import org.apache.log4j.Logger;
+
 import java.util.*;
 import java.io.*;
 
@@ -21,6 +23,9 @@ import atnf.atoms.mon.comms.*;
  * @author David Brodrick
  */
 public class MoniCAMain {
+  /** Logger. */
+  private static Logger theirLogger = Logger.getLogger(MoniCAMain.class.getName());
+  
   /** The ICE Adapter to be used for initialising the ICE server interface.
    * This is optional, if left as null then a new adapter will be created using
    * configuration parameters. */
@@ -44,14 +49,14 @@ public class MoniCAMain {
       pa = (PointArchiver) (archiverClass.newInstance());
       PointArchiver.setPointArchiver(pa);
     } catch (Exception e) {
-      System.err.println("ERROR: While creating PointArchiver:");
+      theirLogger.fatal("While creating PointArchiver:" + e);
       return false;
     }
 
     // Initialise all the ExternalSystems
     InputStream exsystemsfile = MoniCAMain.class.getClassLoader().getResourceAsStream("monitor-sources.txt");
     if (exsystemsfile == null) {
-      System.err.println("ERROR: Failed to find monitor-sources.txt configuration file");
+      theirLogger.fatal("Failed to find monitor-sources.txt configuration resource");
       return false;
     }
     ExternalSystem.init(new InputStreamReader(exsystemsfile));
@@ -59,7 +64,7 @@ public class MoniCAMain {
     // Create all the points
     InputStream pointsfile = MoniCAMain.class.getClassLoader().getResourceAsStream("monitor-points.txt");
     if (pointsfile == null) {
-      System.err.println("ERROR: Failed to find monitor-points.txt configuration file");
+      theirLogger.fatal("Failed to find monitor-points.txt configuration resource");
       return false;
     }
     ArrayList<PointDescription> points = PointDescription.parseFile(new InputStreamReader(pointsfile));
@@ -74,16 +79,16 @@ public class MoniCAMain {
     // Recover all the SavedSetups from the file
     InputStream setupfile = MoniCAMain.class.getClassLoader().getResourceAsStream("monitor-setups.txt");
     if (setupfile == null) {
-      System.err.println("WARNING: Failed to find monitor-setups.txt configuration file");
+      theirLogger.warn("Failed to find monitor-setups.txt configuration resource");
     } else {
       try {
         Vector setups = SavedSetup.parseFile(new InputStreamReader(setupfile));
-        System.err.println("Recovered " + setups.size() + " SavedSetups from " + setupfile);
+        theirLogger.debug("Recovered " + setups.size() + " SavedSetups from " + setupfile);
         for (int i = 0; i < setups.size(); i++) {
           SavedSetup.addSetup((SavedSetup) setups.get(i));
         }
       } catch (Exception e) {
-        System.err.println("ERROR: Can't parse saved setup file: " + setupfile);
+        theirLogger.fatal("Can't parse saved setup file: " + setupfile);
         return false;
       }
     }
@@ -123,9 +128,9 @@ public class MoniCAMain {
       // Open the network server interfaces
       MoniCAMain.openInterfaces();
       // We're now underway!
-      System.err.println("CHECKPOINT: MoniCA System is GO!");
+      theirLogger.info("MoniCA System is GO!");
     } else {
-      System.err.println("ERROR: Failed to Start MoniCA System!");
+      theirLogger.fatal("Failed to Start MoniCA System!");
     }
   }
 }

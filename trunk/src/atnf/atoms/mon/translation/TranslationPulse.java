@@ -7,6 +7,8 @@
 
 package atnf.atoms.mon.translation;
 
+import org.apache.log4j.Logger;
+
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.translation.Translation;
@@ -45,7 +47,8 @@ public class TranslationPulse extends Translation {
       itsMarkPeriod = RelTime.factory((long) (Double.parseDouble(init[0]) * 1000000));
       itsSpacePeriod = RelTime.factory((long) (Double.parseDouble(init[1]) * 1000000));
     } catch (Exception e) {
-      MonitorMap.logger.error("TranslationPulse for " + itsParent.getFullName() + ": " + e);
+      Logger logger = Logger.getLogger(this.getClass().getName());
+      logger.error("(" + itsParent.getFullName() + "): While parsing constructor string arguments: " + e);
     }
   }
 
@@ -81,7 +84,8 @@ public class TranslationPulse extends Translation {
             output = new Boolean(true);
           }
         } else {
-          MonitorMap.logger.error("TranslationPulse for " + itsParent.getFullName() + ": Expect Boolean or Number input");
+          Logger logger = Logger.getLogger(this.getClass().getName());
+          logger.error("(" + itsParent.getFullName() + "): Expect Boolean or Number input");
           output = null;
         }
 

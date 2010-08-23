@@ -1,5 +1,7 @@
 package atnf.atoms.mon.translation;
 
+import org.apache.log4j.Logger;
+
 import atnf.atoms.mon.*;
 
 /** Map a number to a boolean value. The number is cast to an integer and
@@ -23,7 +25,8 @@ public class TranslationNumberToBool extends Translation {
           result = new Boolean(true);
         }
       } else {
-        MonitorMap.logger.error("TranslationNumberToBool for " + itsParent.getFullName() + ": Expect Number as input, got " + data.getData().getClass());
+        Logger logger = Logger.getLogger(this.getClass().getName());
+        logger.error("(" + itsParent.getFullName() + ") Expect Number as input, got " + data.getData().getClass());
       }
     }
     return new PointData(itsParent.getFullName(), data.getTimestamp(), result);

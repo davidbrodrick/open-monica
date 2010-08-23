@@ -9,6 +9,9 @@
 package atnf.atoms.mon.externalsystem;
 
 import java.util.HashMap;
+
+import org.apache.log4j.Logger;
+
 import atnf.atoms.mon.*;
 
 /**
@@ -232,8 +235,8 @@ public class DavisVantagePro extends DataSocket
             }
         } catch (Exception e) {
             disconnect();
-            System.err.println("DavisVantagePro: " + e);
-            MonitorMap.logger.error("DavisVantagePro: " + e);
+            Logger logger = Logger.getLogger(this.getClass().getName());
+            logger.error("In getData method: " + e);
         }
     }
 }

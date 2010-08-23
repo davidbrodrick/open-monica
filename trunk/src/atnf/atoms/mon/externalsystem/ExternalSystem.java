@@ -15,6 +15,7 @@ import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
 import atnf.atoms.mon.transaction.*;
+import org.apache.log4j.Logger;
 
 /**
  * ExternalSystem is the base class for objects which bring new information into the
@@ -95,6 +96,9 @@ public class ExternalSystem implements Runnable {
 
   /** Static map of all ExternalSystems. */
   protected static HashMap<String, ExternalSystem> theirExternalSystems = new HashMap<String, ExternalSystem>();
+  
+  /** Logger. */
+  protected static Logger theirLogger = Logger.getLogger(ExternalSystem.class.getName());
 
   /** Add a ExternalSystem with the given unique channel description. */
   public static void addExternalSystem(String name, ExternalSystem source) {
@@ -257,7 +261,7 @@ public class ExternalSystem implements Runnable {
    * @param points The points that need collecting right now.
    */
   protected void getData(PointDescription[] points) throws Exception {
-    MonitorMap.logger.warning("ExternalSystem (" + itsName + "): Received unsupported monitor requests: stopping collection");
+    theirLogger.warn("(" + itsName + "): Received unsupported monitor requests: stopping collection");
     stopCollection();
   }
 
@@ -269,7 +273,7 @@ public class ExternalSystem implements Runnable {
    * @throws Exception
    */
   public void putData(PointDescription desc, PointData pd) throws Exception {
-    MonitorMap.logger.warning("ExternalSystem (" + itsName + "): Received unsupported control request from " + desc.getFullName());
+    theirLogger.warn("(" + itsName + "): Received unsupported control request from " + desc.getFullName());
   }
 
   /**
@@ -300,13 +304,13 @@ public class ExternalSystem implements Runnable {
             Constructor con = newes.getConstructor(new Class[] { String[].class });
             con.newInstance(new Object[] { classArgs });
           } catch (Exception f) {
-            MonitorMap.logger.error("ExternalSystem: Cannot Initialise \"" + lines[i] + "\" defined on line " + (i + 1) + ": " + f);
+            theirLogger.error("Cannot Initialise \"" + lines[i] + "\" defined on line " + (i + 1) + ": " + f);
           }
         }
       }
     } catch (Exception e) {
       e.printStackTrace();
-      MonitorMap.logger.error("ExternalSystem: Cannot Initialise External Systems!");
+      theirLogger.error("Cannot Initialise External Systems!");
     }
   }
 
@@ -331,7 +335,7 @@ public class ExternalSystem implements Runnable {
             itsPoints.wait();
           }
         } catch (Exception e) {
-          MonitorMap.logger.error("ExternalSystem.run: " + e);
+          theirLogger.error("(" + itsName + ") " + e);
           continue;
         }
 
@@ -353,7 +357,7 @@ public class ExternalSystem implements Runnable {
             // Call the sub-class specific method to do the real work
             getData(parray);
           } catch (Exception e) {
-            MonitorMap.logger.error("ExternalSystem: " + itsName + ": " + e);
+            theirLogger.error("(" + itsName + ") " + e);
             itsConnected = false;
           }
         } else {

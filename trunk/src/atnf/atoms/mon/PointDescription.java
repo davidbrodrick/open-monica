@@ -20,6 +20,7 @@ import atnf.atoms.mon.alarmcheck.*;
 import atnf.atoms.mon.archivepolicy.*;
 import atnf.atoms.mon.archiver.*;
 import atnf.atoms.mon.util.*;
+import org.apache.log4j.Logger;
 
 /**
  * Class which encapsulates all of the meta-information about a point.
@@ -29,6 +30,9 @@ import atnf.atoms.mon.util.*;
  */
 public class PointDescription implements ActionListener, NamedObject, Comparable
 {
+  /** Logger. */
+  protected static Logger theirLogger = Logger.getLogger(PointDescription.class.getName());
+  
   /**
    * Array of names and aliases that belong to this point in dot "." delimited
    * heirarchical form.
@@ -115,7 +119,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
 
   /** Listeners for data value updates. */
   protected EventListenerList itsListenerList = new EventListenerList();
-
+  
   /**
    * The interval between updates. If the period is set to 0, then this point
    * has no scheduled update frequency.
@@ -156,7 +160,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
           itsPeriod = 0;
         }
       } catch (Exception e) {
-        MonitorMap.logger.error("PointDescription: (" + getName() + "): setPeriod: " + e.getMessage());
+        theirLogger.error("(" + getFullName() + "): setPeriod: " + e);
         itsPeriod = 0;
       }
     }
@@ -192,7 +196,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       try {
         itsArchiveLongevity = Integer.parseInt(newperiod);
       } catch (Exception e) {
-        MonitorMap.logger.error("PointDescription: (" + getName() + "): setArchiveLongevity: " + e.getMessage());
+        theirLogger.error("(" + getFullName() + "): setArchiveLongevity: " + e);
         itsPeriod = -1;
       }
     }

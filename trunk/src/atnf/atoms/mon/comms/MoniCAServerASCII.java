@@ -14,14 +14,17 @@ import atnf.atoms.mon.util.*;
 import java.io.*;
 import java.util.*;
 import java.net.*;
+import org.apache.log4j.Logger;
 
 /**
  * Provides a simple ASCII interface for clients to obtain monitor data.
  * 
  * @author David Brodrick
- * @version $Id: MonitorServerASCII.java,v 1.6 2007/11/01 01:09:16 bro764 Exp $
  */
 public class MoniCAServerASCII extends Thread {
+  /** Logger. */
+  protected static Logger theirLogger = Logger.getLogger(MoniCAServerASCII.class.getName());
+  
   /** Keep track of how many clients are connected. */
   protected static int theirNumClients = 0;
 
@@ -503,10 +506,7 @@ public class MoniCAServerASCII extends Thread {
       }
     } catch (IOException ie) {
       // Couldn't open the server port
-      // /Should probably be a logger message here as well
-      System.err.println("MonitorServerASCII::run(): Can't open port");
-      System.err.println(ie.getMessage());
-      MonitorMap.logger.error("MonitorServerASCII::run(): Can't open port - " + ie.getMessage());
+      theirLogger.error("Can't open server port: " + ie);
     }
     theirServers.remove(this);
   }
