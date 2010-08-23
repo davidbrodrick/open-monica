@@ -32,6 +32,9 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
 {
   /** Logger. */
   protected static Logger theirLogger = Logger.getLogger(PointDescription.class.getName());
+  
+  /** Records if initialisation of statically defined points is complete. */
+  private static boolean theirPointsCreated = false;
 
   /**
    * Array of names and aliases that belong to this point in dot "." delimited
@@ -1051,5 +1054,17 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     } else {
       return false;
     }
+  }
+  
+  /** Flag that initialisation of statically defined points has been completed. */
+  public static void setPointsCreated()
+  {
+    theirPointsCreated = true;
+  }
+  
+  /** Check if initialisation of statically defined points has been completed. */
+  public static boolean getPointsCreated()
+  {
+    return theirPointsCreated;
   }
 }

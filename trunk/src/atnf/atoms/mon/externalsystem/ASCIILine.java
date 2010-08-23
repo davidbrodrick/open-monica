@@ -116,7 +116,7 @@ public class ASCIILine extends ASCIISocket
             PointDescription pm = PointDescription.getPoint(itsMonitorPoint);
             if (pm != null) {
               pm.firePointEvent(new PointEvent(this, pd, true));
-            } else {
+            } else if (PointDescription.getPointsCreated()){
               Logger logger = Logger.getLogger(this.getClass().getName());
               logger.warn("(" + itsHostName + ":" + itsPort + "): Specified point " + itsMonitorPoint + " was not found");
               try {

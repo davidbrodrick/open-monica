@@ -100,7 +100,7 @@ public abstract class TranslationListener extends Translation implements PointLi
     }
 
     // Start the timer which subscribes us to updates from the points
-    itsTimer = new Timer(500, this);
+    itsTimer = new Timer(100, this);
     itsTimer.start();
   }
 
@@ -187,11 +187,11 @@ public abstract class TranslationListener extends Translation implements PointLi
       for (int i = 0; i < itsNumPoints; i++) {
         if (itsPoints[i] == null) {
           itsPoints[i] = PointDescription.getPoint(itsNames[i]);
-          if (itsPoints[i] == null) {
+          if (itsPoints[i] == null && PointDescription.getPointsCreated()) {
             // Still couldn't find the point, perhaps it doesn't exist?!
             stillmissing = true;
             Logger logger = Logger.getLogger(this.getClass().getName());
-            logger.warn("(" + itsParent.getFullName() + ") listened-to point " + itsNames[i] + " doesn't exist yet");            
+            logger.warn("(" + itsParent.getFullName() + ") listened-to point " + itsNames[i] + " was not found");            
           } else {
             itsPoints[i].addPointListener(this);
           }
