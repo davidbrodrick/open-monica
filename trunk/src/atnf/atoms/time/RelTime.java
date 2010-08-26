@@ -664,7 +664,7 @@ implements
   throws
     ArithmeticException
   {
-    return new RelTime(itsValue = itsValue * i);
+    return new RelTime(itsValue * i);
   }
 
   /**
@@ -689,7 +689,7 @@ implements
   throws
     ArithmeticException
   {
-    return new RelTime(itsValue = itsValue / i);
+    return new RelTime(itsValue / i);
   }
 
   /**
