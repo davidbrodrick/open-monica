@@ -36,12 +36,24 @@ public class MoniCAMain {
   {
     theirICEAdapter = a;
   }
+
+  /**
+   * Stop MoniCA and free resources.
+   * @return True if successfully stopped, False if a problem was encountered.
+   */
+  public static boolean stop() {
+    theirLogger.info("Stopping MoniCA Server..");
+    System.exit(0);
+    return true;
+  }
   
   /**
    * Start MoniCA.
    * @return True if successfully stopped, False if a problem was encountered.
    */
   public static boolean start() {
+    theirLogger.info("Starting MoniCA Server..");
+    
     // Create the archiver to store historical data
     PointArchiver pa = null;
     try {
