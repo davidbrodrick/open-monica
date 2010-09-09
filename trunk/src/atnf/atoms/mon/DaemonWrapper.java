@@ -43,5 +43,19 @@ public class DaemonWrapper implements Daemon
 
   public void init(DaemonContext context)
   {
+  }  
+
+  /** Stop the operation of this Daemon instance. */
+  public static void staticStop(String[] args)
+  {
+    DaemonWrapper d = new DaemonWrapper();
+    d.stop();    
+  }  
+  
+  /** Start the operation of this Daemon instance. */
+  public static final void main(String[] args)
+  {
+    DaemonWrapper d = new DaemonWrapper();
+    d.start();
   }
 }
