@@ -95,7 +95,7 @@ public class PointArchiverASCII extends PointArchiver
    * @param pm The point whos data we wish to archive.
    * @param data Vector of data to be archived.
    */
-  protected void saveNow(PointDescription pm, Vector data)
+  protected void saveNow(PointDescription pm, Vector<PointData> data)
   {
     try {
       // Find the right directory and get a listing of the files
@@ -171,6 +171,7 @@ public class PointArchiverASCII extends PointArchiver
         try {
           PointData pd = (PointData) data.elementAt(i);
           outfile.println(getStringForPD(pd));
+          theirLogger.debug("Archived " + data.elementAt(i));
         } catch (Exception e) {
           System.err.println("PointArchiverASCII:" + e.getMessage() + " (for " + ((PointData) data.elementAt(i)).getName() + ")");
         }
@@ -180,7 +181,7 @@ public class PointArchiverASCII extends PointArchiver
       outfile.close();
       f.close();
     } catch (Exception e) {
-      e.printStackTrace();
+      theirLogger.error("While archiving: " + pm.getFullName() + ": " + e);
     }
   }
 

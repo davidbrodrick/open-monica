@@ -97,7 +97,7 @@ extends PointArchiver
    * @param data Vector of data to be archived. */
   protected
   void
-  saveNow(PointDescription pm, Vector alldata)
+  saveNow(PointDescription pm, Vector<PointData> alldata)
   {
     String table = getTableName(pm);
 		

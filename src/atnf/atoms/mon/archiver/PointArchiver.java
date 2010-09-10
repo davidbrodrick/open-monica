@@ -69,7 +69,7 @@ public abstract class PointArchiver extends Thread
      * @param pm The point whos data we wish to archive.
      * @param data Vector of data to be archived.
      */
-    protected abstract void saveNow(PointDescription pm, Vector data);
+    protected abstract void saveNow(PointDescription pm, Vector<PointData> data);
 
     /**
      * Extract data from the archive with no undersampling.
@@ -123,24 +123,19 @@ public abstract class PointArchiver extends Thread
                         } catch (Exception e) {
                             theirLogger.error("run1: " + e);
                         }
-                        // System.err.println("Skipping " + pm.getSource() + "." +
-                        // pm.getName());
                         continue;
                     }
                 }
-                // System.err.println("Archiving " + pm.getSource() + "." + pm.getName() +
-                // "\t" + bData.size());
+                theirLogger.trace("Archiving " + pm.getFullName() + "\t" + bData.size());
                 saveNow(pm, bData);
                 try {
                     sleeptime.sleep();
                 } catch (Exception e) {
-                    theirLogger.error("run2: " + e);
                 }
             }
             try {
                 sleeptime.sleep();
             } catch (Exception e) {
-                theirLogger.error("run3: " + e);
             }
         }
     }
@@ -154,7 +149,8 @@ public abstract class PointArchiver extends Thread
      */
     public void archiveData(PointDescription pm, PointData data)
     {
-        synchronized (itsBuffer) {
+      theirLogger.debug("Queueing for archive: " + data);  
+      synchronized (itsBuffer) {
             // Ensure this point has a storage buffer allocated
             if (!(itsBuffer.get(pm) instanceof Vector)) {
                 itsBuffer.put(pm, new Vector<PointData>());
@@ -198,7 +194,8 @@ public abstract class PointArchiver extends Thread
      */
     public void archiveData(PointDescription pm, Vector<PointData> data)
     {
-        synchronized (itsBuffer) {
+      theirLogger.debug("Archiving vector");  
+      synchronized (itsBuffer) {
             // Ensure this point has a storage buffer allocated
             if (!(itsBuffer.get(pm) instanceof Vector)) {
                 itsBuffer.put(pm, new Vector<PointData>());
@@ -245,8 +242,9 @@ public abstract class PointArchiver extends Thread
                 for (int i = 0; i < allnames.length; i++) {
                     PointDescription point = PointDescription.getPoint(allnames[i]);
                     if (point == null) {
-                        System.err.println("PointArchiver:OldDataPurger: Point " + allnames[i] + " Doesn't Exist!");
+                        theirLogger.error("OldDataPurger: Point " + allnames[i] + " Doesn't Exist!");
                     } else if (point.getArchiver() == itsOwner && point.getArchiveLongevity() > 0) {
+                      theirLogger.trace("Purging old data for " + point.getFullName());
                         itsOwner.purgeOldData(point);
                     }
                     try {
