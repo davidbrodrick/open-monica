@@ -20,14 +20,14 @@ import atnf.atoms.time.*;
  * Archiver which stores data into ASCII text files, which are then compressed.
  * 
  * <P>
- * Each record is appened to a text file which lives in a directory hierarchy
- * which corresponds to the heirarchical name of the monitor point. When files
- * either get too large or too old they are compressed and any subsequent data
- * will be stored in a new file.
+ * Each record is appened to a text file which lives in a directory hierarchy which
+ * corresponds to the heirarchical name of the monitor point. When files either get too
+ * large or too old they are compressed and any subsequent data will be stored in a new
+ * file.
  * 
  * <P>
- * The compression is transparent to the user as the archiver will decompress
- * files when a archive request is made.
+ * The compression is transparent to the user as the archiver will decompress files when a
+ * archive request is made.
  * 
  * @author David Brodrick
  * @author Le Cuong Ngyuen
@@ -35,14 +35,12 @@ import atnf.atoms.time.*;
 public class PointArchiverASCII extends PointArchiver
 {
   /**
-   * Directory for writing temporary files. <i>This shouldn't be hard-coded
-   * OS-specific!!</i>
+   * Directory for writing temporary files. <i>This shouldn't be hard-coded OS-specific!!</i>
    */
   static private File theirTempDir = new File("/tmp/mon-temp/");
 
   /**
-   * Base directory for the data archive. Derived from the property
-   * <tt>LogDir</tt>.
+   * Base directory for the data archive. Derived from the property <tt>LogDir</tt>.
    */
   public static final String SAVEPATH = MonitorConfig.getProperty("LogDir");
 
@@ -50,8 +48,7 @@ public class PointArchiverASCII extends PointArchiver
   protected static final char FSEP = System.getProperty("file.separator").charAt(0);
 
   /**
-   * Maximum size for an archive file. Derived from the property
-   * <tt>ArchiveSize</tt>.
+   * Maximum size for an archive file. Derived from the property <tt>ArchiveSize</tt>.
    */
   protected static final int MAXLENGTH = Integer.parseInt(MonitorConfig.getProperty("ArchiveSize"));
 
@@ -68,8 +65,7 @@ public class PointArchiverASCII extends PointArchiver
   }
 
   /**
-   * Purge all data for the given point that is older than the specified age in
-   * days.
+   * Purge all data for the given point that is older than the specified age in days.
    * @param point The point whos data we wish to purge.
    */
   protected void purgeOldData(PointDescription point)
@@ -154,7 +150,7 @@ public class PointArchiverASCII extends PointArchiver
             (new File(fileName)).delete();
           } catch (Exception e) {
             // Unable to delete it. Remove .zip so we don't duplicate this data
-            System.err.println("PointArchiverASCII:saveNow: Can't delete " + fileName + ": " + e.getMessage());
+            itsLogger.warn("Can't delete uncompressed file " + fileName + ": " + e);
             (new File(fileName + ".zip")).delete();
           }
         }
@@ -171,7 +167,6 @@ public class PointArchiverASCII extends PointArchiver
         try {
           PointData pd = (PointData) data.elementAt(i);
           outfile.println(getStringForPD(pd));
-          theirLogger.debug("Archived " + data.elementAt(i));
         } catch (Exception e) {
           System.err.println("PointArchiverASCII:" + e.getMessage() + " (for " + ((PointData) data.elementAt(i)).getName() + ")");
         }
@@ -181,7 +176,7 @@ public class PointArchiverASCII extends PointArchiver
       outfile.close();
       f.close();
     } catch (Exception e) {
-      theirLogger.error("While archiving: " + pm.getFullName() + ": " + e);
+      itsLogger.error("While archiving: " + pm.getFullName() + ": " + e);
     }
   }
 
@@ -221,8 +216,8 @@ public class PointArchiverASCII extends PointArchiver
   }
 
   /**
-   * Return the last update which precedes the specified time. We interpret
-   * 'precedes' to mean data_time<=req_time.
+   * Return the last update which precedes the specified time. We interpret 'precedes' to
+   * mean data_time<=req_time.
    * @param pm Point to extract data for.
    * @param ts Find data preceding this timestamp.
    * @return PointData for preceding update or null if none found.
@@ -266,8 +261,8 @@ public class PointArchiverASCII extends PointArchiver
   }
 
   /**
-   * Return the first update which follows the specified time. We interpret
-   * 'follows' to mean data_time>=req_time.
+   * Return the first update which follows the specified time. We interpret 'follows' to
+   * mean data_time>=req_time.
    * @param pm Point to extract data for.
    * @param ts Find data following this timestamp.
    * @return PointData for following update or null if none found.
@@ -360,10 +355,10 @@ public class PointArchiverASCII extends PointArchiver
   }
 
   /**
-   * Get a string representation of the Object. The string includes a type
-   * specifier as well as an ASCII representation of the data. These fields are
-   * separated by tabs. The <i>getObjectForString</i> method is able to decode
-   * this representation and recover the original Object.
+   * Get a string representation of the Object. The string includes a type specifier as
+   * well as an ASCII representation of the data. These fields are separated by tabs. The
+   * <i>getObjectForString</i> method is able to decode this representation and recover
+   * the original Object.
    * <P>
    * <i>null</i> objects are properly handled.
    * @param data The Object to encode into ASCII text.
@@ -412,9 +407,9 @@ public class PointArchiverASCII extends PointArchiver
   }
 
   /**
-   * Use the ASCII <i>type</i> and <i>data</i> to reconstruct the data Object.
-   * This method essentially performs the opposite procedure to that implemented
-   * by <i>getStringForObject</i>.
+   * Use the ASCII <i>type</i> and <i>data</i> to reconstruct the data Object. This
+   * method essentially performs the opposite procedure to that implemented by
+   * <i>getStringForObject</i>.
    * @param type Short string representing the class of the data.
    * @param data The actual data in ASCII text form.
    * @return The reconstructed object.
@@ -458,8 +453,7 @@ public class PointArchiverASCII extends PointArchiver
   }
 
   /**
-   * Get the names of archive files relevant to the given time range for the
-   * point.
+   * Get the names of archive files relevant to the given time range for the point.
    * @param dir Archive directory to search.
    * @param start Earliest time in the range of interest.
    * @param end Most recent time in the range of interest.
@@ -700,8 +694,8 @@ public class PointArchiverASCII extends PointArchiver
   }
 
   /**
-   * Test if the specified filename corresponds to a compressed file. In
-   * practice this just means we check for a <i>.zip</i> extension.
+   * Test if the specified filename corresponds to a compressed file. In practice this
+   * just means we check for a <i>.zip</i> extension.
    * @param filename The file name to check.
    * @return <code>True</code> if the file is compressed, <code>False</code>
    * otherwise.
@@ -712,9 +706,8 @@ public class PointArchiverASCII extends PointArchiver
   }
 
   /**
-   * Decompress the specified file and return the path to a temporary file. The
-   * temporary file should generally be deleted by the caller once it is no
-   * longer required.
+   * Decompress the specified file and return the path to a temporary file. The temporary
+   * file should generally be deleted by the caller once it is no longer required.
    * @param filename Full path to the file to decompress.
    * @return Name of temporary file containing the decompressed data.
    */
@@ -766,8 +759,8 @@ public class PointArchiverASCII extends PointArchiver
   }
 
   /**
-   * Compress the specified file. The file location is not not changed but the
-   * file will be renamed with a <i>.zip</i> extension.
+   * Compress the specified file. The file location is not not changed but the file will
+   * be renamed with a <i>.zip</i> extension.
    * @param filename The name of the file to be compressed.
    */
   public void compress(String filename)
@@ -885,8 +878,8 @@ public class PointArchiverASCII extends PointArchiver
     PointArchiverASCII paa = new PointArchiverASCII();
     paa.getPrecedingFile("/home/ozforeca/open-monica/archive/weather/in_temp/home/", "20080709-0954.zip");
     /*
-     * if (args.length<1) { System.err.println("USAGE: Specify a file to be
-     * compressed"); System.exit(1); }
+     * if (args.length<1) { System.err.println("USAGE: Specify a file to be compressed");
+     * System.exit(1); }
      * 
      * System.out.println("Will compress " + args[0]); paa.compress(args[0]);
      * paa.decompress(args[0]+".zip");
