@@ -115,9 +115,6 @@ public class IceStormSubscriber extends ExternalSystem
 
       try {
         itsTopic = topicManager.retrieve(itsTopicName);
-        HashMap<String, String> qos = new HashMap<String, String>(1);
-        qos.put("reliability", "ordered");
-        itsTopic.subscribeAndGetPublisher(null, proxy);
       } catch (IceStorm.NoSuchTopic e0) {
         try {
           // Create topic if it doesn't already exist
@@ -126,6 +123,7 @@ public class IceStormSubscriber extends ExternalSystem
           itsTopic = topicManager.retrieve(itsTopicName);
         }
       }
+      itsTopic.subscribeAndGetPublisher(null, proxy);      
 
       adapter.activate();
       itsConnected = true;
