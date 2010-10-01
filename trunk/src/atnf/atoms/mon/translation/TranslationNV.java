@@ -9,16 +9,16 @@ package atnf.atoms.mon.translation;
 
 import java.util.HashMap;
 
-import atnf.atoms.mon.PointData;
-import atnf.atoms.mon.PointDescription;
+import atnf.atoms.mon.*;
+import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.util.NamedValueList;
 
 /**
  * Returns a particular entry from a NamedValueList or HashMap.
- *
+ * 
  * @author Le Cuong Nguyen
  * @author David Brodrick
- **/
+ */
 public class
 TranslationNV
 extends Translation
@@ -35,6 +35,8 @@ extends Translation
      if (init.length!=1) {
        System.err.println("ERROR: TranslationNV (for " + itsParent.getName()
 			  + "): Expect 1 Argument.. got " + init.length);
+     } else if (init[0].indexOf("$1") > -1) {
+       itsName = MonitorUtils.replaceTok(init[0], parent.getSource());
      } else {
        itsName = init[0];
      }
@@ -44,20 +46,20 @@ extends Translation
    PointData
    translate(PointData data)
    {
-     //Precondition
+     // Precondition
      if (data==null) {
       return null;
     }
 
-     //Get the actual data
+     // Get the actual data
      Object realdata = data.getData();
 
-     //If the data is null we need to throw a null-data result
+     // If the data is null we need to throw a null-data result
      if (realdata==null) {
        return new PointData(itsParent.getFullName());
      }
 
-     //Ensure it is a valid type for this class
+     // Ensure it is a valid type for this class
      if (!(realdata instanceof NamedValueList) &&
 	 !(realdata instanceof HashMap)) {
        System.err.print("ERROR: TranslationNV (for " + itsParent.getName() + "): "
@@ -65,14 +67,14 @@ extends Translation
        return null;
      }
 
-     //Create the new data structure to be returned
+     // Create the new data structure to be returned
      PointData res = new PointData(itsParent.getFullName());
 
      res.setData((realdata instanceof NamedValueList) ?
 		 ((NamedValueList)realdata).get(itsName) :
                  ((HashMap)realdata).get(itsName));
 
-     //Keep the time-stamp of the parent point rather than use "now"
+     // Keep the time-stamp of the parent point rather than use "now"
      res.setTimestamp(data.getTimestamp());
 
      return res;
