@@ -129,17 +129,16 @@ public class WH1081 extends ExternalSystem
       line = stdInput.readLine(); // Rain - unused
       line = stdInput.readLine(); // Rain 2
       res[8] = new Integer(Math.round((new Float(line.substring(20, line.length()).trim())).floatValue() * 10));
-      line = stdInput.readLine(); // Other 1
-      int other1 = Integer.parseInt(line.substring(20, line.length()).trim());
-      line = stdInput.readLine(); // Other 2
-      int other2 = Integer.parseInt(line.substring(20, line.length()).trim());
+      line = stdInput.readLine(); // Wind high bits - unused
+      line = stdInput.readLine(); // Status
+      int status = Integer.parseInt(line.substring(20, line.length()).trim());
       line = stdInput.readLine(); // Pressure
       res[7] = new Float(line.substring(20, line.length()).trim());
       line = stdInput.readLine(); // History position
       res[10] = new Integer(Integer.parseInt(line.substring(20, line.length()).trim(), 16));
 
       // Check for invalid values
-      if (other1 != 0 || other2 != 0) {
+      if (status != 0) {
         itsLogger.warn("No data from remote sensors");
         return null;
       }
