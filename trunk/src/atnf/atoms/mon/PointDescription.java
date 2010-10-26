@@ -32,7 +32,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
 {
   /** Logger. */
   protected static Logger theirLogger = Logger.getLogger(PointDescription.class.getName());
-  
+
   /** Records if initialisation of statically defined points is complete. */
   private static boolean theirPointsCreated = false;
 
@@ -501,11 +501,15 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   /** Make the point's alarm check objects. */
   protected void makeAlarmChecks()
   {
-    AlarmCheck[] alarms = new AlarmCheck[itsAlarmCheckStrings.length];
-    for (int i = 0; i < itsAlarmCheckStrings.length; i++) {
-      alarms[i] = (AlarmCheck) Factory.factory(this, itsAlarmCheckStrings[i], "atnf.atoms.mon.alarmcheck.AlarmCheck");
+    try {
+      AlarmCheck[] alarms = new AlarmCheck[itsAlarmCheckStrings.length];
+      for (int i = 0; i < itsAlarmCheckStrings.length; i++) {
+        alarms[i] = (AlarmCheck) Factory.factory(this, itsAlarmCheckStrings[i], "atnf.atoms.mon.alarmcheck.AlarmCheck");
+      }
+      itsAlarmChecks = alarms;
+    } catch (Exception e) {
+      theirLogger.error("Encountered " + e + " while making AlarmCheck objects for point " + getFullName());
     }
-    itsAlarmChecks = alarms;
   }
 
   /**
@@ -862,7 +866,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
         data = new PointData(data);
         data.setName(getFullName());
       }
-            
+
       // Translation has been completed so prepare new event and fire
       pe = new PointEvent(this, data, false);
     }
@@ -1055,13 +1059,13 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       return false;
     }
   }
-  
+
   /** Flag that initialisation of statically defined points has been completed. */
   public static void setPointsCreated()
   {
     theirPointsCreated = true;
   }
-  
+
   /** Check if initialisation of statically defined points has been completed. */
   public static boolean getPointsCreated()
   {

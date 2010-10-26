@@ -303,7 +303,7 @@ public class ExternalSystem implements Runnable {
               // Might be fully qualified name
               newes = Class.forName(className);
             } catch (Exception e) {
-              // Not fully qualified - so try defaule package
+              // Not fully qualified - so try default package
               newes = Class.forName("atnf.atoms.mon.externalsystem." + className);
             }
             Constructor con = newes.getConstructor(new Class[] { String[].class });
@@ -321,7 +321,7 @@ public class ExternalSystem implements Runnable {
 
   /** Main loop for the point scheduling/collection thread. */
   public void run() {
-    while (itsKeepRunning) {
+    while (itsKeepRunning) {      
       // /If we're not connected, try to reconnect
       if (!itsConnected) {
         try {
