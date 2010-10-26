@@ -24,6 +24,7 @@
     <jar href="jfreechart-1.0.13.jar"/>
     <jar href="jcommon-1.0.16.jar"/>
     <jar href="Ice.jar"/>
+    <jar href="log4j-1.2.15.jar"/>
   </resources>
   <application-desc main-class="atnf.atoms.mon.gui.MonFrame"/>
 </jnlp> 
