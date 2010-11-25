@@ -50,6 +50,8 @@ public class Factory
         // Supplied name was not a full path
         // Look in default package name provided
         con = Class.forName(defpackage + type).getConstructor(new Class[] { PointDescription.class, String[].class });
+      }
+      if (con!=null) {
         result = (con.newInstance(new Object[] { parent, args }));
       }
     } catch (Exception e) {
