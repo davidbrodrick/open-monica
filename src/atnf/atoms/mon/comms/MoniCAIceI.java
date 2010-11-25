@@ -97,6 +97,9 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   public String[] getAllSetups(Ice.Current __current)
   {
     SavedSetup[] allsetups = SavedSetup.getAllSetups();
+    if (allsetups==null) {
+    	allsetups = new SavedSetup[0];
+    }
     String[] stringsetups = new String[allsetups.length];
     for (int i = 0; i < allsetups.length; i++) {
       stringsetups[i] = allsetups[i].toString();
