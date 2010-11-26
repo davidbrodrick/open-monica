@@ -13,7 +13,8 @@ import java.io.*;
 /**
  * Provides an interface to control relays on a TCTEC Super-4 USB relay board.
  * This class is basically just a wrapper which expects the <i>Irelayset</i> Linux executable
- * provided by the manufacturer to be in the current PATH.
+ * provided by the manufacturer to be in the current PATH. It uses the <i>timeout</i> program
+ * to prevent hanging, so that is also expected to be available on the system. 
  * 
  * <P>The manufacturers website is <tt>http://www.emx.net.au/</tt>
  * 
@@ -99,10 +100,10 @@ extends ExternalSystem
       String command;
 	    if (relayset) {
 		    //Turn ON
-        command = "Irelayset -s" + itsSerialNum + "," + relayword;
+        command = "timeout 5 Irelayset -s" + itsSerialNum + "," + relayword;
 	    } else {
 		    //Turn OFF
-        command = "Irelayset -u" + itsSerialNum + "," + relayword;
+        command = "timeout 5 Irelayset -u" + itsSerialNum + "," + relayword;
 	    }
       //System.err.println("Super4(" + itsIdentifier + "): Executing command \"" + command + "\"");
       
