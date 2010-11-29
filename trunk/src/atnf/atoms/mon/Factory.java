@@ -28,9 +28,15 @@ import atnf.atoms.mon.util.MonitorUtils;
 public class Factory
 {
   public static Object factory(PointDescription parent, String strdef, String defpackage)
-  {
+  {	  
     // Find the class type
-    String type = strdef.substring(0, strdef.indexOf("-"));
+    int dashi = strdef.indexOf("-");
+    if (dashi==-1) {
+      Logger logger = Logger.getLogger(Factory.class.getName());
+      logger.warn("No \'-\' found in definition " + strdef + " for " + parent.getFullName());
+      dashi=strdef.length()-1;
+    }
+    String type = strdef.substring(0, dashi);
     if (type.equals("")) {
       // No class specified
       return null;
