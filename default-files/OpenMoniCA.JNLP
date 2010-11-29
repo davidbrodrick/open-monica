@@ -7,7 +7,7 @@
     <vendor>Open-MoniCA Project</vendor>
     <description>Graphical Monitor System Client</description>
     <description kind="short">Graphical Monitor System Client</description>
-    <shortcut online="false">
+    <shortcut online="true">
       <desktop/>
       <menu submenu="MoniCA"/>
     </shortcut>

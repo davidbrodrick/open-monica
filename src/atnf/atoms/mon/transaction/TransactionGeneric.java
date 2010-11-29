@@ -22,13 +22,16 @@ public class TransactionGeneric extends Transaction
   public TransactionGeneric(PointDescription parent, String[] args)
   {
     super(parent, args);
-
-    String channel = args[0];
+    
+    if (args.length < 1) {
+      throw new IllegalArgumentException("Requires at least one argument");
+    }
+    
     // Replace the macro $1 with source name if present
     if (args[0].indexOf("$1") != -1) {
       args[0] = MonitorUtils.replaceTok(args[0], parent.getSource());
     }
 
-    setChannel(channel);
+    setChannel(args[0]);
   }
 }
