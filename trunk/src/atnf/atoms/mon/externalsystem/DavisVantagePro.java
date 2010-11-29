@@ -9,7 +9,7 @@
 package atnf.atoms.mon.externalsystem;
 
 import java.util.HashMap;
-
+import java.net.SocketTimeoutException;
 import org.apache.log4j.Logger;
 
 import atnf.atoms.mon.*;
@@ -208,33 +208,57 @@ public class DavisVantagePro extends DataSocket {
         itsReader.skip(itsReader.available());
 
         // Request the image
-        itsWriter.write("LOOP 1\r\n".getBytes());
+        itsWriter.write("LOOP 1\n".getBytes());
         itsWriter.flush();
-        int ack = itsReader.read();
+        int ack = 0;
+        int retries = 5;
+        try {
+          ack = itsReader.read();
+        } catch (SocketTimeoutException f) {
+          // System.err.println("DavisVantagePro: Read timed out: retrying LOOP command");
+          retries--;
+          if (retries == 0) {
+            throw f;
+          }
+        }
+
         if (ack != 6) {
           // Did not receive ACK for LOOP command
           pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
+          // System.err.println("DavisVantagePro: Did not receive ACK, got " +
+          // ack);
           continue;
         }
 
-        // Read the sensor image bytes
-        int[] rawbytes = new int[98];
-        for (int j = 0; j < rawbytes.length; j++) {
-          rawbytes[j] = itsReader.read();
-          if (rawbytes[j] == -1) {
-            throw new Exception("Reached EOF while reading from socket");
+        HashMap wxdata = null;
+        try {
+          // Read the sensor image bytes
+          int[] rawbytes = new int[99];
+          for (int j = 0; j < rawbytes.length; j++) {
+            rawbytes[j] = itsReader.read();
+            if (rawbytes[j] == -1) {
+              throw new Exception("Reached EOF while reading from socket");
+            }
+            // System.err.println(j + " " + (int) rawbytes[j]);
           }
-          //System.err.println(j + " " + (int) rawbytes[j]);
+          if (rawbytes[95] != '\n' || rawbytes[96] != '\r') {
+            //System.err.println("DavisVantagePro: Unexpected byte sequence:");
+            //for (int j = 0; j < rawbytes.length; j++) {
+            //  System.err.println(j + " " + (int) rawbytes[j]);
+            //}
+          } else {
+            // Parse the weather data
+            wxdata = parseSensorImage(rawbytes);
+          }
+        } catch (SocketTimeoutException f) {
+          wxdata = null;
         }
-
-        // Parse the weather data
-        HashMap wxdata = parseSensorImage(rawbytes);
 
         // Count successful transactions
         if (wxdata != null) {
           itsNumTransactions++;
         }
-        
+
         // Fire the new data off for this point
         pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), wxdata), true));
       }
