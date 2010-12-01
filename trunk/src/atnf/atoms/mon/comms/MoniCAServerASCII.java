@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 public class MoniCAServerASCII extends Thread {
   /** Logger. */
   protected static Logger theirLogger = Logger.getLogger(MoniCAServerASCII.class.getName());
-  
+
   /** Keep track of how many clients are connected. */
   protected static int theirNumClients = 0;
 
@@ -34,15 +34,18 @@ public class MoniCAServerASCII extends Thread {
   /** The socket used to listen for requests from our client. */
   protected Socket itsSocket = null;
 
+  /** The name of the client. */
+  protected String itsClientName = null;
+
   /** For writing data to the client. */
   protected PrintWriter itsWriter = null;
 
   /** For reading instructions from the client. */
   protected BufferedReader itsReader = null;
-  
+
   /** List of all currently running servers. */
   protected static Vector<MoniCAServerASCII> theirServers = new Vector<MoniCAServerASCII>();
-  
+
   /** Server socket SO timeout (ms). */
   protected static int theirServerSocketTimeout = 100;
 
@@ -57,7 +60,9 @@ public class MoniCAServerASCII extends Thread {
 
   /**
    * Starts up a server thread to handle requests from a new client.
-   * @param socket The socket connection to the new client.
+   * 
+   * @param socket
+   *          The socket connection to the new client.
    */
   public MoniCAServerASCII(Socket socket) throws IOException {
     super("MonitorServerASCII/" + socket.getInetAddress().getHostAddress());
@@ -65,7 +70,9 @@ public class MoniCAServerASCII extends Thread {
       theirServers.add(this);
     }
     theirNumClients++;
-    //System.out.println("MonitorServerASCII: New Connection from " + socket.getInetAddress().getHostAddress());
+    itsClientName = socket.getInetAddress().getHostAddress();
+    // System.out.println("MonitorServerASCII: New Connection from " +
+    // itsClientName);
     itsSocket = socket;
     itsReader = new BufferedReader(new InputStreamReader(itsSocket.getInputStream()));
     itsWriter = new PrintWriter(itsSocket.getOutputStream());
@@ -86,11 +93,11 @@ public class MoniCAServerASCII extends Thread {
       }
     }
     try {
-      Thread.sleep(2*theirServerSocketTimeout);
+      Thread.sleep(2 * theirServerSocketTimeout);
     } catch (InterruptedException e) {
     }
   }
-  
+
   /** Stop the running thread. */
   public void stopRunning() {
     itsRunning = false;
@@ -127,6 +134,8 @@ public class MoniCAServerASCII extends Thread {
             names();
           } else if (line.equalsIgnoreCase("details")) {
             details();
+          } else if (line.equalsIgnoreCase("set")) {
+            set();
           }
         }
       } catch (Exception f) {
@@ -161,7 +170,7 @@ public class MoniCAServerASCII extends Thread {
 
       itsWriter.flush();
     } catch (Exception e) {
-      System.err.println("MonitorServerASCII: names: " + e.getClass());
+      theirLogger.error("Problem in names request from " + itsClientName + ": " + e);
       itsRunning = false;
     }
   }
@@ -229,7 +238,7 @@ public class MoniCAServerASCII extends Thread {
 
       itsWriter.flush();
     } catch (Exception e) {
-      e.printStackTrace();
+      theirLogger.error("Problem in between request from " + itsClientName + ": " + e);
       itsRunning = false;
     }
   }
@@ -281,7 +290,7 @@ public class MoniCAServerASCII extends Thread {
 
       itsWriter.flush();
     } catch (Exception e) {
-      System.err.println("MonitorServerASCII: since: " + e.getClass());
+      theirLogger.error("Problem in since request from " + itsClientName + ": " + e);
       itsRunning = false;
     }
   }
@@ -298,12 +307,12 @@ public class MoniCAServerASCII extends Thread {
           itsWriter.println("?");
         } else {
           itsWriter.println(pointname + "\t" + pm.getPeriod() / 1000000.0 + "\t\"" + pm.getUnits() + "\"\t\"" + pm.getLongDesc()
-                  + "\"");
+              + "\"");
         }
       }
       itsWriter.flush();
     } catch (Exception e) {
-      System.err.println("MonitorServerASCII: details: " + e.getClass());
+      theirLogger.error("Problem in details request from " + itsClientName + ": " + e);
       itsRunning = false;
     }
   }
@@ -329,7 +338,70 @@ public class MoniCAServerASCII extends Thread {
       }
       itsWriter.flush();
     } catch (Exception e) {
-      System.err.println("MonitorServerASCII: poll: " + e.getClass());
+      theirLogger.error("Problem in poll request from " + itsClientName + ": " + e);
+      itsRunning = false;
+    }
+  }
+
+  /** Specify new values for the given points. */
+  protected void set() {
+    try {
+      // Read users credentials. These should be encrypted. TODO: Currently not
+      // used.
+      String username = itsReader.readLine().trim();
+      String password = itsReader.readLine().trim();
+
+      // First line tells us how many points are going to be specified
+      String tempstr = itsReader.readLine().trim();
+      int numpoints = Integer.parseInt(tempstr);
+      for (int i = 0; i < numpoints; i++) {
+        String[] tokens = itsReader.readLine().trim().split("\t");
+        if (tokens.length < 3) {
+          itsWriter.println("? Expect name, type code and value. Tab delimited.");
+          continue;
+        }
+        PointDescription thispoint = PointDescription.getPoint(tokens[0]);
+        if (thispoint != null) {
+          PointData newval = new PointData(thispoint.getFullName());
+          String type = tokens[1];
+          String strval = tokens[2];
+          try {
+            if (type.equals("dbl")) {
+              newval.setData(new Double(strval));
+            } else if (type.equals("flt")) {
+              newval.setData(new Float(strval));
+            } else if (type.equals("int")) {
+              newval.setData(new Integer(strval));
+            } else if (type.equals("str")) {
+              newval.setData(strval);
+            } else if (type.equals("bool")) {
+              newval.setData(new Boolean(strval));
+            } else if (type.equals("abst")) {
+              long foo = Long.parseLong(strval, 16); // Hex
+              newval.setData(AbsTime.factory(foo));
+            } else if (type.equals("relt")) {
+              long foo = Long.parseLong(strval); // Decimal
+              newval.setData(RelTime.factory(foo));
+            } else {
+              itsWriter.println("? Unknown type code.");
+              continue;
+            }
+          } catch (Exception f) {
+            // Parse error
+            itsWriter.println("? Parse error reading type/value: " + f);
+            continue;
+          }
+
+          theirLogger.debug("Assigning value " + newval + " to point " + thispoint.getFullName() + " as requested by " + username
+              + " from " + itsClientName);
+          thispoint.firePointEvent(new PointEvent(this, newval, true));
+        } else {
+          itsWriter.println("? Named point doesn't exist");
+        }
+      }
+      itsWriter.flush();
+    } catch (Exception e) {
+      theirLogger.error("Problem in set request from " + itsClientName + ": " + e);
       itsRunning = false;
     }
   }
@@ -375,7 +447,7 @@ public class MoniCAServerASCII extends Thread {
       }
       itsWriter.flush();
     } catch (Exception e) {
-      System.err.println("MonitorServerASCII: following: " + e.getClass());
+      theirLogger.error("Problem in following request from " + itsClientName + ": " + e);
       itsRunning = false;
     }
   }
@@ -421,13 +493,14 @@ public class MoniCAServerASCII extends Thread {
       }
       itsWriter.flush();
     } catch (Exception e) {
-      System.err.println("MonitorServerASCII: preceding: " + e.getClass());
+      theirLogger.error("Problem in preceding request from " + itsClientName + ": " + e);
       itsRunning = false;
     }
   }
 
   /**
-   * Return latest values, units, and boolean for range check of specified monitor points.
+   * Return latest values, units, and boolean for range check of specified
+   * monitor points.
    */
   protected void poll2() {
     try {
@@ -453,7 +526,7 @@ public class MoniCAServerASCII extends Thread {
                 units = "?";
               }
               itsWriter.println(pointname + "\t" + pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t" + pd.getData() + "\t"
-                      + units + "\t" + !pd.getAlarm());
+                  + units + "\t" + !pd.getAlarm());
             }
           }
         } else {
@@ -462,17 +535,17 @@ public class MoniCAServerASCII extends Thread {
       }
       itsWriter.flush();
     } catch (Exception e) {
-      System.err.println("MonitorServerASCII: poll2: " + e.getClass());
+      theirLogger.error("Problem in poll2 request from " + itsClientName + ": " + e);
       itsRunning = false;
     }
   }
 
   /**
-   * Starting point for threads. If this object was created without a specified socket
-   * then we start a server thread which awaits client connections and spawns new
-   * instances to service new clients. If a socket was specified at construction then we
-   * know that we are supposed to service a particular client and we leap to the
-   * <i>processConnection</i> method to do so.
+   * Starting point for threads. If this object was created without a specified
+   * socket then we start a server thread which awaits client connections and
+   * spawns new instances to service new clients. If a socket was specified at
+   * construction then we know that we are supposed to service a particular
+   * client and we leap to the <i>processConnection</i> method to do so.
    */
   public void run() {
     try {
@@ -497,7 +570,7 @@ public class MoniCAServerASCII extends Thread {
           }
         }
         ss.close();
-        
+
       } else {
         // We aren't the main server: we need to service a particular client
         processConnection();
