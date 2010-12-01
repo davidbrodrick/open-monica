@@ -20,8 +20,9 @@ The following commands are currently recognised by the server:
   * *between:* Request all archival values between two nominated times.
   * *following:* Return the first record >= a specified time for a set of points.
   * *preceding:* Return the last record <= a specified time for a set of points.
-  * *names:* Request the names of all monitor points in the system.
-  * *details:* Request meta-information about some monitor points.
+  * *names:* Request the names of all points in the system.
+  * *details:* Request meta-information about some points.
+  * *set:* Set new values for control points.
 
 Each command is outlined in further detail below.
 
@@ -226,3 +227,37 @@ details
 site.environment.weather.Temperature
 site.environment.weather.Temperature 10.0 "C" "Temperature"
 }}}
+
+==set==
+
+The set command allows new values to be assigned to a specified set of points.
+
+You need to send:
+{{{
+set
+[username]
+[password]
+[num_points]
+[pointname1]\t[type_code]\t[value]
+...
+[pointnameN]\t[type_code]\t[value]
+}}}
+
+The type specifier must be one of the following:
+|| Code || Type    || Example ||
+|| dbl  || Double  || 3.141 ||
+|| flt  || Float   || 3.141 ||
+|| int  || Integer || 7     ||
+|| str  || String  || foo   ||
+|| bool || Boolean || true  ||
+|| abst || Absolute Time || 0x110ba68ede4c38 ||
+|| relt || Relative Time || 1000000 ||
+
+The server will respond with the name of each point and OK or ERROR depending on whether the control command went through to the relevant subsystem okay:
+{{{
+[pointname1]\tOK
+...
+[pointnameN]\tERROR
+}}}
+
+If the server doesn't recognise one of the monitor point names you specified, it will respond with a line beginning with a question mark "?" in place of the line for that monitor point.
