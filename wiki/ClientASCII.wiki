@@ -260,4 +260,4 @@ The server will respond with the name of each point and OK or ERROR depending on
 [pointnameN]\tERROR
 }}}
 
-If the server doesn't recognise one of the monitor point names you specified, it will respond with a line beginning with a question mark "?" in place of the line for that monitor point.
+If the server doesn't recognise one of the monitor point names you specified or the relevant type/value cannot be parsed, it will respond with a line beginning with a question mark "?" in place of the line for that monitor point.
