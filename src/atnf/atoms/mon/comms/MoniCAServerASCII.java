@@ -392,9 +392,10 @@ public class MoniCAServerASCII extends Thread {
             continue;
           }
 
-          theirLogger.debug("Assigning value " + newval + " to point " + thispoint.getFullName() + " as requested by " + username
+          theirLogger.trace("Assigning value " + newval + " to point " + thispoint.getFullName() + " as requested by " + username
               + " from " + itsClientName);
           thispoint.firePointEvent(new PointEvent(this, newval, true));
+          itsWriter.println(thispoint.getFullName() + "\tOK");
         } else {
           itsWriter.println("? Named point doesn't exist");
         }
