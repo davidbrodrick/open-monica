@@ -222,11 +222,14 @@ public class DavisVantagePro extends DataSocket {
           }
         }
 
-        if (ack != 6) {
+        if (ack == -1) {
+          throw new Exception("Reached EOF while reading from socket");
+        } else if (ack == 0) {
+          throw new Exception("Got ASCII NUL while reading from socket - broken socket?");
+        } else if (ack != 6) {
           // Did not receive ACK for LOOP command
           pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
-          // System.err.println("DavisVantagePro: Did not receive ACK, got " +
-          // ack);
+          //System.err.println("DavisVantagePro: Did not receive ACK, got " + ack);
           continue;
         }
 
@@ -242,10 +245,10 @@ public class DavisVantagePro extends DataSocket {
             // System.err.println(j + " " + (int) rawbytes[j]);
           }
           if (rawbytes[95] != '\n' || rawbytes[96] != '\r') {
-            //System.err.println("DavisVantagePro: Unexpected byte sequence:");
-            //for (int j = 0; j < rawbytes.length; j++) {
-            //  System.err.println(j + " " + (int) rawbytes[j]);
-            //}
+            // System.err.println("DavisVantagePro: Unexpected byte sequence:");
+            // for (int j = 0; j < rawbytes.length; j++) {
+            // System.err.println(j + " " + (int) rawbytes[j]);
+            // }
           } else {
             // Parse the weather data
             wxdata = parseSensorImage(rawbytes);
