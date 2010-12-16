@@ -1039,9 +1039,9 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   }
 
   /** Get all points (including aliases). */
-  public static synchronized PointDescription[] getAllPoints()
+  public static synchronized Collection<PointDescription> getAllPoints()
   {
-    return (PointDescription[]) theirPoints.values().toArray();
+    return theirPoints.values();
   }
 
   /** Get all points (excluding aliases). */
