@@ -414,13 +414,12 @@ public class PointTableModel extends AbstractTableModel implements PointListener
       res = new JLabel(value.toString());
     }
 
-    // Check if this monitor point defines it's limits
     PointDescription pm = getPoint(row, column);
     if (pm != null) {
       PointData pd = itsValues[column-1][row];
       if (pd != null) {
         long period = pm.getPeriod();
-        long age = (new AbsTime()).getValue() - pd.getTimestamp().getValue();
+        long age = (new AbsTime().add(ClockErrorMonitor.getClockError())).getValue() - pd.getTimestamp().getValue();
         if (period != 0 && age > 2 * period) {
           // The point is old, so alter the foreground color
           res.setForeground(Color.lightGray);

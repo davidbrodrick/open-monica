@@ -13,6 +13,8 @@ import java.util.Vector;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.RSA;
 import atnf.atoms.time.AbsTime;
+import atnf.atoms.time.RelTime;
+import atnf.atoms.time.Time;
 
 /** Abstract class representing the client-side interface to a MoniCA server.
  * 
@@ -195,4 +197,17 @@ public abstract class MoniCAClient {
 
   /** Get the current time on the server. */
   public abstract AbsTime getCurrentTime() throws Exception;  
+
+  /** Estimate the clock difference between the server and the local machine. */
+  public RelTime getClockError() throws Exception{
+    AbsTime tbefore = new AbsTime();
+    AbsTime tserver = getCurrentTime();
+    AbsTime tafter = new AbsTime();
+
+    RelTime delay = Time.diff(tafter, tbefore);
+    AbsTime tlocal = tbefore.add(delay.divide(2));
+    RelTime error = Time.diff(tserver, tlocal);
+    System.err.println("MoniCAClient.getClockError: Call took " + delay.getValue() / 1000.0 + ", Error is " + error.getValue() / 1000.0);
+    return error;
+  }
 }

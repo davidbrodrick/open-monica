@@ -260,14 +260,16 @@ public class DataMaintainer implements Runnable
   {
     // A short interval
     final long shortinterval = 1000000l;
-
+    long error = ClockErrorMonitor.getClockError().getValue();
+    long now = AbsTime.factory().getValue() + error;
+    
     long nexttime = 0;
     if (point.getNextEpoch() == 0) {
       // Point has never been collected so collect now
-      nexttime = AbsTime.factory().getValue();
+      nexttime = now;
     } else {
       // Last collection attempt failed so try again shortly
-      nexttime = AbsTime.factory().getValue() + shortinterval;
+      nexttime = now + shortinterval;
     }
 
     point.setNextEpoch(nexttime);
@@ -282,7 +284,8 @@ public class DataMaintainer implements Runnable
     long nexttime = 0;
     long lasttime = point.getNextEpoch();
     long datatime = data.getTimestamp().getValue();
-    long now = AbsTime.factory().getValue();
+    long error = ClockErrorMonitor.getClockError().getValue();
+    long now = AbsTime.factory().getValue() + error;
     long period = point.getPeriod();
 
     if (lasttime == 0) {
@@ -294,7 +297,7 @@ public class DataMaintainer implements Runnable
       // polling
       // will be the ultimate solution.
       nexttime = now + shortinterval;
-    } else if (datatime + period > now) {
+    } else if (datatime + period> now) {
       // Schedule for expected next update of the point
       nexttime = datatime + period;
     } else {
@@ -321,7 +324,7 @@ public class DataMaintainer implements Runnable
         }
 
         // Get the points which are ready for collection
-        getpoints = theirQueue.headSet(AbsTime.factory());
+        getpoints = theirQueue.headSet(AbsTime.factory().add(ClockErrorMonitor.getClockError()));
       }
 
       if (getpoints.size() > 0) {
