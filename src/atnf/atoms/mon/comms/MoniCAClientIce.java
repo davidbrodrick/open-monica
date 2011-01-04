@@ -442,7 +442,7 @@ public class MoniCAClientIce extends MoniCAClient
     if (itsProperties == null) {
       // Connect directly to the specified server
       itsCommunicator = Ice.Util.initialize();
-      base = itsCommunicator.stringToProxy("MoniCAService: tcp -h " + itsHost + " -p " + itsPort);
+      base = itsCommunicator.stringToProxy("MoniCAService: tcp -h " + itsHost + " -p " + itsPort + " -t 30000");
     } else {
       // Find the server via a Locator service
       Ice.InitializationData id = new Ice.InitializationData();
