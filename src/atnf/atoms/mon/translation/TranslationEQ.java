@@ -1,8 +1,8 @@
 package atnf.atoms.mon.translation;
 
-import java.lang.reflect.Array;
-
 import org.nfunk.jep.JEP;
+
+import org.apache.log4j.Logger;
 
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
@@ -18,46 +18,45 @@ import atnf.atoms.util.Angle;
  * 
  * <P>
  * Standard functions like log(), sqrt(), etc are understood. Check out
- * <code>http://www.singularsys.com/jep/doc/html/index.html</code> for
- * detailed documentation on JEP, the Java Mathematical Expression Parser.
+ * <code>http://www.singularsys.com/jep/doc/html/index.html</code> for detailed
+ * documentation on JEP, the Java Mathematical Expression Parser.
  * 
  * @author Le Cuong Nguyen
  * @author David Brodrick
- * @version $Id: TranslationEQ.java,v 1.3 2005/08/15 01:55:17 bro764 Exp $
  */
-public class TranslationEQ extends Translation
-{
+public class TranslationEQ extends Translation {
   /** Used for parsing and evaluating the expression. */
-  JEP itsParser = new JEP();
+  protected JEP itsParser = new JEP();
 
-  protected static String itsArgs[] = new String[] { "Translation using equation", "EQ", "Equation, use X as independent variable",
-      "java.lang.String" };
+  /** The expression in String form. */
+  protected String itsExpression;
+  
+  /** Logger. */
+  protected static Logger theirLogger = Logger.getLogger(TranslationEQ.class.getName());
 
-  public TranslationEQ(PointDescription parent, String[] init)
-  {
+  public TranslationEQ(PointDescription parent, String[] init) {
     super(parent, init);
 
     // precondition
     if (init == null || init.length < 1) {
-      System.err.println("TranslationEQ for " + itsParent.getFullName() + ": EXPECT EQUATION ARGUMENT!");
+      theirLogger.error(itsParent.getFullName() + ": Require Equation Argument!");
     } else {
       itsParser.setImplicitMul(false);
       itsParser.setAllowUndeclared(true);
       itsParser.addStandardConstants();
       itsParser.addStandardFunctions();
-      String expr = init[0].replaceAll("'", "\"");
-      itsParser.parseExpression(expr);
+      itsExpression = init[0].replaceAll("'", "\"");
+      itsParser.parseExpression(itsExpression);
     }
   }
 
-  public PointData translate(PointData data)
-  {
+  public PointData translate(PointData data) {
     if (data == null) {
       return null;
     }
 
     Object val = data.getData();
-    if (data.getData() == null) {
+    if (val == null || val instanceof String) {
       // Return a null result
       return new PointData(itsParent.getFullName());
     }
@@ -76,17 +75,12 @@ public class TranslationEQ extends Translation
 
     // Parse the expression using new value
     Object res = itsParser.getValueAsObject();
-
+    
     // Check for parse error
     if (itsParser.hasError()) {
-      System.err.println("TranslationEQ(" + itsParent.getFullName() + ": " + itsParser.getErrorInfo());
+      theirLogger.warn(itsParent.getFullName() + ": " + itsParser.getErrorInfo());
     }
 
     return new PointData(itsParent.getFullName(), data.getTimestamp(), res);
-  }
-
-  public static String[] getArgs()
-  {
-    return itsArgs;
   }
 }
