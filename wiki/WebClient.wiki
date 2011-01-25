@@ -14,7 +14,23 @@ generation of the HTML pages.
 
 = Details =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+== Installation ==
+
+This installation guide assumes a standard HTTP server setup, although there
+should not be too much dependency on this.
+
+The Javascript code depends on the following tools:
+  * the [http://dojotoolkit.org/ Dojo toolkit], necessary for cross-browser coding
+  * the [http://www.highcharts.com/ Highcharts plotting library]
+  * the [http://jquery.com/ jQuery toolkit] (required by Highcharts)
+
+The server-side CGI code depends on the MoniCA Perl client library.
+
+You should start by installing the MoniCA Perl library on your machine so that
+your normal Perl binaries can find it.
+
+You should then download the latest Highcharts plotting library from
+[http://www.highcharts.com their homepage.] Ideally, create a directory `js`
+in the root HTML directory of your HTTP server, and ensure that it contains
+a link to, or direct copy of, the `highcharts.js` file, such that the address
+`http://www.yourserver.com/js/highcharts.js` would find the script.
