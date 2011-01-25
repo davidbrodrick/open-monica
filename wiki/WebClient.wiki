@@ -14,6 +14,30 @@ generation of the HTML pages.
 
 = Details =
 
+== Philosophy ==
+
+The MoniCA web interface is designed to be portable, easy to use, and flexible.
+It is possible to use only a single element (ie. point table, time series) in
+a particular web page, or you can use the pre-made MoniCA Web Client web
+interface.
+
+== Javascript ==
+
+The Javascript code can be found at `/clientlibs/web/htdocs/monica_web.js`, or
+at `/clientlibs/web/htdocs/monica_web.src.js` for the more human-readable
+version.
+
+This code contains the following objects.
+
+  * `monicaConnection`: the object responsible for communicating with the MoniCA server and updating the objects that use it
+  * `monicaContainer`: a general-purpose container HTML element that can contain any of the other MoniCA elements, and handles their editing and communication needs
+  * `pointTable`: can be used to show the latest values of any set of points
+  * `timeSeries`: can be used to show values for any set of points over any particular time range
+  * `monicaHTMLFrontPage`: builds a standard web interface, and allows for user interaction, in order to closely replicate the experience of the normal Java MoniCA client
+  * `linkParser`: takes a web address that has MoniCA markup and generates the appropriate MoniCA elements, either on a monicaHTMLFrontPage or standalone web page
+
+
+
 == Installation ==
 
 === Standard MoniCA HTML front page ===
