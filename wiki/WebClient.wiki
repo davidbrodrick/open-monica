@@ -16,6 +16,8 @@ generation of the HTML pages.
 
 == Installation ==
 
+=== Standard MoniCA HTML front page ===
+
 This installation guide assumes a standard HTTP server setup, although there
 should not be too much dependency on this.
 
@@ -34,3 +36,14 @@ You should then download the latest Highcharts plotting library from
 in the root HTML directory of your HTTP server, and ensure that it contains
 a link to, or direct copy of, the `highcharts.js` file, such that the address
 `http://www.yourserver.com/js/highcharts.js` would find the script.
+
+Next, install the Perl query code `cgi-bin/monica_interface.pl` into your 
+`cgi-bin` directory. Remember the full path to this code, as you will need it later.
+
+Next, copy all the files and directories in `htdocs` to a location on your
+web server, and remember the full path.
+
+You will now need to configure `monica_frontpage.html` for your MoniCA setup.
+Open `monica_frontpage.html` in your favourite editor, and:
+  * change line 14 to reflect the location of your `highcharts.js` file
+  * change line 15 to reflect the location of your `monica_web.js` file
