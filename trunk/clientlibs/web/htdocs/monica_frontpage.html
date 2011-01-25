@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dijit/themes/claro/claro.css" />
+    <link rel="stylesheet" href="monica_web.css" />
+    
+    <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js">
+      djConfig={ isDebug: false, parseOnLoad: true, 
+      dojoBlankHtmlUrl: "http://www.narrabri.atnf.csiro.au/dojo-release/dojo/resources" };
+    </script>
+    <script type="text/javascript" src="datetimepicker_css.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript" charset="utf-8" src="/js/json2.js"></script>
+    <script src="/js/highcharts.js" type="text/javascript"></script>
+    <script type="text/javascript" src="http://www.narrabri.atnf.csiro.au/web_monica/monica_web.js"></script>
+    <script type="text/javascript">
+      function init() {
+      // set up the MoniCA HTML front page options
+      var monicaOptions = {};
+      monicaOptions.topDivId = 'topdiv'; // the HTML div to attach to
+      monicaOptions.availableServers = [{name: 'ATCA', host: 'monhost-nar'},
+      {name: 'Mopra', host: 'monhost-mop'},
+      {name: 'Parkes', host: 'monhost-pks'}];
+      monicaOptions.updateTime = 5;
+      
+      var monicaPage = new monicaHTMLFrontPage(monicaOptions);
+      
+      // parse the supplied string
+      var parser = new linkParser({frontPage: monicaPage});
+      
+      }
+      
+      dojo.addOnLoad(init);
+    </script>
+    <title>MoniCA Web Interface</title>
+  </head>
+
+  <body class="claro">
+    <div id="topdiv"></div>
+  </body>
+
+</html>

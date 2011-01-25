@@ -1,0 +1,56 @@
+.pointTable { border-collapse: collapse; border: 1px solid #aaaabb; background-color: #ffffff; color: #000000; width: 100%; }
+.pointTable th {text-align: left; border: 1px solid #aaaabb; }
+.pointTable td {text-align: right; padding-left: 20px; padding-right: 10px; border-top: 1px dotted #aaaabb; 
+		border-bottom: 1px dotted #aaaabb; }
+.pointMultipleColumns { text-align: center; border: 1px solid #aaaabb; }
+.monicaContainer { border: 1px solid #aaaaaa; padding: 3px; padding-top: 0px; width: 650px; position: relative; height: auto; }
+.windowTitle { height: 20px; background-color: #444444; color: #ffffff; text-align: center; 
+	       font-weight: bold; }
+.tabs { background: none repeat scroll #f5faf5; border: 1px solid #bbcfbb; display: table; font-size: 13px;
+	font-weight: bold; list-style-type: none; margin: 8px 0; padding: 0 12px; position: relative; }
+.tabs li { cursor: pointer; font-size: 12px; list-style: none outside none; display: table-cell; float: left; position: relative;
+	   text-shadow: 0px 0px 1px #ffffff; width: 100px; }
+.tabs li:hover { background-color: #dae8da; text-decoration: none; }
+.dropdown { background: none repeat scroll #f5faf5;
+	    border: 1px solid #bbcfbb; margin: 0; padding: 0; position: absolute; z-index: 999; top: 14px;
+	    left: -999em; height: 1px; display: block; }
+.dropdown li { margin: 0; padding: 0; list-style: none outside none; width: 100px; }
+.downArrow { font-size: 85%; vertical-align: text-bottom; }
+.changeViewButton { width: 95%; height: 25px; }
+.closeButton { position: absolute; top: 0px; right: 0px; }
+.containerOverlapTable { width: 100%; }
+.containerContent { width: 100%; height: auto; }
+.containerEditor { width: 100%; height: auto; }
+.pointTreeControl { font-size: x-small; }
+.pointTable { font-size: small; padding: 1px; }
+.pointTableEditDiv { float: right; width: 48%; border: 1px solid #aaaabb; padding: 2px; height: 400px; }
+.pointTableTreeSideDiv { float: left; border: 1px solid #aaaabb; padding: 2px; height: 400px; width: 48%; }
+.pointTableEdit p { text-align: center; font-size: small; padding: 2px; font-weight: bold; 
+			   padding: 1px; margin: 1px; background-color: #ccddcc; }
+.pointTableEditSelect { width: auto; }
+.pointTableTreeDiv { overflow: scroll; height: 94%; }
+.pointTableEditRemoveButton { width: 100%; }
+.pointTableEditScrollDiv { overflow: auto; width: 100%; }
+.pointWarning { background-color: #ffff00; color: #ff0000; }
+.frontPageHeader { width: 100%; background-color: #159bcb; color: #ffffff; font-weight: bold; font-size: large; }
+.frontPageOptionsTable { font-size: small; border-collapse: collapse; }
+.frontPageOptionsTable td { padding-right: 10px; }
+.frontPageOptionsTable input { background-color: #ffffff; display: block; border: 1px solid #555534; }
+.frontPageOptionsTable select { background-color: #ffffff; display: block; border: 1px solid #555534; }
+.frontPageOptionsTable button { background-color: #eeeeee; display: block; border: 1px solid #555534; 
+				width: 100%; }
+.frontPageOptionsDiv { float: left; }
+.frontPageButtonsDiv { float: right; }
+.frontPageClearDiv { clear: both; }
+.frontPageButtonsTable { font-size: small; border-collapse: collapse; }
+.frontPageButtonsTable button { background-color: #eeeeee; display: block; border: 1px solid #555534; }
+.plotEditDiv { float: right; width: 48%; border: 1px solid #aaaabb; padding: 2px; height: 400px; }
+.plotTreeSideDiv { float: left; border: 1px solid #aaaabb; padding: 2px; height: 400px; width: 48%; }
+.timeSeriesEdit p { text-align: center; font-size: small; padding: 2px; font-weight: bold; 
+			   padding: 1px; margin: 1px; background-color: #ccddcc; }
+.plotEditSelect { width: auto; }
+.plotTreeDiv { overflow: scroll; height: 94%; }
+.plotEditRemoveButton { width: 100%; }
+.plotEditScrollDiv { overflow: auto; width: 100%; }
+.plotTimeSelectDiv { width: 100%; }
+.plotTimeSelectDiv input { border: 1px solid #bbcfbb; }
