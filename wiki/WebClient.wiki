@@ -1,0 +1,20 @@
+#summary Client for viewing MoniCA data from a web page.
+#labels Phase-Implementation
+
+= Introduction =
+
+Many users will find it more convenient to view data from your MoniCA server
+on a web page. This client library makes it easy to interface with the MoniCA
+server and provides a number of ways of presenting the data on a webpage.
+
+This client library requires the Perl client library, and includes a server-side
+CGI (Perl) script for fetching the data, and Javascript code for dynamic
+generation of the HTML pages.
+
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
