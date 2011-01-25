@@ -52,6 +52,84 @@ sub val {
   return $self->[1];
 }
 
+package MonFullPoint;
+
+sub new {
+    my $proto=shift;
+    my $class=ref($proto)||$proto;
+    
+    my $monline=shift;
+    my $self=[$monline=~/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)$/];
+    
+    bless ($self,$class);
+}
+
+sub point {
+    my $self=shift;
+    if (@_) { $self->[0] = shift }
+    return $self->[0];
+}
+
+sub bat {
+    my $self=shift;
+    if (@_) { $self->[1] = shift }
+    return $self->[1];
+}
+
+sub val {
+    my $self=shift;
+    if (@_) { $self->[2] = shift }
+    return $self->[2];
+}
+
+sub units {
+    my $self=shift;
+    if (@_) { $self->[3] = shift }
+    return $self->[3];
+}
+
+sub errorstate {
+    my $self=shift;
+    if (@_) { $self->[4] = shift }
+    return $self->[4];
+}
+
+package MonDetail;
+
+sub new {
+    my $proto=shift;
+    my $class=ref($proto) || $proto;
+
+    my $monline=shift;
+    my $self=[$monline=~/^(\S+)\s+(\S+)\s+\"(.*?)\"\s+\"(.*)\"$/];
+
+    bless ($self,$class);
+}
+
+sub point {
+    my $self=shift;
+    if (@_) { $self->[0] = shift }
+    return $self->[0];
+}
+
+sub updatetime {
+    my $self=shift;
+    if (@_) { $self->[1] = shift }
+    return $self->[1];
+}
+
+sub units {
+    my $self=shift;
+    if (@_) { $self->[2] = shift }
+    return $self->[2];
+}
+
+sub description {
+    my $self=shift;
+    if (@_) { $self->[3] = shift }
+    return $self->[3];
+}
+
 package ATNF::MoniCA;
 use strict;
 
@@ -107,10 +185,29 @@ A single monitor point.
 
 =item B<MonBetweenPoint>
  
-A single monitor point value returned by monbetween
+A single monitor point value returned by monbetween or monsince.
 
   ->bat      BAT time corresponding to the point sample
   ->val      Actual value of the monitor point
+
+=item B<MonFullPoint>
+
+A single monitor point, as returned by monpoll2.
+
+  ->point       Name of the monitor point
+  ->bat         BAT time corresponding to the point sample
+  ->val         Actual value of the monitor point
+  ->units       The units associated with the monitor point value
+  ->errorstate  Flag to indicate error state, true = error
+
+=item B<MonDetail>
+
+Detail about a single monitor point.
+
+  ->point       Name of the monitor point
+  ->updatetime  The time between server updates, in seconds
+  ->units       The units associated with the monitor point value
+  ->description A human-readable description of the monitor point
 
 =back
 
@@ -125,6 +222,7 @@ use IO::Socket;
 use Math::BigFloat;
 use Math::BigInt;
 use Astro::Time;
+use Time::Local;
 
 use Carp;
 require Exporter;
@@ -134,7 +232,8 @@ use vars qw(@ISA @EXPORT);
 @ISA    = qw( Exporter );
 @EXPORT = qw( bat2time monconnect monpoll monsince parse_tickphase current_bat 
 	      monbetween monpreceeding monfollowing montill 
-	      bat2mjd mjd2bat bat2time atca_tied);
+	      bat2mjd mjd2bat bat2time atca_tied monnames
+              mondetails monpoll2 bat2cal bat2unixtime perltime2mjd );
 
 =item B<monconnect>
 
@@ -205,29 +304,112 @@ sub monpoll ($@) {
   }
 }
 
-sub monsince ($$$) {
-  my ($mon, $mjd, $point) = @_;
+=item B<monpoll2>
 
-  my $bat = mjd2bat($mjd)->as_hex;
+  my $pointval = monpoll2($mon, $pointname);
+  my @pointvals = monpoll2($mon, @pointnames);
 
-  print $mon "since\n";
-  print $mon "$bat $point\n";
+Calls the "poll2" function, returning the most recent values for one
+or monitor points, along with their associated units and an indication
+of whether the point is in an error state. Note: calling in scalar mode
+returns only the first monitor point.
 
-  my @vals = ();
+    $mon         Monitor server
+    $pointname   Single monitor point
+    @pointnames  List of monitor points
+    $pointval    MonFullPoint object, representing the first returned
+                 monitor point
+    @pointvals   List of MonPointFull objects
 
-  my $nval = <$mon>;
-  
-  for (my $i=0; $i<$nval; $i++) {
-    my $line = <$mon>;
-    push @vals, $line;
-  }
+=cut
 
-  return (@vals);
+sub monpoll2 ($@) {
+    my $mon=shift;
+    my @monpoints=@_;
+    my $npoll=scalar(@monpoints);
+
+    if ($npoll==0){
+	warn "No monitor points requested!\n";
+	return undef;
+    }
+
+    print $mon "poll2\n";
+    print $mon "$npoll\n";
+    foreach (@monpoints) {
+	print $mon "$_\n";
+    }
+
+    my @vals=();
+
+    for (my $i=0;$i<$npoll;$i++){
+	my $line=<$mon>;
+	push @vals,new MonFullPoint($line);
+    }
+
+    if (wantarray){
+	return @vals;
+    } else {
+	return $vals[0];
+    }
+}
+
+=item B<monsince>
+
+  my @pointvals = monsince($mon, $mjd, $pointname, $maxnper);
+
+Calls the "since" function, returning all records, for a single
+monitor point, between the nominated time and now.
+
+    $mon        Monitor server
+    $mjd        MJD of start of query range (double)
+    $pointname  Monitor point
+    $maxnper    (optional) the maximum number of points to return
+                per server query
+    @pointvals  List of MonBetweenPoint objects
+
+=cut
+
+sub monsince ($$$;$) {
+    my $mon=shift;
+    my $mjd=shift;
+    my $point=shift;
+    my $maxnper=shift;
+    $maxnper=-1 if (!defined $maxnper);
+    
+    my $bat = mjd2bat($mjd)->as_hex;
+    
+    my $nreceived;
+    my @vals=();
+    my $maxbat=bat2mjd($bat);
+    do {
+	print $mon "since\n";
+	print $mon mjd2bat($maxbat)->as_hex." $point\n";
+	
+	$nreceived=<$mon>;
+	my $acceptfraction=ceil($nreceived/$maxnper);
+	my $j=0;
+	for (my $i=0;$i<$nreceived;$i++){
+	    my $line=<$mon>;
+	    $j++;
+	    if (($acceptfraction<0)||($j>=$acceptfraction)||
+		($i==0)||($i==($nreceived-1))){
+		$j=0;
+		push @vals,new MonBetweenPoint($line);
+		if (bat2mjd($vals[$#vals]->bat)>$maxbat){
+		    $maxbat=bat2mjd($vals[$#vals]->bat);
+		}
+	    }
+	}
+	# increment the max bat by 1 millisecond
+	$maxbat+=(1e-3/60/60/24);
+    } while ($nreceived>1);
+
+    return @vals;
 }
 
 =item B<monbetween>
 
-  my @pointvals = monbetween($mon, $mjd1, $mjd2, $pointname);
+  my @pointvals = monbetween($mon, $mjd1, $mjd2, $pointname, $maxnper);
 
  Calls the "between" function, returning all records, for a single
  monitor point, between two nominated times.
@@ -236,28 +418,130 @@ sub monsince ($$$) {
     $mjd1          MJD of start of query range (double)
     $mjd2          MJD of end of query range (double)
     $pointname     Monitor point
+    $maxnper       (optional) the maximum number of points to return
+                   per server query
     @pointvals     List of MonBetweenPoint objects
 
 =cut
 
-sub monbetween ($$$$) {
-  my ($mon, $mjd1, $mjd2, $point) = @_;
+sub monbetween ($$$$;$) {
+    my $mon=shift;
+    my $mjd1=shift;
+    my $mjd2=shift;
+    my $point=shift;
+    my $maxnper=shift;
+    $maxnper=-1 if (!defined $maxnper);
 
-  my $bat1 = mjd2bat($mjd1)->as_hex;
-  my $bat2 = mjd2bat($mjd2)->as_hex;
+    my $bat1=mjd2bat($mjd1)->as_hex;
+    my $bat2=mjd2bat($mjd2)->as_hex;
 
-  print $mon "between\n";
-  print $mon "$bat1 $bat2 $point\n";
+    my $nreceived;
+    my @vals=();
+    my $maxbat=bat2mjd($bat1);
+    do {
+	print $mon "between\n";
+	print $mon mjd2bat($maxbat)->as_hex." $bat2 $point\n";
 
-  my @vals = ();
+	my $nreceived=<$mon>;
+	my $acceptfraction=ceil($nreceived/$maxnper);
+	my $j=0;
+	for (my $i=0;$i<$nreceived;$i++){
+	    my $line=<$mon>;
+	    $j++;
+	    if (($acceptfraction<0)||($j>=$acceptfraction)||
+		($i==0)||($i==($nreceived-1))){
+		$j=0;
+		push @vals,new MonBetweenPoint($line);
+		if (bat2mjd($vals[$#vals]->bat)>$maxbat){
+		    $maxbat=bat2mjd($vals[$#vals]->bat);
+		}
+	    }
+	}
+	# increment the max bat by 1 millisecond
+	$maxbat+=(1e-3/60/60/24);
+	# check whether we've gone past the last bat
+	if ($maxbat>=bat2mjd($bat2)){
+	    last;
+	}
+    } while ($nreceived>1);
 
-  my $nval = <$mon>;
-  for (my $i=0; $i<$nval; $i++) {
-    my $line = <$mon>;
-    push @vals, new MonBetweenPoint($line);
-  }
+    return @vals;
+}
 
-  return (@vals);
+=item B<mondetails>
+
+  my $pointdetail = mondetails($mon, $pointname);
+  my @pointdetails = mondetails($mon, @pointnames);
+
+Calls the "details" function, returning details about all the
+nominated monitor points.
+
+    $mon          Monitor server
+    $pointname    Single monitor point
+    @pointnames   List of monitor points
+    $pointdetail  MonDetail object, representing the first
+                  returned monitor point
+    @pointvals    List of MonDetails objects
+
+=cut
+
+sub mondetails ($@) {
+    my $mon=shift;
+    my @monpoints=@_;
+    my $npoll=scalar(@monpoints);
+
+    if ($npoll==0){
+	warn "No monitor points requested!\n";
+	return undef;
+    }
+
+    print $mon "details\n";
+    print $mon "$npoll\n";
+    foreach (@monpoints) {
+	print $mon "$_\n";
+    }
+
+    my @vals=();
+    
+    for (my $i=0;$i<$npoll;$i++){
+	my $line=<$mon>;
+	push @vals,new MonDetail($line);
+    }
+
+    if (wantarray){
+	return @vals;
+    } else {
+	return $vals[0];
+    }
+    
+}
+
+=item B<monnames>
+
+  my @pointnames = monnames($mon);
+
+Calls the "names" function, returning the names of all the points
+available on the server.
+
+    $mon         Monitor server
+    @pointnames  List of strings
+
+=cut
+
+sub monnames ($) {
+    my ($mon)=@_;
+
+    print $mon "names\n";
+    
+    my @names;
+    
+    my $num_names=<$mon>; # the number of names being returned
+    for (my $i=0;$i<$num_names;$i++){
+	chomp(my $line=<$mon>);
+	push @names,$line;
+    }
+
+    return @names;
 }
 
 sub montill($$$$) {
@@ -375,6 +659,100 @@ sub monfollowing ($$@) {
     return $vals[0];
   }
 }
+
+=item B<bat2cal>
+
+  my $calstring = bat2cal($bat)
+
+Convert a bat into a string representation yyyy-mm-dd_HH:MM:SS.
+
+    $bat        BAT value
+    $calstring  string representation of BAT time
+
+=cut
+
+sub bat2cal($;$) {
+    my $bat=Math::BigInt->new(shift);
+
+    my $dUT=shift;
+    $dUT=0 if (!defined $dUT);
+
+    my $mjd=(Math::BigFloat->new($bat)/1e6-$dUT)/60/60/24;
+    
+    my ($day,$month,$year,$ut)=mjd2cal($mjd->bstr());
+
+    $ut*=24.0;
+    my $hour=floor($ut);
+    $ut-=$hour;
+    $ut*=60.0;
+    my $minute=floor($ut);
+    $ut-=$minute;
+    $ut*=60.0;
+    my $second=floor($ut);
+
+    my $caltime=sprintf "%04d-%02d-%02d_%02d:%02d:%02d",
+    $year,$month,$day,$hour,$minute,$second;
+
+    return $caltime;
+}
+
+=item B<bat2unixtime>
+
+  my $unixtime = bat2unixtime($bat);
+
+Convert a bat into number of seconds since 1 Jan 1970, 0 UT.
+    $bat         BAT value
+    $unixtime    Unix time (UT)
+
+=cut
+
+sub bat2unixtime($;$) {
+    my $bat=Math::BigInt->new(shift);
+
+    my $dUT=shift;
+    $dUT=0 if (!defined $dUT);
+
+    my $mjd=(Math::BigFloat->new($bat)/1e6-$dUT)/60/60/24;
+    
+    my ($day,$month,$year,$ut)=mjd2cal($mjd->bstr());
+
+    $ut*=24.0;
+    my $hour=floor($ut);
+    $ut-=$hour;
+    $ut*=60.0;
+    my $minute=floor($ut);
+    $ut-=$minute;
+    $ut*=60.0;
+    my $second=floor($ut);
+    
+    $year-=1900;
+    $month-=1;
+    my $utime=timegm($second,$minute,$hour,$day,$month,$year,0,0);
+    
+    return $utime;
+
+}
+
+=item B<perltime2mjd>
+
+  my $mjd = perltime2mjd(@perltime);
+
+Converts a Perl formatted time list (as obtained through eg. gmtime(time)
+into MJD.
+    @perltime   Perl formatted time list
+    $mjd        MJD
+
+=cut
+
+sub perltime2mjd {
+    # perl time should be (second,minute,hour,day,month-1,year-1900)
+    my @fulltime=@_;
+    
+    my $ut=hms2time($fulltime[2],$fulltime[1],$fulltime[0]);
+    my $mjd=cal2mjd($fulltime[3],$fulltime[4]+1,$fulltime[5]+1900,$ut);
+
+    return $mjd;
+}    
 
 sub bat2time($;$$) {
  my $bat = Math::BigInt->new(shift);
