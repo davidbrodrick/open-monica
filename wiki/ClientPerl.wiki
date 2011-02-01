@@ -12,7 +12,7 @@ This Perl module was written by Chris Phillips, and extended by Jamie Stevens.
 
 = Details =
 
-== Requirements ==
+== Requirements & Installation ==
 
 Using this Perl module also requires that you install the `Astro::Time` Perl module from CPAN:
 http://search.cpan.org/~cphil/Astro-0.73/Astro/Time.pm
@@ -25,3 +25,32 @@ sudo make install
 }}}
 
 Providing that it finds all its prerequisites, you will now be able to use the `MoniCA.pm` module. If you see errors about missing modules, use the CPAN search to find and install them.
+
+== Usage ==
+
+To use this Perl module, include the following code at the top of your Perl program:
+{{{
+use Astro::Time;
+use ATNF::MoniCA;
+}}}
+
+This will allow you to use the functions provided by the `MoniCA.pm' module.
+
+Let's look at an example Perl program that queries a MoniCA server.
+{{{
+use strict;
+use Astro::Time;
+use ATNF::MoniCA;
+
+my $mon=monconnect("monserver.domain.com");
+if (!defined $mon){
+  print "Could not connect to monitor server monserver.domain.com\n";
+  exit;
+}
+
+my @monitor_points=("site.environment.weather.Temperature","site.environment.weather.Humidity");
+my @point_vals=monpoll($mon,@monitor_points);
+for (my $i=0;$i<=$#point_vals;$i++){
+  print "point ".$point_vals[$i]->point." has value ".$point_vals[$i]->val." at time ".bat2cal($point_vals[$i]->bat,0)."\n";
+}
+}}}
