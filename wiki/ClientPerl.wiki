@@ -1,0 +1,27 @@
+#summary MoniCA query Perl module
+
+= Introduction =
+
+The Perl module `MoniCA.pm` makes it possible to quickly and easily query a MoniCA
+server through the ASCII interface with a Perl program. This module takes care of:
+  * time conversion (BAT to other formats)
+  * response handling, giving back a handy Perl hash for each data point returned
+  * long time range queries, where the MoniCA server may force it to be made in more than one query
+
+This Perl module was written by Chris Phillips, and extended by Jamie Stevens.
+
+= Details =
+
+== Requirements ==
+
+Using this Perl module also requires that you install the `Astro::Time` Perl module from CPAN:
+http://search.cpan.org/~cphil/Astro-0.73/Astro/Time.pm
+
+Installing the `MoniCA.pm` module is easy. Simply change into the `clientlibs/perl` directory, and give the following commands:
+{{{
+perl Makefile.PL
+make
+sudo make install
+}}}
+
+Providing that it finds all its prerequisites, you will now be able to use the `MoniCA.pm` module. If you see errors about missing modules, use the CPAN search to find and install them.
