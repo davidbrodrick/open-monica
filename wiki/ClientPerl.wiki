@@ -102,4 +102,118 @@ point site.environment.weather.RelHumidity has value 49.0 at time 0x11109a8ee65d
 
 === Available routines ===
 
-We have just seen the `monpoll`
+We have just seen the `monconnect` and `monpoll` routines and how to use them. What follows is the full list of routines available from the `MoniCA.pm` package, and short usage examples.
+
+==== monconnect ====
+
+Set up a connection to a MoniCA server.
+
+Usage:
+{{{
+$mon = monconnect($monserver_name);
+}}}
+
+  * `$monserver_name` is the name or address of the MoniCA server to connect to
+  * `$mon` is, if a connection is made successfully, the MoniCA connection handle. If no connection is able to be made, `$mon` will be undefined.
+
+==== monpoll ====
+
+Query the latest values for a list of MoniCA points.
+
+Usage:
+{{{
+@returned_values = monpoll($mon, @point_names);
+}}}
+
+  * `$mon` is a successfully created MoniCA connection handle
+  * `@point_names` is a list of MoniCA point names
+  * `@returned_values` is a list of `MonPoint` objects, one for each point that was requested.
+
+A `MonPoint` object has the properties:
+  * `point`: the name of the monitoring point
+  * `bat`: the BAT time of the returned value
+  * `val`: the value of this monitoring point
+
+==== monpoll2 ====
+
+Query the latest values and error states for a list of MoniCA points.
+
+Usage:
+{{{
+@returned_values = monpoll2($mon, @point_names);
+}}}
+
+  * `$mon` is a successfully created MoniCA connection handle
+  * `@point_names` is a list of MoniCA point names
+  * `@returned_values` is a list of `MonFullPoint` objects, one for each point that was requested.
+
+A `MonFullPoint` object has the properties:
+  * `point`: the name of the monitoring point
+  * `bat`: the BAT time of the returned value
+  * `val`: the value of this monitoring point
+  * `units`: a string describing what the units of the value are
+  * `errorstate`: a boolean flag indicating whether the point is in an error state; a value `true` indicates an error.
+
+==== monsince ====
+
+Get the values for a single MoniCA point between a specified time and the present.
+
+Usage:
+{{{
+@pointvals = monsince($mon, $mjd, $pointname, $maxnper);
+}}}
+
+  * `$mon` is a successfully created MoniCA connection handle
+  * `$mjd` is the MJD to begin the query from
+  * `$pointname` is the name of the MoniCA point to query
+  * `$maxnper` is the maximum number of points to return per query to the server. As documented for the ASCII interface, the MoniCA server may not return values covering the full time range in a single response, if a query would take too long to respond to. The Perl routine `monsince` will handle this situation, and will requery the server for values since the time of the last returned point. For each query that `monsince` makes, it will always include the first returned point, the last returned point, and `$maxnper-2` more points spread evenly across the points that were received from the server. If you want all points to be returned, set `$maxnper` to a number <=0.
+  * `@pointvals` is a list of `MonBetweenPoint` objects.
+
+A `MonBetweenPoint` object has the properties:
+  * `bat`: the BAT time of the returned value
+  * `val`: the value of this monitoring point at the time `bat`
+
+==== monbetween ====
+
+Get the values for a single MoniCA point between two specified times.
+
+Usage:
+{{{
+@pointvals = monbetween($mon, $mjd1, $mjd2, $pointname, $maxnper);
+}}}
+
+  * `$mon` is a successfully created MoniCA connection handle
+  * `$mjd1` is the MJD to begin the query from
+  * `$mjd2` is the MJD to end the query at
+  * `$pointname` is the name of the MoniCA point to query
+  * `$maxnper` is the maximum number of points to return per query to the server. As documented for the ASCII interface, the MoniCA server may not return values covering the full time range in a single response, if a query would take too long to respond to. The Perl routine `monbetween` will handle this situation, and will requery the server for values since the time of the last returned point. For each query that `monbetween` makes, it will always include the first returned point, the last returned point, and `$maxnper-2` more points spread evenly across the points that were received from the server. If you want all points to be returned, set `$maxnper` to a number <=0.
+  * `@pointvals` is a list of `MonBetweenPoint` objects.
+
+==== mondetails ====
+
+Query the server for the descriptions for one or more MoniCA points.
+
+Usage:
+{{{
+@pointdescriptions = mondetails($mon, @pointnames);
+}}}
+
+  * `$mon` is a successfully created MoniCA connection handle
+  * `@pointnames` is a list of MoniCA point names
+  * `@pointdescriptions` is a list of `MonDetail` objects, one for each point that was requested.
+
+A `MonDetail` object has the properties:
+  * `point`: the name of the monitoring point
+  * `updatetime`: the time, in seconds, between server updates for this point
+  * `units`: a string describing what the units of the value are
+  * `description`: a human-readable string describing what the point represents
+
+==== monnames ====
+
+
+
+==== montill ====
+
+==== monpreceeding ====
+
+==== monfollowing ====
