@@ -36,8 +36,12 @@ use ATNF::MoniCA;
 
 This will allow you to use the functions provided by the `MoniCA.pm' module.
 
+=== Simple Example ===
+
 Let's look at an example Perl program that queries a MoniCA server.
 {{{
+#!/usr/bin/perl
+
 use strict;
 use Astro::Time;
 use ATNF::MoniCA;
@@ -48,10 +52,10 @@ if (!defined $mon){
   exit;
 }
 
-my @monitor_points=("site.environment.weather.Temperature","site.environment.weather.Humidity");
+my @monitor_points=("site.environment.weather.Temperature","site.environment.weather.RelHumidity");
 my @point_vals=monpoll($mon,@monitor_points);
 for (my $i=0;$i<=$#point_vals;$i++){
-  print "point ".$point_vals[$i]->point." has value ".$point_vals[$i]->val." at time ".bat2cal($point_vals[$i]->bat,0)."\n";
+  print "point ".$point_vals[$i]->point." has value ".$point_vals[$i]->val." at time ".$point_vals[$i]->bat."\n";
 }
 }}}
 
@@ -69,7 +73,7 @@ my @point_vals=monpoll($mon,@monitor_points);
 
 As you can see, you call `monpoll` with the MoniCA server handle `$mon`, and with a list of monitoring point names `@monitor_points`. For our example, we have set:
 {{{
-my @monitor_points=("site.environment.weather.Temperature","site.environment.weather.Humidity");
+my @monitor_points=("site.environment.weather.Temperature","site.environment.weather.RelHumidity");
 }}}
 
 You may specify as many point names you want to this command. If you only want the latest value of one point, you can alter your call to:
@@ -86,8 +90,16 @@ What is returned is a list of `MonPoint` objects, each of which has three proper
 So the last part of the example can be seen to loop over all the returned `MonPoint`s and print out all the information they contain:
 {{{
 for (my $i=0;$i<=$#point_vals;$i++){
-  print "point ".$point_vals[$i]->point." has value ".$point_vals[$i]->val." at time ".bat2cal($point_vals[$i]->bat,0)."\n";
+  print "point ".$point_vals[$i]->point." has value ".$point_vals[$i]->val." at time ".$point_vals[$i]->bat."\n";
 }
 }}}
 
 Let's run the program, and see the output:
+{{{
+point site.environment.weather.Temperature has value 35.4 at time 0x11109a8ee65d58
+point site.environment.weather.RelHumidity has value 49.0 at time 0x11109a8ee65d58
+}}}
+
+=== Available routines ===
+
+We have just seen the `monpoll`
