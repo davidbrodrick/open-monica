@@ -54,3 +54,20 @@ for (my $i=0;$i<=$#point_vals;$i++){
   print "point ".$point_vals[$i]->point." has value ".$point_vals[$i]->val." at time ".bat2cal($point_vals[$i]->bat,0)."\n";
 }
 }}}
+
+From this example you can see how to connect to a specified monitoring server:
+{{{
+my $mon=monconnect("monserver.domain.com");
+}}}
+
+The `$mon` that is returned from this is a handle to the MoniCA server through its ASCII interface, and will need to be passed to whatever routines you later use to get values for monitoring points. If `$mon` comes back as "undefined", then the MoniCA server could not be contacted by the `monconnect` routine; you should check that the server is running, and that you have access to its ASCII port from the machine you're running your Perl code on.
+
+The example then shows how to query the server for the latest values for a number of points, using the `monpoll` routine:
+{{{
+my @point_vals=monpoll($mon,@monitor_points);
+}}}
+
+As you can see, you call `monpoll` with the MoniCA server handle `$mon`, and with a list of monitoring point names `@monitor_points`. For our example, we have set:
+{{{
+my @monitor_points=("site.environment.weather.Temperature","site.environment.weather.Humidity");
+}}}
