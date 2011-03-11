@@ -13,19 +13,19 @@ import atnf.atoms.mon.*;
 import atnf.atoms.mon.transaction.TransactionStrings;
 
 /**
- * Generic SNMP interface. At the moment this only supports NOAUTH, NOPRIV
- * SNMPv3 requests with a provided username, but it could be easily extended to
- * also support SNMPv1 and SNMPv2c as supported by the underlaying SNMP4J
- * library.
+ * Generic SNMP interface supporting SNMPv1, v2c and NOAUTH, NOPRIV SNMPv3
+ * requests, using a provided username. It should be straightforward to extend
+ * the class to support write operations and enable fully encrypted SNMPv3
+ * support. This class uses the SNMP4J library.
  * 
  * <P>
  * The constructor expects the following arguments:
  * <ul>
  * <li><b>Host Name:</b> The name or IP address of the agent.
  * <li><b>UDP Port:</b> The UDP port (usually 161).
- * <li><b>SNMP Version:</b> "v1", "v2c" or "v3". At present only "v3" is
- * supported.
- * <li><b>Ident:</b> The username or community.
+ * <li><b>SNMP Version:</b> "v1", "v2c" or "v3".
+ * <li><b>Ident:</b> The username or community, depending on which SNMP version
+ * you are using.
  * </ul>
  * 
  * <P>
@@ -99,17 +99,22 @@ public class SNMP extends ExternalSystem {
 
       if (itsVersion.equals(theirV3)) {
         itsTarget = new UserTarget();
+        itsTarget.setVersion(SnmpConstants.version3);
         ((UserTarget) itsTarget).setSecurityLevel(SecurityLevel.NOAUTH_NOPRIV);
         ((UserTarget) itsTarget).setSecurityName(new OctetString(itsIdent));
       } else {
         itsTarget = new CommunityTarget();
+        if (itsVersion.equals(theirV1)) {
+          itsTarget.setVersion(SnmpConstants.version1);
+        } else {
+          itsTarget.setVersion(SnmpConstants.version2c);
+        }
         ((CommunityTarget) itsTarget).setCommunity(new OctetString(itsIdent));
       }
 
       itsTarget.setAddress(targetAddress);
       itsTarget.setRetries(1);
       itsTarget.setTimeout(5000);
-      itsTarget.setVersion(SnmpConstants.version3);
 
       itsConnected = true;
     } catch (Exception e) {
@@ -133,6 +138,7 @@ public class SNMP extends ExternalSystem {
 
       // Send the SNMP request
       PDU pdu = DefaultPDUFactory.createPDU(itsTarget, PDU.GET);
+      pdu.setType(PDU.GET);
       pdu.add(new VariableBinding(oid));
       ResponseEvent response = itsSNMP.send(pdu, itsTarget);
 
