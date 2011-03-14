@@ -71,15 +71,6 @@ public class SNMP extends ExternalSystem {
   /** The SNMP version to use. */
   protected SNMPVersion itsVersion;
 
-  /** String representing SNMP v1. */
-  protected final static String theirV1 = "v1";
-
-  /** String representing SNMP v2c. */
-  protected final static String theirV2c = "v2c";
-
-  /** String representing SNMP v3. */
-  protected final static String theirV3 = "v3";
-
   public SNMP(String[] args) {
     super("snmp-" + args[0] + ":" + args[1]);
     itsHostName = args[0];
