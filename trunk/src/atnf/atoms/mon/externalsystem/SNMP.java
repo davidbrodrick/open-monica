@@ -64,10 +64,12 @@ public class SNMP extends ExternalSystem {
 
   /** The SNMP instance. */
   protected Snmp itsSNMP;
- 
+
   /** The different SNMP versions supported. */
-  public static enum SNMPVersion{ v1, v2c, v3 };
-  
+  public static enum SNMPVersion {
+    v1, v2c, v3
+  };
+
   /** The SNMP version to use. */
   protected SNMPVersion itsVersion;
 
@@ -82,7 +84,7 @@ public class SNMP extends ExternalSystem {
       TransportMapping transport = new DefaultUdpTransportMapping();
       itsSNMP = new Snmp(transport);
 
-      if (itsVersion==SNMPVersion.v3) {
+      if (itsVersion == SNMPVersion.v3) {
         USM usm = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), 0);
         SecurityModels.getInstance().addSecurityModel(usm);
         itsSNMP.getUSM().addUser(new OctetString(itsIdent), new UsmUser(new OctetString(itsIdent), null, null, null, null));
@@ -91,14 +93,14 @@ public class SNMP extends ExternalSystem {
 
       Address targetAddress = GenericAddress.parse("udp:" + itsHostName + "/" + itsPort);
 
-      if (itsVersion==SNMPVersion.v3) {
+      if (itsVersion == SNMPVersion.v3) {
         itsTarget = new UserTarget();
         itsTarget.setVersion(SnmpConstants.version3);
         ((UserTarget) itsTarget).setSecurityLevel(SecurityLevel.NOAUTH_NOPRIV);
         ((UserTarget) itsTarget).setSecurityName(new OctetString(itsIdent));
       } else {
         itsTarget = new CommunityTarget();
-        if (itsVersion==SNMPVersion.v1) {
+        if (itsVersion == SNMPVersion.v1) {
           itsTarget.setVersion(SnmpConstants.version1);
         } else {
           itsTarget.setVersion(SnmpConstants.version2c);
@@ -139,7 +141,7 @@ public class SNMP extends ExternalSystem {
       // Process response
       PDU responsePDU = response.getResponse();
       PointData newdata;
-      if (responsePDU == null || responsePDU.getErrorStatus() != SnmpConstants.SNMP_ERROR_SUCCESS) {
+      if (responsePDU == null || responsePDU.getErrorStatus() != SnmpConstants.SNMP_ERROR_SUCCESS || !responsePDU.get(0).getOid().equals(oid)) {
         // Response timed out or was in error, so fire event with null data
         newdata = new PointData(pm.getFullName());
       } else {
