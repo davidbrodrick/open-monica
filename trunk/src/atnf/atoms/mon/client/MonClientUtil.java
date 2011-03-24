@@ -191,7 +191,7 @@ public class MonClientUtil {
         }
         System.out.println("MonClientUtil: Connecting to host \"" + host + "\" on port " + port);
         if (headless.equals("false")) {
-          if (chosenserver.get(2) != null) {
+          if (chosenserver!=null && chosenserver.get(2) != null) {
             progressBar.setString("Attempting Direct Connection to Server");
           } else {
             progressBar.setString("Connecting to Server");
@@ -222,7 +222,7 @@ public class MonClientUtil {
         System.exit(1);
       } else {
         boolean connected = false;
-        if (chosenserver.get(2) != null) {
+        if (chosenserver!=null && chosenserver.get(2) != null) {
           try {
             // Choose a random local port
             int localport = 8060 + (new Random()).nextInt() % 2000;
