@@ -123,6 +123,29 @@ module atnf {
           //Get current time from server
           idempotent long getCurrentTime();
         };
+        
+        
+        //Structure for subscribing to updates via an IceStorm topic
+        struct PubSubRequest {
+          string topicname;
+          stringarray pointnames;
+        };
+        
+        interface PubSubControl {
+          ////////////
+          //Subscribe to updates via an IceStorm topic.
+          void subscribe(PubSubRequest req);
+          
+          ////////////
+          //Notify the server that the specified topic is still active.
+          void keepalive(string topicname);
+        };
+        
+        interface PubSubClient {
+          ////////////
+          //Receive new updates for one or more points
+          void updateData(pointdataset newdata);
+        };
       };
     };
   };
