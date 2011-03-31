@@ -209,6 +209,7 @@ public class PubSubManager {
                             .getAsSeconds()) {
                         itsLogger.debug("Destroying data structures for abandoned topic " + topicname);
                         client.destroy();
+                        itsClients.remove(topicname);
                     }
                 }
 
@@ -251,7 +252,6 @@ public class PubSubManager {
      */
     protected RelTime itsMaxKeepAliveTime = RelTime.factory(60000000); // TODO:
                                                                         // Config
-
     public PubSubManager()
     {
         // Read configuration for location of icegrid registry
@@ -288,7 +288,7 @@ public class PubSubManager {
         }
 
         // Create thread to remove stale clients
-        new AbandonedClientPurger();
+        new AbandonedClientPurger().start();
     }
 
     /**
@@ -320,16 +320,10 @@ public class PubSubManager {
                 }
             }
 
-            //Ice.ObjectPrx pub = itsControlTopic.getPublisher().ice_twoway();
-            //itsPubSubControl = PubSubControlPrxHelper.uncheckedCast(pub);
-            Ice.ObjectAdapter adapter = itsCommunicator.createObjectAdapterWithEndpoints("foo", "tcp -p 1234");
-
+            Ice.ObjectAdapter adapter = itsCommunicator.createObjectAdapterWithEndpoints("", "tcp");
             PubSubControlI monitor = new PubSubControlI();
             Ice.ObjectPrx proxy = adapter.addWithUUID(monitor).ice_twoway();
-
-            java.util.Map qos = null;
-            itsControlTopic.subscribeAndGetPublisher(qos, proxy);
-
+            itsControlTopic.subscribeAndGetPublisher(null, proxy);
             adapter.activate();
         } catch (Exception e) {
             itsLogger.error("(" + itsControlTopicName + "): While connecting: " + e);
