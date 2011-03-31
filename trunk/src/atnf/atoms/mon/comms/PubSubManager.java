@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 import java.util.*;
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
+import atnf.atoms.mon.util.MonitorConfig;
 
 /**
  * This class creates an IceStorm topic and listens for requests from clients
@@ -220,6 +221,12 @@ public class PubSubManager {
         }
     };
 
+    /** TCP port number for IceGrid locator service. */
+    protected int itsPort;
+
+    /** Host name for IceGrid locator service. */
+    protected String itsHost;
+
     /** The Ice communicator to be used. */
     protected Communicator itsCommunicator = null;
 
@@ -242,11 +249,34 @@ public class PubSubManager {
      * The maximum time between keep-alives before we consider a subscriber
      * dead.
      */
-    protected RelTime itsMaxKeepAliveTime;
+    protected RelTime itsMaxKeepAliveTime = RelTime.factory(60000000); // TODO:
+                                                                        // Config
 
     public PubSubManager()
     {
-        // TODO: Read configuration (eg icegrid server)
+        // Read configuration for location of icegrid registry
+        String tempstr = MonitorConfig.getProperty("PubSubLocatorPort");
+        if (tempstr == null) {
+            itsLogger.fatal("Require port for IceGrid locator service: PubSubLocatorPort");
+            return;
+        }
+        try {
+            itsPort = Integer.parseInt(tempstr);
+        } catch (Exception e) {
+            itsLogger.fatal("Unable to parse port number for IceGrid locator service: PubSubLocatorPort: Found \""
+                    + tempstr + "\"");
+            return;
+        }
+        itsHost = MonitorConfig.getProperty("PubSubLocatorHost");
+        if (itsHost == null) {
+            itsLogger.fatal("Require host name for IceGrid locator service: PubSubLocatorHost");
+            return;
+        }
+        itsControlTopicName = MonitorConfig.getProperty("PubSubTopic");
+        if (itsControlTopicName == null) {
+            itsLogger.fatal("Require IceStorm topic name for listening for new subscriptions: PubSubTopic");
+            return;
+        }
 
         try {
             // TODO: Need to deal with this better. Probably have a thread to
@@ -262,33 +292,24 @@ public class PubSubManager {
     }
 
     /**
-     * Specify the host name and port of the IceGrid Locator service.
-     */
-    public void setLocator(String host, int port)
-    {
-        disconnect();
-        Ice.Properties props = Ice.Util.createProperties();
-        String locator = "IceGrid/Locator:tcp -h " + host + " -p " + port;
-        props.setProperty("Ice.Default.Locator", locator);
-        Ice.InitializationData id = new Ice.InitializationData();
-        id.properties = props;
-        itsCommunicator = Ice.Util.initialize(id);
-    }
-
-    /**
      * Connect to the IceStorm Topic so that we can start publishing data.
      */
     protected void connect() throws Exception
     {
         try {
-            if (itsControlTopicName == null || itsCommunicator == null) {
-                return;
-            }
+            // Make Communicator
+            disconnect();
+            Ice.Properties props = Ice.Util.createProperties();
+            String locator = "IceGrid/Locator:tcp -h " + itsHost + " -p " + itsPort;
+            props.setProperty("Ice.Default.Locator", locator);
+            Ice.InitializationData id = new Ice.InitializationData();
+            id.properties = props;
+            itsCommunicator = Ice.Util.initialize(id);
+
             // Obtain the topic or create
             TopicManagerPrx topicManager;
             Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
             topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
-
             try {
                 itsControlTopic = topicManager.retrieve(itsControlTopicName);
             } catch (NoSuchTopic e) {
@@ -299,8 +320,17 @@ public class PubSubManager {
                 }
             }
 
-            Ice.ObjectPrx pub = itsControlTopic.getPublisher().ice_twoway();
-            itsPubSubControl = PubSubControlPrxHelper.uncheckedCast(pub);
+            //Ice.ObjectPrx pub = itsControlTopic.getPublisher().ice_twoway();
+            //itsPubSubControl = PubSubControlPrxHelper.uncheckedCast(pub);
+            Ice.ObjectAdapter adapter = itsCommunicator.createObjectAdapterWithEndpoints("foo", "tcp -p 1234");
+
+            PubSubControlI monitor = new PubSubControlI();
+            Ice.ObjectPrx proxy = adapter.addWithUUID(monitor).ice_twoway();
+
+            java.util.Map qos = null;
+            itsControlTopic.subscribeAndGetPublisher(qos, proxy);
+
+            adapter.activate();
         } catch (Exception e) {
             itsLogger.error("(" + itsControlTopicName + "): While connecting: " + e);
             disconnect();
