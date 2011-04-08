@@ -101,6 +101,8 @@ public abstract class PointArchiver extends Thread
   /** Main loop for the archiving thread. */
   public void run()
   {
+    setName("PointArchiver");
+    
     RelTime sleeptime = RelTime.factory(10000);
     while (true) {
       Enumeration keys = itsBuffer.keys();

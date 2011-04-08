@@ -137,6 +137,10 @@ module atnf {
           void subscribe(PubSubRequest req);
           
           ////////////
+          //Calcel the subscriptions through the given topic
+          void unsubscribe(string topicname);
+          
+          ////////////
           //Notify the server that the specified topic is still active.
           void keepalive(string topicname);
         };

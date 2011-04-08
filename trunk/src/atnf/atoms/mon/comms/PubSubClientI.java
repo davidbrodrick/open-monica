@@ -133,7 +133,7 @@ public class PubSubClientI extends _PubSubClientDisp {
 
         // Create a unique topic name
         // TODO:
-        itsTopicName = "MoniCA.foobar";
+        itsTopicName = "MoniCA." + UUID.randomUUID().toString();
 
         try {
             itsTopic = topicManager.retrieve(itsTopicName);

@@ -25,6 +25,9 @@ public interface _PubSubControlDel extends Ice._ObjectDel
     void subscribe(PubSubRequest req, java.util.Map<String, String> __ctx)
         throws IceInternal.LocalExceptionWrapper;
 
+    void unsubscribe(String topicname, java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper;
+
     void keepalive(String topicname, java.util.Map<String, String> __ctx)
         throws IceInternal.LocalExceptionWrapper;
 }

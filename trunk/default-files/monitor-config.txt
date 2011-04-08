@@ -11,29 +11,19 @@ ArchiveMaxAge 604800
 # This is to prevent server CPU/memory saturation
 ArchiveMaxRecords 16384
 
-# Authentication
-NISGroup atomsprg
-NISDomain rp.csiro.au
-NISHost zephir
 # How Strong to encrypt the username/passwords
 EncryptionStrength 512
 # How often to change keys
 KeyLife 3600000
 
-# Where we find the previously saved setups (SavedSetup's)
-SavedSetupFile setups.txt
-# When new setups are added, save them here
-NewSavedSetupFile newsetups.txt
-
-# File which contains the names of classes which should be preloaded 
-#by the client
-GUIPreloadFile preload.txt
-
 # Temporary directory - need to be able to read/write here
 TempDir temp
-# Print Debugging messages?
-#Debug true
-# Port the Server will use
-MonPort 8050
+
 # Port the ASCII text Server will use
 ASCIIPort 8051
+
+#Settings for IceStorm pub/sub service
+#PubSubEnabled true
+#PubSubLocatorHost localhost
+#PubSubLocatorPort 4061
+#PubSubTopic MoniCA.PubSubControl

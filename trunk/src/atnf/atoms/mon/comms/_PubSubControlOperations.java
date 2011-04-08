@@ -24,5 +24,7 @@ public interface _PubSubControlOperations
 {
     void subscribe(PubSubRequest req, Ice.Current __current);
 
+    void unsubscribe(String topicname, Ice.Current __current);
+
     void keepalive(String topicname, Ice.Current __current);
 }

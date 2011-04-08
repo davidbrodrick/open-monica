@@ -38,13 +38,13 @@ import atnf.atoms.mon.util.MonitorConfig;
  * The process is basically as follows:
  * <ol>
  * <li>The client creates a topic on which it will receive updates.
- * <li>The client sends a message to the server's subscription topic,
- * specifying the list of points of interest and the name of the topic on which
- * the server should publish updates.
+ * <li>The client sends a message to the server's subscription topic, specifying
+ * the list of points of interest and the name of the topic on which the server
+ * should publish updates.
  * <li>MoniCA will publish the latest cached values onto the topic.
- * <li>The client must periodically send a keep alive. This involves sending
- * the name of the topic to which the data is being published, to the
- * subscription topic.
+ * <li>The client must periodically send a keep alive. This involves sending the
+ * name of the topic to which the data is being published, to the subscription
+ * topic.
  * </ol>
  * 
  * If the client doesn't send the keep-alive in the specified time then the
@@ -57,291 +57,300 @@ import atnf.atoms.mon.util.MonitorConfig;
  * @author David Brodrick
  */
 public class PubSubManager {
-    /**
-     * Class encapsulating a client who is subscribed to updates from a set of
-     * points.
-     */
-    public class PubSubClientInfo implements PointListener {
-        /** The name of the topic on which to publish the client's data. */
-        public String itsTopicName;
+  /**
+   * Class encapsulating a client who is subscribed to updates from a set of
+   * points.
+   */
+  public class PubSubClientInfo implements PointListener {
+    /** The name of the topic on which to publish the client's data. */
+    public String itsTopicName;
 
-        /** The topic on which to publish the client's data. */
-        public TopicPrx itsTopic;
+    /** The topic on which to publish the client's data. */
+    public TopicPrx itsTopic;
 
-        /** Proxy to the client. */
-        protected PubSubClientPrx itsClient;
+    /** Proxy to the client. */
+    protected PubSubClientPrx itsClient;
 
-        /** Names of the points to which the client is subscribed. */
-        public String[] itsPointNames;
+    /** Names of the points to which the client is subscribed. */
+    public String[] itsPointNames;
 
-        /** Time the client last sent a keep-alive signal. */
-        public AbsTime itsLastKeepAliveTime = new AbsTime();
+    /** Time the client last sent a keep-alive signal. */
+    public AbsTime itsLastKeepAliveTime = new AbsTime();
 
-        /** Constructor. */
-        public PubSubClientInfo(String topic, String[] points) throws Exception
-        {
-            itsTopicName = topic;
-            itsPointNames = points;
+    /** Constructor. */
+    public PubSubClientInfo(String topic, String[] points) throws Exception {
+      itsTopicName = topic;
+      itsPointNames = points;
 
-            // Ensure all points exist before subscribing
-            for (int i = 0; i < itsPointNames.length; i++) {
-                if (!PointDescription.checkPointName(itsPointNames[i])) {
-                    throw new Exception("Specified point (" + itsPointNames[i] + ") does not exist");
-                }
-            }
-
-            // Connect to the topic created by the client
-            TopicManagerPrx topicManager;
-            Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
-            topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
-            itsTopic = topicManager.retrieve(itsTopicName);
-            Ice.ObjectPrx pub = itsTopic.getPublisher().ice_twoway();
-            itsClient = PubSubClientPrxHelper.uncheckedCast(pub);
-
-            // Get the last recorded data for each point
-            PointData[] lastdata = new PointData[itsPointNames.length];
-            for (int i = 0; i < itsPointNames.length; i++) {
-                lastdata[i] = PointBuffer.getPointData(itsPointNames[i]);
-            }
-            // Publish the last data values
-            PointDataIce[] lastdataice = MoniCAIceUtil.getPointDataAsIce(lastdata);
-            itsClient.updateData(lastdataice);
-
-            // Subscribe to updates from each point
-            for (int i = 0; i < itsPointNames.length; i++) {
-                PointDescription.getPoint(itsPointNames[i]).addPointListener(this);
-            }
+      // Ensure all points exist before subscribing
+      for (int i = 0; i < itsPointNames.length; i++) {
+        if (!PointDescription.checkPointName(itsPointNames[i])) {
+          throw new Exception("Specified point (" + itsPointNames[i] + ") does not exist");
         }
+      }
 
-        /** Callback for when a listened-to point updates. */
-        public void onPointEvent(Object source, final PointEvent evt)
-        {
-            // Use an anonymous thread to publish the data
-            new Thread() {
-                public void run()
-                {
-                    try {
-                        PointData[] pd = new PointData[] { evt.getPointData() };
-                        PointDataIce[] pdice = MoniCAIceUtil.getPointDataAsIce(pd);
-                        itsClient.updateData(pdice);
-                    } catch (Exception e) {
-                        itsLogger.error("Error publishing data to topic " + itsTopicName + ": " + e);
-                        // This client is now broken
-                        PubSubClientInfo.this.destroy();
-                    }
-                }
-            }.start();
-        }
+      // Connect to the topic created by the client
+      TopicManagerPrx topicManager;
+      Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
+      topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
+      itsTopic = topicManager.retrieve(itsTopicName);
+      Ice.ObjectPrx pub = itsTopic.getPublisher().ice_twoway();
+      itsClient = PubSubClientPrxHelper.uncheckedCast(pub);
 
-        /** Release all resources used by this client. */
-        public void destroy()
-        {
-            // Destroy the topic
-            if (itsTopic != null) {
-                try {
-                    itsTopic.destroy();
-                } catch (Exception e) {
-                }
-            }
-            itsTopic = null;
+      // Get the last recorded data for each point
+      PointData[] lastdata = new PointData[itsPointNames.length];
+      for (int i = 0; i < itsPointNames.length; i++) {
+        lastdata[i] = PointBuffer.getPointData(itsPointNames[i]);
+      }
+      // Publish the last data values
+      PointDataIce[] lastdataice = MoniCAIceUtil.getPointDataAsIce(lastdata);
+      itsClient.updateData(lastdataice);
 
-            // Unsubscribe from points
-            for (int i = 0; i < itsPointNames.length; i++) {
-                PointDescription.getPoint(itsPointNames[i]).removePointListener(this);
-            }
-        }
-
-        /** Reset the keep-alive timer. */
-        public void resetKeepAlive()
-        {
-            itsLastKeepAliveTime = new AbsTime();
-        }
-
-        /** Get the time that the keep-alive was last reset. */
-        public AbsTime getLastKeepAliveTime()
-        {
-            return itsLastKeepAliveTime;
-        }
-    };
-
-    /**
-     * Class implementing the subscriber to the control topic.
-     */
-    public class PubSubControlI extends _PubSubControlDisp {
-        /** Handle a new subscription request. */
-        public void subscribe(PubSubRequest req, Ice.Current curr)
-        {
-            itsLogger.debug("Received new subscription request for topic " + req.topicname + " with "
-                    + req.pointnames.length + " points");
-            try {
-                PubSubClientInfo newclient = new PubSubClientInfo(req.topicname, req.pointnames);
-                itsClients.put(req.topicname, newclient);
-            } catch (Exception e) {
-                itsLogger.error("While establishing subscriptions for topic " + req.topicname + ": " + e);
-            }
-        }
-
-        /** Record that the specified topic is still active. */
-        public void keepalive(String topicname, Ice.Current curr)
-        {
-            itsLogger.debug("Received keep-alive for topic " + topicname);
-            PubSubClientInfo thisclient = itsClients.get(topicname);
-            if (thisclient != null) {
-                thisclient.resetKeepAlive();
-            } else {
-                itsLogger.debug("Received keep-alive for abandoned topic " + topicname);
-            }
-        }
-    };
-
-    /** Thread which purges abandoned clients. */
-    public class AbandonedClientPurger extends Thread {
-        public void run()
-        {
-            while (true) {
-                // See if any clients have timed out
-                AbsTime now = new AbsTime();
-                Iterator<String> i = itsClients.keySet().iterator();
-                while (i.hasNext()) {
-                    String topicname = i.next();
-                    PubSubClientInfo client = itsClients.get(topicname);
-                    if (Time.diff(now, client.getLastKeepAliveTime()).getAsSeconds() > itsMaxKeepAliveTime
-                            .getAsSeconds()) {
-                        itsLogger.debug("Destroying data structures for abandoned topic " + topicname);
-                        client.destroy();
-                        itsClients.remove(topicname);
-                    }
-                }
-
-                // Sleep until next time to check
-                try {
-                    itsMaxKeepAliveTime.sleep();
-                } catch (Exception e) {
-                }
-            }
-        }
-    };
-
-    /** TCP port number for IceGrid locator service. */
-    protected int itsPort;
-
-    /** Host name for IceGrid locator service. */
-    protected String itsHost;
-
-    /** The Ice communicator to be used. */
-    protected Communicator itsCommunicator = null;
-
-    /** Name of the IceStorm topic for receiving new requests/keepalives. */
-    protected String itsControlTopicName = null;
-
-    /** The IceStorm topic for receiving new requests/keepalives. */
-    protected TopicPrx itsControlTopic = null;
-
-    /** The proxy for receiving new requests/keepalives. */
-    protected PubSubControlPrx itsPubSubControl = null;
-
-    /** Logger. */
-    protected Logger itsLogger = Logger.getLogger(getClass().getName());
-
-    /** Map of all clients currently subscribed to updates. */
-    protected HashMap<String, PubSubClientInfo> itsClients = new HashMap<String, PubSubClientInfo>();
-
-    /**
-     * The maximum time between keep-alives before we consider a subscriber
-     * dead.
-     */
-    protected RelTime itsMaxKeepAliveTime = RelTime.factory(60000000); // TODO:
-                                                                        // Config
-    public PubSubManager()
-    {
-        // Read configuration for location of icegrid registry
-        String tempstr = MonitorConfig.getProperty("PubSubLocatorPort");
-        if (tempstr == null) {
-            itsLogger.fatal("Require port for IceGrid locator service: PubSubLocatorPort");
-            return;
-        }
-        try {
-            itsPort = Integer.parseInt(tempstr);
-        } catch (Exception e) {
-            itsLogger.fatal("Unable to parse port number for IceGrid locator service: PubSubLocatorPort: Found \""
-                    + tempstr + "\"");
-            return;
-        }
-        itsHost = MonitorConfig.getProperty("PubSubLocatorHost");
-        if (itsHost == null) {
-            itsLogger.fatal("Require host name for IceGrid locator service: PubSubLocatorHost");
-            return;
-        }
-        itsControlTopicName = MonitorConfig.getProperty("PubSubTopic");
-        if (itsControlTopicName == null) {
-            itsLogger.fatal("Require IceStorm topic name for listening for new subscriptions: PubSubTopic");
-            return;
-        }
-
-        try {
-            // TODO: Need to deal with this better. Probably have a thread to
-            // manage reconnections.
-            connect();
-        } catch (Exception e) {
-            itsLogger.fatal("Could not start " + e);
-            return;
-        }
-
-        // Create thread to remove stale clients
-        new AbandonedClientPurger().start();
+      // Subscribe to updates from each point
+      for (int i = 0; i < itsPointNames.length; i++) {
+        PointDescription.getPoint(itsPointNames[i]).addPointListener(this);
+      }
     }
 
-    /**
-     * Connect to the IceStorm Topic so that we can start publishing data.
-     */
-    protected void connect() throws Exception
-    {
+    /** Callback for when a listened-to point updates. */
+    public void onPointEvent(Object source, final PointEvent evt) {
+      // Use an anonymous thread to publish the data
+      new Thread("PubSub Delivery Thread") {
+        public void run() {
+          try {
+            PointData[] pd = new PointData[] { evt.getPointData() };
+            PointDataIce[] pdice = MoniCAIceUtil.getPointDataAsIce(pd);
+            itsClient.updateData(pdice);
+          } catch (Exception e) {
+            itsLogger.error("Error publishing data to topic " + itsTopicName + ": " + e);
+            // This client is now broken
+            PubSubClientInfo.this.destroy();
+          }
+        }
+      }.start();
+    }
+
+    /** Release all resources used by this client. */
+    public void destroy() {
+      // Destroy the topic
+      if (itsTopic != null) {
         try {
-            // Make Communicator
-            disconnect();
-            Ice.Properties props = Ice.Util.createProperties();
-            String locator = "IceGrid/Locator:tcp -h " + itsHost + " -p " + itsPort;
-            props.setProperty("Ice.Default.Locator", locator);
-            Ice.InitializationData id = new Ice.InitializationData();
-            id.properties = props;
-            itsCommunicator = Ice.Util.initialize(id);
-
-            // Obtain the topic or create
-            TopicManagerPrx topicManager;
-            Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
-            topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
-            try {
-                itsControlTopic = topicManager.retrieve(itsControlTopicName);
-            } catch (NoSuchTopic e) {
-                try {
-                    itsControlTopic = topicManager.create(itsControlTopicName);
-                } catch (TopicExists e1) {
-                    itsControlTopic = topicManager.retrieve(itsControlTopicName);
-                }
-            }
-
-            Ice.ObjectAdapter adapter = itsCommunicator.createObjectAdapterWithEndpoints("", "tcp");
-            PubSubControlI monitor = new PubSubControlI();
-            Ice.ObjectPrx proxy = adapter.addWithUUID(monitor).ice_twoway();
-            itsControlTopic.subscribeAndGetPublisher(null, proxy);
-            adapter.activate();
+          itsTopic.destroy();
         } catch (Exception e) {
-            itsLogger.error("(" + itsControlTopicName + "): While connecting: " + e);
-            disconnect();
-            throw e;
         }
+      }
+      itsTopic = null;
+
+      // Unsubscribe from points
+      for (int i = 0; i < itsPointNames.length; i++) {
+        PointDescription.getPoint(itsPointNames[i]).removePointListener(this);
+      }
     }
 
-    /**
-     * Disconnect from the Topic.
-     */
-    protected void disconnect()
-    {
-        if (itsControlTopic != null) {
-            itsControlTopic.destroy();
+    /** Reset the keep-alive timer. */
+    public void resetKeepAlive() {
+      itsLastKeepAliveTime = new AbsTime();
+    }
+
+    /** Get the time that the keep-alive was last reset. */
+    public AbsTime getLastKeepAliveTime() {
+      return itsLastKeepAliveTime;
+    }
+  };
+
+  /**
+   * Class implementing the subscriber to the control topic.
+   */
+  public class PubSubControlI extends _PubSubControlDisp {
+    /** Handle a new subscription request. */
+    public void subscribe(PubSubRequest req, Ice.Current curr) {
+      itsLogger.debug("Received new subscription request for topic " + req.topicname + " with " + req.pointnames.length + " points");
+      try {
+        PubSubClientInfo newclient = new PubSubClientInfo(req.topicname, req.pointnames);
+        synchronized (itsClients) {
+          itsClients.put(req.topicname, newclient);
+        }
+      } catch (Exception e) {
+        itsLogger.error("While establishing subscriptions for topic " + req.topicname + ": " + e);
+      }
+    }
+
+    /** Cancel activity on the specified topic */
+    public void unsubscribe(String topicname, Ice.Current curr) {
+      synchronized (itsClients) {
+        PubSubClientInfo client = itsClients.get(topicname);
+        if (client != null) {
+          itsLogger.debug("Cancelling activity on topic " + topicname);
+          client.destroy();
+          itsClients.remove(topicname);
+        } else {
+          itsLogger.debug("Received unsubscription request for non-existent topic " + topicname);
+        }
+      }
+    }
+
+    /** Record that the specified topic is still active. */
+    public void keepalive(String topicname, Ice.Current curr) {
+      //itsLogger.debug("Received keep-alive for topic " + topicname);
+      synchronized (itsClients) {
+        PubSubClientInfo thisclient = itsClients.get(topicname);
+        if (thisclient != null) {
+          thisclient.resetKeepAlive();
+        } else {
+          itsLogger.debug("Received keep-alive for abandoned topic " + topicname);
+        }
+      }
+    }
+  };
+
+  /** Thread which purges abandoned clients. */
+  public class AbandonedClientPurger extends Thread {
+    public AbandonedClientPurger() {
+      super("PubSub AbandonedClientPurger");
+    }
+
+    public void run() {
+      while (true) {
+        synchronized (itsClients) {
+          // See if any clients have timed out
+          AbsTime now = new AbsTime();
+          Object[] keys = itsClients.keySet().toArray();
+          for (int i = 0; i < itsClients.size(); i++) {
+            String topicname = (String) keys[i];
+            PubSubClientInfo client = itsClients.get(topicname);
+            if (Time.diff(now, client.getLastKeepAliveTime()).getAsSeconds() > itsMaxKeepAliveTime.getAsSeconds()) {
+              itsLogger.debug("Destroying data structures for abandoned topic " + topicname);
+              client.destroy();
+              itsClients.remove(topicname);
+            }
+          }
         }
 
-        itsControlTopic = null;
-        itsPubSubControl = null;
+        // Sleep until next time to check
+        try {
+          itsMaxKeepAliveTime.sleep();
+        } catch (Exception e) {
+        }
+      }
     }
+  };
+
+  /** TCP port number for IceGrid locator service. */
+  protected int itsPort;
+
+  /** Host name for IceGrid locator service. */
+  protected String itsHost;
+
+  /** The Ice communicator to be used. */
+  protected Communicator itsCommunicator = null;
+
+  /** Name of the IceStorm topic for receiving new requests/keepalives. */
+  protected String itsControlTopicName = null;
+
+  /** The IceStorm topic for receiving new requests/keepalives. */
+  protected TopicPrx itsControlTopic = null;
+
+  /** The proxy for receiving new requests/keepalives. */
+  protected PubSubControlPrx itsPubSubControl = null;
+
+  /** Logger. */
+  protected Logger itsLogger = Logger.getLogger(getClass().getName());
+
+  /** Map of all clients currently subscribed to updates. */
+  protected HashMap<String, PubSubClientInfo> itsClients = new HashMap<String, PubSubClientInfo>();
+
+  /**
+   * The maximum time between keep-alives before we consider a subscriber dead.
+   */
+  protected RelTime itsMaxKeepAliveTime = RelTime.factory(60000000); // TODO:
+                                                                     // Config
+
+  public PubSubManager() {
+    // Read configuration for location of icegrid registry
+    String tempstr = MonitorConfig.getProperty("PubSubLocatorPort");
+    if (tempstr == null) {
+      itsLogger.fatal("Require port for IceGrid locator service: PubSubLocatorPort");
+      return;
+    }
+    try {
+      itsPort = Integer.parseInt(tempstr);
+    } catch (Exception e) {
+      itsLogger.fatal("Unable to parse port number for IceGrid locator service: PubSubLocatorPort: Found \"" + tempstr + "\"");
+      return;
+    }
+    itsHost = MonitorConfig.getProperty("PubSubLocatorHost");
+    if (itsHost == null) {
+      itsLogger.fatal("Require host name for IceGrid locator service: PubSubLocatorHost");
+      return;
+    }
+    itsControlTopicName = MonitorConfig.getProperty("PubSubTopic");
+    if (itsControlTopicName == null) {
+      itsLogger.fatal("Require IceStorm topic name for listening for new subscriptions: PubSubTopic");
+      return;
+    }
+
+    try {
+      // TODO: Need to deal with this better. Probably have a thread to
+      // manage reconnections.
+      connect();
+    } catch (Exception e) {
+      itsLogger.fatal("Could not start " + e);
+      return;
+    }
+
+    // Create thread to remove stale clients
+    new AbandonedClientPurger().start();
+  }
+
+  /**
+   * Connect to the IceStorm Topic so that we can start publishing data.
+   */
+  protected void connect() throws Exception {
+    try {
+      // Make Communicator
+      disconnect();
+      Ice.Properties props = Ice.Util.createProperties();
+      String locator = "IceGrid/Locator:tcp -h " + itsHost + " -p " + itsPort;
+      props.setProperty("Ice.Default.Locator", locator);
+      Ice.InitializationData id = new Ice.InitializationData();
+      id.properties = props;
+      itsCommunicator = Ice.Util.initialize(id);
+
+      // Obtain the topic or create
+      TopicManagerPrx topicManager;
+      Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
+      topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
+      try {
+        itsControlTopic = topicManager.retrieve(itsControlTopicName);
+      } catch (NoSuchTopic e) {
+        try {
+          itsControlTopic = topicManager.create(itsControlTopicName);
+        } catch (TopicExists e1) {
+          itsControlTopic = topicManager.retrieve(itsControlTopicName);
+        }
+      }
+
+      Ice.ObjectAdapter adapter = itsCommunicator.createObjectAdapterWithEndpoints("", "tcp");
+      PubSubControlI monitor = new PubSubControlI();
+      Ice.ObjectPrx proxy = adapter.addWithUUID(monitor).ice_twoway();
+      itsControlTopic.subscribeAndGetPublisher(null, proxy);
+      adapter.activate();
+    } catch (Exception e) {
+      itsLogger.error("(" + itsControlTopicName + "): While connecting: " + e);
+      disconnect();
+      throw e;
+    }
+  }
+
+  /**
+   * Disconnect from the Topic.
+   */
+  protected void disconnect() {
+    if (itsControlTopic != null) {
+      itsControlTopic.destroy();
+    }
+
+    itsControlTopic = null;
+    itsPubSubControl = null;
+  }
 }
