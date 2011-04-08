@@ -137,7 +137,7 @@ module atnf {
           void subscribe(PubSubRequest req);
           
           ////////////
-          //Calcel the subscriptions through the given topic
+          //Cancel the subscriptions through the given topic
           void unsubscribe(string topicname);
           
           ////////////
