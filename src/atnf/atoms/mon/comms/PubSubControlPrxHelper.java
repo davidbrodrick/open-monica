@@ -214,6 +214,102 @@ public final class PubSubControlPrxHelper extends Ice.ObjectPrxHelperBase implem
         __end(__result, __subscribe_name);
     }
 
+    public void
+    unsubscribe(String topicname)
+    {
+        unsubscribe(topicname, null, false);
+    }
+
+    public void
+    unsubscribe(String topicname, java.util.Map<String, String> __ctx)
+    {
+        unsubscribe(topicname, __ctx, true);
+    }
+
+    private void
+    unsubscribe(String topicname, java.util.Map<String, String> __ctx, boolean __explicitCtx)
+    {
+        if(__explicitCtx && __ctx == null)
+        {
+            __ctx = _emptyContext;
+        }
+        int __cnt = 0;
+        while(true)
+        {
+            Ice._ObjectDel __delBase = null;
+            try
+            {
+                __delBase = __getDelegate(false);
+                _PubSubControlDel __del = (_PubSubControlDel)__delBase;
+                __del.unsubscribe(topicname, __ctx);
+                return;
+            }
+            catch(IceInternal.LocalExceptionWrapper __ex)
+            {
+                __handleExceptionWrapper(__delBase, __ex);
+            }
+            catch(Ice.LocalException __ex)
+            {
+                __cnt = __handleException(__delBase, __ex, null, __cnt);
+            }
+        }
+    }
+
+    private static final String __unsubscribe_name = "unsubscribe";
+
+    public Ice.AsyncResult begin_unsubscribe(String topicname)
+    {
+        return begin_unsubscribe(topicname, null, false, null);
+    }
+
+    public Ice.AsyncResult begin_unsubscribe(String topicname, java.util.Map<String, String> __ctx)
+    {
+        return begin_unsubscribe(topicname, __ctx, true, null);
+    }
+
+    public Ice.AsyncResult begin_unsubscribe(String topicname, Ice.Callback __cb)
+    {
+        return begin_unsubscribe(topicname, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_unsubscribe(String topicname, java.util.Map<String, String> __ctx, Ice.Callback __cb)
+    {
+        return begin_unsubscribe(topicname, __ctx, true, __cb);
+    }
+
+    public Ice.AsyncResult begin_unsubscribe(String topicname, Callback_PubSubControl_unsubscribe __cb)
+    {
+        return begin_unsubscribe(topicname, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_unsubscribe(String topicname, java.util.Map<String, String> __ctx, Callback_PubSubControl_unsubscribe __cb)
+    {
+        return begin_unsubscribe(topicname, __ctx, true, __cb);
+    }
+
+    private Ice.AsyncResult begin_unsubscribe(String topicname, java.util.Map<String, String> __ctx, boolean __explicitCtx, IceInternal.CallbackBase __cb)
+    {
+        IceInternal.OutgoingAsync __result = new IceInternal.OutgoingAsync(this, __unsubscribe_name, __cb);
+        try
+        {
+            __result.__prepare(__unsubscribe_name, Ice.OperationMode.Normal, __ctx, __explicitCtx);
+            IceInternal.BasicStream __os = __result.__os();
+            __os.writeString(topicname);
+            __os.endWriteEncaps();
+            __result.__send(true);
+        }
+        catch(Ice.LocalException __ex)
+        {
+            __result.__exceptionAsync(__ex);
+        }
+        return __result;
+    }
+
+    public void end_unsubscribe(Ice.AsyncResult __result)
+    {
+        __end(__result, __unsubscribe_name);
+    }
+
     public static PubSubControlPrx
     checkedCast(Ice.ObjectPrx __obj)
     {

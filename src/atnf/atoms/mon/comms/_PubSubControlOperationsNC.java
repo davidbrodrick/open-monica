@@ -24,5 +24,7 @@ public interface _PubSubControlOperationsNC
 {
     void subscribe(PubSubRequest req);
 
+    void unsubscribe(String topicname);
+
     void keepalive(String topicname);
 }

@@ -89,6 +89,12 @@ public abstract class _PubSubControlDisp extends Ice.ObjectImpl implements PubSu
         subscribe(req, null);
     }
 
+    public final void
+    unsubscribe(String topicname)
+    {
+        unsubscribe(topicname, null);
+    }
+
     public static Ice.DispatchStatus
     ___subscribe(PubSubControl __obj, IceInternal.Incoming __inS, Ice.Current __current)
     {
@@ -100,6 +106,19 @@ public abstract class _PubSubControlDisp extends Ice.ObjectImpl implements PubSu
         req.__read(__is);
         __is.endReadEncaps();
         __obj.subscribe(req, __current);
+        return Ice.DispatchStatus.DispatchOK;
+    }
+
+    public static Ice.DispatchStatus
+    ___unsubscribe(PubSubControl __obj, IceInternal.Incoming __inS, Ice.Current __current)
+    {
+        __checkMode(Ice.OperationMode.Normal, __current.mode);
+        IceInternal.BasicStream __is = __inS.is();
+        __is.startReadEncaps();
+        String topicname;
+        topicname = __is.readString();
+        __is.endReadEncaps();
+        __obj.unsubscribe(topicname, __current);
         return Ice.DispatchStatus.DispatchOK;
     }
 
@@ -123,7 +142,8 @@ public abstract class _PubSubControlDisp extends Ice.ObjectImpl implements PubSu
         "ice_isA",
         "ice_ping",
         "keepalive",
-        "subscribe"
+        "subscribe",
+        "unsubscribe"
     };
 
     public Ice.DispatchStatus
@@ -160,6 +180,10 @@ public abstract class _PubSubControlDisp extends Ice.ObjectImpl implements PubSu
             case 5:
             {
                 return ___subscribe(this, in, __current);
+            }
+            case 6:
+            {
+                return ___unsubscribe(this, in, __current);
             }
         }
 

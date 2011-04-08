@@ -121,4 +121,54 @@ public final class _PubSubControlDelD extends Ice._ObjectDelD implements _PubSub
             IceInternal.LocalExceptionWrapper.throwWrapper(__ex);
         }
     }
+
+    public void
+    unsubscribe(final String topicname, java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper
+    {
+        final Ice.Current __current = new Ice.Current();
+        __initCurrent(__current, "unsubscribe", Ice.OperationMode.Normal, __ctx);
+        IceInternal.Direct __direct = null;
+        try
+        {
+            __direct = new IceInternal.Direct(__current)
+            {
+                public Ice.DispatchStatus run(Ice.Object __obj)
+                {
+                    PubSubControl __servant = null;
+                    try
+                    {
+                        __servant = (PubSubControl)__obj;
+                    }
+                    catch(ClassCastException __ex)
+                    {
+                        throw new Ice.OperationNotExistException(__current.id, __current.facet, __current.operation);
+                    }
+                    __servant.unsubscribe(topicname, __current);
+                    return Ice.DispatchStatus.DispatchOK;
+                }
+            };
+            try
+            {
+                Ice.DispatchStatus __status = __direct.servant().__collocDispatch(__direct);
+                if(__status == Ice.DispatchStatus.DispatchUserException)
+                {
+                    __direct.throwUserException();
+                }
+                assert __status == Ice.DispatchStatus.DispatchOK;
+            }
+            finally
+            {
+                __direct.destroy();
+            }
+        }
+        catch(Ice.SystemException __ex)
+        {
+            throw __ex;
+        }
+        catch(java.lang.Throwable __ex)
+        {
+            IceInternal.LocalExceptionWrapper.throwWrapper(__ex);
+        }
+    }
 }

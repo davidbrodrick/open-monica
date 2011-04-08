@@ -40,6 +40,24 @@ public interface PubSubControlPrx extends Ice.ObjectPrx
 
     public void end_subscribe(Ice.AsyncResult __result);
 
+    public void unsubscribe(String topicname);
+
+    public void unsubscribe(String topicname, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_unsubscribe(String topicname);
+
+    public Ice.AsyncResult begin_unsubscribe(String topicname, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_unsubscribe(String topicname, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_unsubscribe(String topicname, java.util.Map<String, String> __ctx, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_unsubscribe(String topicname, Callback_PubSubControl_unsubscribe __cb);
+
+    public Ice.AsyncResult begin_unsubscribe(String topicname, java.util.Map<String, String> __ctx, Callback_PubSubControl_unsubscribe __cb);
+
+    public void end_unsubscribe(Ice.AsyncResult __result);
+
     public void keepalive(String topicname);
 
     public void keepalive(String topicname, java.util.Map<String, String> __ctx);
