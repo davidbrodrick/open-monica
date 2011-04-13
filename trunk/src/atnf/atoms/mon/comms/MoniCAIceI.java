@@ -10,7 +10,7 @@ package atnf.atoms.mon.comms;
 
 import java.util.Vector;
 import atnf.atoms.mon.*;
-import atnf.atoms.time.AbsTime;
+import atnf.atoms.time.*;
 import org.apache.log4j.Logger;
 
 /**
@@ -177,7 +177,9 @@ public final class MoniCAIceI extends _MoniCAIceDisp
         // Act on the new data value
         PointData newval = values.get(i);
         theirLogger.trace("Assigning value " + newval + " to point " + thispoint.getFullName() + " as requested by " + username);
+        //AbsTime start = AbsTime.factory();
         thispoint.firePointEvent(new PointEvent(this, newval, true));
+        //theirLogger.debug("Call took " + Time.diff(AbsTime.factory(), start).toString(RelTime.Format.SECS_BAT));
       } catch (Exception e) {
         theirLogger.warn("In setData method, while processing " + names[i] + ": " + e);
         result = false;
