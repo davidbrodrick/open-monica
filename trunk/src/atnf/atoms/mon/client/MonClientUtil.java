@@ -65,6 +65,7 @@ public class MonClientUtil {
 
     if (targethost != null) {
       host = targethost;
+      theirServerName = host;
     } else {
       if (headless.equals("true")) {
         // We can only run in headless mode if a server was specified
