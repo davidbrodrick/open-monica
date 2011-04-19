@@ -844,7 +844,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     if (pe.isRaw()) {
       // This is a raw event, we need to translate the data
       // Don't translate if there was nothing to translate
-      if (data != null) {
+      if (data != null && itsTranslations!=null) {
         for (int i = 0; i < itsTranslations.length; i++) {
           try {
             // Apply the next translation if it is defined
