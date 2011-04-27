@@ -81,8 +81,7 @@ import atnf.atoms.mon.*;
  * @author Simon Hoyle
  * @author David Brodrick
  */
-class ThyconUPS extends ASCIISocket
-{
+class ThyconUPS extends ASCIISocket {
   /** THYNET address of the UPS. */
   protected byte itsAddress = 0x20;
 
@@ -217,10 +216,9 @@ class ThyconUPS extends ASCIISocket
     String[] sfxMsgs = { "", " LOW", " HIGH", " OFF", " ON", " OPEN/OFF", " CLOSED/ON", " FAIL", " OK", " WARN", " NORMAL" };
     suffixMsgs = sfxMsgs;
 
-    String[] abrtMsgs = { "TRANSFER ABORTED - ON INV", "TRANSFER ABORTED - INV OFF", "TRANSFER ABORTED - Q6 OPEN",
-        "TRANSFER ABORTED - Q3 OPEN", "ABORTED - UPS OVERLOAD", "ABORTED - NOT IN SYNC", "ABORTED - Q4 NO CLOSE",
-        "ABORTED - Q3 NO CLOSE", "ABORTED - Q1 TRIP", "ABORTED - Q4 NO OPEN", "TRANSFER ABORTED - ON BYPASS",
-        "BYPASS NOT IN TOLERANCE", "ABORTED - Q3 NO OPEN", "ABORTED - Q6 CLOSED", "ABORTED - Q3 TRIP", "ABORTED - Q3 NO OPEN",
+    String[] abrtMsgs = { "TRANSFER ABORTED - ON INV", "TRANSFER ABORTED - INV OFF", "TRANSFER ABORTED - Q6 OPEN", "TRANSFER ABORTED - Q3 OPEN",
+        "ABORTED - UPS OVERLOAD", "ABORTED - NOT IN SYNC", "ABORTED - Q4 NO CLOSE", "ABORTED - Q3 NO CLOSE", "ABORTED - Q1 TRIP", "ABORTED - Q4 NO OPEN",
+        "TRANSFER ABORTED - ON BYPASS", "BYPASS NOT IN TOLERANCE", "ABORTED - Q3 NO OPEN", "ABORTED - Q6 CLOSED", "ABORTED - Q3 TRIP", "ABORTED - Q3 NO OPEN",
         "ABORTED - Q3 NO CLOSE" };
     transferAbortMsgs = abrtMsgs;
   }
@@ -228,14 +226,12 @@ class ThyconUPS extends ASCIISocket
   /**
    * Constructor.
    */
-  public ThyconUPS(String[] args)
-  {
+  public ThyconUPS(String[] args) {
     super(args);
   }
 
   /** Convert the nibble to its BCD equivalent. */
-  private static String nibble2BCD(byte nibble)
-  {
+  private static String nibble2BCD(byte nibble) {
     switch ((nibble) & 0x0F) {
     case 0:
       return "0";
@@ -275,14 +271,12 @@ class ThyconUPS extends ASCIISocket
   }
 
   /** Convert the byte to its BCD equivalent. */
-  private static String byte2BCD(byte b)
-  {
+  private static String byte2BCD(byte b) {
     return nibble2BCD((byte) (b >> 4)) + nibble2BCD(b);
   }
 
   /** Convert the BCD digit into its numeric equivalent. */
-  private static byte BCD2byte(byte b)
-  {
+  private static byte BCD2byte(byte b) {
     if (b == '0')
       return 0;
     else if (b == '1')
@@ -330,8 +324,7 @@ class ThyconUPS extends ASCIISocket
   }
 
   /** Convert a Thycon date into an AbsTime. */
-  private AbsTime toAbsTime(byte a, byte b, byte c, byte d, byte e, byte f, byte g, byte h, byte i, byte j, byte k, byte l)
-  {
+  private AbsTime toAbsTime(byte a, byte b, byte c, byte d, byte e, byte f, byte g, byte h, byte i, byte j, byte k, byte l) {
     int year = 2000 + BCD2byte(b) + BCD2byte(a) * 10;
     int mon = BCD2byte(d) + BCD2byte(c) * 10 - 1;
     int day = BCD2byte(f) + BCD2byte(e) * 10;
@@ -345,15 +338,13 @@ class ThyconUPS extends ASCIISocket
   }
 
   /** Convert a Thycon floating point number into a Java Integer. */
-  private Integer toInt(byte a, byte b, byte c, byte d)
-  {
+  private Integer toInt(byte a, byte b, byte c, byte d) {
     int i1 = BCD2byte(b) + (BCD2byte(a) << 4) + (BCD2byte(d) << 8) + (BCD2byte(c) << 12);
     return new Integer(i1);
   }
 
   /** Convert a Thycon floating point number into a Java Float. */
-  private Float toFloat(byte a, byte b, byte c, byte d)
-  {
+  private Float toFloat(byte a, byte b, byte c, byte d) {
     int i1 = BCD2byte(b) + (BCD2byte(a) << 4) + (BCD2byte(d) << 8) + (BCD2byte(c) << 12);
     if (i1 == 0)
       return new Float(0.0);
@@ -377,8 +368,7 @@ class ThyconUPS extends ASCIISocket
   }
 
   /** Test the response packet for valid format and checksum. */
-  private boolean checkResponse(String resp)
-  {
+  private boolean checkResponse(String resp) {
     if (resp == null) {
       System.err.println("ThyconUPS::checkResponse: Null response from UPS");
       return false;
@@ -405,8 +395,7 @@ class ThyconUPS extends ASCIISocket
    * obtained it will be returned as a String, otherwise an Exception will be
    * thrown.
    */
-  private String sendRequest(byte[] req) throws Exception
-  {
+  private String sendRequest(byte[] req) throws Exception {
     if (!itsConnected)
       throw new Exception("Not connected to UPS");
 
@@ -448,8 +437,7 @@ class ThyconUPS extends ASCIISocket
    * Extract meaningful information from a response packet from the UPS and
    * insert the information into the HashMap.
    */
-  private void parseResponse(String resp, HashMap<String, Object> map)
-  {
+  private void parseResponse(String resp, HashMap<String, Object> map) {
     byte[] bytes = resp.getBytes();
 
     if (bytes[3] == '8' && bytes[4] == '0') {
@@ -483,8 +471,8 @@ class ThyconUPS extends ASCIISocket
       map.put("I2OUT", toFloat(bytes[9], bytes[10], bytes[11], bytes[12]));
       map.put("I3OUT", toFloat(bytes[13], bytes[14], bytes[15], bytes[16]));
       /*
-       * System.out.println((new AbsTime()).toString(AbsTime.Format.UTC_STRING) +
-       * "\t" + toFloat(bytes[5], bytes[6], bytes[7], bytes[8]) + "\t" +
+       * System.out.println((new AbsTime()).toString(AbsTime.Format.UTC_STRING)
+       * + "\t" + toFloat(bytes[5], bytes[6], bytes[7], bytes[8]) + "\t" +
        * toFloat(bytes[9], bytes[10], bytes[11], bytes[12]) + "\t" +
        * toFloat(bytes[13], bytes[14], bytes[15], bytes[16]));
        */
@@ -804,15 +792,15 @@ class ThyconUPS extends ASCIISocket
 
     } else if (bytes[3] == '9' && bytes[4] == '8') {
       // Outage history
-      map.put("OUTTIM", toAbsTime(bytes[5], bytes[6], bytes[7], bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13],
-              bytes[14], bytes[15], bytes[16]));
+      map.put("OUTTIM",
+          toAbsTime(bytes[5], bytes[6], bytes[7], bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15], bytes[16]));
       map.put("OUTDUR", toInt(bytes[17], bytes[18], bytes[19], bytes[20]));
       map.put("OUTNUM", toInt(bytes[21], bytes[22], bytes[23], bytes[24]));
       map.put("OUTTOT", toInt(bytes[25], bytes[26], bytes[27], bytes[28]));
     } else if (bytes[3] == '9' && bytes[4] == '9') {
       // Battery discharge history
-      map.put("DISCTIM", toAbsTime(bytes[5], bytes[6], bytes[7], bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13],
-              bytes[14], bytes[15], bytes[16]));
+      map.put("DISCTIM",
+          toAbsTime(bytes[5], bytes[6], bytes[7], bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15], bytes[16]));
       map.put("DISCDUR", toInt(bytes[17], bytes[18], bytes[19], bytes[20]));
       map.put("DISCNUM", toInt(bytes[21], bytes[22], bytes[23], bytes[24]));
       map.put("DISCTOT", toInt(bytes[25], bytes[26], bytes[27], bytes[28]));
@@ -829,8 +817,8 @@ class ThyconUPS extends ASCIISocket
       // PPPP == Hex string representation of decimal parameter code - see
       // below.
       // The meaning of the "95" following the "9B" is unknown.
-      map.put("ALRMTIM", toAbsTime(bytes[7], bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15],
-              bytes[16], bytes[17], bytes[18]));
+      map.put("ALRMTIM",
+          toAbsTime(bytes[7], bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15], bytes[16], bytes[17], bytes[18]));
       int errNum = (BCD2byte(bytes[19]) << 4) + BCD2byte(bytes[20]);
       String msg = (String) alarmMsgMap.get(new Integer(errNum));
       if (msg == null)
@@ -875,10 +863,10 @@ class ThyconUPS extends ASCIISocket
    * Do the actual network transactions and parse the output of the UPS into a
    * HashMap that can be used by other monitor points.
    */
-  private HashMap<String, Object> getNewData() throws Exception
-  {
-    if (!itsConnected)
+  private HashMap<String, Object> getNewData() throws Exception {
+    if (!itsConnected) {
       throw new Exception("Not connected to UPS");
+    }
 
     HashMap<String, Object> res = new HashMap<String, Object>();
     String resp = null;
@@ -909,34 +897,20 @@ class ThyconUPS extends ASCIISocket
     return res;
   }
 
-  public void getData(PointDescription[] points) throws Exception
-  {
+  public void getData(PointDescription[] points) throws Exception {
     // Increment transaction counter
     itsNumTransactions += points.length;
 
     // Try to get the new data and force a reconnect if the read times out
     HashMap<String, Object> newdata = null;
     try {
-      if (itsConnected)
+      if (itsConnected) {
         newdata = getNewData();
+      }
     } catch (Exception e) {
       try {
-        System.err.println("ThyconUPS: " + e.getMessage());
         disconnect();
       } catch (Exception f) {
-      }
-    }
-
-    // If the response was null then there must have been a parse error
-    // this tends to happen after a power glitch when the detector gets
-    // power cycled and spits out a heap of rubbish characters that then
-    // get buffered by the media converter. Let's force a reconnect and
-    // make sure the buffer has been flushed.
-    if (newdata == null) {
-      try {
-        System.err.println("ThyconUPS: Parse error..");
-        disconnect();
-      } catch (Exception e) {
       }
     }
 
@@ -948,8 +922,7 @@ class ThyconUPS extends ASCIISocket
     }
   }
 
-  public final static void main(String[] argv)
-  {
+  public final static void main(String[] argv) {
     if (argv.length < 1) {
       System.err.println("Missing argument: Needs IP and Port of the UPS serial/ethernet converter");
       System.exit(1);
