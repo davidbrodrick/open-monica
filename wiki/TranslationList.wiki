@@ -40,7 +40,7 @@ Please maintain lists in lexigraphic order.
 || NV || Retrieve one named element from a !HashMap or !NameValueList input object. || *Name:* The key for the value we wish to extract. ||
 || None || Just returns the input argument. || ||
 || !NumberToAngle || Convert a number to an Angle type. || *Format:* Optional argument set to "d" if the input is in degrees or "r" for radians. Default is radians. ||
-|| !NumberToBool || If Integer cast of input is zero output will be False, otherwise output will be True. || ||
+|| !NumberToBool || If Integer cast of input is zero output will be False, otherwise output will be True. || *Invert:* Optional argument can be "true" to invert the normal logic. ||
 || !NumDecimals || Limit the number of decimals in a floating point number. || *Decimals:* The maximum number of non-zero digits after the decimal place. ||
 || !PeakDetect || Find the peak of the input over a time period. || *Period:* Period to perform the peak detection over, in seconds. ||
 || Polynomial || Apply an arbitrary order polynomial to the input. _deprecated use Calculation_ || *Order:* First argument is the order of the polynomial. *Offset:* Value of the 0th order term. *Coefficients:* Include one additional coefficient argument for every term in the polynomial. ||
