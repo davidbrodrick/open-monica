@@ -190,7 +190,7 @@ public class PointArchiverASCII extends PointArchiver
   public Vector<PointData> extract(PointDescription pm, AbsTime start, AbsTime end)
   {
     // AbsTime starttime = new AbsTime();
-    Vector<PointData> res = new Vector<PointData>(1000, 8000);
+    Vector<PointData> res = new Vector<PointData>(1000, 1000);
     // Get the archive directory for the given point
     String dir = getDir(pm);
 
@@ -199,8 +199,8 @@ public class PointArchiverASCII extends PointArchiver
 
     // Try to load data from each of the files
     for (int j = 0; j < files.size(); j++) {
-      loadFile(res, pm, dir + FSEP + files.get(j), start, end);
-      if (res.size() > MAXNUMRECORDS) {
+      loadFile(res, pm, dir + FSEP + files.get(j), start, end, true);
+      if (res.size() >= MAXNUMRECORDS) {
         // Max size limit to prevent server bogging down
         // MonitorMap.logger.warning("MoniCA Server: Truncating archive request
         // to " +
@@ -237,9 +237,9 @@ public class PointArchiverASCII extends PointArchiver
       files.insertElementAt(preceding, 0);
     }
     // Try to load data from each of the files
-    Vector<PointData> tempbuf = new Vector<PointData>(1000, 8000);
+    Vector<PointData> tempbuf = new Vector<PointData>(1000, 1000);
     for (int i = 0; i < files.size(); i++) {
-      loadFile(tempbuf, pm, dir + FSEP + files.get(i), null, null);
+      loadFile(tempbuf, pm, dir + FSEP + files.get(i), null, null, false);
     }
 
     // Try to find the update which precedes the argument timestamp
@@ -283,12 +283,12 @@ public class PointArchiverASCII extends PointArchiver
     }
 
     // Try to load data from each of the files
-    Vector<PointData> tempbuf = new Vector<PointData>(1000, 8000);
+    Vector<PointData> tempbuf = new Vector<PointData>(1000, 1000);
     for (int i = 0; i < files.size(); i++) {
-      loadFile(tempbuf, pm, dir + FSEP + files.get(i), null, null);
+      loadFile(tempbuf, pm, dir + FSEP + files.get(i), null, null, false);
     }
 
-    // Try to find the update which preceeds the argument timestamp
+    // Try to find the update which follows the argument timestamp
     PointData res = null;
     for (int i = 1; i < tempbuf.size(); i++) {
       PointData p1 = (PointData) (tempbuf.get(i - 1));
@@ -647,8 +647,9 @@ public class PointArchiverASCII extends PointArchiver
    * @param pname Name of the monitor point we are loading.
    * @param start The earliest time of interest, null to ignore.
    * @param end The most recent time of interest, null to ignore.
+   * @param truncate Whether to truncate at the archive query limit.
    */
-  private void loadFile(Vector<PointData> res, PointDescription pm, String fname, AbsTime start, AbsTime end)
+  private void loadFile(Vector<PointData> res, PointDescription pm, String fname, AbsTime start, AbsTime end, boolean truncate)
   {
     try {
       // If the file's compressed we need to decompress it first
@@ -672,11 +673,15 @@ public class PointArchiverASCII extends PointArchiver
         if (start != null && ts.isBefore(start)) {
           continue; // Data's too early
         }
-        if (num>MAXNUMRECORDS || (end != null && ts.isAfter(end))) {
+        if (res.size()>=MAXNUMRECORDS || (end != null && ts.isAfter(end))) {
           break; // No more useful data in this file
         }
         res.add(pd);
-        num++;
+        
+        num++;        
+        if (truncate && res.size()>=MAXNUMRECORDS) {
+          break;
+        }
       }
       reader.close();
 

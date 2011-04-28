@@ -47,6 +47,12 @@ public abstract class PointArchiver extends Thread
   {
     return theirArchiver;
   }
+  
+  /** Get the maximum number of records that should be returned to a single archive query. */
+  public int getMaxNumRecords()
+  {
+    return MAXNUMRECORDS;
+  }
 
   /** Data which has not yet been written out. */
   protected Hashtable<PointDescription, Vector<PointData>> itsBuffer = new Hashtable<PointDescription, Vector<PointData>>();
