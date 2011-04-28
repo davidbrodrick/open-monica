@@ -157,15 +157,9 @@ public class PointBuffer
       // if the archive retrieval is complete, then we may need to append
       // the updates still buffered in memory.
 
-      // Check if the archive retrieval was complete by checking if the
-      // datum which follows the last record is also within our time
-      // range.
-      AbsTime lasttime = ((PointData) (arcdata.get(arcdata.size() - 1))).getTimestamp();
-      PointData following = arc.getFollowing(pm, lasttime.add(RelTime.factory(1)));
-      if (following != null && following.getTimestamp().isBeforeOrEquals(end_time)) {
-        // The following data should have been included, therefore we must have
-        // hit the limit. That means we don't wish to append data from the
-        // buffer
+      // If the result has been clipped at the maximum size then assume 
+      // it is incomplete.
+      if (arcdata.size()>=arc.getMaxNumRecords()) {
         mergebuffer = false;
       }
     }
