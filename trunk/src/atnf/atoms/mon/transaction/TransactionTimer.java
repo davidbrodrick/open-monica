@@ -95,7 +95,6 @@ public class TransactionTimer extends Transaction implements ActionListener {
   /** Fire an update to our parent point when the timer expires. */
   public void actionPerformed(java.awt.event.ActionEvent e) {
     PointEvent evt = new PointEvent(this, new PointData(itsParent.getFullName(), itsValue), true);
-    System.err.println(evt.getPointData());
     itsParent.firePointEvent(evt);
   }
 }
