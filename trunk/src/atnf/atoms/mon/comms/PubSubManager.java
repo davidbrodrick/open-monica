@@ -101,9 +101,15 @@ public class PubSubManager {
       PointData[] lastdata = new PointData[itsPointNames.length];
       for (int i = 0; i < itsPointNames.length; i++) {
         lastdata[i] = PointBuffer.getPointData(itsPointNames[i]);
+        // Can't handle null's in Ice so map points with no values to null values
+        if (lastdata[i]==null) {
+          lastdata[i] = new PointData(itsPointNames[i]);
+        }
       }
+      
       // Publish the last data values
       PointDataIce[] lastdataice = MoniCAIceUtil.getPointDataAsIce(lastdata);
+      
       itsClient.updateData(lastdataice);
 
       // Subscribe to updates from each point
