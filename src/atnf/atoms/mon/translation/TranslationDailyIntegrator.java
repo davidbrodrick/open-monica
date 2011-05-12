@@ -65,27 +65,24 @@ public class TranslationDailyIntegrator extends Translation {
     super(parent, init);
 
     if (init.length < 2) {
-      System.err.println("TranslationDailyIntegrator: " + parent.getFullName() + ": NEED TWO OR THREE INIT ARGUMENTS!");
+      throw new IllegalArgumentException("TranslationDailyIntegrator (" + parent.getFullName() + ") Insufficient Arguments Provided");
     } else {
       // First argument is time
       int colon = init[0].indexOf(":");
       if (colon == -1 || init[0].length() > 5) {
-        System.err.println("TranslationDailyIntegrator: " + parent.getFullName()
-            + ": NEED TIME IN HH:MM 24-HOUR FORMAT!");
+        throw new IllegalArgumentException("TranslationDailyIntegrator (" + parent.getFullName() + ") Need time in HH:MM 24-hour format");
       } else {
         try {
           itsHour = Integer.parseInt(init[0].substring(0, colon));
           itsMinute = Integer.parseInt(init[0].substring(colon + 1, init[0].length()));
         } catch (Exception e) {
-          System.err.println("TranslationDailyIntegrator: " + parent.getFullName()
-              + ": NEED TIME IN HH:MM 24-HOUR FORMAT!");
+          throw new IllegalArgumentException("TranslationDailyIntegrator (" + parent.getFullName() + ") Need time in HH:MM 24-hour format");
         }
       }
       // TimeZone is second argument
       itsTZ = TimeZone.getTimeZone(init[1]);
       if (itsTZ == null) {
-        System.err.println("TranslationDailyIntegrator: " + parent.getFullName() + ": UNKNOWN TIMEZONE \"" + init[1]
-            + "\"");
+        throw new IllegalArgumentException("TranslationDailyIntegrator (" + parent.getFullName() + ") Unknown TimeZone \"" + init[1] + "\"");
       }
       // Check for the optional 'reload last value at startup' argument
       if (init.length == 3 && init[2].equalsIgnoreCase("true")) {
@@ -134,8 +131,7 @@ public class TranslationDailyIntegrator extends Translation {
     // Check if it is time to reset the integrator
     Calendar c = Calendar.getInstance(itsTZ);
     if (c.get(Calendar.DAY_OF_YEAR) != itsLastReset
-        && (c.get(Calendar.HOUR_OF_DAY) > itsHour || c.get(Calendar.HOUR_OF_DAY) == itsHour
-            && c.get(Calendar.MINUTE) >= itsMinute)) {
+        && (c.get(Calendar.HOUR_OF_DAY) > itsHour || c.get(Calendar.HOUR_OF_DAY) == itsHour && c.get(Calendar.MINUTE) >= itsMinute)) {
       // Yep, we need to reset. This lastest update counts towards new sum
       itsLastReset = c.get(Calendar.DAY_OF_YEAR);
       itsSum = thisvalue;

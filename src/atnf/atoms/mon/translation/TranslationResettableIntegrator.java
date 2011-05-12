@@ -9,10 +9,10 @@
 
 package atnf.atoms.mon.translation;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import org.apache.log4j.Logger;
 
-import javax.swing.Timer;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.MonitorUtils;
@@ -38,7 +38,7 @@ import atnf.atoms.time.AbsTime;
  * 
  * @author David Brodrick
  */
-public class TranslationResettableIntegrator extends Translation implements PointListener, ActionListener {
+public class TranslationResettableIntegrator extends Translation implements PointListener {
   /** The accumulated input. */
   protected double itsSum = 0.0;
 
@@ -57,11 +57,16 @@ public class TranslationResettableIntegrator extends Translation implements Poin
   /** Do we need to load our last value from the archive, on system startup. */
   protected boolean itsGetArchive = false;
 
+  /** Timer used to subscribe to listened-to points. */
+  protected static Timer theirTimer = new Timer();
+
+  /** Logger. */
+  protected Logger theirLogger = Logger.getLogger(TranslationResettableIntegrator.class.getName());
+
   public TranslationResettableIntegrator(PointDescription parent, String[] init) {
     super(parent, init);
-    if (init == null || init.length < 1) {
-      System.err.println("TranslationResettableIntegrator: NO ARGUMENTS: for " + parent.getFullName());
-      return;
+    if (init.length < 1) {
+      throw new IllegalArgumentException("TranslationResettableIntegrator (" + itsParent.getFullName() + ") - require at least one argument");
     }
 
     itsPointName = init[0];
@@ -75,9 +80,8 @@ public class TranslationResettableIntegrator extends Translation implements Poin
       itsGetArchive = true;
     }
 
-    // Start the timer which subscribes us to updates from the points
-    itsTimer = new Timer(100, this);
-    itsTimer.start();
+    // Start the timer which subscribes us to updates from the point
+    theirTimer.schedule(new SubscriptionTask(), 500, 500);
   }
 
   /** Calculate the current value of the integral. */
@@ -107,7 +111,7 @@ public class TranslationResettableIntegrator extends Translation implements Poin
       if (data.getData() instanceof Number) {
         itsSum += ((Number) (data.getData())).doubleValue();
       } else {
-        System.err.println("TranslationResettableIntegrator: " + itsParent.getFullName() + ": REQUIRES NUMERIC INPUT!");
+        theirLogger.warn("(" + itsParent.getFullName() + ": Listened-to point " + itsPointName + " must have Boolean or Numeric values");
       }
     }
 
@@ -133,8 +137,7 @@ public class TranslationResettableIntegrator extends Translation implements Poin
         newvalue = new Boolean(true);
       }
     } else {
-      System.err.println("TranslationResettableIntegrator (" + itsParent.getFullName() + ": Listened-to point "
-          + itsPointName + " MUST HAVE BOOLEAN OR NUMERIC VALUES");
+      theirLogger.warn("(" + itsParent.getFullName() + ": Listened-to point " + itsPointName + " must have Boolean or Numeric values");
     }
 
     if (newvalue != null) {
@@ -147,18 +150,16 @@ public class TranslationResettableIntegrator extends Translation implements Poin
     }
   }
 
-  /** Only used to subscribe to monitor point updates via timer. */
-  public void actionPerformed(ActionEvent evt) {
-    if (evt.getSource() == itsTimer) {
+  /** TimerTask used to subscribe to monitor point updates via timer. */
+  private class SubscriptionTask extends TimerTask {
+    public void run() {
       PointDescription pd = PointDescription.getPoint(itsPointName);
-      if (pd == null) {
+      if (pd == null && PointDescription.getPointsCreated()) {
         // Still couldn't find the point, perhaps it doesn't exist?!
-        System.err.println("WARNING: TranslationResettableIntegrator (" + itsParent.getFullName()
-            + "): LISTENED-TO POINT " + itsPointName + " DOESN'T EXIST?!");
-      } else {
-        pd.addPointListener(this);
-        itsTimer.stop();
-        itsTimer = null;
+        theirLogger.warn("(" + itsParent.getFullName() + ") listened-to point " + itsPointName + " was not found");
+      } else if (pd != null) {
+        pd.addPointListener(TranslationResettableIntegrator.this);
+        cancel();
       }
     }
   }

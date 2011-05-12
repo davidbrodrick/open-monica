@@ -25,9 +25,6 @@ import atnf.atoms.time.AbsTime;
  * @version $Id: TranslationLimitCheck.java,v 1.3 2005/10/18 03:37:53 bro764 Exp bro764 $
  */
 public class TranslationLimitCheck extends Translation {
-  protected static String itsArgs[] = new String[] { "Translation limit check", "foo", "okay string", "ok string", "fail string",
-      "fail string", "point name 1", "point name 1" };
-
   /** String to use as output when all points are okay. */
   protected String itsOutput1 = null;
 
@@ -111,9 +108,5 @@ public class TranslationLimitCheck extends Translation {
       }
     }
     return res;
-  }
-
-  public static String[] getArgs() {
-    return itsArgs;
   }
 }

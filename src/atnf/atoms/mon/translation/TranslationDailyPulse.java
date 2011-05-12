@@ -9,16 +9,12 @@
 
 package atnf.atoms.mon.translation;
 
-import java.awt.event.ActionEvent;
-import javax.swing.Timer;
-import java.awt.event.ActionListener;
-
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import atnf.atoms.mon.PointData;
-import atnf.atoms.mon.PointDescription;
-import atnf.atoms.mon.PointEvent;
+import atnf.atoms.mon.*;
 import atnf.atoms.time.AbsTime;
 
 /**
@@ -33,10 +29,12 @@ import atnf.atoms.time.AbsTime;
  * 
  * @author David Brodrick
  */
-public class TranslationDailyPulse extends Translation implements
-    ActionListener {
-  /** Timer used to trigger processing. */
-  protected Timer itsProcessTimer = null;
+public class TranslationDailyPulse extends Translation {
+  /**
+   * Timer used to trigger processing. TODO: Using a single static instance has
+   * limited scaling potential. What would a better scheme be?
+   */
+  protected static Timer theirProcessTimer = new Timer();
 
   /** The hour to reset. */
   protected int itsHour = 0;
@@ -54,35 +52,31 @@ public class TranslationDailyPulse extends Translation implements
     super(parent, init);
 
     if (init.length != 2) {
-      System.err.println("TranslationDailyPulse: " + parent.getName()
-          + ": NEED TWO INIT ARGUMENTS!");
+      System.err.println("TranslationDailyPulse: " + parent.getName() + ": NEED TWO INIT ARGUMENTS!");
     } else {
       // First argument is time
       int colon = init[0].indexOf(":");
       if (colon == -1 || init[0].length() > 5) {
-        System.err.println("TranslationDailyPulse: " + parent.getName()
-            + ": NEED TIME IN HH:MM 24-HOUR FORMAT!");
+        System.err.println("TranslationDailyPulse: " + parent.getName() + ": NEED TIME IN HH:MM 24-HOUR FORMAT!");
       } else {
         try {
           itsHour = Integer.parseInt(init[0].substring(0, colon));
-          itsMinute = Integer.parseInt(init[0].substring(colon + 1, init[0]
-              .length()));
+          itsMinute = Integer.parseInt(init[0].substring(colon + 1, init[0].length()));
         } catch (Exception e) {
-          System.err.println("TranslationDailyPulse: " + parent.getName()
-              + ": NEED TIME IN HH:MM 24-HOUR FORMAT!");
+          System.err.println("TranslationDailyPulse: " + parent.getName() + ": NEED TIME IN HH:MM 24-HOUR FORMAT!");
         }
       }
       // TimeZone is second argument
       itsTZ = TimeZone.getTimeZone(init[1]);
       if (itsTZ == null) {
-        System.err.println("TranslationDailyPulse: " + parent.getName()
-            + ": UNKNOWN TIMEZONE \"" + init[1] + "\"");
+        System.err.println("TranslationDailyPulse: " + parent.getName() + ": UNKNOWN TIMEZONE \"" + init[1] + "\"");
       }
     }
 
     // Start the timer
-    itsProcessTimer = new Timer((int) (parent.getPeriod() / 1000), this);
-    itsProcessTimer.start();
+    // Parent's update interval in ms
+    long period = (long) (parent.getPeriod() / 1000);
+    theirProcessTimer.schedule(new PeriodicTickTask(), period, period);
   }
 
   /** Just returns the input (which is created by us) */
@@ -91,15 +85,13 @@ public class TranslationDailyPulse extends Translation implements
   }
 
   /** Called when timer expires. */
-  public void actionPerformed(ActionEvent evt) {
-    if (evt.getSource() == itsProcessTimer) {
+  private class PeriodicTickTask extends TimerTask {
+    public void run() {
       Boolean val;
 
       // Check if it is time for the pulse
       Calendar c = Calendar.getInstance(itsTZ);
-      if (c.get(Calendar.DAY_OF_YEAR) != itsLastPulseDay
-          && (c.get(Calendar.HOUR_OF_DAY) == itsHour
-          && c.get(Calendar.MINUTE) == itsMinute)) {
+      if (c.get(Calendar.DAY_OF_YEAR) != itsLastPulseDay && (c.get(Calendar.HOUR_OF_DAY) == itsHour && c.get(Calendar.MINUTE) == itsMinute)) {
         // Yep, time for the pulse
         itsLastPulseDay = c.get(Calendar.DAY_OF_YEAR);
         val = new Boolean(true);

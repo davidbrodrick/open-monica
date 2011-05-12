@@ -9,8 +9,10 @@
 
 package atnf.atoms.mon.translation;
 
-import java.awt.event.ActionEvent;
-import javax.swing.Timer;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import org.apache.log4j.Logger;
 
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
@@ -25,31 +27,31 @@ import atnf.atoms.util.Angle;
  * 
  * @author David Brodrick
  */
-public class TranslationCalculationTimed extends TranslationCalculation
-{
-  /** Timer used to trigger processing. */
-  protected Timer itsProcessTimer = null;
+public class TranslationCalculationTimed extends TranslationCalculation {
+  /**
+   * Timer used to trigger processing. TODO: Using a single static instance has
+   * limited scaling potential. What would a better scheme be?
+   */
+  protected static Timer theirProcessTimer = new Timer();
 
-  public TranslationCalculationTimed(PointDescription parent, String[] init)
-  {
+  public TranslationCalculationTimed(PointDescription parent, String[] init) {
     super(parent, init);
 
-    itsProcessTimer = new Timer((int) (parent.getPeriod() / 1000), this);
-    itsProcessTimer.start();
+    // Parent's update interval in ms
+    long period = (long) (parent.getPeriod() / 1000);
+    theirProcessTimer.schedule(new CalcTask(), period, period);
   }
 
   /**
    * Always returns false because we base trigger off timer, not off listened-to
    * points.
    */
-  protected boolean matchData()
-  {
+  protected boolean matchData() {
     return false;
   }
 
   /** Provide the current input values to the expression parser. */
-  protected Object doCalculations()
-  {
+  protected Object doCalculations() {
     Object res = null;
     boolean missingdata = false;
 
@@ -80,17 +82,16 @@ public class TranslationCalculationTimed extends TranslationCalculation
 
       // Check for parse error
       if (itsParser.hasError()) {
-        System.err.println("TranslationCalculator(" + itsParent.getFullName() + ": " + itsParser.getErrorInfo());
+        Logger logger = Logger.getLogger(this.getClass().getName());
+        logger.debug("TranslationCalculationTimed (" + itsParent.getFullName() + ") " + itsParser.getErrorInfo());
       }
     }
     return res;
   }
 
   /** Called when timer expires. */
-  public void actionPerformed(ActionEvent evt)
-  {
-    super.actionPerformed(evt);
-    if (evt.getSource() == itsProcessTimer) {
+  private class CalcTask extends TimerTask {
+    public void run() {
       // It's time to perform the calculation and fire an update of the point
       Object resval = doCalculations();
       PointData res = new PointData(itsParent.getFullName(), new AbsTime(), resval);
