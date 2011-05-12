@@ -7,13 +7,11 @@
 
 package atnf.atoms.mon.transaction;
 
-import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
-import atnf.atoms.time.*;
-import java.awt.event.*;
-import javax.swing.Timer;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import org.apache.log4j.Logger;
+import atnf.atoms.mon.*;
+import atnf.atoms.time.*;
 
 /**
  * Provides a periodic fixed-value input to the parent point.
@@ -34,9 +32,12 @@ import org.apache.log4j.Logger;
  * 
  * @author David Brodrick
  */
-public class TransactionTimer extends Transaction implements ActionListener {
-  /** Timer. */
-  protected Timer itsTimer;
+public class TransactionTimer extends Transaction {
+  /**
+   * Timer used to trigger processing. TODO: Using a single static instance has
+   * limited scaling potential. What would a better scheme be?
+   */
+  protected static Timer theirProcessTimer = new Timer();
 
   /** The data value to be fired. */
   protected Object itsValue;
@@ -85,16 +86,14 @@ public class TransactionTimer extends Transaction implements ActionListener {
       throw new IllegalArgumentException("Unable to parse data value");
     }
 
-    // Start timer
-    if (itsTimer == null) {
-      itsTimer = new Timer(period, this);
-      itsTimer.start();
-    }
+    theirProcessTimer.schedule(new UpdateTask(), period, period);
   }
 
   /** Fire an update to our parent point when the timer expires. */
-  public void actionPerformed(java.awt.event.ActionEvent e) {
-    PointEvent evt = new PointEvent(this, new PointData(itsParent.getFullName(), itsValue), true);
-    itsParent.firePointEvent(evt);
+  private class UpdateTask extends TimerTask {
+    public void run() {
+      PointEvent evt = new PointEvent(this, new PointData(itsParent.getFullName(), itsValue), true);
+      itsParent.firePointEvent(evt);
+    }
   }
 }

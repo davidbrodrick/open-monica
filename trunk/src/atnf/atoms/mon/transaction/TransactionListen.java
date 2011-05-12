@@ -7,66 +7,58 @@
 
 package atnf.atoms.mon.transaction;
 
+import org.apache.log4j.Logger;
+
+import java.util.Timer;
+import java.util.TimerTask;
+
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
-import java.awt.event.*;
-import javax.swing.Timer;
-
-import org.apache.log4j.Logger;
 
 /**
  * 
  * @author David Brodrick
  */
-public class TransactionListen extends Transaction implements PointListener, ActionListener
-{
+public class TransactionListen extends Transaction implements PointListener {
+  /** The number of points we are listening to. */
+  protected int itsNumPoints;
+
   /** Reference to each of the monitor points we listen to. */
   protected PointDescription[] itsPoints = null;
 
   /** The names of the monitor points we need to listen to. */
   protected String[] itsNames = null;
 
-  /** Timer used when listened-to points haven't been created yet. */
-  protected Timer itsTimer = null;
+  /** Timer used to subscribe to listened-to points. */
+  protected static Timer theirTimer = new Timer();
 
-  public TransactionListen(PointDescription parent, String[] args)
-  {
+  public TransactionListen(PointDescription parent, String[] args) {
     super(parent, args);
 
     setChannel("NONE"); // Set the channel type
 
     if (args == null || args.length < 1) {
       throw new IllegalArgumentException("Requires one or more point-name arguments");
-    } else {
-      // We got some arguments, so try to make use of them
-      itsNames = args;
-      itsPoints = new PointDescription[args.length];
-      for (int i = 0; i < args.length; i++) {
-        // If the point has $1 source name macro, then expand it
-        if (args[i].indexOf("$1") > -1) {
-          args[i] = MonitorUtils.replaceTok(args[i], itsParent.getSource());
-        }
+    }
 
-        // Check that the point exists for the named source
-        itsPoints[i] = PointDescription.getPoint(args[i]);
-        if (itsPoints[i] == null) {
-          // Either point name is wrong or point hasn't been created yet
-          // Start timer which will try again shortly
-          if (itsTimer == null) {
-            itsTimer = new Timer(100, this);
-            itsTimer.start();
-          }
-        } else {
-          // Point already exists, we can subscribe to it now
-          itsPoints[i].addPointListener(this);
-        }
+    // We got some arguments, so try to make use of them
+    itsNumPoints = args.length;
+    itsNames = args;
+    itsPoints = new PointDescription[itsNumPoints];
+
+    for (int i = 0; i < itsNumPoints; i++) {
+      // If the point has $1 source name macro, then expand it
+      if (itsNames[i].indexOf("$1") > -1) {
+        itsNames[i] = MonitorUtils.replaceTok(itsNames[i], itsParent.getSource());
       }
     }
+
+    // Start the timer which subscribes us to updates from the points
+    theirTimer.schedule(new SubscriptionTask(), 500, 500);
   }
 
   /** Called when a listened-to point updates. */
-  public void onPointEvent(Object source, PointEvent evt)
-  {
+  public void onPointEvent(Object source, PointEvent evt) {
     // Need to repack the data into a new event object
     PointData pd = evt.getPointData();
     // Check that there's data.. ?
@@ -79,30 +71,32 @@ public class TransactionListen extends Transaction implements PointListener, Act
     itsParent.firePointEvent(evt2);
   }
 
-  /** Only used to subscribe to main monitor point via timer. */
-  public void actionPerformed(java.awt.event.ActionEvent evt)
-  {
-    boolean stillmissing = false;
-    // Try to fill out any point names that are still missing
-    for (int i = 0; i < itsPoints.length; i++) {
-      if (itsPoints[i] == null) {
-        itsPoints[i] = PointDescription.getPoint(itsNames[i]);
-        if (itsPoints[i] == null && PointDescription.getPointsCreated()) {
-          // Still couldn't find the point, perhaps it doesn't exist?!
-          stillmissing = true;
-          Logger logger = Logger.getLogger(this.getClass().getName());
-          logger.warn("(" + itsParent.getFullName() + ") listened-to point " + itsNames[i] + " was not found");
-        } else {
-          itsPoints[i].addPointListener(this);
+  /** TimerTask used to subscribe to monitor point updates via timer. */
+  private class SubscriptionTask extends TimerTask {
+    public void run() {
+      boolean stillmissing = false;
+
+      // Try to find any points that are still missing
+      for (int i = 0; i < itsNumPoints; i++) {
+        if (itsPoints[i] == null) {
+          itsPoints[i] = PointDescription.getPoint(itsNames[i]);
+          if (itsPoints[i] == null) {
+            stillmissing = true;
+            if (PointDescription.getPointsCreated()) {
+              // All points should have been created by now
+              Logger logger = Logger.getLogger(this.getClass().getName());
+              logger.warn("(" + itsParent.getFullName() + ") listened-to point " + itsNames[i] + " was not found");
+            }
+          } else {
+            itsPoints[i].addPointListener(TransactionListen.this);
+          }
         }
       }
-    }
 
-    if (!stillmissing) {
-      // All points now found and all subscriptions complete
-      itsTimer.stop();
-      itsTimer = null;
+      if (!stillmissing) {
+        // All points now found and all subscriptions complete
+        cancel();
+      }
     }
   }
-
 }
