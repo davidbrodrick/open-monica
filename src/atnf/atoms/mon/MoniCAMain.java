@@ -150,6 +150,9 @@ public class MoniCAMain {
 
     public static void main(String[] argv)
     {
+      //java.util.logging.Logger.getLogger(java.util.logging.Logger.GLOBAL_LOGGER_NAME).addHandler(new JuliToLog4JHandler());
+      java.util.logging.Logger.global.addHandler(new JuliToLog4JHandler());
+      
         // Start the system
         if (MoniCAMain.start()) {
             // Open the network server interfaces
