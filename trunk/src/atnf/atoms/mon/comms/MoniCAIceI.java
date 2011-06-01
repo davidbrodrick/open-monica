@@ -337,7 +337,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     {
       Ice.Communicator ic = null;
       try {
-        // Need to create a new adapter
+        // Need to create a new adapter      
         ic = Ice.Util.initialize();
         itsAdapter = ic.createObjectAdapterWithEndpoints("MoniCAIceAdapter", "tcp -p " + itsPort);
         Ice.Object object = new MoniCAIceI();

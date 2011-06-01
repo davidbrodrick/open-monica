@@ -618,7 +618,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
    */
   public int getMaxBufferSize()
   {
-    return 50;
+    return 1;
   }
 
   /**
@@ -884,14 +884,16 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
             // operation
             ExternalSystem ds = ExternalSystem.getExternalSystem(thistrans.getChannel());
             if (ds == null) {
-              theirLogger
-                      .warn("(" + getFullName() + ") No ExternalSystem for output Transaction channel " + thistrans.getChannel());
+              theirLogger.warn("(" + getFullName() + ") No ExternalSystem for output Transaction channel " + thistrans.getChannel());
+            } else if (!ds.isConnected()) {
+              // Could connect here but might block for too long?
+              theirLogger.warn("(" + getFullName() + ") While writing output data: ExternalSystem " + thistrans.getChannel() + " is not connected");
             } else {
               try {
                 ds.putData(this, data);
               } catch (Exception e) {
                 theirLogger.warn("(" + getFullName() + ") while writing output data, ExternalSystem " + ds.getName()
-                        + " threw exception \"" + e);
+                        + " threw exception \"" + e + "\"");
               }
             }
           }
