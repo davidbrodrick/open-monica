@@ -13,65 +13,70 @@ import atnf.atoms.time.*;
 import atnf.atoms.mon.archiver.PointArchiver;
 
 /**
- * Maintains a buffer of PointData, and makes them available to processes which
- * require them.
+ * Maintains a buffer of PointData, and makes them available to processes which require them.
  * 
  * @author Le Cuong Nguyen
  * @author David Brodrick
  * @version $Id: PointBuffer.java,v 1.5 2008/12/18 00:47:02 bro764 Exp bro764 $
  */
-public class PointBuffer
-{
+public class PointBuffer {
   /** Stores Vectors of past data. Keyed by PointMonitors */
-  protected static Hashtable<PointDescription, Vector<PointData>> bufferTable = new Hashtable<PointDescription, Vector<PointData>>();
+  protected static Hashtable<PointDescription, Vector<PointData>> theirBufferTable = new Hashtable<PointDescription, Vector<PointData>>();
 
   /** Allocate buffer storage space for the new monitor point. */
-  private static void newPoint(PointDescription pm)
-  {
-    synchronized (bufferTable) {
+  private static void newPoint(PointDescription pm) {
+    synchronized (theirBufferTable) {
       // Add new key/storage to the hash
-      bufferTable.put(pm, new Vector<PointData>(pm.getMaxBufferSize() + 1));
+      theirBufferTable.put(pm, new Vector<PointData>(pm.getMaxBufferSize() + 1));
       // Wake any waiting threads
-      bufferTable.notifyAll();
+      theirBufferTable.notifyAll();
     }
   }
 
   /**
    * Add new data to the buffer for the given point.
-   * @param pm The point to add the new data for.
-   * @param data The new data for the given point.
+   * 
+   * @param pm
+   *          The point to add the new data for.
+   * @param data
+   *          The new data for the given point.
    */
-  public static void updateData(PointDescription pm, PointData data)
-  {
+  public static void updateData(PointDescription pm, PointData data) {
     if (data != null) {
-      synchronized (bufferTable) {
-        Vector<PointData> buf = bufferTable.get(pm);
-        if (buf == null) {
-          // New point, add it to the table
-          newPoint(pm);
-          buf = bufferTable.get(pm);
+      Vector<PointData> thisbuf = theirBufferTable.get(pm);
+      if (thisbuf == null) {
+        synchronized (theirBufferTable) {
+          // Lock buffer and try again or create if need be
+          thisbuf = theirBufferTable.get(pm);
+          if (thisbuf == null) {
+            // New point, add it to the table
+            newPoint(pm);
+            thisbuf = theirBufferTable.get(pm);
+          }
         }
 
-        // Ensure the buffer hasn't grown too large
-        while (buf.size() > pm.getMaxBufferSize()) {
-          buf.remove(0);
-        }
+        synchronized (thisbuf) {
+          // Ensure the buffer hasn't grown too large
+          while (thisbuf.size() > pm.getMaxBufferSize()) {
+            thisbuf.remove(0);
+          }
 
-        // Add the new data to the buffer
-        buf.add(data);
-        bufferTable.notifyAll();
+          // Add the new data to the buffer
+          thisbuf.add(data);
+          //bufferTable.notifyAll();
+        }
       }
     }
   }
 
   /**
    * Return the latest data for the specified point.
-   * @param point Source/name of the monitor point to retrieve. This is expected
-   * to be in the format <tt>source.name</tt>.
+   * 
+   * @param point
+   *          Source/name of the monitor point to retrieve. This is expected to be in the format <tt>source.name</tt>.
    * @return Latest data for the specified point.
    */
-  public static PointData getPointData(String point)
-  {
+  public static PointData getPointData(String point) {
     PointDescription pm = PointDescription.getPoint(point);
     if (pm == null) {
       return null;
@@ -81,53 +86,57 @@ public class PointBuffer
 
   /**
    * Return the latest data for the specified point/source.
-   * @param name Name of the monitor point to retrieve.
-   * @param source Source to get the data for.
+   * 
+   * @param name
+   *          Name of the monitor point to retrieve.
+   * @param source
+   *          Source to get the data for.
    * @return Latest data for the specified point.
    */
-  public static PointData getPointData(String name, String source)
-  {
+  public static PointData getPointData(String name, String source) {
     PointDescription pm = PointDescription.getPoint(source + "." + name);
     return getPointData(pm);
   }
 
   /**
    * Return the latest data for the specified point.
-   * @param pm Monitor point to get the latest data for.
+   * 
+   * @param pm
+   *          Monitor point to get the latest data for.
    * @return Latest data for the specified point.
    */
-  public static PointData getPointData(PointDescription pm)
-  {
-    synchronized (bufferTable) {
+  public static PointData getPointData(PointDescription pm) {
+    synchronized (theirBufferTable) {
       if (pm == null) {
         return null;
       }
-      Vector data = (Vector) bufferTable.get(pm);
+      Vector data = (Vector) theirBufferTable.get(pm);
       if (data == null) {
         return null;
       }
       if (data.size() < 1) {
         return null;
       }
-      return (PointData) ((Vector) bufferTable.get(pm)).lastElement();
+      return (PointData) ((Vector) theirBufferTable.get(pm)).lastElement();
     }
   }
 
   /**
-   * Return all data in the specified time range for the given point. This will
-   * access the memory buffer and/or the data archive on disk in order to gather
-   * all data between the specified times. A <tt>sample_rate</tt> parameter
-   * can be used to undersample the available data to reduce the amount of data
-   * which is returned.
-   * @param pm The point to get the data for.
-   * @param start_time The earliest time in the range of interest.
-   * @param end_time The most recent time in the range of interest.
-   * @param maxsamples The maximum number of samples to be returned.
-   * @return Vector containing all data in the specified time range.
-   * <tt>null</tt> will be returned if no data were found.
+   * Return all data in the specified time range for the given point. This will access the memory buffer and/or the data archive on
+   * disk in order to gather all data between the specified times. A <tt>sample_rate</tt> parameter can be used to undersample the
+   * available data to reduce the amount of data which is returned.
+   * 
+   * @param pm
+   *          The point to get the data for.
+   * @param start_time
+   *          The earliest time in the range of interest.
+   * @param end_time
+   *          The most recent time in the range of interest.
+   * @param maxsamples
+   *          The maximum number of samples to be returned.
+   * @return Vector containing all data in the specified time range. <tt>null</tt> will be returned if no data were found.
    */
-  public static Vector<PointData> getPointData(PointDescription pm, AbsTime start_time, AbsTime end_time, int maxsamples)
-  {
+  public static Vector<PointData> getPointData(PointDescription pm, AbsTime start_time, AbsTime end_time, int maxsamples) {
     // If all data is in memory buffer then return it from there
     if (isAfterOrEqualsFirstData(pm, start_time)) {
       return getPointDataBuffer(pm, start_time, end_time);
@@ -157,9 +166,9 @@ public class PointBuffer
       // if the archive retrieval is complete, then we may need to append
       // the updates still buffered in memory.
 
-      // If the result has been clipped at the maximum size then assume 
+      // If the result has been clipped at the maximum size then assume
       // it is incomplete.
-      if (arcdata.size()>=arc.getMaxNumRecords()) {
+      if (arcdata.size() >= arc.getMaxNumRecords()) {
         mergebuffer = false;
       }
     }
@@ -213,22 +222,22 @@ public class PointBuffer
   }
 
   /**
-   * Return all data in the specified time range for the given point. This will
-   * access the memory buffer and/or the data archive on disk in order to gather
-   * all data between the specified times. A <tt>sample_rate</tt> parameter
-   * can be used to undersample the available data to reduce the amount of data
-   * which is returned.
-   * @param point Source and point name to get the data for. This must be in the
-   * format <tt>source.pointname</tt>.
-   * @param start_time The earliest time in the range of interest.
-   * @param end_time The most recent time in the range of interest.
-   * @param sample_rate Not yet sure how it works...
-   * @return Vector containing all data in the specified time range.
-   * <tt>null</tt> will be returned if no data were found or if the
-   * source/point name were invalid.
+   * Return all data in the specified time range for the given point. This will access the memory buffer and/or the data archive on
+   * disk in order to gather all data between the specified times. A <tt>sample_rate</tt> parameter can be used to undersample the
+   * available data to reduce the amount of data which is returned.
+   * 
+   * @param point
+   *          Source and point name to get the data for. This must be in the format <tt>source.pointname</tt>.
+   * @param start_time
+   *          The earliest time in the range of interest.
+   * @param end_time
+   *          The most recent time in the range of interest.
+   * @param sample_rate
+   *          Not yet sure how it works...
+   * @return Vector containing all data in the specified time range. <tt>null</tt> will be returned if no data were found or if the
+   *         source/point name were invalid.
    */
-  public static Vector<PointData> getPointData(String point, AbsTime start, AbsTime end, int sample_rate)
-  {
+  public static Vector<PointData> getPointData(String point, AbsTime start, AbsTime end, int sample_rate) {
     // Try to get the specified point and check if it was found
     PointDescription pm = PointDescription.getPoint(point);
     if (pm == null) {
@@ -240,12 +249,14 @@ public class PointBuffer
 
   /**
    * Return the last record who's timestamp is <= the timestamp argument.
-   * @param point Monitor point to request data for.
-   * @param timestamp Get data before or equalling this time.
+   * 
+   * @param point
+   *          Monitor point to request data for.
+   * @param timestamp
+   *          Get data before or equalling this time.
    * @return The data, or null if no record was found.
    */
-  public static PointData getPreceding(String point, AbsTime timestamp)
-  {
+  public static PointData getPreceding(String point, AbsTime timestamp) {
     // Try to get the specified point and check if it was found
     PointDescription pm = PointDescription.getPoint(point);
     if (pm == null) {
@@ -255,8 +266,8 @@ public class PointBuffer
     PointData res = null;
 
     // Check if the requested data is still in our memory buffer
-    synchronized (bufferTable) {
-      Vector bufferdata = bufferTable.get(pm);
+    synchronized (theirBufferTable) {
+      Vector bufferdata = theirBufferTable.get(pm);
 
       if (bufferdata != null && bufferdata.size() > 1 && ((PointData) bufferdata.get(0)).getTimestamp().isBeforeOrEquals(timestamp)) {
         // That which we seek is buffered
@@ -284,12 +295,14 @@ public class PointBuffer
 
   /**
    * Return the last record who's timestamp is >= the timestamp argument.
-   * @param point Monitor point to request data for.
-   * @param timestamp Get data after or equalling this time.
+   * 
+   * @param point
+   *          Monitor point to request data for.
+   * @param timestamp
+   *          Get data after or equalling this time.
    * @return The data, or null if no record was found.
    */
-  public static PointData getFollowing(String point, AbsTime timestamp)
-  {
+  public static PointData getFollowing(String point, AbsTime timestamp) {
     // Try to get the specified point and check if it was found
     PointDescription pm = PointDescription.getPoint(point);
     if (pm == null) {
@@ -300,8 +313,8 @@ public class PointBuffer
     PointData temp = null;
 
     // Check if the requested data is still in our memory buffer
-    synchronized (bufferTable) {
-      Vector bufferdata = bufferTable.get(pm);
+    synchronized (theirBufferTable) {
+      Vector bufferdata = theirBufferTable.get(pm);
       if (bufferdata != null && bufferdata.size() > 0) {
         if (((PointData) bufferdata.get(0)).getTimestamp().isBeforeOrEquals(timestamp)) {
           // That which we seek is certainly in the buffer
@@ -338,17 +351,17 @@ public class PointBuffer
   }
 
   /**
-   * Check if the specified timestamp is after or equal to to the most recent
-   * data in the buffer for the specified point.
-   * @param pm The point to check.
-   * @param time The timestamp to be checked against the buffer.
-   * @return True if the timestamp is equal to or after the most recent buffered
-   * data, False otherwise.
+   * Check if the specified timestamp is after or equal to to the most recent data in the buffer for the specified point.
+   * 
+   * @param pm
+   *          The point to check.
+   * @param time
+   *          The timestamp to be checked against the buffer.
+   * @return True if the timestamp is equal to or after the most recent buffered data, False otherwise.
    */
-  private static boolean isAfterOrEqualsLastData(PointDescription pm, AbsTime time)
-  {
-    synchronized (bufferTable) {
-      Vector<PointData> data = bufferTable.get(pm);
+  private static boolean isAfterOrEqualsLastData(PointDescription pm, AbsTime time) {
+    synchronized (theirBufferTable) {
+      Vector<PointData> data = theirBufferTable.get(pm);
       if (data == null) {
         return false;
       }
@@ -364,17 +377,17 @@ public class PointBuffer
   }
 
   /**
-   * Check if the specified timestamp is after or equal to the oldest data in
-   * the buffer for the specified point.
-   * @param pm The point to check.
-   * @param time The timestamp to be checked against the buffer.
-   * @return True if the timestamp is equal to or more recent than the oldest
-   * buffered data, False otherwise.
+   * Check if the specified timestamp is after or equal to the oldest data in the buffer for the specified point.
+   * 
+   * @param pm
+   *          The point to check.
+   * @param time
+   *          The timestamp to be checked against the buffer.
+   * @return True if the timestamp is equal to or more recent than the oldest buffered data, False otherwise.
    */
-  private static boolean isAfterOrEqualsFirstData(PointDescription pm, AbsTime time)
-  {
-    synchronized (bufferTable) {
-      Vector<PointData> data = bufferTable.get(pm);
+  private static boolean isAfterOrEqualsFirstData(PointDescription pm, AbsTime time) {
+    synchronized (theirBufferTable) {
+      Vector<PointData> data = theirBufferTable.get(pm);
       if (data == null) {
         return false;
       }
@@ -390,19 +403,20 @@ public class PointBuffer
   }
 
   /**
-   * Return data for the given point from the memory buffer between the
-   * specified times. NOTE: This data is from the memory buffer only, the disk
-   * archive is not accessed for this operation.
-   * @param pm The point to get the data for.
-   * @param start_time The earliest time in the range of interest.
-   * @param end_time The most recent time in the range of interest.
-   * @return Vector of buffer data in the given time range. <tt>null</tt> will
-   * be returned if no data were found.
+   * Return data for the given point from the memory buffer between the specified times. NOTE: This data is from the memory buffer
+   * only, the disk archive is not accessed for this operation.
+   * 
+   * @param pm
+   *          The point to get the data for.
+   * @param start_time
+   *          The earliest time in the range of interest.
+   * @param end_time
+   *          The most recent time in the range of interest.
+   * @return Vector of buffer data in the given time range. <tt>null</tt> will be returned if no data were found.
    */
-  private static Vector<PointData> getPointDataBuffer(PointDescription pm, AbsTime start_time, AbsTime end_time)
-  {
-    synchronized (bufferTable) {
-      Vector<PointData> data = bufferTable.get(pm);
+  private static Vector<PointData> getPointDataBuffer(PointDescription pm, AbsTime start_time, AbsTime end_time) {
+    synchronized (theirBufferTable) {
+      Vector<PointData> data = theirBufferTable.get(pm);
       if (data == null) {
         return null;
       }
