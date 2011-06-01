@@ -55,7 +55,15 @@ public class PointArchiverASCII extends PointArchiver {
    */
   protected static final int MAXAGE = 1000 * Integer.parseInt(MonitorConfig.getProperty("ArchiveMaxAge"));
 
-  ThreadPoolExecutor itsThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
+  /**
+   * Number of threads in the archive thread pool.
+   */
+  protected static final int theirNumThreads = Integer.parseInt(MonitorConfig.getProperty("ArchiveNumThreads", "1"));
+
+  /**
+   * Thread pool for archiving.
+   */
+  protected ThreadPoolExecutor itsThreadPool;
 
   /**
    * Hash of current files to write to for each point.
@@ -220,6 +228,8 @@ public class PointArchiverASCII extends PointArchiver {
   /** Constructor. */
   public PointArchiverASCII() {
     super();
+    
+    itsThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(theirNumThreads);
   }
 
   /**
