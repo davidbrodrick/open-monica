@@ -7,7 +7,10 @@
 #
 #Where:
 #name: Symbolic name of the server/site/instrument.
-#monitor.server: FQDN of the actual machine where the server is running.
+#monitor.server: FQDN of the actual machine where the server is running. Or
+                 if the server needs to be located through an IceGrid locator
+                 service the entry can take the following format:
+                   locator://host.name:port
 #secure.gateway: SSH gateway to tunnel the connection through if the
 #                server can't be contacted directly. Optional field.
 #
