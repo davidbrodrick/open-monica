@@ -71,6 +71,8 @@ public class MoniCAMain {
             theirLogger.fatal("While creating PointArchiver:" + e);
             return false;
         }
+        // Start archive thread
+        ((Thread) pa).start();
 
         // Initialise all the ExternalSystems
         InputStream exsystemsfile = MoniCAMain.class.getClassLoader().getResourceAsStream("monitor-sources.txt");
@@ -115,9 +117,6 @@ public class MoniCAMain {
 
         // Start the data collection
         ExternalSystem.startAll();
-
-        // Start archive thread
-        ((Thread) pa).start();
 
         return true;
     }
