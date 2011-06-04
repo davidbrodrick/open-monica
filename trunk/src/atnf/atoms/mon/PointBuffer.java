@@ -54,17 +54,17 @@ public class PointBuffer {
             thisbuf = theirBufferTable.get(pm);
           }
         }
+      }
 
-        synchronized (thisbuf) {
-          // Ensure the buffer hasn't grown too large
-          while (thisbuf.size() > pm.getMaxBufferSize()) {
-            thisbuf.remove(0);
-          }
-
-          // Add the new data to the buffer
-          thisbuf.add(data);
-          //bufferTable.notifyAll();
+      synchronized (thisbuf) {
+        // Ensure the buffer hasn't grown too large
+        while (thisbuf.size() > pm.getMaxBufferSize()) {
+          thisbuf.remove(0);
         }
+
+        // Add the new data to the buffer
+        thisbuf.add(data);
+        // bufferTable.notifyAll();
       }
     }
   }
@@ -81,20 +81,6 @@ public class PointBuffer {
     if (pm == null) {
       return null;
     }
-    return getPointData(pm);
-  }
-
-  /**
-   * Return the latest data for the specified point/source.
-   * 
-   * @param name
-   *          Name of the monitor point to retrieve.
-   * @param source
-   *          Source to get the data for.
-   * @return Latest data for the specified point.
-   */
-  public static PointData getPointData(String name, String source) {
-    PointDescription pm = PointDescription.getPoint(source + "." + name);
     return getPointData(pm);
   }
 
