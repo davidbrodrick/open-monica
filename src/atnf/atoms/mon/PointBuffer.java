@@ -18,11 +18,11 @@ import atnf.atoms.mon.archiver.PointArchiver;
  * Maintains a buffer of the most recent data updates for each point.
  * 
  * @author David Brodrick
- * @author Le Cuong Nguyen 
+ * @author Le Cuong Nguyen
  */
 public class PointBuffer {
   /** Stores the buffers of recently collected data for each point. */
-  private static Hashtable<PointDescription, LinkedList<PointData>> theirBufferTable = new Hashtable<PointDescription, LinkedList<PointData>>(1000,1000);
+  private static Hashtable<PointDescription, LinkedList<PointData>> theirBufferTable = new Hashtable<PointDescription, LinkedList<PointData>>(1000, 1000);
 
   /** The maximum number of records to be buffered for a single point. */
   private static int theirMaxBufferSize;
@@ -48,7 +48,7 @@ public class PointBuffer {
       theirLogger.warn("Error parsing MaxBufferAge configuration parameter: " + e);
       numsecs = 90;
     }
-    theirMaxBufferAge = RelTime.factory(numsecs*1000000);
+    theirMaxBufferAge = RelTime.factory(numsecs * 1000000);
   }
 
   /**
@@ -113,9 +113,11 @@ public class PointBuffer {
     PointData res = null;
     if (pm != null) {
       LinkedList<PointData> thisbuf = theirBufferTable.get(pm);
-      synchronized (thisbuf) {
-        if (thisbuf != null && thisbuf.size() > 0) {
-          res = thisbuf.getLast();
+      if (thisbuf != null) {
+        synchronized (thisbuf) {
+          if (!thisbuf.isEmpty()) {
+            res = thisbuf.getLast();
+          }
         }
       }
     }
