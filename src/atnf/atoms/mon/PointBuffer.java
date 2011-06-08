@@ -9,28 +9,46 @@
 package atnf.atoms.mon;
 
 import java.util.*;
+import org.apache.log4j.Logger;
 import atnf.atoms.time.*;
+import atnf.atoms.mon.util.MonitorConfig;
 import atnf.atoms.mon.archiver.PointArchiver;
 
 /**
- * Maintains a buffer of PointData, and makes them available to processes which require them.
+ * Maintains a buffer of the most recent data updates for each point.
  * 
- * @author Le Cuong Nguyen
  * @author David Brodrick
- * @version $Id: PointBuffer.java,v 1.5 2008/12/18 00:47:02 bro764 Exp bro764 $
+ * @author Le Cuong Nguyen 
  */
 public class PointBuffer {
-  /** Stores Vectors of past data. Keyed by PointMonitors */
-  protected static Hashtable<PointDescription, Vector<PointData>> theirBufferTable = new Hashtable<PointDescription, Vector<PointData>>();
+  /** Stores the buffers of recently collected data for each point. */
+  private static Hashtable<PointDescription, LinkedList<PointData>> theirBufferTable = new Hashtable<PointDescription, LinkedList<PointData>>(1000,1000);
 
-  /** Allocate buffer storage space for the new monitor point. */
-  private static void newPoint(PointDescription pm) {
-    synchronized (theirBufferTable) {
-      // Add new key/storage to the hash
-      theirBufferTable.put(pm, new Vector<PointData>(pm.getMaxBufferSize() + 1));
-      // Wake any waiting threads
-      theirBufferTable.notifyAll();
+  /** The maximum number of records to be buffered for a single point. */
+  private static int theirMaxBufferSize;
+
+  /** The maximum amount of time to buffer data for a single point. */
+  private static RelTime theirMaxBufferAge;
+
+  /** Logger. */
+  private static Logger theirLogger = Logger.getLogger(PointBuffer.class.getName());
+
+  /** Static block to parse buffer size parameters. */
+  static {
+    try {
+      theirMaxBufferSize = Integer.parseInt(MonitorConfig.getProperty("MaxBufferSize", "50"));
+    } catch (Exception e) {
+      theirLogger.warn("Error parsing MaxBufferSize configuration parameter: " + e);
+      theirMaxBufferSize = 50;
     }
+    int numsecs;
+    try {
+      numsecs = Integer.parseInt(MonitorConfig.getProperty("MaxBufferAge", "90"));
+    } catch (Exception e) {
+      theirLogger.warn("Error parsing MaxBufferAge configuration parameter: " + e);
+      numsecs = 90;
+    }
+    theirMaxBufferAge = RelTime.factory(numsecs*1000000);
   }
 
   /**
@@ -43,28 +61,28 @@ public class PointBuffer {
    */
   public static void updateData(PointDescription pm, PointData data) {
     if (data != null) {
-      Vector<PointData> thisbuf = theirBufferTable.get(pm);
+      LinkedList<PointData> thisbuf = theirBufferTable.get(pm);
       if (thisbuf == null) {
         synchronized (theirBufferTable) {
           // Lock buffer and try again or create if need be
           thisbuf = theirBufferTable.get(pm);
           if (thisbuf == null) {
             // New point, add it to the table
-            newPoint(pm);
-            thisbuf = theirBufferTable.get(pm);
+            thisbuf = new LinkedList<PointData>();
+            theirBufferTable.put(pm, thisbuf);
           }
         }
       }
 
       synchronized (thisbuf) {
-        // Ensure the buffer hasn't grown too large
-        while (thisbuf.size() > pm.getMaxBufferSize()) {
-          thisbuf.remove(0);
+        // Remove any old data from the buffer
+        AbsTime agecutoff = AbsTime.factory().add(theirMaxBufferAge.negate());
+        while (thisbuf.size() > 0 && (thisbuf.size() > theirMaxBufferSize || thisbuf.getFirst().getTimestamp().isBeforeOrEquals(agecutoff))) {
+          thisbuf.removeFirst();
         }
 
         // Add the new data to the buffer
         thisbuf.add(data);
-        // bufferTable.notifyAll();
       }
     }
   }
@@ -92,19 +110,16 @@ public class PointBuffer {
    * @return Latest data for the specified point.
    */
   public static PointData getPointData(PointDescription pm) {
-    synchronized (theirBufferTable) {
-      if (pm == null) {
-        return null;
+    PointData res = null;
+    if (pm != null) {
+      LinkedList<PointData> thisbuf = theirBufferTable.get(pm);
+      synchronized (thisbuf) {
+        if (thisbuf != null && thisbuf.size() > 0) {
+          res = thisbuf.getLast();
+        }
       }
-      Vector data = (Vector) theirBufferTable.get(pm);
-      if (data == null) {
-        return null;
-      }
-      if (data.size() < 1) {
-        return null;
-      }
-      return (PointData) ((Vector) theirBufferTable.get(pm)).lastElement();
     }
+    return res;
   }
 
   /**
@@ -252,18 +267,18 @@ public class PointBuffer {
     PointData res = null;
 
     // Check if the requested data is still in our memory buffer
-    synchronized (theirBufferTable) {
-      Vector bufferdata = theirBufferTable.get(pm);
-
-      if (bufferdata != null && bufferdata.size() > 1 && ((PointData) bufferdata.get(0)).getTimestamp().isBeforeOrEquals(timestamp)) {
-        // That which we seek is buffered
-        for (int i = 0; i < bufferdata.size(); i++) {
-          PointData pd = ((PointData) bufferdata.get(i));
-          if (pd.getTimestamp().isAfter(timestamp)) {
-            // Stop now
-            break;
-          } else {
-            // This record satisfies our criteria
+    LinkedList<PointData> bufferdata = theirBufferTable.get(pm);
+    if (bufferdata != null) {
+      synchronized (bufferdata) {
+        if (!bufferdata.isEmpty() && bufferdata.getFirst().getTimestamp().isBeforeOrEquals(timestamp)) {
+          // That which we seek is buffered
+          Iterator<PointData> i = bufferdata.iterator();
+          res = i.next();
+          while (i.hasNext()) {
+            PointData pd = i.next();
+            if (pd.getTimestamp().isAfter(timestamp)) {
+              break;
+            }
             res = pd;
           }
         }
@@ -299,26 +314,29 @@ public class PointBuffer {
     PointData temp = null;
 
     // Check if the requested data is still in our memory buffer
-    synchronized (theirBufferTable) {
-      Vector bufferdata = theirBufferTable.get(pm);
-      if (bufferdata != null && bufferdata.size() > 0) {
-        if (((PointData) bufferdata.get(0)).getTimestamp().isBeforeOrEquals(timestamp)) {
-          // That which we seek is certainly in the buffer
-          for (int i = bufferdata.size() - 1; i >= 0; i--) {
-            PointData pd = ((PointData) bufferdata.get(i));
-            if (pd.getTimestamp().isBefore(timestamp)) {
-              // Stop now
-              break;
-            } else {
-              // This record satisfies our criteria
-              res = pd;
+    LinkedList<PointData> bufferdata = theirBufferTable.get(pm);
+    if (bufferdata != null) {
+      synchronized (bufferdata) {
+
+        if (!bufferdata.isEmpty()) {
+          if (bufferdata.getFirst().getTimestamp().isBeforeOrEquals(timestamp)) {
+            // That which we seek is certainly in the buffer
+            // Could use descendingIterator, but only since 1.6.
+            for (int i = bufferdata.size() - 1; i >= 0; i--) {
+              PointData pd = ((PointData) bufferdata.get(i));
+              if (pd.getTimestamp().isBefore(timestamp)) {
+                // Stop now
+                break;
+              } else {
+                // This record satisfies our criteria
+                res = pd;
+              }
             }
+          } else {
+            // Can't be certain it is in buffer, but might be depending on what
+            // data the archive contains.
+            temp = bufferdata.getFirst();
           }
-        } else {
-          // Can't be certain it is in buffer, but might be depending on what
-          // data
-          // the archive contains.
-          temp = ((PointData) bufferdata.get(0));
         }
       }
     }
@@ -337,32 +355,6 @@ public class PointBuffer {
   }
 
   /**
-   * Check if the specified timestamp is after or equal to to the most recent data in the buffer for the specified point.
-   * 
-   * @param pm
-   *          The point to check.
-   * @param time
-   *          The timestamp to be checked against the buffer.
-   * @return True if the timestamp is equal to or after the most recent buffered data, False otherwise.
-   */
-  private static boolean isAfterOrEqualsLastData(PointDescription pm, AbsTime time) {
-    synchronized (theirBufferTable) {
-      Vector<PointData> data = theirBufferTable.get(pm);
-      if (data == null) {
-        return false;
-      }
-      if (data.size() < 1) {
-        return false;
-      }
-      if (time.isAfterOrEquals(data.lastElement().getTimestamp())) {
-        return true;
-      } else {
-        return false;
-      }
-    }
-  }
-
-  /**
    * Check if the specified timestamp is after or equal to the oldest data in the buffer for the specified point.
    * 
    * @param pm
@@ -372,20 +364,16 @@ public class PointBuffer {
    * @return True if the timestamp is equal to or more recent than the oldest buffered data, False otherwise.
    */
   private static boolean isAfterOrEqualsFirstData(PointDescription pm, AbsTime time) {
-    synchronized (theirBufferTable) {
-      Vector<PointData> data = theirBufferTable.get(pm);
-      if (data == null) {
-        return false;
-      }
-      if (data.size() < 1) {
-        return false;
-      }
-      if (time.isAfterOrEquals(data.firstElement().getTimestamp())) {
-        return true;
-      } else {
-        return false;
+    boolean res = false;
+    LinkedList<PointData> databuffer = theirBufferTable.get(pm);
+    if (databuffer != null) {
+      synchronized (databuffer) {
+        if (!databuffer.isEmpty() && time.isAfterOrEquals(databuffer.getFirst().getTimestamp())) {
+          res = true;
+        }
       }
     }
+    return res;
   }
 
   /**
@@ -401,24 +389,31 @@ public class PointBuffer {
    * @return Vector of buffer data in the given time range. <tt>null</tt> will be returned if no data were found.
    */
   private static Vector<PointData> getPointDataBuffer(PointDescription pm, AbsTime start_time, AbsTime end_time) {
-    synchronized (theirBufferTable) {
-      Vector<PointData> data = theirBufferTable.get(pm);
-      if (data == null) {
-        return null;
+    Vector<PointData> res = null;
+    LinkedList<PointData> databuffer = theirBufferTable.get(pm);
+    if (databuffer != null) {
+      synchronized (databuffer) {
+        if (!databuffer.isEmpty()) {
+          res = new Vector<PointData>(databuffer.size());
+          Iterator<PointData> i = databuffer.iterator();
+          while (i.hasNext()) {
+            PointData pd = i.next();
+            AbsTime thistime = pd.getTimestamp();
+            if (thistime.isAfter(end_time)) {
+              // We've moved into the realm of data that is too recent
+              break;
+            }
+            if (thistime.isAfterOrEquals(start_time)) {
+              res.add(pd);
+            }
+          }
+          if (res.isEmpty()) {
+            // Didn't find anything
+            res = null;
+          }
+        }
       }
-      if (data.size() < 1) {
-        return null;
-      }
-      Vector<PointData> res = new Vector<PointData>();
-      // / Should do this in a more efficient way
-      res.addAll(data);
-      while (res.size() > 0 && ((PointData) res.firstElement()).getTimestamp().isBefore(start_time)) {
-        res.remove(0);
-      }
-      while (res.size() > 0 && ((PointData) res.lastElement()).getTimestamp().isAfter(end_time)) {
-        res.remove(res.lastElement());
-      }
-      return res;
     }
+    return res;
   }
 }
