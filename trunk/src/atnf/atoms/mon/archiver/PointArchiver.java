@@ -117,19 +117,18 @@ public abstract class PointArchiver extends Thread {
   public void run() {
     setName("Point Archiver");
 
-    RelTime sleeptime = RelTime.factory(10000);
+    RelTime sleeptime = RelTime.factory(50000);
     while (true) {
       int counter = 0;
-      Enumeration keys = itsBuffer.keys();
+      Enumeration<PointDescription> keys = itsBuffer.keys();
       while (keys.hasMoreElements()) {
-        Vector<PointData> bData = null;        
-        // synchronized (itsBuffer) {
-        PointDescription pm = (PointDescription) keys.nextElement();
+        Vector<PointData> thisdata = null;        
+        PointDescription pm = keys.nextElement();
         if (pm == null) {
           continue;
         }
-        bData = itsBuffer.get(pm);
-        if (bData == null || bData.size() == 0) {
+        thisdata = itsBuffer.get(pm);
+        if (thisdata == null || thisdata.size() == 0) {
           continue;
         }
         if (itsBeingArchived.contains(pm.getFullName())) {
@@ -137,27 +136,13 @@ public abstract class PointArchiver extends Thread {
           itsLogger.debug(pm.getFullName() + " is already being archived");
           continue;
         }
-        // if (bData.size() < 1) {
-        // Sleep if no data to archive, otherwise may fast loop
-        // try {
-        // sleeptime.sleep();
-        // } catch (Exception e) {
-        // itsLogger.error("run1: " + e);
-        // }
-        // continue;
-        // }
-        // }
-        //itsLogger.debug("Archiving " + bData.size() + " records for " + pm.getFullName());
-        saveNow(pm, bData);
+        //itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
+        saveNow(pm, thisdata);
         counter++;
-        // try {
-        // sleeptime.sleep();
-        // } catch (Exception e) {
-        // }
       }
-      if (counter > 0) {
-        itsLogger.debug("Archived/flagged " + counter + " points");
-      }
+      //if (counter > 0) {
+      //  itsLogger.debug("Archived/flagged " + counter + " points");
+      //}
       try {
         sleeptime.sleep();
       } catch (Exception e) {
@@ -167,7 +152,7 @@ public abstract class PointArchiver extends Thread {
 
   /**
    * Archive the data for the given point. Note this actually places the data into a write-out buffer, the data may not be flushed
-   * to disk immediately. The <tt>saveNow</tt> does the real archiving.
+   * to disk immediately.
    * 
    * @param pm
    *          The point that the data belongs to

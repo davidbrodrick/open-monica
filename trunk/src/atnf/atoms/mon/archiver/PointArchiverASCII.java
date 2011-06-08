@@ -7,6 +7,7 @@
 
 package atnf.atoms.mon.archiver;
 
+import org.apache.log4j.Logger;
 import java.io.*;
 import java.util.*;
 import java.math.*;
@@ -32,43 +33,88 @@ import atnf.atoms.time.*;
  * @author Le Cuong Ngyuen
  */
 public class PointArchiverASCII extends PointArchiver {
-  /**
-   * Directory for writing temporary files. <i>This shouldn't be hard-coded OS-specific!!</i>
-   */
-  static private File theirTempDir = new File("/tmp/mon-temp/");
-
-  /**
-   * Base directory for the data archive. Derived from the property <tt>LogDir</tt>.
-   */
-  public static final String SAVEPATH = MonitorConfig.getProperty("LogDir");
-
   /** OS-dependant file separation character. */
-  protected static final String FSEP = System.getProperty("file.separator");
+  private static final String FSEP = System.getProperty("file.separator");
+  
+  /** Base directory for the data archive. */
+  private static String theirArchiveDir;
+  
+  /** Directory for writing temporary files.*/
+  private static File theirTempDir;
 
-  /**
-   * Maximum size for an archive file. Derived from the property <tt>ArchiveSize</tt>.
-   */
-  protected static final int MAXLENGTH = Integer.parseInt(MonitorConfig.getProperty("ArchiveSize"));
+  /** Maximum size for an archive file. */
+  private static int theirMaxFileSize;
 
-  /**
-   * Max time-span for an archive data file. Derived from the property <tt>ArchiveMaxAge</tt>
-   */
-  protected static final int MAXAGE = 1000 * Integer.parseInt(MonitorConfig.getProperty("ArchiveMaxAge"));
+  /** Max time-span for an archive data file. */
+  private static int theirMaxFileAge;
 
-  /**
-   * Number of threads in the archive thread pool.
-   */
-  protected static final int theirNumThreads = Integer.parseInt(MonitorConfig.getProperty("ArchiveNumThreads", "1"));
+  /** Number of threads in the archive thread pool. */
+  private static int theirNumThreads;
 
-  /**
-   * Thread pool for archiving.
-   */
-  protected ThreadPoolExecutor itsThreadPool;
+  /** Logger. */
+  private static Logger theirLogger = Logger.getLogger(PointArchiverASCII.class.getName());
 
-  /**
-   * Hash of current files to write to for each point.
-   */
-  protected HashMap<String, String> itsFileNameCache = new HashMap<String, String>(1000, 1000);
+  /**Thread pool for archiving. */
+  private ThreadPoolExecutor itsThreadPool;
+
+  /** Cache of current file names to write to for each point.*/
+  private HashMap<String, String> itsFileNameCache = new HashMap<String, String>(1000, 1000);
+
+  static {
+    theirArchiveDir = MonitorConfig.getProperty("ArchiveDir");
+    if (theirArchiveDir == null) {
+      // Support legacy option
+      MonitorConfig.getProperty("LogDir");
+    }
+    if (theirArchiveDir == null) {
+      theirLogger.error("Configuration option \"ArchiveDir\" was not defined");
+    }
+
+    String temp = MonitorConfig.getProperty("ArchiveTempDir");
+    if (temp != null) {
+      theirTempDir = new File(temp);
+    } else {
+      theirLogger.error("Configuration option \"ArchiveTempDir\" was not defined");
+    }
+
+    temp = MonitorConfig.getProperty("ArchiveMaxSize");
+    if (temp == null) {
+      temp = MonitorConfig.getProperty("ArchiveSize");
+    }
+    if (temp==null) {
+      theirLogger.error("Configuration option \"ArchiveMaxSize\" was not defined");
+    } else {
+      try {
+        theirMaxFileSize = Integer.parseInt(temp);
+      } catch (Exception e) {
+        theirLogger.error("Error parsing configuration option \"ArchiveMaxSize\"");
+      }
+    }
+
+    temp = MonitorConfig.getProperty("ArchiveMaxAge");
+    if (temp==null) {
+      theirLogger.error("Configuration option \"ArchiveMaxAge\" was not defined");
+    } else {
+      try {
+        theirMaxFileAge = 1000*Integer.parseInt(temp);
+      } catch (Exception e) {
+        theirLogger.error("Error parsing configuration option \"ArchiveMaxAge\"");
+      }
+    }
+
+    temp = MonitorConfig.getProperty("ArchiveNumThreads");
+    if (temp==null) {
+      theirLogger.error("Configuration option \"ArchiveNumThreads\" was not defined");
+      theirNumThreads = 1;
+    } else {
+      try {
+        theirNumThreads = Integer.parseInt(temp);
+      } catch (Exception e) {
+        theirLogger.error("Error parsing configuration option \"ArchiveNumThreads\"");
+        theirNumThreads = 1;
+      }
+    }    
+  }
 
   class ASCIIArchiverWorker implements Runnable {
     /** The point we will archive. */
@@ -167,7 +213,7 @@ public class PointArchiverASCII extends PointArchiver {
         }
 
         // Enforce the age and size limits that apply to active files.
-        if (filedate.before(new Date(System.currentTimeMillis() - MAXAGE)) || file.length() > MAXLENGTH) {
+        if (filedate.before(new Date(System.currentTimeMillis() - theirMaxFileAge)) || file.length() > theirMaxFileSize) {
           // Compress old file since it's now an archival file
           compress(fileName);
           // Delete uncompressed version of the file - if we can
@@ -190,7 +236,6 @@ public class PointArchiverASCII extends PointArchiver {
         // Finally we've identified the right file. Write out each data record.
         FileWriter f = new FileWriter(fileName, true);
         PrintWriter outfile = new PrintWriter(new BufferedWriter(f));
-        AbsTime start = new AbsTime();
         synchronized (itsData) {
           for (int i = 0; i < itsData.size(); i++) {
             try {
@@ -201,15 +246,7 @@ public class PointArchiverASCII extends PointArchiver {
             }
           }
           // We've now archived the data that was in the buffer
-          for (int i = 0; i < itsData.size(); i++) {
-            itsData.set(i, null);
-          }
           itsData.clear();
-          AbsTime end = new AbsTime();
-          double secs = Time.diff(end, start).getAsSeconds();
-          if (secs > 1) {
-            itsLogger.debug("Took " + Time.diff(end, start).getAsSeconds() + " to archive " + itsPoint.getFullName() + "\t" + itsData.size());
-          }          
         }
         // Flush buffers and close files
         outfile.flush();
@@ -228,7 +265,7 @@ public class PointArchiverASCII extends PointArchiver {
   /** Constructor. */
   public PointArchiverASCII() {
     super();
-    
+
     itsThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(theirNumThreads);
   }
 
@@ -844,8 +881,7 @@ public class PointArchiverASCII extends PointArchiver {
       ZipEntry ze = zip.getEntry(foo);
       compressed = zip.getInputStream(ze);
       if (!theirTempDir.isDirectory()) {
-        // Some systems have a tmp reaper, so need to check this directory each
-        // time
+        // Ensure directory exists
         theirTempDir.mkdirs();
       }
       f = File.createTempFile("foo", ".tmp", theirTempDir);
@@ -992,7 +1028,7 @@ public class PointArchiverASCII extends PointArchiver {
   public static String getDir(PointDescription pm) {
     String tempname = pm.getName();
     tempname = tempname.replace(".", FSEP);
-    return SAVEPATH + FSEP + tempname + FSEP + pm.getSource();
+    return theirArchiveDir + FSEP + tempname + FSEP + pm.getSource();
   }
 
   public static final void main(String args[]) {

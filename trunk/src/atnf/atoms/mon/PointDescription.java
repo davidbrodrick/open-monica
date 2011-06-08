@@ -133,7 +133,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
 
   /** The time the point should next be updated. */
   protected transient long itsNextEpoch = 0;
-
+  
   /**
    * Return the period between updates for this monitor point. A period of zero has the
    * special meaning that the update frequency is being handled through some other
@@ -610,17 +610,8 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   public void setNextEpoch(AbsTime nextEpoch)
   {
     itsNextEpoch = nextEpoch.getValue();
-  }
-
-  /**
-   * Get the number of data updates to keep buffered in memory. TODO: This currently just
-   * returns a fixed number. TODO: Do we want to buffer updates at all?
-   */
-  public int getMaxBufferSize()
-  {
-    return 1;
-  }
-
+  } 
+  
   /**
    * Indicate if the point is in the process of being updated. This is useful for points
    * which are updated asynchronously to prevent a subsequent collection from being
