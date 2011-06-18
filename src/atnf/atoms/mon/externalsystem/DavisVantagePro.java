@@ -224,8 +224,8 @@ public class DavisVantagePro extends DataSocket {
 
         if (ack == -1) {
           throw new Exception("Reached EOF while reading from socket");
-        } else if (ack == 0) {
-          throw new Exception("Got ASCII NUL while reading from socket - broken socket?");
+//        } else if (ack == 0) {
+//          throw new Exception("Got ASCII NUL while reading from socket - broken socket?");
         } else if (ack != 6) {
           // Did not receive ACK for LOOP command
           pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
