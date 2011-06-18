@@ -294,10 +294,9 @@ public class DataMaintainer implements Runnable
     } else if (period <= 0) {
       // Point is aperiodic. For now all we can do is try again shortly to see
       // if it has updated yet. A proper publish/subscribe to replace this
-      // polling
-      // will be the ultimate solution.
+      // polling will be the ultimate solution.
       nexttime = now + shortinterval;
-    } else if (datatime + period> now) {
+    } else if (datatime + period > now) {
       // Schedule for expected next update of the point
       nexttime = datatime + period;
     } else {
@@ -311,7 +310,7 @@ public class DataMaintainer implements Runnable
   /** Main loop for collection thread. */
   public void run()
   {
-    while (true) {
+    while (true) {      
       Vector<PointDescription> getpoints = null;
       AbsTime nextTime = AbsTime.factory("ASAP");
       synchronized (theirQueue) {
@@ -331,6 +330,7 @@ public class DataMaintainer implements Runnable
         Vector<String> getnames = new Vector<String>();
         for (int i = 0; i < getpoints.size(); i++) {
           getnames.add(getpoints.get(i).getFullName());
+          //System.err.println("DataMaintainer.run collecting " +  getpoints.get(i).getFullName());
         }
         Vector<PointData> resdata = null;
         try {
@@ -355,11 +355,11 @@ public class DataMaintainer implements Runnable
                 pm.distributeData(new PointEvent(pm, resdata.get(i), false));
                 // System.err.println("DataMaintainer.run: " + getnames.get(i) +
                 // " got new data " + resdata.get(i).getTimestamp());
+                updateCollectionTime(pm, resdata.get(i));
               } else {
-                // System.err.println("DataMaintainer.run: " + getnames.get(i) +
-                // " got repeated data");
+                //System.err.println("DataMaintainer.run: " + getnames.get(i) + " got repeated data");
+                updateCollectionTime(pm);
               }
-              updateCollectionTime(pm, resdata.get(i));
             } else {
               // Got no data back for this point
               pm.distributeData(new PointEvent(pm, new PointData(pm.getFullName()), false));
@@ -384,18 +384,18 @@ public class DataMaintainer implements Runnable
             }
           }
         }
-      }
-
+      }      
+      
       try {
         synchronized (theirQueue) {
           if (theirQueue.size() > 0) {
             PointDescription pm = (PointDescription) theirQueue.first();
-            nextTime = AbsTime.factory(pm.getNextEpoch());// -10000);
+            nextTime = AbsTime.factory(pm.getNextEpoch());
           }
         }
-        AbsTime timenow = AbsTime.factory();
+        AbsTime timenow = AbsTime.factory().add(ClockErrorMonitor.getClockError());
         if (nextTime.isAfter(timenow)) {
-          final RelTime maxsleep = RelTime.factory(10000);
+          final RelTime maxsleep = RelTime.factory(100000);
           // We need to wait before we collect the next point.
           // Work out how long we need to wait for
           RelTime waittime = Time.diff(nextTime, timenow);
