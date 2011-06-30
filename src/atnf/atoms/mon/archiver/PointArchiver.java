@@ -128,7 +128,7 @@ public abstract class PointArchiver extends Thread {
           continue;
         }
         thisdata = itsBuffer.get(pm);
-        if (thisdata == null || thisdata.size() == 0) {
+        if (thisdata == null || thisdata.isEmpty()) {
           continue;
         }
         if (itsBeingArchived.contains(pm.getFullName())) {

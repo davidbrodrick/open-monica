@@ -18,34 +18,29 @@ import atnf.atoms.time.*;
  * Archiver which uses a MySQL database as the back end.
  * 
  * <P>
- * Connects to mysqld on localhost as user <i>monica</i> with a blank password. Writes
- * data to a database called <i>MoniCA</i>, so the user needs full permissions to that
- * database. A script <i>bin/setupMySQL.sh</i> is provided which creates the user and the
+ * Connects to mysqld on localhost as user <i>monica</i> with a blank password. Writes data to a database called <i>MoniCA</i>, so
+ * the user needs full permissions to that database. A script <i>bin/setupMySQL.sh</i> is provided which creates the user and the
  * database.
  * 
  * <P>
- * TODO: The URL to connect to the database should really be passed as an argument from
- * the configuration file.
+ * TODO: The URL to connect to the database should really be passed as an argument from the configuration file.
  * 
  * <P>
- * Since monitor points in MoniCA are not strictly-typed data is stored as a
- * string/varchar and the data type stored in a separate column. The appropriate object is
- * instanciated when data is extracted from the archive, however this approach degrades
- * space efficiency.
+ * Since monitor points in MoniCA are not strictly-typed data is stored as a string/varchar and the data type stored in a separate
+ * column. The appropriate object is instanciated when data is extracted from the archive, however this approach degrades space
+ * efficiency.
  * 
  * @author David Brodrick
  */
-public class PointArchiverMySQL extends PointArchiver
-{
+public class PointArchiverMySQL extends PointArchiver {
   /** The connection to the MySQL server. */
   protected Connection itsConnection = null;
 
   /** The URL to connect to the server/database. */
-  protected String itsURL = "jdbc:mysql://localhost/MoniCA?user=monica&tcpRcvBuf=100000";
+  protected String itsURL = "jdbc:mysql://localhost:3306/MoniCA?user=monica&tcpRcvBuf=100000&autoReconnect=true";
 
   /** Constructor. */
-  public PointArchiverMySQL()
-  {
+  public PointArchiverMySQL() {
     super();
 
     try {
@@ -58,10 +53,11 @@ public class PointArchiverMySQL extends PointArchiver
 
   /**
    * Purge all data for the given point that is older than the specified age in days.
-   * @param point The point whos data we wish to purge.
+   * 
+   * @param point
+   *          The point whos data we wish to purge.
    */
-  protected void purgeOldData(PointDescription point)
-  {
+  protected void purgeOldData(PointDescription point) {
     if (point.getArchiveLongevity() <= 0)
       return;
 
@@ -95,68 +91,77 @@ public class PointArchiverMySQL extends PointArchiver
 
   /**
    * Method to do the actual archiving.
-   * @param pm The point whos data we wish to archive.
-   * @param data Vector of data to be archived.
+   * 
+   * @param pm
+   *          The point whos data we wish to archive.
+   * @param data
+   *          Vector of data to be archived.
    */
-  protected void saveNow(PointDescription pm, Vector<PointData> alldata)
-  {
+  protected void saveNow(PointDescription pm, Vector<PointData> alldata) {
     String table = getTableName(pm);
 
     // MySQL can have maximum packet size limits, so archive data in blocks
     final int MAXCHUNK = 100;
-    for (int start = 0; start < alldata.size(); start = start + MAXCHUNK) {
-      Statement stmt = null;
-      try {
-        // Build the full SQL command, adding each new row
-        String cmd = "INSERT IGNORE INTO " + table + " VALUES";
-
-        for (int i = start; i < (start + MAXCHUNK) && i < alldata.size(); i++) {
-          PointData data = (PointData) alldata.get(i);
-
-          // Get a string representation of the object type and value
-          String typeval = null;
-          try {
-            typeval = getStringForObject(data.getData());
-          } catch (IllegalArgumentException e) {
-            // Can't save this object
-            itsLogger.warn("insertData: " + e);
-            continue;
-          }
-
-          if (i != start) {
-            cmd = cmd + ",";
-          }
-          cmd = cmd + " (" + data.getTimestamp().getValue() + ", " + typeval + ")";
-        }
-        cmd = cmd + ";";
-        synchronized (itsConnection) {
-          stmt = itsConnection.createStatement();
-          stmt.execute(cmd);
-          stmt.close();
-        }
-      } catch (Exception e) {
-        itsLogger.warn("insertData: " + e);
-        checkConnection();
-        createTable(table);
+    synchronized (alldata) {
+      for (int start = 0; start < alldata.size(); start = start + MAXCHUNK) {
+        Statement stmt = null;
         try {
-          if (stmt != null) {
+          // Build the full SQL command, adding each new row
+          String cmd = "INSERT IGNORE INTO " + table + " VALUES";
+
+          for (int i = start; i < (start + MAXCHUNK) && i < alldata.size(); i++) {
+            PointData data = (PointData) alldata.get(i);
+
+            // Get a string representation of the object type and value
+            String typeval = null;
+            try {
+              typeval = getStringForObject(data.getData());
+            } catch (IllegalArgumentException e) {
+              // Can't save this object
+              itsLogger.warn("insertData: " + e);
+              continue;
+            }
+
+            if (i != start) {
+              cmd = cmd + ",";
+            }
+            cmd = cmd + " (" + data.getTimestamp().getValue() + ", " + typeval + ")";
+          }
+          cmd = cmd + ";";
+          synchronized (itsConnection) {
+            stmt = itsConnection.createStatement();
+            stmt.execute(cmd);
             stmt.close();
           }
-        } catch (Exception g) {
+        } catch (Exception e) {
+          itsLogger.warn("insertData: " + e);
+          checkConnection();
+          createTable(table);
+          try {
+            if (stmt != null) {
+              stmt.close();
+            }
+          } catch (Exception g) {
+          }
         }
-      }
+      }      
+      // Finished archiving this data
+      alldata.clear();
     }
   }
 
   /**
    * Extract data from the archive.
-   * @param pm Point to extract data for.
-   * @param start Earliest time in the range of interest.
-   * @param end Most recent time in the range of interest.
+   * 
+   * @param pm
+   *          Point to extract data for.
+   * @param start
+   *          Earliest time in the range of interest.
+   * @param end
+   *          Most recent time in the range of interest.
    * @return Vector containing all data for the point over the time range.
    */
-  public Vector<PointData> extract(PointDescription pm, AbsTime start, AbsTime end)
-  {
+  public Vector<PointData> extract(PointDescription pm, AbsTime start, AbsTime end) {
     try {
       // Can't do anything if the server is not running
       if (!checkConnection()) {
@@ -169,8 +174,8 @@ public class PointArchiverMySQL extends PointArchiver
       String table = getTableName(pm);
 
       // Build and execute the data request
-      String cmd = "SELECT * from " + table + " WHERE ts>=" + start.getValue() + " AND ts<=" + end.getValue() + " ORDER BY ts "
-              + "LIMIT " + MAXNUMRECORDS + ";";
+      String cmd = "SELECT * from " + table + " WHERE ts>=" + start.getValue() + " AND ts<=" + end.getValue() + " ORDER BY ts " + "LIMIT " + MAXNUMRECORDS
+          + ";";
 
       Statement stmt;
       ResultSet rs;
@@ -201,14 +206,15 @@ public class PointArchiverMySQL extends PointArchiver
   }
 
   /**
-   * Return the last update which precedes the specified time. We interpret 'precedes' to
-   * mean data_time<=req_time.
-   * @param pm Point to extract data for.
-   * @param ts Find data preceding this timestamp.
+   * Return the last update which precedes the specified time. We interpret 'precedes' to mean data_time<=req_time.
+   * 
+   * @param pm
+   *          Point to extract data for.
+   * @param ts
+   *          Find data preceding this timestamp.
    * @return PointData for preceding update or null if none found.
    */
-  public PointData getPreceding(PointDescription pm, AbsTime ts)
-  {
+  public PointData getPreceding(PointDescription pm, AbsTime ts) {
     try {
       // Can't do anything if the server is not running
       if (!checkConnection()) {
@@ -245,14 +251,15 @@ public class PointArchiverMySQL extends PointArchiver
   }
 
   /**
-   * Return the first update which follows the specified time. We interpret 'follows' to
-   * mean data_time>=req_time.
-   * @param pm Point to extract data for.
-   * @param ts Find data following this timestamp.
+   * Return the first update which follows the specified time. We interpret 'follows' to mean data_time>=req_time.
+   * 
+   * @param pm
+   *          Point to extract data for.
+   * @param ts
+   *          Find data following this timestamp.
    * @return PointData for following update or null if none found.
    */
-  public PointData getFollowing(PointDescription pm, AbsTime ts)
-  {
+  public PointData getFollowing(PointDescription pm, AbsTime ts) {
     try {
       // Can't do anything if the server is not running
       if (!checkConnection()) {
@@ -290,12 +297,14 @@ public class PointArchiverMySQL extends PointArchiver
 
   /**
    * Build a PointData from the database row.
-   * @param pm Point the data belongs to.
-   * @param rs The database record/ResultSet.
+   * 
+   * @param pm
+   *          Point the data belongs to.
+   * @param rs
+   *          The database record/ResultSet.
    * @return PointData representing the data. null if error.
    */
-  protected PointData getPointDataForRow(PointDescription pm, ResultSet rs)
-  {
+  protected PointData getPointDataForRow(PointDescription pm, ResultSet rs) {
     PointData res = null;
     try {
       AbsTime ts = AbsTime.factory(rs.getLong(1));
@@ -311,17 +320,17 @@ public class PointArchiverMySQL extends PointArchiver
 
   /**
    * Create the specified table if it doesn't already exist.
-   * @param table Name of the table to create.
+   * 
+   * @param table
+   *          Name of the table to create.
    */
-  protected void createTable(String table)
-  {
+  protected void createTable(String table) {
     Statement stmt = null;
     try {
       itsLogger.debug("createTable: Creating " + table);
       synchronized (itsConnection) {
         stmt = itsConnection.createStatement();
-        stmt.execute("CREATE table if not exists " + table + "(ts BIGINT, type CHAR(4), val VARCHAR(255), "
-                + "PRIMARY KEY(`ts`)) ENGINE = MyISAM;");
+        stmt.execute("CREATE table if not exists " + table + "(ts BIGINT, type CHAR(4), val VARCHAR(255), " + "PRIMARY KEY(`ts`)) ENGINE = MyISAM;");
         stmt.close();
       }
     } catch (Exception e) {
@@ -337,10 +346,10 @@ public class PointArchiverMySQL extends PointArchiver
 
   /**
    * Check if we are connected to the server and reconnect if required.
+   * 
    * @return True if connected (or reconnected). False if not connected.
    */
-  protected boolean checkConnection()
-  {
+  protected boolean checkConnection() {
     boolean res = false;
     Statement stmt = null;
     try {
@@ -377,11 +386,12 @@ public class PointArchiverMySQL extends PointArchiver
 
   /**
    * Return the SQL table name for given monitor point.
-   * @param pm Point to get the table name for.
+   * 
+   * @param pm
+   *          Point to get the table name for.
    * @return String containing SQL table name.
    */
-  protected String getTableName(PointDescription pm)
-  {
+  protected String getTableName(PointDescription pm) {
     String name = pm.getSource() + "$" + pm.getName();
     // Translate characters which conflict with SQL syntax
     name = name.replace('.', '$');
@@ -391,17 +401,17 @@ public class PointArchiverMySQL extends PointArchiver
   }
 
   /**
-   * Get a string representation of the Object. The string includes a type specifier as
-   * well as an ASCII representation of the data. These fields are separated by tabs. The
-   * <i>getObjectForString</i> method is able to decode this representation and recover
-   * the original Object.
+   * Get a string representation of the Object. The string includes a type specifier as well as an ASCII representation of the data.
+   * These fields are separated by tabs. The <i>getObjectForString</i> method is able to decode this representation and recover the
+   * original Object.
    * <P>
    * <i>null</i> objects are properly handled.
-   * @param data The Object to encode into ASCII text.
+   * 
+   * @param data
+   *          The Object to encode into ASCII text.
    * @return An ASCII String representation of the data.
    */
-  protected String getStringForObject(Object data) throws IllegalArgumentException
-  {
+  protected String getStringForObject(Object data) throws IllegalArgumentException {
     String res = null;
     if (data == null) {
       res = "NULL, NULL";
@@ -437,15 +447,16 @@ public class PointArchiverMySQL extends PointArchiver
   }
 
   /**
-   * Use the ASCII <i>type</i> and <i>data</i> to reconstruct the data Object. This
-   * method essentially performs the opposite procedure to that implemented by
-   * <i>getStringForObject</i>.
-   * @param type Short string representing the class of the data.
-   * @param data The actual data in ASCII text form.
+   * Use the ASCII <i>type</i> and <i>data</i> to reconstruct the data Object. This method essentially performs the opposite
+   * procedure to that implemented by <i>getStringForObject</i>.
+   * 
+   * @param type
+   *          Short string representing the class of the data.
+   * @param data
+   *          The actual data in ASCII text form.
    * @return The reconstructed object.
    */
-  protected Object getObjectForString(String type, String data)
-  {
+  protected Object getObjectForString(String type, String data) {
     Object res = null;
     if (type.equals("dbl")) {
       res = new Double(data);
