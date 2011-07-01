@@ -273,6 +273,7 @@ public class EPICS extends ExternalSystem {
               } else {
                 // This channel failed to connect
                 try {
+                  theirLogger.trace("ChannelConnector: Failed to connect to PV " + thispv);
                   thischan.destroy();
                 } catch (Exception e) {
                   theirLogger.error("ChannelConnector: Destroying channel for " + thispv + ": " + e);
