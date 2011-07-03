@@ -135,7 +135,7 @@ public abstract class TranslationListener extends Translation implements PointLi
   protected abstract Object doCalculations();
 
   /** Called when a listened-to point updates. */
-  public void onPointEvent(Object source, PointEvent evt) {
+  public synchronized void onPointEvent(Object source, PointEvent evt) {
     PointData pd = evt.getPointData();
     // Check that there's data.. ?
     if (pd == null || pd.getData() == null) {
