@@ -961,7 +961,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
   private Vector<TimeSeriesCollection> itsData = new Vector<TimeSeriesCollection>();
 
   /** Contains Vectors holding the point names for each axis. */
-  private Vector<Vector> itsPointNames = new Vector<Vector>();
+  private Vector<Vector<String>> itsPointNames = new Vector<Vector<String>>();
 
   /**
    * Contains Vectors holding AbsTimes for the last data collected for each point, for each axis. We can use this info together with
@@ -1729,17 +1729,18 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
   private void makeSeries() {
     synchronized (theirLock) {
       for (int a = 0; a < itsNumAxis; a++) {
-        Vector points = (Vector) itsPointNames.get(a);
+        Vector<String> points = itsPointNames.get(a);
         TimeSeriesCollection series = (TimeSeriesCollection) itsData.get(a);
         for (int i = 0; i < points.size(); i++) {
           // Create TimeSeries for this point on this axis
-          String label = (String) points.get(i);
+          String label = points.get(i);
           int firstdot = label.indexOf(".");
           int lastdot = label.lastIndexOf(".");
           if (firstdot != -1 && lastdot != -1 && firstdot != lastdot) {
             label = label.substring(0, firstdot) + " " + label.substring(lastdot + 1);
           }
           TimeSeries ts = new TimeSeries(label);
+          ts.setDescription(points.get(i));
           // Turn notify off so the graph doesn't redraw unnecessarily
           ts.setNotify(false);
           series.addSeries(ts);
@@ -1832,8 +1833,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    *          The print stream to write the data to.
    */
   public void export(PrintStream p) {
-    final String rcsid = "$Id: ATTimeSeries.java,v 1.11 2006/06/22 04:39:07 bro764 Exp $";
-    p.println("#Dump from ATTimeSeries " + rcsid);
+    p.println("#Dump from ATTimeSeries");
     p.println("#Data dumped at " + (new AbsTime().toString(AbsTime.Format.UTC_STRING)));
     p.println("#Each data sample has three, comma separated columns:");
     p.println("#1) Hex Binary Atomic Time (BAT) timestamp, e.g. 0x104f629d0c68e0");

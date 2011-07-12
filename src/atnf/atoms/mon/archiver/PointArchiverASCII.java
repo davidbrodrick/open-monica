@@ -64,13 +64,16 @@ public class PointArchiverASCII extends PointArchiver {
     theirArchiveDir = MonitorConfig.getProperty("ArchiveDir");
     if (theirArchiveDir == null) {
       // Support legacy option
-      MonitorConfig.getProperty("LogDir");
+      theirArchiveDir = MonitorConfig.getProperty("LogDir");
     }
     if (theirArchiveDir == null) {
       theirLogger.error("Configuration option \"ArchiveDir\" was not defined");
     }
 
     String temp = MonitorConfig.getProperty("ArchiveTempDir");
+    if (temp == null) {
+      temp = MonitorConfig.getProperty("TempDir");
+    }
     if (temp != null) {
       theirTempDir = new File(temp);
     } else {
