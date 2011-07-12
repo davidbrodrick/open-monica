@@ -1833,8 +1833,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
    *          The print stream to write the data to.
    */
   public void export(PrintStream p) {
-    p.println("#Dump from ATTimeSeries");
-    p.println("#Data dumped at " + (new AbsTime().toString(AbsTime.Format.UTC_STRING)));
+    p.println("#ATTimeSeries dump at " + (new AbsTime().toString(AbsTime.Format.UTC_STRING)));
     p.println("#Each data sample has three, comma separated columns:");
     p.println("#1) Hex Binary Atomic Time (BAT) timestamp, e.g. 0x104f629d0c68e0");
     p.println("#2) Formatted time stamp, Universal Time, e.g. 2004-05-10 05:42:35.596");
@@ -1848,7 +1847,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
           continue;
         }
         // Print the header information for this series
-        p.println("#" + data.getItemCount() + " data for " + data.getDescription() + " follow");
+        p.println("#@" + data.getItemCount() + " data for " + data.getDescription() + " follow");
         for (int i = 0; i < data.getItemCount(); i++) {
           AbsTime tm = AbsTime.factory(data.getTimePeriod(i).getStart());
           p.print(tm.toString(AbsTime.Format.HEX_BAT) + ", ");
