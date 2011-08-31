@@ -20,7 +20,17 @@ import atnf.atoms.mon.transaction.*;
 
 import org.apache.log4j.Logger;
 
-
+/**
+ *
+ * Reads and writes data to and from a Modbus/TCP interface.
+ *
+ * <P>The constructor requires <i>hostname:port ModbusID ModbusFunction StartAddress</i> arguments. 
+ * The default is to read one point.  Another argument is optional.  This argument 
+ * specifies the number of points to read.
+ *
+ * @author Ben McKay & Peter Mirtschin
+ * @version $Id: $
+**/
 public class ModbusInterface extends ExternalSystem
 {
   /** Logger. */
@@ -149,8 +159,37 @@ public class ModbusInterface extends ExternalSystem
   
   
   /**
-   * Read input registers. (Modbus function 0x03 and 0x04)
-   * INPUT:	uid = unit ID (for ATDS this is 1-32. ie Dataset address)
+   * Read holding registers. (Modbus function 0x03)
+   * INPUT:	uid = unit ID (for ATDS this is 1-32. (32 is DSAddr 0) ie Dataset address)
+   * 		ref = starting reference (for ATDS this is the function code 0-511)
+   *		count = number of registers from starting reference to read
+   */
+  public synchronized ReadMultipleRegistersResponse readHoldingRegisters(int uid, int ref, int count) throws Exception {
+	//Prepare the request
+    ReadMultipleRegistersRequest req = new ReadMultipleRegistersRequest(ref, count);
+	req.setUnitID(uid);
+	
+	//Print the request for debugging
+  	if(itsDebug) System.out.println("\tRequest: " + req.getHexMessage());
+
+	//Prepare the transaction
+    ModbusTCPTransaction trans = new ModbusTCPTransaction(itsConnection);
+    trans.setRequest(req);
+	trans.setReconnecting(false);
+    
+	//Execute transaction
+    try {
+		trans.execute();
+	} catch (Exception e) {
+      e.printStackTrace();
+    }
+	return (ReadMultipleRegistersResponse) trans.getResponse();
+  }
+
+
+  /**
+   * Read input registers. (Modbus function 0x04)
+   * INPUT:	uid = unit ID (for ATDS this is 1-32. (32 is DSAddr 0) ie Dataset address)
    * 		ref = starting reference (for ATDS this is the function code 0-511)
    *		count = number of registers from starting reference to read
    */
@@ -175,7 +214,7 @@ public class ModbusInterface extends ExternalSystem
     }
 	return (ReadInputRegistersResponse) trans.getResponse();
   }
-  
+
 
   /**
    * Write single coil. (Modbus function 0x05)
@@ -338,8 +377,8 @@ public class ModbusInterface extends ExternalSystem
 					}
 					break;
 				case 3:
-					//Read Holding Registers... Treated exactly the same as Read Input Registers
-					ReadInputRegistersResponse rhr_response = readInputRegisters(UnitID, StartAddress, numberToRead);
+					// Read Holding Registers (jamod library terminology uses multiple instead of holding)
+					ReadMultipleRegistersResponse rhr_response = readHoldingRegisters(UnitID, StartAddress, numberToRead);
 					if(!useArray) pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), new Integer(rhr_response.getRegisterValue(0))), true));
 					else{
 						Integer[] rhr_Array = new Integer[numberToRead];
