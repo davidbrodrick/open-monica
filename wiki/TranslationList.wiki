@@ -54,6 +54,7 @@ Please maintain lists in lexigraphic order.
 || !StringTrim || Remove leading/trailing whitespace from a string.  || ||
 || !StuckValue || Flag data with an alarm and empty value when it seems the value has become 'stuck'. || *!NumUpdates:* The number of updates with no value changes before data is flagged. ||
 || Squelch || Apply thresholding function. || *Threshold:* Squelch values below this number. *Output:* Value to output when input is squelched. ||
+|| Substring || Return a substring of the input. || *Start:* Start index. *End:* Optional end index. ||
 || Variance || Calculate the variance of the input over a specified time range. || *Buffer:* The interval in seconds over which to calculate the variance of the input. ||
 || XY2Angle || Listen to two numeric inputs which represent the X and Y cartesian components of a vector and output the vector angle. || *X:* Monitor point representing X component. *Y:* Point representing Y component. *Format:* Optional argument, set to 'd' to output degrees (default is radians). ||
 || XY2Mag || Listen to two numeric inputs which represent the X and Y cartesian components of a vector and output the magnitude of the vector. || *X:* Monitor point representing X component. *Y:* Point representing Y component. ||
