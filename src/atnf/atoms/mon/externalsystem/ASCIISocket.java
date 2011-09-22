@@ -10,31 +10,29 @@ package atnf.atoms.mon.externalsystem;
 import java.io.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.transaction.TransactionStrings;
+import atnf.atoms.time.RelTime;
+
 import org.apache.log4j.Logger;
 
 /**
- * Class for ExternalSystems which need to read and/or write ASCII data over TCP
- * socket connection to a remote end-point. This class derives from the
- * TCPSocket class but also provides BufferedReader and BufferedWriter fields.
+ * Class for ExternalSystems which need to read and/or write ASCII data over TCP socket connection to a remote end-point. This class
+ * derives from the TCPSocket class but also provides BufferedReader and BufferedWriter fields.
  * <P>
- * The constructor argument defined in <tt>monitor-sources.txt</tt> must
- * include the remote machine, port and optionally timeout in
+ * The constructor argument defined in <tt>monitor-sources.txt</tt> must include the remote machine, port and optionally timeout in
  * <tt>host:port:timeout_ms:your_other_args</tt> format.
  * <P>
- * You can override the <tt>parseData</tt> method to perform whatever response
- * parsing and/or request formatting is required, and return an appropriate data
- * object. Alternately you may override the <i>getData</i> method in which case
- * the <i>parseData</i> method will not be called.
+ * You can override the <tt>parseData</tt> method to perform whatever response parsing and/or request formatting is required, and
+ * return an appropriate data object. Alternately you may override the <i>getData</i> method in which case the <i>parseData</i>
+ * method will not be called.
  * <P>
- * The default <tt>parseData</tt> implementation expects the points to have a
- * <tt>TransactionStrings</tt> input transaction, which has the query string
- * to be sent over the socket. All response lines will be concatenated and
- * returned as the data object.
+ * The default <tt>parseData</tt> implementation expects the points to have a <tt>TransactionStrings</tt> input transaction, which
+ * has the query string to be sent over the socket. An optional additional argument can specify the number of lines expected in the
+ * response, this is useful when the server has inter-line latency which can trick the standard logic into thinking that the entire
+ * response has been consumed. All response lines will be concatenated and returned as the data object.
  * 
  * @author David Brodrick
  */
-public class ASCIISocket extends TCPSocket
-{
+public class ASCIISocket extends TCPSocket {
   /** The output stream for writing text to the remote service. */
   protected BufferedWriter itsWriter = null;
 
@@ -42,14 +40,12 @@ public class ASCIISocket extends TCPSocket
   protected BufferedReader itsReader = null;
 
   /** Argument must include host:port and optionally :timeout_ms */
-  public ASCIISocket(String[] args)
-  {
+  public ASCIISocket(String[] args) {
     super(args);
   }
 
   /** Make a new socket connection. */
-  public boolean connect() throws Exception
-  {
+  public boolean connect() throws Exception {
     try {
       super.connect();
       itsWriter = new BufferedWriter(new OutputStreamWriter(itsSocket.getOutputStream()));
@@ -66,16 +62,14 @@ public class ASCIISocket extends TCPSocket
   }
 
   /** Close the socket, unless it is already closed. */
-  public void disconnect() throws Exception
-  {
+  public void disconnect() throws Exception {
     itsReader = null;
     itsWriter = null;
     super.disconnect();
   }
 
   /** */
-  public synchronized void putData(PointDescription desc, PointData pd) throws Exception
-  {
+  public synchronized void putData(PointDescription desc, PointData pd) throws Exception {
     if (!isConnected()) {
       connect();
     }
@@ -106,13 +100,10 @@ public class ASCIISocket extends TCPSocket
   }
 
   /**
-   * You can override this method in your class to perform any response parsing
-   * and/or request formatting that is required. This default implementation
-   * sends the request string to the server and then returns all response lines
-   * as a single string.
+   * You can override this method in your class to perform any response parsing and/or request formatting that is required. This
+   * default implementation sends the request string to the server and then returns all response lines as a single string.
    */
-  public Object parseData(PointDescription requestor) throws Exception
-  {
+  public Object parseData(PointDescription requestor) throws Exception {
     // Get the Transaction which associates the point with us
     TransactionStrings thistrans = (TransactionStrings) getMyTransactions(requestor.getInputTransactions()).get(0);
 
@@ -120,7 +111,6 @@ public class ASCIISocket extends TCPSocket
     if (thistrans.getNumStrings() < 1) {
       throw new Exception("ASCIISocket: Not enough arguments in Transaction");
     }
-
     String query = thistrans.getString();
     // Substitute EOL characters
     query = query.replaceAll("\\\\n", "\n").replaceAll("\\\\r", "\r");
@@ -134,19 +124,26 @@ public class ASCIISocket extends TCPSocket
     itsWriter.write(query);
     itsWriter.flush();
 
+    // Check if the Transaction specifies the number of reply lines to expect
+    int numexpected = -1;
+    if (thistrans.getNumStrings() > 1) {
+      numexpected = Integer.parseInt(thistrans.getString(1));
+    }
+
     // Read response
     String result = itsReader.readLine() + "\n";
-    while (itsReader.ready()) {
+    int numread = 1;
+    while (itsReader.ready() || (numexpected != -1 && numread < numexpected)) {
       String line = itsReader.readLine() + "\n";
       result = result + line;
+      numread++;
     }
 
     return result;
   }
 
   /** Collect data and fire events to queued monitor points. */
-  protected synchronized void getData(PointDescription[] points) throws Exception
-  {
+  protected synchronized void getData(PointDescription[] points) throws Exception {
     try {
       for (int i = 0; i < points.length; i++) {
         Object o;
