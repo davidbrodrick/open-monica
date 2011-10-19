@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
  */
 public class MailSender {
   /** The Session. */
-  private static Session theirSession = Session.getDefaultInstance(new Properties(),  null);
+  private static Session theirSession = Session.getDefaultInstance(new Properties(), null);
 
   /** Logger. */
   private static Logger theirLogger = Logger.getLogger(MailSender.class);
