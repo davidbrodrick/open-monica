@@ -15,7 +15,7 @@ import javax.mail.internet.*;
 import org.apache.log4j.Logger;
 
 /**
- * Trivial wrapper class for JavaMail.
+ * Trivial wrapper class for JavaMail. This uses the host for mail transport and sends mail as the current user.
  * 
  * @author David Brodrick
  */
@@ -38,13 +38,14 @@ public class MailSender {
       theirLogger.error("Cannot send email: " + ex);
     }
   }
-  
+
+  /** Test method. */
   public final static void main(String[] args) {
-    if (args.length<3) {
+    if (args.length < 3) {
       System.err.println("USAGE: Requires three arguments: recipient_email, subject, body");
       System.exit(1);
     }
-    
+
     MailSender.sendMail(args[0], args[1], args[2]);
   }
 }
