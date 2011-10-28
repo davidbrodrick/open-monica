@@ -15,8 +15,7 @@ import org.apache.log4j.Logger;
 import atnf.atoms.mon.*;
 
 /**
- * Pulls data from a Davis Weather Monitor II weather station. Data is published as a
- * HashMap with the following keys defined:
+ * Pulls data from a Davis Weather Monitor II weather station. Data is published as a HashMap with the following keys defined:
  * 
  * <P>
  * <bl>
@@ -30,8 +29,8 @@ import atnf.atoms.mon.*;
  * <li><b>WINDDIR</b> Wind direction in degrees of azimuth. </bl>
  * 
  * <P>
- * The <tt>monitor-sources.txt</tt> file needs the hostname and port number of the TCP
- * server which is connected to the weather station's serial line, eg:
+ * The <tt>monitor-sources.txt</tt> file needs the hostname and port number of the TCP server which is connected to the weather
+ * station's serial line, eg:
  * 
  * <P>
  * <tt>
@@ -72,99 +71,100 @@ import atnf.atoms.mon.*;
  * 
  * @author David Brodrick
  */
-public class DavisWeatherMonitorII extends DataSocket
-{
-    /** Argument must include host:port and optionally :timeout_ms */
-    public DavisWeatherMonitorII(String[] args)
-    {
-        super(args);
-    }
+public class DavisWeatherMonitorII extends DataSocket {
+  /** Argument must include host:port and optionally :timeout_ms */
+  public DavisWeatherMonitorII(String[] args) {
+    super(args);
+  }
 
-    /** Decode weather from the raw bytes and populate a HashMap with the data values. */
-    protected HashMap parseSensorImage(int[] rawbytes)
-    {
-        HashMap<String, Number> res = new HashMap<String, Number>();
+  /** Decode weather from the raw bytes and populate a HashMap with the data values. */
+  protected HashMap parseSensorImage(int[] rawbytes) {
+    HashMap<String, Number> res = new HashMap<String, Number>();
 
-        // Check for valid Start Of Block
-        if (rawbytes[0] != 1)
-            return null;
+    // Check for valid Start Of Block
+    if (rawbytes[0] != 1)
+      return null;
 
-        int temp;
-        // Temperatures
-        temp = rawbytes[1] + 256 * rawbytes[2];
-        res.put("INTEMP", new Float(5 * ((temp / 10.0) - 32) / 9.0));
-        temp = rawbytes[3] + 256 * rawbytes[4];
-        res.put("OUTTEMP", new Float(5 * ((temp / 10.0) - 32) / 9.0));
+    int temp;
+    // Temperatures
+    temp = rawbytes[1] + 256 * rawbytes[2];
+    res.put("INTEMP", new Float(5 * ((temp / 10.0) - 32) / 9.0));
+    temp = rawbytes[3] + 256 * rawbytes[4];
+    res.put("OUTTEMP", new Float(5 * ((temp / 10.0) - 32) / 9.0));
 
-        // Wind readings
-        res.put("WINDSPD", new Float(rawbytes[5] * 1.61));
-        temp = rawbytes[6] + 256 * rawbytes[7];
-        res.put("WINDDIR", new Float(temp));
+    // Wind readings
+    res.put("WINDSPD", new Float(rawbytes[5] * 1.61));
+    temp = rawbytes[6] + 256 * rawbytes[7];
+    res.put("WINDDIR", new Float(temp));
 
-        // Barometric pressure
-        temp = rawbytes[8] + 256 * rawbytes[9];
-        res.put("PRES", new Float(temp / 29.5287));
+    // Barometric pressure
+    temp = rawbytes[8] + 256 * rawbytes[9];
+    res.put("PRES", new Float(temp / 29.5287));
 
-        // Humidity
-        res.put("INHUMID", new Integer(rawbytes[10]));
-        res.put("OUTHUMID", new Integer(rawbytes[11]));
+    // Humidity
+    res.put("INHUMID", new Integer(rawbytes[10]));
+    res.put("OUTHUMID", new Integer(rawbytes[11]));
 
-        // Rain
-        temp = rawbytes[12] + 256 * rawbytes[13];
-        res.put("RAIN", new Integer(temp)); // In tips
+    // Rain
+    temp = rawbytes[12] + 256 * rawbytes[13];
+    res.put("RAIN", new Integer(temp)); // In tips
 
-        return res;
-    }
+    return res;
+  }
 
-    /** Collect data and fire events to queued monitor points. */
-    protected void getData(PointDescription[] points) throws Exception
-    {
-        try {
-            for (int i = 0; i < points.length; i++) {
-                PointDescription pm = points[i];
+  /** Collect data and fire events to queued monitor points. */
+  protected void getData(PointDescription[] points) throws Exception {
+    try {
+      for (int i = 0; i < points.length; i++) {
+        PointDescription pm = points[i];
 
-                // Purge the read buffer
-                int numpurge = itsReader.available();
-                for (int j = 0; j < numpurge; j++) {
-                    itsReader.read();
-                }
-
-                // Request the image
-                itsWriter.write("LOOP".getBytes());
-                itsWriter.write((byte) 0xFF);
-                itsWriter.write((byte) 0xFF);
-                itsWriter.write('\r');
-                itsWriter.flush();
-                if (itsReader.read() != 6) {
-                    // Did not receive ACK for LOOP command
-                    pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
-                    continue;
-                }
-
-                // Read the sensor image bytes
-                int[] rawbytes = new int[18];
-                for (int j = 0; j < rawbytes.length; j++) {
-                    rawbytes[j] = itsReader.read();
-                    if (rawbytes[j] == -1) {
-                        throw new Exception("Reached EOF while reading from socket");
-                    }
-                }
-
-                // Parse the weather data
-                HashMap wxdata = parseSensorImage(rawbytes);
-
-                // Count successful transactions
-                if (wxdata != null) {
-                    itsNumTransactions++;
-                }
-
-                // Fire the new data off for this point
-                pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), wxdata), true));
-            }
-        } catch (Exception e) {
-            disconnect();
-            Logger logger = Logger.getLogger(this.getClass().getName());
-            logger.error("In getData method: " + e);
+        // Purge the read buffer
+        int numpurge = itsReader.available();
+        for (int j = 0; j < numpurge; j++) {
+          itsReader.read();
         }
+
+        // Request the image
+        itsWriter.write("LOOP".getBytes());
+        itsWriter.write((byte) 0xFF);
+        itsWriter.write((byte) 0xFF);
+        itsWriter.write('\r');
+        itsWriter.flush();
+        if (itsReader.read() != 6) {
+          // Did not receive ACK for LOOP command
+          pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
+          continue;
+        }
+
+        // Read the sensor image bytes
+        int[] rawbytes = new int[18];
+        for (int j = 0; j < rawbytes.length; j++) {
+          rawbytes[j] = itsReader.read();
+          if (rawbytes[j] == -1) {
+            throw new Exception("Reached EOF while reading from socket");
+          }
+        }
+
+        // Parse the weather data
+        HashMap wxdata = parseSensorImage(rawbytes);
+
+        // Count successful transactions
+        if (wxdata != null) {
+          itsNumTransactions++;
+        }
+
+        // Fire the new data off for this point
+        pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), wxdata), true));
+      }
+    } catch (Exception e) {
+      disconnect();
+      Logger logger = Logger.getLogger(this.getClass().getName());
+      logger.error("In getData method: " + e);
+      // Fire null-data event to all queued points
+      for (int i = 0; i < points.length; i++) {
+        PointDescription pm = points[i];
+        pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
+      }
     }
+  }
 }

@@ -269,6 +269,11 @@ public class DavisVantagePro extends DataSocket {
       disconnect();
       Logger logger = Logger.getLogger(this.getClass().getName());
       logger.error("In getData method: " + e);
+      // Fire null-data event to all queued points
+      for (int i = 0; i < points.length; i++) {
+        PointDescription pm = points[i];
+        pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
+      }
     }
   }
 }

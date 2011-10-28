@@ -22,6 +22,9 @@ import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import atnf.atoms.time.AbsTime;
+import atnf.atoms.time.RelTime;
+
 /**
  * Contains static methods that may be useful.
  * 
@@ -278,5 +281,41 @@ public abstract class MonitorUtils
         itsMacros.put(macro, replacement);
       }
     }
+  }
+  
+  /**
+   * Parse type code and value strings and return the appropriate object.
+   * 
+   * @param type One of <tt>int</tt>, <tt>flt</tt>, <tt>dbl</tt>, <tt>str</tt>, <tt>bool</tt>.
+   * @param strval The string representation of the value, eg "3.141", or "true".
+   * @return The appropriate Object.
+   * @throws IllegalArgumentException If the type code is invalid or the string value cannot be parsed.
+   */
+  public static Object parseFixedValue(String type, String strval) throws IllegalArgumentException {
+    Object res;
+    try {
+      if (type.equals("dbl")) {
+        res = new Double(strval);
+      } else if (type.equals("flt")) {
+        res = new Float(strval);
+      } else if (type.equals("int")) {
+        res = new Integer(strval);
+      } else if (type.equals("str")) {
+        res = strval;
+      } else if (type.equals("bool")) {
+        res = new Boolean(strval);
+      } else if (type.equals("abst")) {
+        long foo = Long.parseLong(strval, 16); // Hex
+        res = AbsTime.factory(foo);
+      } else if (type.equals("relt")) {
+        long foo = Long.parseLong(strval); // Decimal
+        res = RelTime.factory(foo);
+      } else {
+        throw new IllegalArgumentException("Unknown type code for value data type");
+      }
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Unable to parse data value");
+    }
+    return res;
   }
 }

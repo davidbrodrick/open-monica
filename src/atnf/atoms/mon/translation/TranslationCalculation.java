@@ -43,8 +43,7 @@ public class TranslationCalculation extends TranslationListener
     super(parent, init);
 
     if (init.length < itsNumPoints + 2) {
-      System.err.println("TranslationCalculation: INSUFFICIENT ARGUMENTS: for " + parent.getFullName());
-      return;
+      throw new IllegalArgumentException("Insufficient number of arguments provided");
     }
 
     // Configure parser options

@@ -11,6 +11,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import atnf.atoms.mon.*;
+import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.time.*;
 
 /**
@@ -60,32 +61,9 @@ public class TransactionTimer extends Transaction {
     }
 
     // Parse the fixed value to be used as input
-    String type = args[1];
-    String strval = args[2];
-    try {
-      if (type.equals("dbl")) {
-        itsValue = new Double(strval);
-      } else if (type.equals("flt")) {
-        itsValue = new Float(strval);
-      } else if (type.equals("int")) {
-        itsValue = new Integer(strval);
-      } else if (type.equals("str")) {
-        itsValue = strval;
-      } else if (type.equals("bool")) {
-        itsValue = new Boolean(strval);
-      } else if (type.equals("abst")) {
-        long foo = Long.parseLong(strval, 16); // Hex
-        itsValue = AbsTime.factory(foo);
-      } else if (type.equals("relt")) {
-        long foo = Long.parseLong(strval); // Decimal
-        itsValue = RelTime.factory(foo);
-      } else {
-        throw new IllegalArgumentException("Unknown type code for value data type");
-      }
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Unable to parse data value");
-    }
-
+    itsValue = MonitorUtils.parseFixedValue(args[1], args[2]);
+    
+    // Start timer
     theirProcessTimer.schedule(new UpdateTask(), period, period);
   }
 

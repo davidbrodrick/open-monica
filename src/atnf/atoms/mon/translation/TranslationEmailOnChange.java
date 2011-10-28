@@ -11,6 +11,8 @@ package atnf.atoms.mon.translation;
 
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.MailSender;
+import atnf.atoms.time.AbsTime;
+
 import java.lang.reflect.*;
 import org.apache.log4j.Logger;
 
@@ -35,6 +37,7 @@ import org.apache.log4j.Logger;
  * <li><b>$U</b> Substituted for the units, eg "Amps".
  * <li><b>$N</b> Substituted for the name of the point , eg "site.power.current".
  * <li><b>$D</b> Substituted for the long description of the point, eg "Site main feeder current consumption".
+ * <li><b>$T</b> Substituted for the current UTC time, eg "2011-10-21 08:39:25.234". 
  * </ul>
  * 
  * @author David Brodrick
@@ -103,6 +106,8 @@ public class TranslationEmailOnChange extends Translation {
     res = res.replaceAll("\\$N", itsParent.getFullName());
     // Substitute point description
     res = res.replaceAll("\\$D", itsParent.getLongDesc());
+    // Substitute time stamp
+    res = res.replaceAll("\\$T", data.getTimestamp().toString(AbsTime.Format.UTC_STRING));    
     return res;
   }
 
