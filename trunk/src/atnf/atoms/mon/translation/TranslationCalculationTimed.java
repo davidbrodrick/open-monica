@@ -17,25 +17,46 @@ import org.apache.log4j.Logger;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.PointEvent;
+import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.time.AbsTime;
 import atnf.atoms.util.Angle;
 
 /**
- * Subclass of TranslationCalculation which performs processing based on the
- * period of the parent point rather than triggering when listen-to points
- * update.
+ * Subclass of TranslationCalculation which performs processing based on the period of the parent point rather than triggering when
+ * listen-to points update.
+ * 
+ * <P>
+ * Normally, no output will be produced if any of the input data is unavailable. However an additional two arguments can be provided
+ * which specify a default value to use in this case:
+ * <ol>
+ * <li><b>Type code:</b> The type code of the data to be provided as input, one of <tt>int</tt>, <tt>flt</tt>, <tt>dbl</tt>,
+ * <tt>str</tt>, <tt>bool</tt>.
+ * <li><b>Value:</b> String representation of the value. Will be parsed as the appropriate data type.
+ * </ol>
  * 
  * @author David Brodrick
  */
 public class TranslationCalculationTimed extends TranslationCalculation {
   /**
-   * Timer used to trigger processing. TODO: Using a single static instance has
-   * limited scaling potential. What would a better scheme be?
+   * Timer used to trigger processing. TODO: Using a single static instance has limited scaling potential. What would a better
+   * scheme be?
    */
   protected static Timer theirProcessTimer = new Timer();
+  
+  /** The default value to use if calculation cannot be performed because input data is unavailable. */
+  protected Object itsDefaultValue;
 
   public TranslationCalculationTimed(PointDescription parent, String[] init) {
     super(parent, init);
+
+    if (init.length > itsNumPoints + 2) {
+      // Extra arguments were provided to define the default value
+      if (init.length < itsNumPoints + 4) {
+        // We require type code plus value arguments
+        throw new IllegalArgumentException("Insufficient number of arguments provided to define default value");
+      }
+      itsDefaultValue = MonitorUtils.parseFixedValue(init[itsNumPoints+2], init[itsNumPoints+3]);
+    }
 
     // Parent's update interval in ms
     long period = (long) (parent.getPeriod() / 1000);
@@ -43,8 +64,7 @@ public class TranslationCalculationTimed extends TranslationCalculation {
   }
 
   /**
-   * Always returns false because we base trigger off timer, not off listened-to
-   * points.
+   * Always returns false because we base trigger off timer, not off listened-to points.
    */
   protected boolean matchData() {
     return false;
@@ -85,6 +105,9 @@ public class TranslationCalculationTimed extends TranslationCalculation {
         Logger logger = Logger.getLogger(this.getClass().getName());
         logger.debug("TranslationCalculationTimed (" + itsParent.getFullName() + ") " + itsParser.getErrorInfo());
       }
+    } else {
+      // Some of the data is unavailable, so use the default value
+      res = itsDefaultValue;
     }
     return res;
   }
