@@ -14,18 +14,14 @@ import atnf.atoms.mon.*;
 import atnf.atoms.mon.translation.Translation;
 
 /**
- * Outputs True for a fixed mark period when triggered and then outputs False
- * for at least the specified space period irrespective of input. This sequence
- * is triggered by looking at the input as a boolean (if the input is a Number
- * it will be cast to an integer and interpreted as value of zero means false,
- * with any other value meaning true).
+ * Outputs True for a fixed mark period when triggered and then outputs False for at least the specified space period irrespective
+ * of input. This sequence is triggered by looking at the input as a boolean (if the input is a Number it will be cast to an integer
+ * and interpreted as value of zero means false, with any other value meaning true).
  * 
  * It requires two arguments:
  * <ol>
- * <li> <b>Mark Period:</b> The minimum period (in seconds) to maintain the
- * mark output.
- * <li> <b>Space Period:</b> The minimum period (in seconds) to maintain the
- * space output.
+ * <li><b>Mark Period:</b> The minimum period (in seconds) to maintain the mark output.
+ * <li><b>Space Period:</b> The minimum period (in seconds) to maintain the space output (optional).
  * </ol>
  * 
  * @author David Brodrick
@@ -35,7 +31,7 @@ public class TranslationPulse extends Translation {
   RelTime itsMarkPeriod;
 
   /** The minimum period between rising edge of consecutive pulses. */
-  RelTime itsSpacePeriod;
+  RelTime itsSpacePeriod = RelTime.factory(0);
 
   /** The time we last pulsed. */
   AbsTime itsLastPulse = null;
@@ -45,7 +41,9 @@ public class TranslationPulse extends Translation {
     super(parent, init);
     try {
       itsMarkPeriod = RelTime.factory((long) (Double.parseDouble(init[0]) * 1000000));
-      itsSpacePeriod = RelTime.factory((long) (Double.parseDouble(init[1]) * 1000000));
+      if (init.length > 1) {
+        itsSpacePeriod = RelTime.factory((long) (Double.parseDouble(init[1]) * 1000000));
+      }
     } catch (Exception e) {
       Logger logger = Logger.getLogger(this.getClass().getName());
       logger.error("(" + itsParent.getFullName() + "): While parsing constructor string arguments: " + e);
