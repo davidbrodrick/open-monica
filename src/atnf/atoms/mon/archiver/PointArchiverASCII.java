@@ -35,11 +35,11 @@ import atnf.atoms.time.*;
 public class PointArchiverASCII extends PointArchiver {
   /** OS-dependant file separation character. */
   private static final String FSEP = System.getProperty("file.separator");
-  
+
   /** Base directory for the data archive. */
   private static String theirArchiveDir;
-  
-  /** Directory for writing temporary files.*/
+
+  /** Directory for writing temporary files. */
   private static File theirTempDir;
 
   /** Maximum size for an archive file. */
@@ -54,10 +54,10 @@ public class PointArchiverASCII extends PointArchiver {
   /** Logger. */
   private static Logger theirLogger = Logger.getLogger(PointArchiverASCII.class.getName());
 
-  /**Thread pool for archiving. */
+  /** Thread pool for archiving. */
   private ThreadPoolExecutor itsThreadPool;
 
-  /** Cache of current file names to write to for each point.*/
+  /** Cache of current file names to write to for each point. */
   private HashMap<String, String> itsFileNameCache = new HashMap<String, String>(1000, 1000);
 
   static {
@@ -84,7 +84,7 @@ public class PointArchiverASCII extends PointArchiver {
     if (temp == null) {
       temp = MonitorConfig.getProperty("ArchiveSize");
     }
-    if (temp==null) {
+    if (temp == null) {
       theirLogger.error("Configuration option \"ArchiveMaxSize\" was not defined");
     } else {
       try {
@@ -95,18 +95,18 @@ public class PointArchiverASCII extends PointArchiver {
     }
 
     temp = MonitorConfig.getProperty("ArchiveMaxAge");
-    if (temp==null) {
+    if (temp == null) {
       theirLogger.error("Configuration option \"ArchiveMaxAge\" was not defined");
     } else {
       try {
-        theirMaxFileAge = 1000*Integer.parseInt(temp);
+        theirMaxFileAge = 1000 * Integer.parseInt(temp);
       } catch (Exception e) {
         theirLogger.error("Error parsing configuration option \"ArchiveMaxAge\"");
       }
     }
 
     temp = MonitorConfig.getProperty("ArchiveNumThreads");
-    if (temp==null) {
+    if (temp == null) {
       theirLogger.error("Configuration option \"ArchiveNumThreads\" was not defined");
       theirNumThreads = 1;
     } else {
@@ -116,7 +116,7 @@ public class PointArchiverASCII extends PointArchiver {
         theirLogger.error("Error parsing configuration option \"ArchiveNumThreads\"");
         theirNumThreads = 1;
       }
-    }    
+    }
   }
 
   class ASCIIArchiverWorker implements Runnable {
@@ -289,9 +289,15 @@ public class PointArchiverASCII extends PointArchiver {
     AbsTime end = AbsTime.factory((new AbsTime()).getValue() - 86400000000l * point.getArchiveLongevity());
     // Get list of all files to be purged
     Vector<String> files = getFiles(dir, start, end);
-    // Delete all files except most current (as it may contain still-valid data)
-    for (int i = 0; i < files.size() - 1; i++) {
-      (new File(files.get(i))).delete();
+    if (files.size() > 1) {
+      // Delete all files except most current (as it may contain still-valid data)
+      for (int i = 0; i < files.size() - 1; i++) {
+        try {
+          (new File(files.get(i))).delete();
+        } catch (Exception e) {
+          // There was a problem deleting the file. Should we log a message about it?
+        }
+      }
     }
   }
 
