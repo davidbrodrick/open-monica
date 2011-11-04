@@ -210,7 +210,15 @@ A `MonDetail` object has the properties:
 
 ==== monnames ====
 
+Query the server for the available monitor point names.
 
+Usage:
+{{{
+@pointnames = monnames($mon);
+}}}
+
+   * `$mon` is a successfully created MoniCA connection handle
+   * `@pointnames` is a list of strings, one for each monitor point available on the server.
 
 ==== montill ====
 
