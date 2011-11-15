@@ -103,12 +103,20 @@ public class EverSolarInverter extends DataSocket {
 
   /** Collect data and fire events to queued monitor points. */
   protected void getData(PointDescription[] points) throws Exception {
-      HashMap<String, Object> newdata = getCurrentData();
-      for (int i = 0; i < points.length; i++) {
-        // Fire the new data off for this point
-        points[i].firePointEvent(new PointEvent(this, new PointData(points[i].getFullName(), newdata), true));
-        itsNumTransactions++;
-      }
+    HashMap<String, Object> newdata;
+    try {
+      newdata = getCurrentData();
+    } catch (Exception e) {
+      // Assume something is broken
+      disconnect();
+      newdata = null;
+    }
+
+    for (int i = 0; i < points.length; i++) {
+      // Fire the new data off for this point
+      points[i].firePointEvent(new PointEvent(this, new PointData(points[i].getFullName(), newdata), true));
+      itsNumTransactions++;
+    }
   }
 
   /** Get the latest data and parse values. */
@@ -131,8 +139,19 @@ public class EverSolarInverter extends DataSocket {
       }
       System.out.println();
 
-      res.put("DCV", new Float((resp[13] * 256 + resp[14]) / 10.0));
       res.put("TEMP", new Float((resp[9] * 256 + resp[10]) / 10.0));
+      res.put("ETODAY", new Float((resp[11] * 256 + resp[12]) / 100.0));
+      float vdc = (float) ((resp[13] * 256 + resp[14]) / 10.0);
+      res.put("VDC", new Float(vdc));
+      float idc = (float) ((resp[15] * 256 + resp[16]) / 10.0);
+      res.put("IDC", new Float(idc));
+      res.put("PDC", new Float(vdc * idc));
+      res.put("IAC", new Float((resp[17] * 256 + resp[18]) / 10.0));
+      res.put("VAC", new Float((resp[19] * 256 + resp[20]) / 10.0));
+      res.put("FREQ", new Float((resp[21] * 256 + resp[22]) / 100.0));
+      res.put("PAC", new Float((resp[23] * 256 + resp[24])));
+      res.put("ETOTAL", new Float((resp[29] * 256 + resp[30]) / 10.0));
+      res.put("HOURS", new Float((resp[33] * 256 + resp[34])));
     } catch (Exception e) {
       disconnect();
       itsLogger.error("In getData method: " + e);

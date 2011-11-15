@@ -136,6 +136,8 @@ public class MoniCAServerASCII extends Thread {
             details();
           } else if (line.equalsIgnoreCase("set")) {
             set();
+          } else if (line.equalsIgnoreCase("exit")) {
+            itsRunning = false;
           }
         }
       } catch (Exception f) {
