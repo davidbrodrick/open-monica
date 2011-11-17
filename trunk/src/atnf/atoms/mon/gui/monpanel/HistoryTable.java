@@ -25,40 +25,34 @@ import java.text.SimpleDateFormat;
 
 /**
  * Display monitor point values against time in a table.
- *
- * <P>When real-time mode is enabled this class uses the <i>DataMaintainer</i>
- * to stay current with any changes to the monitor point values.
- *
- * <P>The <i>PointData</i> objects for all monitor point updates are stored
- * in the field <i>itsData</i>. When it is time to update the table we call
- * the method <i>processData</i> which looks at what options were selected by
- * the user and organises <i>itsData</i> into appropriate table rows. The
- * rows are stored in the field <i>itsRows</i>, which is accessed whenever
- * swing wants to redraw any part of the table.
- *
+ * 
+ * <P>
+ * When real-time mode is enabled this class uses the <i>DataMaintainer</i> to stay current with any changes to the monitor point
+ * values.
+ * 
+ * <P>
+ * The <i>PointData</i> objects for all monitor point updates are stored in the field <i>itsData</i>. When it is time to update the
+ * table we call the method <i>processData</i> which looks at what options were selected by the user and organises <i>itsData</i>
+ * into appropriate table rows. The rows are stored in the field <i>itsRows</i>, which is accessed whenever swing wants to redraw
+ * any part of the table.
+ * 
  * @author David Brodrick
  * @version $Id: HistoryTable.java,v 1.2 2006/06/27 05:51:03 bro764 Exp $
  */
-public class HistoryTable
-extends MonPanel
-implements PointListener, Runnable, TableCellRenderer
-{
+public class HistoryTable extends MonPanel implements PointListener, Runnable, TableCellRenderer {
   static {
     MonPanel.registerMonPanel("History Table", HistoryTable.class);
   }
 
-  ///////////////////////// NESTED CLASS ///////////////////////////////
+  // /////////////////////// NESTED CLASS ///////////////////////////////
   /** Nested class to provide GUI controls for configuring the MonPanel. */
-  public class
-  HistoryTableSetupPanel
-  extends MonPanelSetupPanel
-  {
+  public class HistoryTableSetupPanel extends MonPanelSetupPanel {
     /** Widget to allow selection of the points to display. */
     private PointSourceSelector itsPointSelector = new PointSourceSelector();
     /** Text field hold the history time span. */
     protected JTextField itsPeriod = new JTextField("30", 6);
     /** Options for the time period selection combo box. */
-    final private String[] itsTimeOptions = {"Minutes", "Hours", "Days"};
+    final private String[] itsTimeOptions = { "Minutes", "Hours", "Days" };
     /** combo box to give time unit selection */
     protected JComboBox itsPeriodUnits = new JComboBox(itsTimeOptions);
     /** Records if the graph should update in real-time. */
@@ -68,8 +62,7 @@ implements PointListener, Runnable, TableCellRenderer
     /** Allows user to enter graph start time for archival mode. */
     protected JTextField itsStart = new JTextField(16);
     /** The format of the dates we parse. */
-    protected SimpleDateFormat itsFormatter
-                                 = new SimpleDateFormat ("yyyy/MM/dd HH:mm");
+    protected SimpleDateFormat itsFormatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
     /** New row for every change/update? */
     protected JRadioButton itsNewRow = new JRadioButton("New row generated when ANY monitor point updates");
     /** Or new row when first point updates? */
@@ -77,7 +70,7 @@ implements PointListener, Runnable, TableCellRenderer
     /** Or row for each update interval? */
     protected JRadioButton itsSharedRow = new JRadioButton("New row generated every ");
     /** Interval between rows (in seconds), if enabled. */
-    protected JTextField itsRowInterval = new JTextField("10",3);
+    protected JTextField itsRowInterval = new JTextField("10", 3);
     /** Don't show rows if there's been no changes?. */
     protected JCheckBox itsChangesOnly = new JCheckBox("Hide repeated rows (rows with no changes to data values)");
     /** Should we hide incomplete rows? */
@@ -87,7 +80,7 @@ implements PointListener, Runnable, TableCellRenderer
     /** Will we place a limit on the number of rows displayed? */
     protected JCheckBox itsLimit = new JCheckBox("Limit number of rows to ");
     /** Max number of rows to be displayed. */
-    protected JTextField itsMaxRows = new JTextField("10",6);
+    protected JTextField itsMaxRows = new JTextField("10", 6);
     /** Suppress the date in data timestamps? */
     protected JCheckBox itsNoDate = new JCheckBox("Suppress date in timestamps");
     /** Suppress the milliseconds in data timestamps? */
@@ -99,8 +92,7 @@ implements PointListener, Runnable, TableCellRenderer
     private JPanel itsMainPanel = new JPanel();
 
     /** Construct the setup editor for the specified panel. */
-    public HistoryTableSetupPanel(HistoryTable panel, JFrame frame)
-    {
+    public HistoryTableSetupPanel(HistoryTable panel, JFrame frame) {
       super(panel, frame);
 
       itsDynamic.addActionListener(this);
@@ -132,7 +124,7 @@ implements PointListener, Runnable, TableCellRenderer
       tempgroup.add(itsNewRow);
       tempgroup.add(itsSharedRow);
       tempgroup.add(itsFirstRow);
-      //itsSharedRow.doClick();
+      // itsSharedRow.doClick();
       itsFirstRow.doClick();
 
       itsChangesOnly.setSelected(true);
@@ -143,42 +135,42 @@ implements PointListener, Runnable, TableCellRenderer
       itsMainPanel.setLayout(new BoxLayout(itsMainPanel, BoxLayout.Y_AXIS));
 
       JPanel temppanel = new JPanel();
-      temppanel.setLayout(new GridLayout(3,1));
+      temppanel.setLayout(new GridLayout(3, 1));
       temppanel.setBorder(BorderFactory.createLineBorder(Color.black));
       JPanel temppanel2 = new JPanel();
       temppanel2.setLayout(new BoxLayout(temppanel2, BoxLayout.X_AXIS));
       JLabel templabel = new JLabel("Data Time Span:  ");
       templabel.setForeground(Color.black);
       temppanel2.add(templabel);
-      itsPeriod.setMaximumSize(new Dimension(60,30));
+      itsPeriod.setMaximumSize(new Dimension(60, 30));
       temppanel2.add(itsPeriod);
-      itsPeriodUnits.setMaximumSize(new Dimension(90,30));
+      itsPeriodUnits.setMaximumSize(new Dimension(90, 30));
       temppanel2.add(itsPeriodUnits);
       temppanel2.add(new JLabel());
       temppanel.add(temppanel2);
       temppanel.add(itsDynamic);
       temppanel2 = new JPanel();
       temppanel2.setLayout(new BoxLayout(temppanel2, BoxLayout.X_AXIS));
-      //itsStatic.setMaximumSize(new Dimension(350,30));
+      // itsStatic.setMaximumSize(new Dimension(350,30));
       temppanel2.add(itsStatic);
       itsStart.setText(itsFormatter.format(new Date()));
-      itsStart.setMaximumSize(new Dimension(160,30));
+      itsStart.setMaximumSize(new Dimension(160, 30));
       temppanel2.add(itsStart);
       templabel = new JLabel();
-      templabel.setPreferredSize(new Dimension(20,20));
+      templabel.setPreferredSize(new Dimension(20, 20));
       temppanel2.add(templabel);
       temppanel.add(temppanel2);
       itsMainPanel.add(temppanel);
 
       temppanel = new JPanel();
-      temppanel.setLayout(new GridLayout(3,1));
+      temppanel.setLayout(new GridLayout(3, 1));
       temppanel.setBorder(BorderFactory.createLineBorder(Color.black));
       temppanel.add(itsFirstRow);
       temppanel.add(itsNewRow);
       temppanel2 = new JPanel();
       temppanel2.setLayout(new BoxLayout(temppanel2, BoxLayout.X_AXIS));
       temppanel2.add(itsSharedRow);
-      itsRowInterval.setMaximumSize(new Dimension(60,30));
+      itsRowInterval.setMaximumSize(new Dimension(60, 30));
       temppanel2.add(itsRowInterval);
       templabel = new JLabel(" seconds");
       templabel.setForeground(Color.black);
@@ -189,17 +181,17 @@ implements PointListener, Runnable, TableCellRenderer
       itsMainPanel.add(temppanel);
 
       temppanel = new JPanel();
-      temppanel.setLayout(new GridLayout(6,1));
+      temppanel.setLayout(new GridLayout(6, 1));
       temppanel.setBorder(BorderFactory.createLineBorder(Color.black));
       temppanel.add(itsChangesOnly);
       temppanel.add(itsHideIncomplete);
-//      temppanel.add(itsSparse);
+      // temppanel.add(itsSparse);
       temppanel.add(itsNoDate);
       temppanel.add(itsNoMS);
       temppanel2 = new JPanel();
       temppanel2.setLayout(new BoxLayout(temppanel2, BoxLayout.X_AXIS));
       temppanel2.add(itsLimit);
-      itsMaxRows.setMaximumSize(new Dimension(60,30));
+      itsMaxRows.setMaximumSize(new Dimension(60, 30));
       temppanel2.add(itsMaxRows);
       templabel = new JLabel("");
       temppanel2.add(templabel);
@@ -212,25 +204,19 @@ implements PointListener, Runnable, TableCellRenderer
 
       add(new JScrollPane(itsMainPanel), BorderLayout.CENTER);
 
-      //Display the current setup on the GUI
-      if (itsInitialSetup!=null) {
+      // Display the current setup on the GUI
+      if (itsInitialSetup != null) {
         showSetup(itsInitialSetup);
       }
     }
 
     /** Called when some GUI elements are selected by the user. */
-    public
-    void
-    actionPerformed(ActionEvent e)
-    {
+    public void actionPerformed(ActionEvent e) {
       super.actionPerformed(e);
       String cmd = e.getActionCommand();
-      if (e.getSource()==itsStart ||
-	  e.getSource()==itsPeriod ||
-	  e.getSource()==itsMaxRows ||
-	  e.getSource()==itsRowInterval) {
-	okClicked();
-	return;
+      if (e.getSource() == itsStart || e.getSource() == itsPeriod || e.getSource() == itsMaxRows || e.getSource() == itsRowInterval) {
+        okClicked();
+        return;
       }
       if (cmd.equals("Dynamic")) {
         itsStart.setEnabled(false);
@@ -257,28 +243,26 @@ implements PointListener, Runnable, TableCellRenderer
       }
     }
 
-    /** Return the current setup, as determined by the GUI controls.
-     * It provides the means of extracting the setup specified by the
+    /**
+     * Return the current setup, as determined by the GUI controls. It provides the means of extracting the setup specified by the
      * user into a useable format.
-     * @return SavedSetup specified by GUI controls, or <tt>null</tt> if
-     *         no setup can be extracted from the GUI at present. */
-    protected
-    SavedSetup
-    getSetup()
-    {
+     * 
+     * @return SavedSetup specified by GUI controls, or <tt>null</tt> if no setup can be extracted from the GUI at present.
+     */
+    protected SavedSetup getSetup() {
       SavedSetup ss = new SavedSetup();
       ss.setClass("atnf.atoms.mon.gui.monpanel.HistoryTable");
       ss.setName("temp");
 
-      //Make a parsable string from the list of point names
+      // Make a parsable string from the list of point names
       Vector points = itsPointSelector.getSelections();
       String p = "";
-      if (points.size()>0) {
-	p += points.get(0);
-	//Then add rest of point names with a delimiter
-	for (int i=1; i<points.size(); i++) {
-    p += ":" + points.get(i);
-  }
+      if (points.size() > 0) {
+        p += points.get(0);
+        // Then add rest of point names with a delimiter
+        for (int i = 1; i < points.size(); i++) {
+          p += ":" + points.get(i);
+        }
       }
       ss.put("points", p);
 
@@ -313,99 +297,85 @@ implements PointListener, Runnable, TableCellRenderer
       }
 
       if (itsLimit.isSelected()) {
-	try {
-	  int dummy = Integer.parseInt(itsMaxRows.getText());
-	  if (dummy<=0) {
-      throw new Exception();
-    }
-	} catch (Exception e) {
-	  JOptionPane.showMessageDialog(this,
-					"The field for maximum number of rows\n" +
-					"to be displayed must contain a valid\n" +
-					"integer greater than zero. eg \"20\"\n",
-					"Invalid Maximum Rows",
-					JOptionPane.WARNING_MESSAGE);
-	  return null;
-	}
-	ss.put("limit", "true");
-	ss.put("maxrows", ""+itsMaxRows.getText());
+        try {
+          int dummy = Integer.parseInt(itsMaxRows.getText());
+          if (dummy <= 0) {
+            throw new Exception();
+          }
+        } catch (Exception e) {
+          JOptionPane.showMessageDialog(this, "The field for maximum number of rows\n" + "to be displayed must contain a valid\n"
+              + "integer greater than zero. eg \"20\"\n", "Invalid Maximum Rows", JOptionPane.WARNING_MESSAGE);
+          return null;
+        }
+        ss.put("limit", "true");
+        ss.put("maxrows", "" + itsMaxRows.getText());
       } else {
-	ss.put("limit", "false");
+        ss.put("limit", "false");
       }
 
       if (itsNewRow.isSelected()) {
-	ss.put("rowmode", "new");
+        ss.put("rowmode", "new");
       } else if (itsFirstRow.isSelected()) {
-	ss.put("rowmode", "first");
+        ss.put("rowmode", "first");
       } else {
-	ss.put("rowmode", "shared");
+        ss.put("rowmode", "shared");
         int dummy = 10;
-	try {
-	  dummy = Integer.parseInt(itsRowInterval.getText());
-	  if (dummy<=0) {
-      throw new Exception();
-    }
-	} catch (Exception e) {
-	  JOptionPane.showMessageDialog(this,
-					"The field that specifies how many seconds\n" +
-					"between producing new rows, must be a valid\n" +
-					"integer greater than zero. eg \"10\"\n",
-					"Time Interval Between Rows",
-					JOptionPane.WARNING_MESSAGE);
-	  return null;
-	}
-	ss.put("rowperiod", ""+(dummy*1000000l));
+        try {
+          dummy = Integer.parseInt(itsRowInterval.getText());
+          if (dummy <= 0) {
+            throw new Exception();
+          }
+        } catch (Exception e) {
+          JOptionPane.showMessageDialog(this, "The field that specifies how many seconds\n" + "between producing new rows, must be a valid\n"
+              + "integer greater than zero. eg \"10\"\n", "Time Interval Between Rows", JOptionPane.WARNING_MESSAGE);
+          return null;
+        }
+        ss.put("rowperiod", "" + (dummy * 1000000l));
       }
 
       if (itsChangesOnly.isSelected()) {
-	ss.put("changesonly", "true");
+        ss.put("changesonly", "true");
       } else {
-	ss.put("changesonly", "false");
+        ss.put("changesonly", "false");
       }
 
-      //Check that the numeric period field and save it, if okay
+      // Check that the numeric period field and save it, if okay
       try {
-	      Double.parseDouble(itsPeriod.getText());
+        Double.parseDouble(itsPeriod.getText());
       } catch (Exception e) {
-	JOptionPane.showMessageDialog(this,
-				      "The field for the Data Time Span must contain\n" +
-				      "a valid number, eg, \"30\" or \"1.5\".\n",
-				      "Bad Period Entered",
-				      JOptionPane.WARNING_MESSAGE);
-	return null;
+        JOptionPane.showMessageDialog(this, "The field for the Data Time Span must contain\n" + "a valid number, eg, \"30\" or \"1.5\".\n",
+            "Bad Period Entered", JOptionPane.WARNING_MESSAGE);
+        return null;
       }
       double numtime = Double.parseDouble(itsPeriod.getText());
-      String units = (String)itsPeriodUnits.getSelectedItem();
+      String units = (String) itsPeriodUnits.getSelectedItem();
       if (units.equals("Minutes")) {
-	numtime *= 60000000l;
+        numtime *= 60000000l;
       } else if (units.equals("Hours")) {
-	numtime *= 60*60000000l;
+        numtime *= 60 * 60000000l;
       } else if (units.equals("Days")) {
-	numtime *= 24*60*60000000l;
+        numtime *= 24 * 60 * 60000000l;
       }
-      ss.put("period", ""+(long)numtime);
+      ss.put("period", "" + (long) numtime);
 
       if (itsDynamic.isSelected()) {
-	ss.put("mode", "dynamic");
+        ss.put("mode", "dynamic");
       } else if (itsStatic.isSelected()) {
         ss.put("mode", "static");
-	String startstr = itsStart.getText();
-	Date date = null;
-	try {
-	  date = itsFormatter.parse(startstr);
-	} catch (Exception e) { date=null; }
-	if (date==null) {
-	  JOptionPane.showMessageDialog(this,
-					"The Start Time you entered could\n" +
-					"not be parsed. The time must be\n" +
-					"in \"yyyy/MM/dd HH:mm\" format, eg:\n" +
-					"\"" + itsFormatter.format(new Date()) + "\"\n",
-					"Bad Start Time",
-					JOptionPane.WARNING_MESSAGE);
-	  return null;
-	}
-	AbsTime start = AbsTime.factory(date);
-	ss.put("start", ""+start.getValue());
+        String startstr = itsStart.getText();
+        Date date = null;
+        try {
+          date = itsFormatter.parse(startstr);
+        } catch (Exception e) {
+          date = null;
+        }
+        if (date == null) {
+          JOptionPane.showMessageDialog(this, "The Start Time you entered could\n" + "not be parsed. The time must be\n"
+              + "in \"yyyy/MM/dd HH:mm\" format, eg:\n" + "\"" + itsFormatter.format(new Date()) + "\"\n", "Bad Start Time", JOptionPane.WARNING_MESSAGE);
+          return null;
+        }
+        AbsTime start = AbsTime.factory(date);
+        ss.put("start", "" + start.getValue());
       } else {
         return null;
       }
@@ -413,123 +383,124 @@ implements PointListener, Runnable, TableCellRenderer
       return ss;
     }
 
-    /** Configure the GUI to display the given setup.
-     * @param setup The setup to display to the user. */
-    protected
-    void
-    showSetup(SavedSetup setup)
-    {
+    /**
+     * Configure the GUI to display the given setup.
+     * 
+     * @param setup
+     *          The setup to display to the user.
+     */
+    protected void showSetup(SavedSetup setup) {
       itsInitialSetup = setup;
-      if (setup==null) {
-	System.err.println("HistoryTableSetupPanel:showSetup: Setup is NULL");
-	return;
+      if (setup == null) {
+        System.err.println("HistoryTableSetupPanel:showSetup: Setup is NULL");
+        return;
       }
       if (!setup.getClassName().equals("atnf.atoms.mon.gui.monpanel.HistoryTable")) {
-	System.err.println("HistoryTableSetupPanel:showSetup: Setup is for wrong class");
-	return;
+        System.err.println("HistoryTableSetupPanel:showSetup: Setup is for wrong class");
+        return;
       }
 
-      String temp = (String)setup.get("mode");
-      if (temp==null||temp.equals("dynamic")) {
-	itsDynamic.doClick();
+      String temp = (String) setup.get("mode");
+      if (temp == null || temp.equals("dynamic")) {
+        itsDynamic.doClick();
       } else {
-	itsStatic.doClick();
-	temp = (String)setup.get("start");
-	try {
-	  long tlong = Long.parseLong(temp);
-	  AbsTime ttime = AbsTime.factory(tlong);
+        itsStatic.doClick();
+        temp = (String) setup.get("start");
+        try {
+          long tlong = Long.parseLong(temp);
+          AbsTime ttime = AbsTime.factory(tlong);
           Date tdate = ttime.getAsDate();
-	  itsStart.setText(itsFormatter.format(tdate));
-	} catch (Exception e) {
-	  itsStart.setText("ERROR");
-	}
+          itsStart.setText(itsFormatter.format(tdate));
+        } catch (Exception e) {
+          itsStart.setText("ERROR");
+        }
       }
 
-      //graph time span
-      temp = (String)setup.get("period");
+      // graph time span
+      temp = (String) setup.get("period");
       long period = Long.parseLong(temp);
-      if (period>=2*86400000000l) {
-	//Best displayed in days
-	itsPeriodUnits.setSelectedItem("Days");
-	itsPeriod.setText("" + (period/86400000000l));
-      } else if (period>=2*3600000000l) {
-	//Best displayed in hours
-	itsPeriodUnits.setSelectedItem("Hours");
-	itsPeriod.setText("" + (period/3600000000l));
+      if (period >= 2 * 86400000000l) {
+        // Best displayed in days
+        itsPeriodUnits.setSelectedItem("Days");
+        itsPeriod.setText("" + (period / 86400000000l));
+      } else if (period >= 2 * 3600000000l) {
+        // Best displayed in hours
+        itsPeriodUnits.setSelectedItem("Hours");
+        itsPeriod.setText("" + (period / 3600000000l));
       } else {
-	//Let's show it in minutes
-	itsPeriodUnits.setSelectedItem("Minutes");
-	itsPeriod.setText("" + (period/60000000l));
+        // Let's show it in minutes
+        itsPeriodUnits.setSelectedItem("Minutes");
+        itsPeriod.setText("" + (period / 60000000l));
       }
 
-      temp = (String)setup.get("limit");
-      if (temp==null||temp.equals("false")) {
-	itsLimit.setSelected(true);
+      temp = (String) setup.get("limit");
+      if (temp == null || temp.equals("false")) {
+        itsLimit.setSelected(true);
         itsLimit.doClick();
       } else {
-	itsLimit.setSelected(false);
+        itsLimit.setSelected(false);
         itsLimit.doClick();
-	temp = (String)setup.get("maxrows");
-	try {
-	  long tlong = Long.parseLong(temp);
-	  itsMaxRows.setText(""+tlong);
-	} catch (Exception e) {
-	  itsMaxRows.setText("10");
-	}
+        temp = (String) setup.get("maxrows");
+        try {
+          long tlong = Long.parseLong(temp);
+          itsMaxRows.setText("" + tlong);
+        } catch (Exception e) {
+          itsMaxRows.setText("10");
+        }
       }
 
-      temp = (String)setup.get("hidei");
-      if (temp==null||temp.equals("true")) {
-	itsHideIncomplete.setSelected(true);
+      temp = (String) setup.get("hidei");
+      if (temp == null || temp.equals("true")) {
+        itsHideIncomplete.setSelected(true);
       } else {
-	itsHideIncomplete.setSelected(false);
+        itsHideIncomplete.setSelected(false);
       }
 
-      temp = (String)setup.get("noms");
-      if (temp==null||temp.equals("true")) {
-	itsNoMS.setSelected(true);
+      temp = (String) setup.get("noms");
+      if (temp == null || temp.equals("true")) {
+        itsNoMS.setSelected(true);
       } else {
-	itsNoMS.setSelected(false);
+        itsNoMS.setSelected(false);
       }
 
-      temp = (String)setup.get("nodate");
-      if (temp==null||temp.equals("true")) {
-	itsNoDate.setSelected(true);
+      temp = (String) setup.get("nodate");
+      if (temp == null || temp.equals("true")) {
+        itsNoDate.setSelected(true);
       } else {
-	itsNoDate.setSelected(false);
+        itsNoDate.setSelected(false);
       }
 
-      temp = (String)setup.get("reverse");
-      if (temp==null||temp.equals("false")) {
-	itsReverse.setSelected(false);
+      temp = (String) setup.get("reverse");
+      if (temp == null || temp.equals("false")) {
+        itsReverse.setSelected(false);
       } else {
-	itsReverse.setSelected(true);
+        itsReverse.setSelected(true);
       }
 
-      temp = (String)setup.get("changesonly");
-      if (temp==null||temp.equals("true")) {
-	itsChangesOnly.setSelected(true);
+      temp = (String) setup.get("changesonly");
+      if (temp == null || temp.equals("true")) {
+        itsChangesOnly.setSelected(true);
       } else {
-	itsChangesOnly.setSelected(false);
+        itsChangesOnly.setSelected(false);
       }
 
-      temp = (String)setup.get("rowmode");
-      if (temp==null||temp.equals("first")) {
-	itsFirstRow.doClick();
+      temp = (String) setup.get("rowmode");
+      if (temp == null || temp.equals("first")) {
+        itsFirstRow.doClick();
       } else if (temp.equals("new")) {
-	itsNewRow.doClick();
+        itsNewRow.doClick();
       } else {
-	itsSharedRow.doClick();
-	temp = (String)setup.get("rowperiod");
-	try {
-	  long tlong = Long.parseLong(temp);
-	  itsRowInterval.setText(""+tlong/1000000);
-	} catch (Exception e) {
-	  itsRowInterval.setText("10");
-	}
+        itsSharedRow.doClick();
+        temp = (String) setup.get("rowperiod");
+        try {
+          long tlong = Long.parseLong(temp);
+          itsRowInterval.setText("" + tlong / 1000000);
+        } catch (Exception e) {
+          itsRowInterval.setText("10");
+        }
       }
 
-      String p = (String)setup.get("points");
+      String p = (String) setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
       Vector points = new Vector(stp.countTokens());
       while (stp.hasMoreTokens()) {
@@ -539,7 +510,8 @@ implements PointListener, Runnable, TableCellRenderer
       itsPointSelector.setSelections(points);
     }
   }
-  /////////////////////// END NESTED CLASS /////////////////////////////
+
+  // ///////////////////// END NESTED CLASS /////////////////////////////
   /** The Table to display on the panel. */
   protected JTable itsTable = null;
   /** The TableModel used for rendering monitor data. */
@@ -593,28 +565,24 @@ implements PointListener, Runnable, TableCellRenderer
   protected boolean itsReInit = false;
 
   /** C'tor. */
-  public
-  HistoryTable()
-  {
+  public HistoryTable() {
     setLayout(new java.awt.BorderLayout());
     itsTable = new JTable(itsModel);
     itsTable.setDefaultRenderer(Object.class, this);
-    //Disable tooltips to prevent constant rerendering on mouse-over
+    // Disable tooltips to prevent constant rerendering on mouse-over
     ToolTipManager.sharedInstance().unregisterComponent(itsTable);
     ToolTipManager.sharedInstance().unregisterComponent(itsTable.getTableHeader());
 
-    //final JTable temptable = itsTable;
-    itsTable.addMouseListener(new MouseAdapter()
-    {
-      public void mouseClicked(MouseEvent e)
-      {
-	if (e.getClickCount() == 2) {
-	  Point p = e.getPoint();
-	  int row = itsTable.rowAtPoint(p);
+    // final JTable temptable = itsTable;
+    itsTable.addMouseListener(new MouseAdapter() {
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2) {
+          Point p = e.getPoint();
+          int row = itsTable.rowAtPoint(p);
           int column = itsTable.columnAtPoint(p); // This is the view column!
-	  //System.err.println("POINT: " + itsModel.getPoint(row, column));
-	  System.err.println("DOUBLE-CLICKED: " + row + ", " + column);
-	}
+          // System.err.println("POINT: " + itsModel.getPoint(row, column));
+          System.err.println("DOUBLE-CLICKED: " + row + ", " + column);
+        }
       }
     });
 
@@ -622,189 +590,187 @@ implements PointListener, Runnable, TableCellRenderer
     itsScroll.setBackground(Color.lightGray);
     add(itsScroll);
 
-    //Start the data collection thread
+    // Start the data collection thread
     new Thread(this).start();
   }
 
-
   /** Main loop for table-update thread. */
-  public
-  void
-  run()
-  {
+  public void run() {
     while (itsKeepRunning) {
       if (itsReInit) {
-	itsReInit = false;
-	Runnable clearTable = new Runnable() {
-	  public void run() {
-	    removeAll();
-	    add(new JLabel("Retrieving monitor data from server..", JLabel.CENTER));
+        itsReInit = false;
+        Runnable clearTable = new Runnable() {
+          public void run() {
+            removeAll();
+            add(new JLabel("Retrieving monitor data from server..", JLabel.CENTER));
             repaint();
-	  }
-	};
-	try {
-	  SwingUtilities.invokeAndWait(clearTable);
-	} catch (Exception e) {e.printStackTrace();}
+          }
+        };
+        try {
+          SwingUtilities.invokeAndWait(clearTable);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
 
-	getInitialData();
-	if (itsRealTime) {
-	  DataMaintainer.subscribe(itsPoints, this);
-	}
-	processData();
+        getInitialData();
+        if (itsRealTime) {
+          DataMaintainer.subscribe(itsPoints, this);
+        }
+        processData();
 
-	Runnable updateTable = new Runnable() {
-	  public void run() {
-	    removeAll();
-	    add(itsScroll);
-	    itsModel.fireTableStructureChanged();
+        Runnable updateTable = new Runnable() {
+          public void run() {
+            removeAll();
+            add(itsScroll);
+            itsModel.fireTableStructureChanged();
             repaint();
-	  }
-	};
-	try {
-	  SwingUtilities.invokeAndWait(updateTable);
-	} catch (Exception e) {e.printStackTrace();}
+          }
+        };
+        try {
+          SwingUtilities.invokeAndWait(updateTable);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
       synchronized (this) {
-	try { wait(); } catch (Exception e) { e.printStackTrace(); }
+        try {
+          wait();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
     }
   }
 
-
   /** Clear any current setup. */
-  public 
-  void
-  blankSetup()
-  {
-    //If currently real-time then unsubscribe from any points
-    if (itsRealTime && itsPoints!=null && itsPoints.size()>0) {
+  public void blankSetup() {
+    // If currently real-time then unsubscribe from any points
+    if (itsRealTime && itsPoints != null && itsPoints.size() > 0) {
       DataMaintainer.unsubscribe(itsPoints, this);
     }
     Runnable clearTable = new Runnable() {
       public void run() {
-	removeAll();
-	add(new JLabel("Select display options using the tabs", JLabel.CENTER));
-	repaint();
+        removeAll();
+        add(new JLabel("Select display options using the tabs", JLabel.CENTER));
+        repaint();
       }
     };
     try {
       SwingUtilities.invokeAndWait(clearTable);
-    } catch (Exception e) {e.printStackTrace();}
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
-
-  /** Configure this MonPanel to use the specified setup. The setup will
-   * specify sub-class-specific information, so this method can be used
-   * to restore saved MonPanel states.
-   * @param setup String containing sub-class-specific setup information.
-   * @return <tt>true</tt> if setup could be parsed or <tt>false</tt> if
-   *         there was a problem and the setup cannot be used.
+  /**
+   * Configure this MonPanel to use the specified setup. The setup will specify sub-class-specific information, so this method can
+   * be used to restore saved MonPanel states.
+   * 
+   * @param setup
+   *          String containing sub-class-specific setup information.
+   * @return <tt>true</tt> if setup could be parsed or <tt>false</tt> if there was a problem and the setup cannot be used.
    */
-  public synchronized
-  boolean
-  loadSetup(final SavedSetup setup)
-  {
+  public synchronized boolean loadSetup(final SavedSetup setup) {
     try {
-      //check if the setup is suitable for our class
+      // check if the setup is suitable for our class
       if (!setup.checkClass(this)) {
-	System.err.println("HistoryTable:loadSetup: setup not for "
-			   + this.getClass().getName());
-	return false;
+        System.err.println("HistoryTable:loadSetup: setup not for " + this.getClass().getName());
+        return false;
       }
 
-      //the copy of the setup held by the frame is now incorrect
+      // the copy of the setup held by the frame is now incorrect
       if (itsFrame instanceof MonFrame) {
-        ((MonFrame)itsFrame).itsSetup=null;
+        ((MonFrame) itsFrame).itsSetup = null;
       }
 
-      //If currently real-time then unsubscribe from any points
-      if (itsRealTime && itsPoints!=null && itsPoints.size()>0) {
-	DataMaintainer.unsubscribe(itsPoints, this);
+      // If currently real-time then unsubscribe from any points
+      if (itsRealTime && itsPoints != null && itsPoints.size() > 0) {
+        DataMaintainer.unsubscribe(itsPoints, this);
       }
 
-      String temp = (String)setup.get("sparse");
-      if (temp==null || temp.equals("true")) {
-	itsSparse = true;
+      String temp = (String) setup.get("sparse");
+      if (temp == null || temp.equals("true")) {
+        itsSparse = true;
       } else {
         itsSparse = false;
       }
 
-      temp = (String)setup.get("nodate");
-      if (temp==null || temp.equals("true")) {
-	itsNoDate = true;
+      temp = (String) setup.get("nodate");
+      if (temp == null || temp.equals("true")) {
+        itsNoDate = true;
       } else {
         itsNoDate = false;
       }
 
-      temp = (String)setup.get("noms");
-      if (temp==null || temp.equals("true")) {
-	itsNoMS = true;
+      temp = (String) setup.get("noms");
+      if (temp == null || temp.equals("true")) {
+        itsNoMS = true;
       } else {
         itsNoMS = false;
       }
 
-      temp = (String)setup.get("mode");
-      if (temp==null || temp.equals("dynamic")) {
-        //Realtime/dynamic mode
-	itsRealTime = true;
+      temp = (String) setup.get("mode");
+      if (temp == null || temp.equals("dynamic")) {
+        // Realtime/dynamic mode
+        itsRealTime = true;
       } else {
-        //Archival mode - need to read the start epoch
-	itsRealTime = false;
-	temp = (String)setup.get("start");
+        // Archival mode - need to read the start epoch
+        itsRealTime = false;
+        temp = (String) setup.get("start");
         itsStartTime = AbsTime.factory(Long.parseLong(temp));
       }
 
-      temp = (String)setup.get("period");
+      temp = (String) setup.get("period");
       itsPeriod = RelTime.factory(Long.parseLong(temp));
 
-      temp = (String)setup.get("limit");
+      temp = (String) setup.get("limit");
       if (temp.equals("true")) {
-	itsLimitRows = true;
-        temp = (String)setup.get("maxrows");
-	itsMaxRows = Integer.parseInt(temp);
+        itsLimitRows = true;
+        temp = (String) setup.get("maxrows");
+        itsMaxRows = Integer.parseInt(temp);
       } else {
         itsLimitRows = false;
       }
 
-      temp = (String)setup.get("rowmode");
+      temp = (String) setup.get("rowmode");
       if (temp.equals("new")) {
-	itsNewRow = true;
-	itsFirstRow = false;
-	itsSharedRow = false;
+        itsNewRow = true;
+        itsFirstRow = false;
+        itsSharedRow = false;
       } else if (temp.equals("first")) {
-	itsFirstRow = true;
-	itsNewRow = false;
-	itsSharedRow = false;
+        itsFirstRow = true;
+        itsNewRow = false;
+        itsSharedRow = false;
       } else {
-	itsSharedRow = true;
-	itsFirstRow = false;
-	itsNewRow = false;
-	temp = (String)setup.get("rowperiod");
-	itsRowInterval = RelTime.factory(Long.parseLong(temp));
+        itsSharedRow = true;
+        itsFirstRow = false;
+        itsNewRow = false;
+        temp = (String) setup.get("rowperiod");
+        itsRowInterval = RelTime.factory(Long.parseLong(temp));
       }
 
-      temp = (String)setup.get("hidei");
-      if (temp!=null && temp.equals("true")) {
-	itsHideIncomplete = true;
+      temp = (String) setup.get("hidei");
+      if (temp != null && temp.equals("true")) {
+        itsHideIncomplete = true;
       } else {
-	itsHideIncomplete = false;
+        itsHideIncomplete = false;
       }
 
-      temp = (String)setup.get("changesonly");
-      if (temp!=null && temp.equals("true")) {
-	itsSkipRows = true;
+      temp = (String) setup.get("changesonly");
+      if (temp != null && temp.equals("true")) {
+        itsSkipRows = true;
       } else {
-	itsSkipRows = false;
+        itsSkipRows = false;
       }
 
-      temp = (String)setup.get("reverse");
-      if (temp!=null && temp.equals("true")) {
-	itsReverse = true;
+      temp = (String) setup.get("reverse");
+      if (temp != null && temp.equals("true")) {
+        itsReverse = true;
       } else {
-	itsReverse = false;
+        itsReverse = false;
       }
 
-      String p = (String)setup.get("points");
+      String p = (String) setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
       Vector<String> points = new Vector<String>(stp.countTokens());
       while (stp.hasMoreTokens()) {
@@ -816,30 +782,27 @@ implements PointListener, Runnable, TableCellRenderer
       TableColumn column = itsTable.getColumnModel().getColumn(0);
       int extra = 0;
       if (!itsNoMS) {
-        extra+=30;
+        extra += 30;
       }
       if (!itsNoDate) {
-        extra+=70;
+        extra += 70;
       }
-      column.setPreferredWidth(100+extra);
-      column.setMaxWidth(250+extra);
+      column.setPreferredWidth(100 + extra);
+      column.setMaxWidth(250 + extra);
       column.setMinWidth(100);
 
       itsReInit = true;
-      synchronized (this) { this.notifyAll(); }
+      synchronized (this) {
+        this.notifyAll();
+      }
     } catch (final Exception e) {
       e.printStackTrace();
-      if (itsFrame!=null) {
-	JOptionPane.showMessageDialog(itsFrame,
-				      "The setup called \"" + setup.getName() + "\"\n" +
-				      "for class \"" + setup.getClassName() + "\"\n" +
-				      "could not be parsed.\n\n" +
-				      "The type of exception was:\n\"" +
-				      e.getClass().getName() + "\"\n\n",
-				      "Error Loading Setup",
-				      JOptionPane.WARNING_MESSAGE);
+      if (itsFrame != null) {
+        JOptionPane.showMessageDialog(itsFrame, "The setup called \"" + setup.getName() + "\"\n" + "for class \"" + setup.getClassName() + "\"\n"
+            + "could not be parsed.\n\n" + "The type of exception was:\n\"" + e.getClass().getName() + "\"\n\n", "Error Loading Setup",
+            JOptionPane.WARNING_MESSAGE);
       } else {
-	System.err.println("HistoryTable:loadData: " + e.getClass().getName());
+        System.err.println("HistoryTable:loadData: " + e.getClass().getName());
       }
       blankSetup();
       return false;
@@ -849,44 +812,33 @@ implements PointListener, Runnable, TableCellRenderer
     return true;
   }
 
-
-  /** Get the current sub-class-specific configuration for this MonPanel.
-   * This can be used to capture the current state of the MonPanel so that
-   * it can be easily recovered later.
+  /**
+   * Get the current sub-class-specific configuration for this MonPanel. This can be used to capture the current state of the
+   * MonPanel so that it can be easily recovered later.
+   * 
    * @return String containing sub-class-specific configuration information.
    */
-  public synchronized
-  SavedSetup
-  getSetup()
-  {
+  public synchronized SavedSetup getSetup() {
     return itsSetup;
   }
 
-
   /** Free all resources so that this MonPanel can disappear. */
-  public
-  void
-  vaporise()
-  {
+  public void vaporise() {
     itsKeepRunning = false;
-    //If currently real-time then unsubscribe from any points
-    if (itsRealTime && itsPoints!=null && itsPoints.size()>0) {
+    // If currently real-time then unsubscribe from any points
+    if (itsRealTime && itsPoints != null && itsPoints.size() > 0) {
       DataMaintainer.unsubscribe(itsPoints, this);
     }
   }
 
-
   /** Called when we receive a real-time update from a monitor point. */
-  public
-  void
-  onPointEvent(Object source, PointEvent evt)
-  {
+  public void onPointEvent(Object source, PointEvent evt) {
     PointData pd = evt.getPointData();
     String src = pd.getName();
     boolean foundit = false;
-    for (int i=0; i<itsPoints.size(); i++) {
-      if (((String)itsPoints.get(i)).equals(src)) {
-	((Vector)itsData.get(i)).add(pd);
+    for (int i = 0; i < itsPoints.size(); i++) {
+      if (((String) itsPoints.get(i)).equals(src)) {
+        ((Vector) itsData.get(i)).add(pd);
         foundit = true;
       }
     }
@@ -895,53 +847,52 @@ implements PointListener, Runnable, TableCellRenderer
     } else {
       processData();
       Runnable updateTable = new Runnable() {
-	public void run() {
-	  itsModel.fireTableDataChanged();
-	}
+        public void run() {
+          itsModel.fireTableDataChanged();
+        }
       };
       try {
-	SwingUtilities.invokeAndWait(updateTable);
-      } catch (Exception e) {e.printStackTrace();}
+        SwingUtilities.invokeAndWait(updateTable);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 
-
-  /** Get a panel with the controls required to configure this MonPanel.
-   * @return GUI controls to configure this MonPanel. */
-  public
-  MonPanelSetupPanel
-  getControls()
-  {
+  /**
+   * Get a panel with the controls required to configure this MonPanel.
+   * 
+   * @return GUI controls to configure this MonPanel.
+   */
+  public MonPanelSetupPanel getControls() {
     return new HistoryTableSetupPanel(this, itsFrame);
   }
 
-
-  /** Dump current data to the given output stream. This is the mechanism
-   * through which data can be exported to a file.
-   * @param p The print stream to write the data to. */
-  public synchronized
-  void
-  export(PrintStream p)
-  {
+  /**
+   * Dump current data to the given output stream. This is the mechanism through which data can be exported to a file.
+   * 
+   * @param p
+   *          The print stream to write the data to.
+   */
+  public synchronized void export(PrintStream p) {
     final String rcsid = "$Id: HistoryTable.java,v 1.2 2006/06/27 05:51:03 bro764 Exp $";
     p.println("#Dump from HistoryTable " + rcsid);
-    p.println("#Data dumped at "
-	      + (new AbsTime().toString(AbsTime.Format.UTC_STRING)));
-    for (int r=0; r<itsRows.size(); r++) {
-      Vector row = (Vector)itsRows.get(r);
-      AbsTime t = (AbsTime)row.get(0);
+    p.println("#Data dumped at " + (new AbsTime().toString(AbsTime.Format.UTC_STRING)));
+    for (int r = 0; r < itsRows.size(); r++) {
+      Vector row = (Vector) itsRows.get(r);
+      AbsTime t = (AbsTime) row.get(0);
       p.print(t.getValue() + ", ");
       p.print(t.toString(AbsTime.Format.UTC_STRING));
-      for (int c=1; c<row.size(); c++) {
-	p.print(", ");
-	Object o = row.get(c);
-	if (o!=null) {
-	  if (o instanceof Angle) {
-      p.print(((Angle)o).toString(Angle.Format.DEGREES));
-    } else {
-      p.print(o.toString());
-    }
-	}
+      for (int c = 1; c < row.size(); c++) {
+        p.print(", ");
+        Object o = row.get(c);
+        if (o != null) {
+          if (o instanceof Angle) {
+            p.print(((Angle) o).toString(Angle.Format.DEGREES));
+          } else {
+            p.print(o.toString());
+          }
+        }
       }
       p.println();
     }
@@ -949,22 +900,23 @@ implements PointListener, Runnable, TableCellRenderer
     p.println();
   }
 
-
   /** Discards old data and organised current data into rows for the table. */
-  public void processData()
-  {
-    //First go through and purge any expired data
+  public void processData() {
+    // First go through and purge any expired data
     if (itsRealTime) {
       AbsTime now = new AbsTime();
       RelTime per = itsPeriod.negate();
       AbsTime cutoff = now.add(per);
 
-      for (int i=0; i<itsData.size(); i++) {
-        Vector thisdata = (Vector)itsData.get(i);
-	PointData pd = (PointData)thisdata.get(0);
-	if (pd==null || pd.getTimestamp().isBeforeOrEquals(cutoff)) {
+      for (int i = 0; i < itsData.size(); i++) {
+        Vector thisdata = (Vector) itsData.get(i);
+        if (thisdata.isEmpty()) {
+          continue;
+        }
+        PointData pd = (PointData) thisdata.get(0);
+        if (pd == null || pd.getTimestamp().isBeforeOrEquals(cutoff)) {
           thisdata.remove(0);
-	}
+        }
       }
     }
 
@@ -973,184 +925,182 @@ implements PointListener, Runnable, TableCellRenderer
       Vector lastrow = null;
 
       while (true) {
-	lastrow = getNextRow(lastrow);
-	if (lastrow==null) {
-    break;
-  }
-	newrows.add(lastrow);
+        lastrow = getNextRow(lastrow);
+        if (lastrow == null) {
+          break;
+        }
+        newrows.add(lastrow);
       }
 
-      //Limit the number of rows, if requested by the user
+      // Limit the number of rows, if requested by the user
       if (itsLimitRows) {
-	while (newrows.size()>itsMaxRows) {
-    newrows.remove(0);
-  }
+        while (newrows.size() > itsMaxRows) {
+          newrows.remove(0);
+        }
       }
-      //We're finished processing the new data
+      // We're finished processing the new data
       itsRows = newrows;
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
-
-  /** Return the values for the next row based on time/data of previous row
-   * and user options. */
-  public Vector getNextRow(Vector prevrow)
-  {
+  /**
+   * Return the values for the next row based on time/data of previous row and user options.
+   */
+  public Vector getNextRow(Vector prevrow) {
     Vector res = null;
     boolean done = false;
 
     while (!done) {
-      res = new Vector(itsPoints.size()+1);
+      res = new Vector(itsPoints.size() + 1);
 
       AbsTime lasttime = null;
-      if (prevrow!=null) {
-        lasttime = (AbsTime)prevrow.get(0);
+      if (prevrow != null) {
+        lasttime = (AbsTime) prevrow.get(0);
       }
 
       AbsTime nexttime = null;
       if (itsFirstRow) {
-	//Next row will correspond to the next update of column 1
-	Vector v = (Vector)itsData.get(0);
-	if (v==null || v.size()==0) {
-    return null;
-  }
-	for (int i=0; i<v.size(); i++) {
-	  PointData pd = (PointData)v.get(i);
-	  AbsTime thistime = pd.getTimestamp();
-	  if (lasttime==null || thistime.isAfter(lasttime)) {
-	    nexttime = thistime;
-	    break;
-	  }
-	}
+        // Next row will correspond to the next update of column 1
+        Vector v = (Vector) itsData.get(0);
+        if (v == null || v.size() == 0) {
+          return null;
+        }
+        for (int i = 0; i < v.size(); i++) {
+          PointData pd = (PointData) v.get(i);
+          AbsTime thistime = pd.getTimestamp();
+          if (lasttime == null || thistime.isAfter(lasttime)) {
+            nexttime = thistime;
+            break;
+          }
+        }
       } else if (itsNewRow) {
-	//Next row will correspond to next update of any column
-	AbsTime earliest = null;
-	for (int i=0; i<itsData.size(); i++) {
-	  Vector v = (Vector)itsData.get(i);
-	  if (v==null || v.size()==0) {
-      continue;
-    }
-	  for (int j=0; j<v.size(); j++) {
-	    PointData pd = (PointData)v.get(j);
-	    AbsTime thistime = pd.getTimestamp();
-	    if ((lasttime==null||thistime.isAfter(lasttime)) &&
-		(earliest==null||thistime.isBefore(earliest))) {
-	      earliest = thistime;
-	    }
-	  }
-	}
-	if (earliest==null) {
-    return null; //No data to be displayed!
-  }
-	nexttime = earliest;
+        // Next row will correspond to next update of any column
+        AbsTime earliest = null;
+        for (int i = 0; i < itsData.size(); i++) {
+          Vector v = (Vector) itsData.get(i);
+          if (v == null || v.size() == 0) {
+            continue;
+          }
+          for (int j = 0; j < v.size(); j++) {
+            PointData pd = (PointData) v.get(j);
+            AbsTime thistime = pd.getTimestamp();
+            if ((lasttime == null || thistime.isAfter(lasttime)) && (earliest == null || thistime.isBefore(earliest))) {
+              earliest = thistime;
+            }
+          }
+        }
+        if (earliest == null) {
+          return null; // No data to be displayed!
+        }
+        nexttime = earliest;
       } else {
-	//Next row is controlled by user-defined time interval
-	if (lasttime!=null) {
-	  nexttime = lasttime.add(itsRowInterval);
-	} else {
-	  //Start at first 10 second mark after first data
-	  AbsTime earliest = null;
-	  for (int i=0; i<itsData.size(); i++) {
-	    Vector v = (Vector)itsData.get(i);
-	    if (v==null || v.size()==0) {
-        continue;
-      }
-	    PointData pd = (PointData)v.get(0);
-	    AbsTime thistime = pd.getTimestamp();
-	    if (earliest==null || thistime.isBefore(earliest)) {
-        earliest = thistime;
-      }
-	  }
-	  if (earliest==null) {
-      return null; //No data to be displayed!
-    }
-	  nexttime = earliest;
-	}
-	if (itsRealTime) {
-	  AbsTime now = new AbsTime();
-	  if (now.isBefore(nexttime)) {
-      return null;
-    }
-	} else {
-	  AbsTime cutoff = itsStartTime.add(itsPeriod);
-	  if (cutoff.isBefore(nexttime)) {
-      return null;
-    }
-	}
+        // Next row is controlled by user-defined time interval
+        if (lasttime != null) {
+          nexttime = lasttime.add(itsRowInterval);
+        } else {
+          // Start at first 10 second mark after first data
+          AbsTime earliest = null;
+          for (int i = 0; i < itsData.size(); i++) {
+            Vector v = (Vector) itsData.get(i);
+            if (v == null || v.size() == 0) {
+              continue;
+            }
+            PointData pd = (PointData) v.get(0);
+            AbsTime thistime = pd.getTimestamp();
+            if (earliest == null || thistime.isBefore(earliest)) {
+              earliest = thistime;
+            }
+          }
+          if (earliest == null) {
+            return null; // No data to be displayed!
+          }
+          nexttime = earliest;
+        }
+        if (itsRealTime) {
+          AbsTime now = new AbsTime();
+          if (now.isBefore(nexttime)) {
+            return null;
+          }
+        } else {
+          AbsTime cutoff = itsStartTime.add(itsPeriod);
+          if (cutoff.isBefore(nexttime)) {
+            return null;
+          }
+        }
       }
 
-      if (nexttime==null) {
-	//System.err.println("HistoryTable:getNextRow: nexttime is NULL!");
-	return null;
+      if (nexttime == null) {
+        // System.err.println("HistoryTable:getNextRow: nexttime is NULL!");
+        return null;
       }
-//      System.err.println("" + lasttime + "\t" + nexttime);
+      // System.err.println("" + lasttime + "\t" + nexttime);
 
       res.add(nexttime);
 
       boolean founddata = false;
-      for (int i=0; i<itsData.size(); i++) {
-	Vector v = (Vector)itsData.get(i);
-	if (v==null || v.size()==0) {
-	  res.add(null);
-	  continue;
-	}
-	for (int j=v.size()-1; j>=0; j--) {
-	  PointData pd = (PointData)v.get(j);
-	  AbsTime thistime = pd.getTimestamp();
-	  if (thistime.isBeforeOrEquals(nexttime)) {
-	    res.add(pd.getData());
-	    founddata = true;
-	    break;
-	  }
-	}
-	//If there was no data then add a blank cell
-	if (res.size()!=i+2) {
-    res.add(null);
-  }
+      for (int i = 0; i < itsData.size(); i++) {
+        Vector v = (Vector) itsData.get(i);
+        if (v == null || v.size() == 0) {
+          res.add(null);
+          continue;
+        }
+        for (int j = v.size() - 1; j >= 0; j--) {
+          PointData pd = (PointData) v.get(j);
+          AbsTime thistime = pd.getTimestamp();
+          if (thistime.isBeforeOrEquals(nexttime)) {
+            res.add(pd.getData());
+            founddata = true;
+            break;
+          }
+        }
+        // If there was no data then add a blank cell
+        if (res.size() != i + 2) {
+          res.add(null);
+        }
       }
       if (!founddata) {
         res = null;
       }
 
       if (itsHideIncomplete) {
-	for (int i=1; i<res.size(); i++) {
-	  if (res.get(i)==null) {
-	    prevrow=res;
+        for (int i = 1; i < res.size(); i++) {
+          if (res.get(i) == null) {
+            prevrow = res;
             continue;
-	  }
-	}
+          }
+        }
       }
 
-      if (itsSkipRows && res!=null && prevrow!=null) {
-	boolean keepit = false;
-	for (int i=1; i<res.size(); i++) {
-	  if (!compare(res.get(i), prevrow.get(i))) {
-	    keepit = true;
-	    break;
-	  }
-	}
-	if (keepit) {
-    break;
-  } else {
-	  //System.err.println("These two are identical:\n" + res + "\n" + prevrow);
-	  prevrow=res;
-	}
+      if (itsSkipRows && res != null && prevrow != null) {
+        boolean keepit = false;
+        for (int i = 1; i < res.size(); i++) {
+          if (!compare(res.get(i), prevrow.get(i))) {
+            keepit = true;
+            break;
+          }
+        }
+        if (keepit) {
+          break;
+        } else {
+          // System.err.println("These two are identical:\n" + res + "\n" + prevrow);
+          prevrow = res;
+        }
       } else {
         break;
       }
     }
 
-    if (itsSparse && prevrow!=null) {
+    if (itsSparse && prevrow != null) {
       Vector newres = new Vector(res.size());
       newres.add(res.get(0));
-      for (int i=1; i<res.size(); i++) {
-	if (compare(res.get(i), prevrow.get(i))) {
+      for (int i = 1; i < res.size(); i++) {
+        if (compare(res.get(i), prevrow.get(i))) {
           newres.add(null);
-	} else {
-	  newres.add(res.get(i));
-	}
+        } else {
+          newres.add(res.get(i));
+        }
       }
       res = newres;
     }
@@ -1158,53 +1108,55 @@ implements PointListener, Runnable, TableCellRenderer
     return res;
   }
 
-
-  /** Compare two objects to see if they are "the same".
-   * @return True if objects the same, False if they are different. */
+  /**
+   * Compare two objects to see if they are "the same".
+   * 
+   * @return True if objects the same, False if they are different.
+   */
   protected boolean compare(Object o1, Object o2) {
-    if (o1==null && o2==null) {
+    if (o1 == null && o2 == null) {
       return true;
     }
-    if (o1==null || o2==null) {
+    if (o1 == null || o2 == null) {
       return false;
     }
     if (o1 instanceof String && o2 instanceof String) {
-      if (((String)o1).equals((String)o2)) {
+      if (((String) o1).equals((String) o2)) {
         return true;
       } else {
         return false;
       }
     }
     if (o1 instanceof Number && o2 instanceof Number) {
-      if (((Number)o1).doubleValue()==((Number)o2).doubleValue()) {
+      if (((Number) o1).doubleValue() == ((Number) o2).doubleValue()) {
         return true;
       } else {
         return false;
       }
     }
     if (o1 instanceof Angle && o2 instanceof Angle) {
-      if (((Angle)o1).getValue()==((Angle)o2).getValue()) {
+      if (((Angle) o1).getValue() == ((Angle) o2).getValue()) {
         return true;
       } else {
         return false;
       }
     }
     if (o1 instanceof AbsTime && o2 instanceof AbsTime) {
-      if (((AbsTime)o1).getValue()==((AbsTime)o2).getValue()) {
+      if (((AbsTime) o1).getValue() == ((AbsTime) o2).getValue()) {
         return true;
       } else {
         return false;
       }
     }
     if (o1 instanceof RelTime && o2 instanceof RelTime) {
-      if (((RelTime)o1).getValue()==((RelTime)o2).getValue()) {
+      if (((RelTime) o1).getValue() == ((RelTime) o2).getValue()) {
         return true;
       } else {
         return false;
       }
     }
     if (o1 instanceof Boolean && o2 instanceof Boolean) {
-      if (((Boolean)o1).booleanValue()==((Boolean)o2).booleanValue()) {
+      if (((Boolean) o1).booleanValue() == ((Boolean) o2).booleanValue()) {
         return true;
       } else {
         return false;
@@ -1213,10 +1165,8 @@ implements PointListener, Runnable, TableCellRenderer
     return false;
   }
 
-
   /** Download archival data from the monitor server. */
-  public void getInitialData()
-  {
+  public void getInitialData() {
     AbsTime start, end;
     AbsTime now = new AbsTime();
     if (itsRealTime) {
@@ -1226,87 +1176,88 @@ implements PointListener, Runnable, TableCellRenderer
       start = itsStartTime;
       end = start.add(itsPeriod);
     }
-    Vector alldata = new Vector();
-    for (int i=0; i<itsPoints.size(); i++) {
+    Vector<Vector> alldata = new Vector<Vector>();
+    for (int i = 0; i < itsPoints.size(); i++) {
       try {
         Vector v = MonClientUtil.getServer().getArchiveData(itsPoints.get(i), start, end);
-        if (v!=null) {
+        if (v != null) {
           alldata.add(v);
+        } else {
+          alldata.add(new Vector());
         }
-      } catch (Exception e) { }
+      } catch (Exception e) {
+      }
     }
     itsData = alldata;
   }
 
-  public String getLabel() { return null; }
+  public String getLabel() {
+    return null;
+  }
 
   public class HistoryTableModel extends AbstractTableModel {
-    public int getRowCount()
-    {
+    public int getRowCount() {
       return itsRows.size();
     }
 
-    public int getColumnCount()
-    {
+    public int getColumnCount() {
       return 1 + itsPoints.size();
     }
 
-    public Object getValueAt(int row, int column)
-    {
-      if (row>=itsRows.size()) {
+    public Object getValueAt(int row, int column) {
+      if (row >= itsRows.size()) {
         return "";
       }
       if (!itsReverse) {
-        row=itsRows.size()-row-1;
+        row = itsRows.size() - row - 1;
       }
-      Vector r = (Vector)itsRows.get(row);
-      if (column>=r.size()) {
+      Vector r = (Vector) itsRows.get(row);
+      if (column >= r.size()) {
         return "";
       }
       Object data = r.get(column);
-      if (data==null) {
+      if (data == null) {
         return "";
       }
-      if (column==0 && (itsNoDate || itsNoMS)) {
-        //timestamp, might need manipulation
-        Date thisdate = ((AbsTime)data).getAsDate();
+      if (column == 0 && (itsNoDate || itsNoMS)) {
+        // timestamp, might need manipulation
+        Date thisdate = ((AbsTime) data).getAsDate();
         DateFormat outdfm = null;
         if (itsNoDate) {
-          outdfm  = new SimpleDateFormat("HH:mm:ss");
+          outdfm = new SimpleDateFormat("HH:mm:ss");
         } else {
-          outdfm  = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+          outdfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         }
         outdfm.setTimeZone(TimeZone.getTimeZone("GMT"));
         String s = outdfm.format(thisdate);
-        //if (itsNoMS) s = s.substring(0, s.indexOf("."));
-        //if (itsNoDate) s = s.substring(s.indexOf(" ")+1);
+        // if (itsNoMS) s = s.substring(0, s.indexOf("."));
+        // if (itsNoDate) s = s.substring(s.indexOf(" ")+1);
         data = s;
       }
       if (data instanceof String) {
-        data = new JLabel((String)data);
+        data = new JLabel((String) data);
       }
       return data;
     }
 
-    public String getColumnName(int column)
-    {
+    public String getColumnName(int column) {
       String res = "COLUMN";
-      if (column==0) {
+      if (column == 0) {
         res = "Time (UTC)";
       } else {
-        //If "source" is the same for all monitor points then we don't need
-        //to include it in the column header
+        // If "source" is the same for all monitor points then we don't need
+        // to include it in the column header
         boolean showsource = false;
-        String firstsrc = ((String)itsPoints.get(0)).substring(0,((String)itsPoints.get(0)).indexOf("."));
-        for (int i=1; i<itsPoints.size(); i++) {
-          if (!firstsrc.equals(((String)itsPoints.get(i)).substring(0,((String)itsPoints.get(i)).indexOf(".")))) {
+        String firstsrc = ((String) itsPoints.get(0)).substring(0, ((String) itsPoints.get(0)).indexOf("."));
+        for (int i = 1; i < itsPoints.size(); i++) {
+          if (!firstsrc.equals(((String) itsPoints.get(i)).substring(0, ((String) itsPoints.get(i)).indexOf(".")))) {
             showsource = true;
             break;
           }
         }
-        res = ((String)itsPoints.get(column-1)).substring(((String)itsPoints.get(column-1)).lastIndexOf(".")+1);
+        res = ((String) itsPoints.get(column - 1)).substring(((String) itsPoints.get(column - 1)).lastIndexOf(".") + 1);
         if (showsource) {
-          String thissrc = ((String)itsPoints.get(column-1)).substring(0,((String)itsPoints.get(column-1)).indexOf("."));
+          String thissrc = ((String) itsPoints.get(column - 1)).substring(0, ((String) itsPoints.get(column - 1)).indexOf("."));
           res = res + " (" + thissrc + ")";
         }
       }
@@ -1314,59 +1265,38 @@ implements PointListener, Runnable, TableCellRenderer
     }
   }
 
-
-  public
-  Component
-  getTableCellRendererComponent(JTable table, Object value,
-				boolean isSelected, boolean hasFocus,
-				int row, int column)
-  {
+  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
     Component res = null;
-    if (value==null) {
+    if (value == null) {
       return null;
     }
 
     if (value instanceof Component) {
-      res = (Component)value;
+      res = (Component) value;
     } else {
       res = new JLabel(value.toString());
     }
 
-    //Check if this monitor point defines it's limits
-/*    PointDescription pm = getPoint(row, column);
-    if (pm!=null) {
-      //Limits are defined, get the raw data and check it
-      PointData pd = DataMaintainer.getBuffer(pm.getSource() + "." +
-					      pm.getName());
-      if (pd!=null) {
-	long age = (new AbsTime()).getValue() - pd.getTimestamp().getValue();
-	long period = pm.getPeriod();
-	if (period!=0 && age>2*period && age<5*period) {
-	  //The point is old, so alter the foreground color
-          res.setForeground(Color.lightGray);
-	}
-
-	PointLimit limits = pm.getLimits();
-	if (limits!=null) {
-	  if (pd.isValid() && (period==0 || age<5*period) && !limits.checkLimits(pd)) {
-	    //Don't highlight the point if it has expired
-	    //Point is outside of limits, so highlight this cell
-	    if (age<3*period) res.setForeground(Color.red);
-	    else res.setForeground(Color.orange);
-	    if (res instanceof JComponent) ((JComponent)res).setOpaque(true);
-	    res.setBackground(Color.yellow);
-	  }
-	}
-      }
-    }*/
+    // Check if this monitor point defines it's limits
+    /*
+     * PointDescription pm = getPoint(row, column); if (pm!=null) { //Limits are defined, get the raw data and check it PointData pd
+     * = DataMaintainer.getBuffer(pm.getSource() + "." + pm.getName()); if (pd!=null) { long age = (new AbsTime()).getValue() -
+     * pd.getTimestamp().getValue(); long period = pm.getPeriod(); if (period!=0 && age>2*period && age<5*period) { //The point is
+     * old, so alter the foreground color res.setForeground(Color.lightGray); }
+     * 
+     * PointLimit limits = pm.getLimits(); if (limits!=null) { if (pd.isValid() && (period==0 || age<5*period) &&
+     * !limits.checkLimits(pd)) { //Don't highlight the point if it has expired //Point is outside of limits, so highlight this cell
+     * if (age<3*period) res.setForeground(Color.red); else res.setForeground(Color.orange); if (res instanceof JComponent)
+     * ((JComponent)res).setOpaque(true); res.setBackground(Color.yellow); } } } }
+     */
 
     return res;
   }
-  
+
   /** Get the preferred size of the panel. */
   public Dimension getPreferredSize() {
     if (itsLimitRows) {
-      return new Dimension(400,20+20*itsMaxRows);
+      return new Dimension(400, 20 + 20 * itsMaxRows);
     } else {
       return itsTable.getPreferredSize();
     }
@@ -1374,28 +1304,21 @@ implements PointListener, Runnable, TableCellRenderer
 
   /** Basic test application. */
   public static void main(String[] argv) {
-//    JFrame frame = new JFrame("HistoryTable Test App");
-//    frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
+    // JFrame frame = new JFrame("HistoryTable Test App");
+    // frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
 
-/*    SavedSetup seemon = new SavedSetup("temp",
-				       "atnf.atoms.mon.gui.monpanel.HistoryTable",
-				       "true:3:site.seemon.Lock1:site.seemon.Lock2:site.seemon.Lock3:1:seemon");
-
-    HistoryTable pt = new HistoryTable();
-    pt.loadSetup(seemon);
-//    frame.getContentPane().add(pt);
-    frame.setContentPane(pt);
-
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.pack();
-    frame.setVisible(true);
-*/
-/*    try {
-      RelTime sleepy = RelTime.factory(15000000l);
-      sleepy.sleep();
-    } catch (Exception e) { e.printStackTrace(); }
-
-    SavedSetup ss = pt.getSetup();
-    pt.loadSetup(ss);*/
+    /*
+     * SavedSetup seemon = new SavedSetup("temp", "atnf.atoms.mon.gui.monpanel.HistoryTable",
+     * "true:3:site.seemon.Lock1:site.seemon.Lock2:site.seemon.Lock3:1:seemon");
+     * 
+     * HistoryTable pt = new HistoryTable(); pt.loadSetup(seemon); // frame.getContentPane().add(pt); frame.setContentPane(pt);
+     * 
+     * frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); frame.pack(); frame.setVisible(true);
+     */
+    /*
+     * try { RelTime sleepy = RelTime.factory(15000000l); sleepy.sleep(); } catch (Exception e) { e.printStackTrace(); }
+     * 
+     * SavedSetup ss = pt.getSetup(); pt.loadSetup(ss);
+     */
   }
 }
