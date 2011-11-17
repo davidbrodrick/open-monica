@@ -36,6 +36,7 @@ import org.apache.log4j.Logger;
  * <li><b>$V</b> Will be substituted for the latest value of the point, eg "3.141".
  * <li><b>$U</b> Substituted for the units, eg "Amps".
  * <li><b>$N</b> Substituted for the name of the point , eg "site.power.current".
+ * <li><b>$S</b> Substituted for the source name, eg "site".
  * <li><b>$D</b> Substituted for the long description of the point, eg "Site main feeder current consumption".
  * <li><b>$T</b> Substituted for the current UTC time, eg "2011-10-21 08:39:25.234". 
  * </ul>
@@ -104,6 +105,8 @@ public class TranslationEmailOnChange extends Translation {
     res = res.replaceAll("\\$U", itsParent.getUnits());
     // Substitute point name
     res = res.replaceAll("\\$N", itsParent.getFullName());
+    // Substitute source
+    res = res.replaceAll("\\$S", itsParent.getSource());
     // Substitute point description
     res = res.replaceAll("\\$D", itsParent.getLongDesc());
     // Substitute time stamp
