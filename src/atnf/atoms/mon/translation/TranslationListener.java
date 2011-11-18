@@ -138,9 +138,9 @@ public abstract class TranslationListener extends Translation implements PointLi
   public synchronized void onPointEvent(Object source, PointEvent evt) {
     PointData pd = evt.getPointData();
     // Check that there's data.. ?
-    /*if (pd == null || pd.getData() == null) {
+    if (pd == null) { // || pd.getData() == null) {
       return;
-    }*/
+    }
 
     // Find the index of the point
     String fullname = pd.getName();
