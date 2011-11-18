@@ -48,9 +48,6 @@ public class TranslationResettableIntegrator extends Translation implements Poin
   /** Whether or not the reset-control point requires an integral reset. */
   protected boolean itsNeedsReset = false;
 
-  /** Timer used when listened-to point hasn't been created yet. */
-  protected Timer itsTimer = null;
-
   /** Name of the reset-control listened-to point. */
   protected String itsPointName;
 
