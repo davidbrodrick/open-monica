@@ -742,6 +742,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
           ((PointListener) listeners[i + 1]).onPointEvent(this, pe);
         } catch (Exception e) {
           theirLogger.warn(getFullName() + ": Error distributing data to listener, class " + listeners[i + 1].getClass().getCanonicalName());
+          e.printStackTrace();
         }
       }
     }
