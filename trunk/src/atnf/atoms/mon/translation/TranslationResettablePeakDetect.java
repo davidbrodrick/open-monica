@@ -67,6 +67,7 @@ public class TranslationResettablePeakDetect extends Translation implements Poin
     // Check if reset control point has gone high
     if (itsNeedsReset) {
       itsPeakValue = null;
+      itsNeedsReset = false;
     }
 
     // Incorporate new value
