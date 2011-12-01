@@ -34,8 +34,9 @@ public class AlarmCheckBoolean extends AlarmCheck {
 
 		// Parse second argument to an Integer type. This is the number of times a value should appear before
 		// setting the alarm to True.
+		// If no argument has been specified this defaults to an update amount of 1.
 		if (args[1].length() ==  0) {
-			itsUpdateAmt = 0;
+			itsUpdateAmt = 1;
 		} else {
 			itsUpdateAmt = Integer.parseInt(args[1]);
 		}
