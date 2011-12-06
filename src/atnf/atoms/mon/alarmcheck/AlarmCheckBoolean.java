@@ -15,7 +15,8 @@ import atnf.atoms.mon.*;
 /**
  * <i>AlarmCheck</i> sub-class which checks if a Boolean data-value will raise
  * an alarm or not. The Boolean argument determines whether a <i>true</i> or
- * <i>false</i> value will raise an alarm.
+ * <i>false</i> value will raise an alarm. An optional second argument (default=1)
+ * determines how many consecutive updates are required before alarming.
  * 
  * @author Camille Nicodemus
  */
