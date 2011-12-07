@@ -503,7 +503,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
     protected JComboBox itsPeriodUnits = new JComboBox(itsTimeOptions);
 
     /** Options for the time zone selection. */
-    final private String[] itsTimeZones = { "Local", "UT" };
+    final private String[] itsTimeZones = { "Local", "UTC" };
 
     /** The timezone string corresponding to the timezones. */
     final private String[] itsTimeZoneNames = { null, "GMT+00" };
