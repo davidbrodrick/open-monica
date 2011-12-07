@@ -65,30 +65,42 @@ public class TranslationDailyIntegrator extends Translation {
     super(parent, init);
 
     if (init.length < 2) {
-      throw new IllegalArgumentException("TranslationDailyIntegrator (" + parent.getFullName() + ") Insufficient Arguments Provided");
+      throw new IllegalArgumentException("TranslationDailyIntegrator (" + parent.getFullName()
+          + ") Insufficient Arguments Provided");
     } else {
       // First argument is time
       int colon = init[0].indexOf(":");
       if (colon == -1 || init[0].length() > 5) {
-        throw new IllegalArgumentException("TranslationDailyIntegrator (" + parent.getFullName() + ") Need time in HH:MM 24-hour format");
+        throw new IllegalArgumentException("TranslationDailyIntegrator (" + parent.getFullName()
+            + ") Need time in HH:MM 24-hour format");
       } else {
         try {
           itsHour = Integer.parseInt(init[0].substring(0, colon));
           itsMinute = Integer.parseInt(init[0].substring(colon + 1, init[0].length()));
         } catch (Exception e) {
-          throw new IllegalArgumentException("TranslationDailyIntegrator (" + parent.getFullName() + ") Need time in HH:MM 24-hour format");
+          throw new IllegalArgumentException("TranslationDailyIntegrator (" + parent.getFullName()
+              + ") Need time in HH:MM 24-hour format");
         }
       }
       // TimeZone is second argument
       itsTZ = TimeZone.getTimeZone(init[1]);
       if (itsTZ == null) {
-        throw new IllegalArgumentException("TranslationDailyIntegrator (" + parent.getFullName() + ") Unknown TimeZone \"" + init[1] + "\"");
+        throw new IllegalArgumentException("TranslationDailyIntegrator (" + parent.getFullName()
+            + ") Unknown TimeZone \"" + init[1] + "\"");
       }
       // Check for the optional 'reload last value at startup' argument
       if (init.length == 3 && init[2].equalsIgnoreCase("true")) {
         itsGetArchive = true;
       }
     }
+  }
+
+  /**
+   * Check whether this input should be used in the integral. Always returns
+   * true for this class but behavious could be specialised for subclasses.
+   */
+  protected boolean useThisData(double newval) {
+    return true;
   }
 
   /** Calculate the average and return the integrated value. */
@@ -131,11 +143,16 @@ public class TranslationDailyIntegrator extends Translation {
     // Check if it is time to reset the integrator
     Calendar c = Calendar.getInstance(itsTZ);
     if (c.get(Calendar.DAY_OF_YEAR) != itsLastReset
-        && (c.get(Calendar.HOUR_OF_DAY) > itsHour || c.get(Calendar.HOUR_OF_DAY) == itsHour && c.get(Calendar.MINUTE) >= itsMinute)) {
+        && (c.get(Calendar.HOUR_OF_DAY) > itsHour || c.get(Calendar.HOUR_OF_DAY) == itsHour
+            && c.get(Calendar.MINUTE) >= itsMinute)) {
       // Yep, we need to reset. This lastest update counts towards new sum
       itsLastReset = c.get(Calendar.DAY_OF_YEAR);
-      itsSum = thisvalue;
-    } else {
+      if (useThisData(thisvalue)) {
+        itsSum = thisvalue;
+      } else {
+        itsSum = 0.0;
+      }
+    } else if (useThisData(thisvalue)) {
       // Not time to reset, so accumulate this value
       itsSum += thisvalue;
     }
