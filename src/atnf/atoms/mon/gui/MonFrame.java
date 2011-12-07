@@ -393,7 +393,7 @@ public class MonFrame extends JFrame implements ActionListener {
     itsTabs.add("Display", itsMainPanel);
     itsTabs.setForegroundAt(0, Color.blue);
     // itsTabs.add("Layout", itsLayoutPanel);
-    // itsTabs.setForegroundAt(1, Color.orange);
+    // itsTabs.setForegroundAt(1, Color.green);
     getContentPane().add(itsTabs);
 
     // Make handler for when the frame is closed - we will need to clean up
@@ -590,7 +590,7 @@ public class MonFrame extends JFrame implements ActionListener {
     itsPanels.clear();
     itsMainPanel.removeAll();
     itsSetupPanels.clear();
-    // while (itsTabs.getTabCount()>2) itsTabs.remove(2);
+    //while (itsTabs.getTabCount()>2) itsTabs.remove(2); // This is with a LayoutPanel
     while (itsTabs.getTabCount() > 1) {
       itsTabs.remove(1);
     }
