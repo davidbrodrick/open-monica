@@ -1362,7 +1362,11 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 				Date thisdate = ((AbsTime) data).getAsDate();
 				DateFormat outdfm = null;
 				if (itsNoDate) {
-					outdfm = new SimpleDateFormat("HH:mm:ss");
+					if (itsNoMS) {
+						outdfm = new SimpleDateFormat("HH:mm:ss");
+					} else {
+						outdfm = new SimpleDateFormat("HH:mm:ss.SSS");
+					}
 				} else {
 					outdfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				}
