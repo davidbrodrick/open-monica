@@ -18,10 +18,13 @@ import atnf.atoms.util.Angle;
  * nominated range. The first two <i>init</i> arguments should be the lower and
  * upper limits of the range. An optional third argument defines whether inside
  * the range is considered nominal (<tt>True</tt> - the default) or outside the
- * range is nominal (<tt>False</tt>).
+ * range is nominal (<tt>False</tt>). An optional fourth argument specifies the
+ * number of update cycles that the value must be outside of the target range
+ * before the alarm state is actually flagged (default is 1 update).
  * 
  * @author David Brodrick
  * @author Le Cuong Nguyen
+ * @author Camille Nicodemus
  */
 public class AlarmCheckRange extends AlarmCheck {
 	/** The lower limit of the range. */
