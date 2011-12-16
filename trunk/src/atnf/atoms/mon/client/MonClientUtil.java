@@ -328,10 +328,11 @@ public class MonClientUtil {
    */
   public static void addServerSetups() {
     try {
+      System.err.println("MonClientUtil:addServerSetups: Loading setups");
       Vector<SavedSetup> setups = theirServer.getAllSetups();
       if (setups != null && setups.size() > 0) {
-        // System.err.println("MonClientUtil:addServerSetups: Loaded " +
-        // setups.size() + " setups from server");
+        System.err.println("MonClientUtil:addServerSetups: Loaded " +
+         setups.size() + " setups from server");
         mergeSetups(setups);
       } else {
         // System.err.println("MonClientUtil:addServerSetups: None available");

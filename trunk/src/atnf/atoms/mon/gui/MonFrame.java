@@ -729,13 +729,13 @@ public class MonFrame extends JFrame implements ActionListener {
       String title = (String) setup.get("title");
       // Get the number of panels to display in this window
       int numpanels = Integer.parseInt((String) setup.get("numpanels"));
-      Vector newpanels = new Vector(numpanels);
-      Vector newsetups = new Vector(numpanels);
+      Vector<MonPanel> newpanels = new Vector(numpanels);
+      Vector<SavedSetup> newsetups = new Vector(numpanels);
 
       // FIRST, create all the right panels, with right setups
       for (int i = 0; i < numpanels; i++) {
         String descriptor = (String) setup.get("setup" + i);
-        SavedSetup panelsetup = SavedSetup.fromString(descriptor);
+        SavedSetup panelsetup = new SavedSetup(descriptor);
         newsetups.add(panelsetup);
         // Try to create an empty instance of the correct class
         try {

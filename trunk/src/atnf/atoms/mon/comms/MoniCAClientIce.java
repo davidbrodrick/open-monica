@@ -344,16 +344,19 @@ public class MoniCAClientIce extends MoniCAClient
       }
       // Get the setup strings from server and construct SavedSetup objects from
       // them
-      String[] rawsetups = itsIceClient.getAllSetups();
-      if (rawsetups != null && rawsetups.length > 0) {
-        res = new Vector<SavedSetup>(rawsetups.length);
-        for (int i = 0; i < rawsetups.length; i++) {
-          SavedSetup thissetup = SavedSetup.fromString(rawsetups[i]);
+      System.err.println("Requesting setups");
+      String[] setupstrings = itsIceClient.getAllSetups();
+      System.err.println("Got setups");
+      if (setupstrings != null && setupstrings.length > 0) {
+        res = new Vector<SavedSetup>(setupstrings.length);
+        for (int i = 0; i < setupstrings.length; i++) {
+          SavedSetup thissetup = new SavedSetup(setupstrings[i]);
           if (thissetup != null) {
             res.add(thissetup);
           }
         }
       }
+      System.err.println("Finished setups");
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.getAllSetups:" + e.getClass());
       disconnect();
