@@ -223,6 +223,7 @@ use Math::BigFloat;
 use Math::BigInt;
 use Astro::Time;
 use Time::Local;
+use POSIX qw (ceil);
 
 use Carp;
 require Exporter;
@@ -443,6 +444,9 @@ sub monbetween ($$$$;$) {
 	print $mon mjd2bat($maxbat)->as_hex." $bat2 $point\n";
 
 	my $nreceived=<$mon>;
+	chomp($nreceived);
+	return undef if (! defined $nreceived);
+	return undef if (! ($nreceived =~ /^\d+$/));
 	my $acceptfraction=ceil($nreceived/$maxnper);
 	my $j=0;
 	for (my $i=0;$i<$nreceived;$i++){
@@ -855,6 +859,7 @@ sub atca_tied($$$;$) {
       @vals = monbetween($mon, $mjd0-$dUT, $mjd1-$dUT, $thispoint);
       $mjd0-= 10;
     }
+    return undef if (!defined $vals[0]);
 
     my $initialstate = pop @vals;
     $currentstate{$ant} = $initialstate->val;
