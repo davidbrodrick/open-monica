@@ -134,10 +134,10 @@ public class EverSolarInverter extends DataSocket {
         disconnect();
         return null;
       }
-      for (int i = 0; i < resp.length; i++) {
+      /*for (int i = 0; i < resp.length; i++) {
         System.out.print(resp[i] + " ");
       }
-      System.out.println();
+      System.out.println();*/
 
       res.put("TEMP", new Float((resp[9] * 256 + resp[10]) / 10.0));
       res.put("ETODAY", new Float((resp[11] * 256 + resp[12]) / 100.0));
