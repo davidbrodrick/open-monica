@@ -117,7 +117,8 @@ public abstract class PointArchiver extends Thread {
   public void run() {
     setName("Point Archiver");
 
-    RelTime sleeptime = RelTime.factory(50000);
+    RelTime sleeptime1 = RelTime.factory(50000);
+    RelTime sleeptime2 = RelTime.factory(1000);
     while (true) {
       int counter = 0;
       Enumeration<PointDescription> keys = itsBuffer.keys();
@@ -138,13 +139,18 @@ public abstract class PointArchiver extends Thread {
         }
         //itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
         saveNow(pm, thisdata);
+        try {
+          // TODO: Don't really want this, need to be more clever
+          sleeptime2.sleep();
+        } catch (Exception e) {
+        }
         counter++;
       }
       //if (counter > 0) {
       //  itsLogger.debug("Archived/flagged " + counter + " points");
       //}
       try {
-        sleeptime.sleep();
+        sleeptime1.sleep();
       } catch (Exception e) {
       }
     }
