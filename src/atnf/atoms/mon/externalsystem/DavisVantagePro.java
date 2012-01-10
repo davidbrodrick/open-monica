@@ -96,6 +96,9 @@ import atnf.atoms.mon.*;
  * @author David Brodrick
  */
 public class DavisVantagePro extends DataSocket {
+  /** Logger. */
+  private Logger itsLogger = Logger.getLogger(this.getClass().getName());
+  
   /** Argument must include host:port and optionally :timeout_ms */
   public DavisVantagePro(String[] args) {
     super(args);
@@ -110,7 +113,7 @@ public class DavisVantagePro extends DataSocket {
 
     // Check for valid markers
     if (rawbytes[0] != 'L' || rawbytes[1] != 'O' || rawbytes[2] != 'O' || rawbytes[4] != 0) {
-      theirLogger.warn("DavisVantagePro: Rejecting packet due to wrong markers");
+      itsLogger.warn("DavisVantagePro: Rejecting packet due to wrong markers");
       return null;
     }
 
@@ -203,34 +206,51 @@ public class DavisVantagePro extends DataSocket {
     try {
       for (int i = 0; i < points.length; i++) {
         PointDescription pm = points[i];
-
-        // Purge the read buffer
-        itsReader.skip(itsReader.available());
+        
+        // Ensure the console is awake
+        boolean wokeup = false;
+        int retries = 3;
+        while (retries>0) {
+          retries--;
+        
+          // Purge the read buffer
+          itsReader.skip(itsReader.available());
+          
+          // Send the wakeup command
+          itsWriter.write("\n".getBytes());
+          itsWriter.flush();
+          
+          // Console should respond with \n\r          
+          try {
+            int resp = itsReader.read();
+            if (resp!=10) {
+              continue;
+            }
+            resp = itsReader.read();
+            if (resp!=13) {
+              continue;
+            }
+            wokeup = true;
+            break;
+          } catch (SocketTimeoutException f) {
+            theirLogger.debug("Timeout waiting for response to wakeup command. " + retries + " attempts remain.");
+            continue;       
+          }   
+        }
+        if (!wokeup) {
+          throw new Exception("Console didn't respond to wakeup command.");
+        }
 
         // Request the image
         itsWriter.write("LOOP 1\n".getBytes());
         itsWriter.flush();
-        int ack = 0;
-        int retries = 5;
-        try {
-          ack = itsReader.read();
-        } catch (SocketTimeoutException f) {
-          // System.err.println("DavisVantagePro: Read timed out: retrying LOOP command");
-          retries--;
-          if (retries == 0) {
-            throw f;
-          }
-        }
+        int ack = itsReader.read();
 
+        // Check for valid response
         if (ack == -1) {
           throw new Exception("Reached EOF while reading from socket");
-//        } else if (ack == 0) {
-//          throw new Exception("Got ASCII NUL while reading from socket - broken socket?");
         } else if (ack != 6) {
-          // Did not receive ACK for LOOP command
-          pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
-          //System.err.println("DavisVantagePro: Did not receive ACK, got " + ack);
-          continue;
+          throw new Exception("Did not receive ACK for LOOP command. Received byte " + ack);
         }
 
         HashMap wxdata = null;
@@ -254,7 +274,7 @@ public class DavisVantagePro extends DataSocket {
             wxdata = parseSensorImage(rawbytes);
           }
         } catch (SocketTimeoutException f) {
-          wxdata = null;
+          throw new Exception("Timeout while reading sensor image from station");
         }
 
         // Count successful transactions
@@ -266,9 +286,8 @@ public class DavisVantagePro extends DataSocket {
         pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), wxdata), true));
       }
     } catch (Exception e) {
-      disconnect();
-      Logger logger = Logger.getLogger(this.getClass().getName());
-      logger.error("In getData method: " + e);
+      disconnect();      
+      itsLogger.error("In getData method: " + e);
       // Fire null-data event to all queued points
       for (int i = 0; i < points.length; i++) {
         PointDescription pm = points[i];
