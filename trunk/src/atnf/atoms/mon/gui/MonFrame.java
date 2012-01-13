@@ -854,6 +854,7 @@ public class MonFrame extends JFrame implements ActionListener {
 			// FIRST, create all the right panels, with right setups
 			for (int i = 0; i < numpanels; i++) {
 				String descriptor = (String) setup.get("setup" + i);
+
 				SavedSetup panelsetup = new SavedSetup(descriptor);
 				newsetups.add(panelsetup);
 				// Try to create an empty instance of the correct class
