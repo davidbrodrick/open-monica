@@ -468,22 +468,25 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 	}
 
 	public void setPanels() {
-		if (itsManualControl.isSelected()) {
-			itsAllPanels = itsParent.getPanels();
-			itsParent.clearPanels();
-			for (int i = 0; i < itsAllPanels.size(); i++) {
-				MonPanel panel = (MonPanel) itsAllPanels.get(i);
-				double x = itsTableModel.itsXPos.get(i);
-				double y = itsTableModel.itsYPos.get(i);
-				double width = itsTableModel.itsWidth.get(i);
-				double height = itsTableModel.itsHeight.get(i);
+		if (!itsBackwards) {
+			if (itsManualControl.isSelected()) {
+				itsAllPanels = itsParent.getPanels();
+				itsParent.clearPanels();
+				for (int i = 0; i < itsAllPanels.size(); i++) {
+					MonPanel panel = (MonPanel) itsAllPanels.get(i);
+					double x = itsTableModel.itsXPos.get(i);
+					double y = itsTableModel.itsYPos.get(i);
+					double width = itsTableModel.itsWidth.get(i);
+					double height = itsTableModel.itsHeight.get(i);
 
-				itsParent.redrawPanels(panel, x, y, width, height);
-				
-				validate();
-				repaint();
+					itsParent.redrawPanels(panel, x, y, width, height);
+					
+					validate();
+					repaint();
+				}
 			}
 		}
+
 	}
 
 	public void itemStateChanged(ItemEvent e) {
@@ -574,17 +577,19 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 			itsWindowWidth.setText(savedWidth);
 			itsWindowHeight.setText(savedHeight);
 		} else {
+			itsBackwards = true;
 			System.out
 					.println("LayoutPanel:loadSetup: Does not contain panel layout information");
 		}
-
 		return;
 	}
 
 	public void resizeWindow() {
-		System.out.printf("%d %d", itsPreferredWidth, itsPreferredHeight);
-		itsParent.setSize(new Dimension(itsPreferredWidth, itsPreferredHeight));
-		validate();
-		repaint();
+		if (!itsBackwards) {
+			System.out.printf("%d %d", itsPreferredWidth, itsPreferredHeight);
+			itsParent.setSize(new Dimension(itsPreferredWidth, itsPreferredHeight));
+			validate();
+			repaint();
+		}
 	}
 }
