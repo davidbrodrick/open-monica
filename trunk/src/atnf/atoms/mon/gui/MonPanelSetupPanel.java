@@ -57,7 +57,6 @@ public abstract class MonPanelSetupPanel extends JPanel implements ActionListene
         itsMonPanel = monp;
         itsInitialSetup = itsMonPanel.getSetup();
         itsFrame = frame;
-
         setLayout(new BorderLayout());
 
         JPanel temppanel = new JPanel();
@@ -153,6 +152,7 @@ public abstract class MonPanelSetupPanel extends JPanel implements ActionListene
     /** Called when the <i>OK</i> button is pressed. */
     protected void okClicked()
     {
+    	System.out.println("MonPanelSetupPanel:okClicked()");
         SavedSetup setup = getSetup();
         if (setup == null) {
             // Bring up Dialog telling user we cannot extract a setup
@@ -167,8 +167,10 @@ public abstract class MonPanelSetupPanel extends JPanel implements ActionListene
                 // a dialog to the user to explain the problem.
             } else {
                 if (itsFrame instanceof MonFrame) {
+                	System.out.println("MonPanelSetupPanel:okClicked:itsFrame instanceof MonFrame");
                     ((MonFrame) itsFrame).showDisplay();
                 } else {
+                	System.out.println("MonPanelSetupPanel:okClicked:itsFrame.setINvisible");
                     itsFrame.setVisible(false);
                 }
                 // Now that the setup has been OKayed, we should save it
@@ -181,6 +183,7 @@ public abstract class MonPanelSetupPanel extends JPanel implements ActionListene
     /** Called when the <i>Cancel</i> button is pressed. */
     protected void cancelClicked()
     {
+    	System.out.println("MonPanelSetupPanel:cancelClicked()");
         // Revert MonPanel to original setup, if we changed it's setup
         if (itsChangedSetup) {
             itsMonPanel.loadSetup(itsInitialSetup);

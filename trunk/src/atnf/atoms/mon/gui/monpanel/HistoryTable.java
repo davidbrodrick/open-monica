@@ -175,7 +175,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 			temppanel2.add(templabel);
 			itsZone.setMaximumSize(new Dimension(60, 30));
 			temppanel2.add(itsZone);
-			
+
 			temppanel.add(temppanel2);
 			temppanel.add(itsDynamic);
 			temppanel2 = new JPanel();
@@ -287,8 +287,6 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 			SavedSetup ss = new SavedSetup();
 			ss.setClass("atnf.atoms.mon.gui.monpanel.HistoryTable");
 			ss.setName("temp");
-
-			System.out.println("HistoryTable:HistoryTableSetupPanel:getSetup");
 
 			// Make a parsable string from the list of point names
 			Vector points = itsPointSelector.getSelections();
@@ -407,21 +405,18 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 				numtime *= 24 * 60 * 60000000l;
 			}
 			ss.put("period", "" + (long) numtime);
-			
+
 			// Save the timezone, if one has been specified
 			if (itsTimeZoneNames[itsZone.getSelectedIndex()].equals("local")) {
 				ss.put("timezone", "local");
 				itsFormatter.setTimeZone(TimeZone.getDefault());
-				System.out
-						.println("HistoryTable:getSetup: Local time selected");
 			} else {
 				ss.put("timezone", itsTimeZoneNames[itsZone.getSelectedIndex()]);
 				itsFormatter.setTimeZone(TimeZone
 						.getTimeZone(itsTimeZoneNames[itsZone
 								.getSelectedIndex()]));
-				System.out.println("HistoryTable:getSetup: UTC time selected");
 			}
-			
+
 			if (itsDynamic.isSelected()) {
 				ss.put("mode", "dynamic");
 			} else if (itsStatic.isSelected()) {
@@ -430,7 +425,6 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 				Date date = null;
 				try {
 					date = itsFormatter.parse(startstr);
-					System.out.println("HistoryTable:HistoryTableSetupPanel:getSetup: date: " + date.toString());
 				} catch (Exception e) {
 					date = null;
 				}
@@ -509,7 +503,6 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 
 			// timezone
 			temp = (String) setup.get("timezone");
-			System.out.println("HistoryTable:HistoryTableSetupPanel:showSetup: temp: "+temp);
 			if (temp.equals("local")) {
 				// Default timezone
 				itsZone.setSelectedIndex(0);
@@ -518,12 +511,13 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 				boolean foundit = false;
 				for (int i = 1; i < itsTimeZones.length; i++) {
 					if (itsTimeZoneNames[i].equals(temp)) {
-						foundit = true;	// Found the specified timezone
+						foundit = true; // Found the specified timezone
 						itsZone.setSelectedIndex(i);
 					}
 				}
 				if (!foundit) {
-					System.out.println("HistoryTable:HistoryTableSetupPanel:showSetup: Unknown timezone");
+					System.out
+							.println("HistoryTable:HistoryTableSetupPanel:showSetup: Unknown timezone");
 					itsZone.setSelectedIndex(0);
 				}
 			}
@@ -673,16 +667,12 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 		ToolTipManager.sharedInstance().unregisterComponent(
 				itsTable.getTableHeader());
 
-		// final JTable temptable = itsTable;
 		itsTable.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
 					Point p = e.getPoint();
 					int row = itsTable.rowAtPoint(p);
-					int column = itsTable.columnAtPoint(p); // This is the view
-															// column!
-					// System.err.println("POINT: " + itsModel.getPoint(row,
-					// column));
+					int column = itsTable.columnAtPoint(p);
 					System.err
 							.println("DOUBLE-CLICKED: " + row + ", " + column);
 				}
@@ -839,12 +829,9 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 			if (temp.equals("local")) {
 				itsTimeZone = temp;
 				itsTZ = TimeZone.getDefault();
-				System.err.println("HistoryTable:loadSetup: timezone: local");
 			} else {
 				itsTimeZone = temp;
 				itsTZ = TimeZone.getTimeZone(itsTimeZone);
-				System.err.println("HistoryTable:loadSetup: timezone: "
-						+ itsTimeZone);
 			}
 
 			temp = (String) setup.get("limit");
@@ -1042,7 +1029,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 			AbsTime cutoff = now.add(per);
 
 			for (int i = 0; i < itsData.size(); i++) {
-				Vector thisdata = (Vector) itsData.get(i);
+				Vector thisdata = (Vector) itsData.get(i); // Always 0
 				if (thisdata.isEmpty()) {
 					continue;
 				}
@@ -1085,7 +1072,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 	public Vector getNextRow(Vector prevrow) {
 		Vector res = null;
 		boolean done = false;
-
+		
 		while (!done) {
 			res = new Vector(itsPoints.size() + 1);
 
@@ -1093,7 +1080,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 			if (prevrow != null) {
 				lasttime = (AbsTime) prevrow.get(0);
 			}
-
+			
 			AbsTime nexttime = null;
 			if (itsFirstRow) {
 				// Next row will correspond to the next update of column 1
@@ -1114,11 +1101,15 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 				AbsTime earliest = null;
 				for (int i = 0; i < itsData.size(); i++) {
 					Vector v = (Vector) itsData.get(i);
+
 					if (v == null || v.size() == 0) {
 						continue;
 					}
 					for (int j = 0; j < v.size(); j++) {
 						PointData pd = (PointData) v.get(j);
+						if (pd.getAlarm() == true) {
+							System.out.println("HistoryTable:getNextRow:getAlarm true");
+						}
 						AbsTime thistime = pd.getTimestamp();
 						if ((lasttime == null || thistime.isAfter(lasttime))
 								&& (earliest == null || thistime
@@ -1168,10 +1159,8 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 			}
 
 			if (nexttime == null) {
-				// System.err.println("HistoryTable:getNextRow: nexttime is NULL!");
 				return null;
 			}
-			// System.err.println("" + lasttime + "\t" + nexttime);
 
 			res.add(nexttime);
 
@@ -1220,8 +1209,6 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 				if (keepit) {
 					break;
 				} else {
-					// System.err.println("These two are identical:\n" + res +
-					// "\n" + prevrow);
 					prevrow = res;
 				}
 			} else {
@@ -1381,6 +1368,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 				data = s;
 			}
 			if (data instanceof String) {
+				// JLabel representing Time value
 				data = new JLabel((String) data);
 			}
 			return data;
@@ -1427,10 +1415,6 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 				}
 			}
 
-			System.out
-					.println("HistoryTable:HistoryTableModel:getColumnName: res: "
-							+ res);
-
 			return res;
 		}
 	}
@@ -1467,6 +1451,8 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 		 * ((JComponent)res).setOpaque(true); res.setBackground(Color.yellow); }
 		 * } } }
 		 */
+		
+		//res.setForeground(Color.red);
 
 		return res;
 	}
