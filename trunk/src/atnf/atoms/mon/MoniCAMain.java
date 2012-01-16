@@ -61,6 +61,7 @@ public class MoniCAMain {
         theirLogger.info("Starting MoniCA Server..");
 
         // Create the archiver to store historical data
+        theirLogger.debug("Creating PointArchiver");
         PointArchiver pa = null;
         try {
             Class archiverClass = Class.forName("atnf.atoms.mon.archiver.PointArchiver"
@@ -73,16 +74,20 @@ public class MoniCAMain {
         }
         // Start archive thread
         ((Thread) pa).start();
+        theirLogger.debug("PointArchiver created");
 
         // Initialise all the ExternalSystems
+        theirLogger.debug("Creating ExternalSystems");
         InputStream exsystemsfile = MoniCAMain.class.getClassLoader().getResourceAsStream("monitor-sources.txt");
         if (exsystemsfile == null) {
             theirLogger.fatal("Failed to find monitor-sources.txt configuration resource");
             return false;
         }
         ExternalSystem.init(new InputStreamReader(exsystemsfile));
+        theirLogger.debug("ExternalSystems created");
 
         // Create all the points
+        theirLogger.debug("Creating PointDescriptions");
         InputStream pointsfile = MoniCAMain.class.getClassLoader().getResourceAsStream("monitor-points.txt");
         if (pointsfile == null) {
             theirLogger.fatal("Failed to find monitor-points.txt configuration resource");
@@ -94,7 +99,8 @@ public class MoniCAMain {
             points.get(i).populateServerFields();
         }
         PointDescription.setPointsCreated();
-
+        theirLogger.debug("PointDescriptions created");
+        
         // Create a thread to update the encryption key occasionally
         new KeyKeeper();
 
@@ -116,8 +122,10 @@ public class MoniCAMain {
         }
 
         // Start the data collection
+        theirLogger.debug("Starting ExternalSystems");
         ExternalSystem.startAll();
-
+        theirLogger.debug("ExternalSystems started");
+        
         return true;
     }
 

@@ -291,6 +291,7 @@ public class ExternalSystem implements Runnable {
       if (lines != null) {
         for (int i = 0; i < lines.length; i++) {
           try {
+            theirLogger.debug("Creating ExternalSystem from definition \"" + lines[i] + "\"");
             StringTokenizer tok = new StringTokenizer(lines[i]);
             String className = tok.nextToken();
             String[] classArgs = null;
