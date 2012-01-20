@@ -13,62 +13,63 @@ import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
 
 /**
- * Call the String.split() method to turn the input string into an array of 
- * output strings whereever the regexp given as an argument appears. Other
- * points can then listen to this one and extract a particular field using
- * TranslationArray.
- *
+ * Call the String.split() method to turn the input string into an array of output strings. Other points can then listen to this one
+ * and extract a particular field using TranslationArray.
+ * 
+ * <P>
+ * The first (optional) argument is the regexp for the delimiter to use to split the string. By default the string will be split
+ * whereever there is one or more spaces.
+ * 
+ * <P>
+ * An optional second argument specifies the minimum number of elements expected once the input has been split. If less than this
+ * number of elements is found then the input will be discarded.
+ * 
  * @author David Brodrick
  */
-public class
-TranslationStringToArray
-extends Translation
-{
+public class TranslationStringToArray extends Translation {
   /** The regexp used to split strings. */
   protected String itsRegexp = " +";
+  
+  /** The expected minimum number of elements (-1 to disable). */
+  protected int itsMinElements = -1;
 
-  protected static String[] itsArgs = new String[]{"Translation String to Array",
-  "String2Array"};
-
-  public TranslationStringToArray(PointDescription parent, String[] init)
-  {
+  public TranslationStringToArray(PointDescription parent, String[] init) {
     super(parent, init);
-    if (init!=null && init.length>=1) {
-      itsRegexp=init[0]; 
+    if (init != null && init.length >= 1) {
+      itsRegexp = init[0];
+      if (init.length>=2) {
+        itsMinElements = Integer.parseInt(init[1]);
+      }
     }
   }
 
-
   /** Map the input data to an output string. */
-  public
-  PointData
-  translate(PointData data)
-  {
-    //preconditions
-    if (data==null) return null;
+  public PointData translate(PointData data) {
+    // preconditions
+    if (data == null)
+      return null;
     Object val = data.getData();
 
-    //If we got null-data then throw a null-data result
-    if (val==null) {
+    // If we got null-data then throw a null-data result
+    if (val == null) {
       return new PointData(itsParent.getFullName());
     }
 
-    //Get input value as a string
+    // Get input value as a string
     String strval = val.toString().trim();
-    //Split string
+    // Split string
     String[] resstrings = strval.split(itsRegexp);
-    //Trim each String
-    for (int i=0; i<resstrings.length; i++) {
-      resstrings[i]=resstrings[i].trim();
+    // Validate input
+    if (itsMinElements!=-1 && resstrings.length<itsMinElements) {
+      // This input is no good. Halt translation process here.
+      return null;
+    }    
+    // Trim each String
+    for (int i = 0; i < resstrings.length; i++) {
+      resstrings[i] = resstrings[i].trim();
     }
-    //Generate output
+    // Generate output
     PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), resstrings);
     return res;
-  }
-
-
-  public static String[] getArgs()
-  {
-     return itsArgs;
   }
 }
