@@ -13,9 +13,9 @@ import java.io.PrintStream;
 import java.awt.geom.*;
 import static java.awt.geom.AffineTransform.*;
 
-
 import javax.swing.*;
 
+import atnf.atoms.mon.gui.MonFrame;
 import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.mon.gui.MonPanel;
 import atnf.atoms.mon.gui.MonPanelSetupPanel;
@@ -27,7 +27,7 @@ import atnf.atoms.mon.gui.MonPanelSetupPanel;
  * @see MonPanel
  */
 public class ConversionDiagram extends MonPanel {
-	protected String focusAntenna = "";
+	protected static String focusAntenna = "1";
 	
 	static {
 		MonPanel.registerMonPanel("Conversion Diagram", ConversionDiagram.class);
@@ -42,9 +42,10 @@ public class ConversionDiagram extends MonPanel {
 			super(panel, frame);
 			
 			JLabel temp = new JLabel("Select which antenna you wish to use: ");
-			String[] antennae = { "1", "2", "3,", "4", "5", "6" };
+			String[] antennae = { "1", "2", "3", "4", "5", "6" };
 			JComboBox antennaCombo = new JComboBox(antennae);
-			antennaCombo.addActionListener(this);			
+			antennaCombo.addActionListener(this);
+			antennaCombo.setActionCommand("setantenna");
 			
 			itsSetupPanel.add(temp);
 			itsSetupPanel.add(antennaCombo);
@@ -61,9 +62,13 @@ public class ConversionDiagram extends MonPanel {
 		}
 		
 		public void actionPerformed(ActionEvent e) {
-			JComboBox cb = (JComboBox)e.getSource();
-			focusAntenna = (String)cb.getSelectedItem();
-			System.out.println("ConversionDiagramSetupPanel:actionPerformed: focusAntenna is " + focusAntenna);
+			super.actionPerformed(e);
+			String cmd = e.getActionCommand();
+			if (cmd.equals("setantenna")) {
+				JComboBox cb = (JComboBox)e.getSource();
+				focusAntenna = (String)cb.getSelectedItem();
+				System.out.println("ConversionDiagramSetupPanel:actionPerformed: focusAntenna is " + focusAntenna);
+			}
 		}
 	}	
 	
@@ -319,7 +324,12 @@ public class ConversionDiagram extends MonPanel {
 	        drawMonitorPoint(g2d, c28r[0]+c28r[2]/2+15, c28r[1]+203, circlesize);
 	        g2d.drawString("RFA", (int)c28r[0]+(int)c28r[2]/2+24, (int)c28r[1]+110);
 	        g2d.drawString("RFB", (int)c28r[0]+(int)c28r[2]/2+24, (int)c28r[1]+210);
-
+	        
+	        g2d.setColor(Color.black);
+	        Font antennaFont = new Font("Helvetica", Font.PLAIN, 28);
+	        g2d.setFont(antennaFont);
+	        String antennastring = "Antenna ".concat(focusAntenna);
+	        g2d.drawString(antennastring, 800, 600);
 	    }
 	    
 	    void drawCrossedCircle(Graphics2D g, double x1, double y1, double diameter) {
