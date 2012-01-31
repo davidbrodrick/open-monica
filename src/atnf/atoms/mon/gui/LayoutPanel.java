@@ -11,11 +11,9 @@ package atnf.atoms.mon.gui;
 import atnf.atoms.mon.SavedSetup;
 
 import java.util.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Vector;
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.TableModelEvent;
@@ -32,21 +30,27 @@ import javax.swing.table.*;
  * @version $Id: $
  * @see MonFrame
  */
-public class LayoutPanel extends JPanel implements ActionListener, ItemListener {
-	// ///////////////NESTED TABLE MODEL CLASS//////////////////
+@SuppressWarnings("serial")
+public class LayoutPanel extends JPanel implements ActionListener, ItemListener, ComponentListener {
+	// /////////////// NESTED TABLE MODEL CLASS //////////////////
 	private class LayoutTableModel extends AbstractTableModel {
 		/** X positions for each panel. */
-		protected ArrayList<Double> itsXPos = new ArrayList<Double>();
+		protected ArrayList<Integer> itsXPos = new ArrayList<Integer>();
 		/** Y positions for each panel. */
-		protected ArrayList<Double> itsYPos = new ArrayList<Double>();
+		protected ArrayList<Integer> itsYPos = new ArrayList<Integer>();
 		/** Pixel widths for each panel. */
-		protected ArrayList<Double> itsWidth = new ArrayList<Double>();
+		protected ArrayList<Integer> itsWidth = new ArrayList<Integer>();
 		/** Pixel heights for each panel. */
-		protected ArrayList<Double> itsHeight = new ArrayList<Double>();
+		protected ArrayList<Integer> itsHeight = new ArrayList<Integer>();
+		/** Vector of panels currently displayed. */
+		protected Vector<MonPanel> itsCurrentPanels = null;
+		/** Current size of the window */
+		protected int[] itsWindowSize = new int[2];
+		protected double[] itsWindowSizeDouble = new double[2];
+		/** Double-type array of panel dimensions */
+		protected double[] itsPanelDouble = new double[4];
 
-		public LayoutTableModel() {
-		}
-
+		// Returns column names for the table
 		public String getColumnName(int col) {
 			switch (col) {
 			case 0:
@@ -63,70 +67,49 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 			return "ERROR";
 		}
 
-		/** Resize arrays to accommodate the change in the number of panels. */
-		private void accomodateChanges() {
-			/*
-			 * Vector v = itsParent.getPanels(); synchronized (v) { int newsize
-			 * = v.size(); int oldsize = itsLeftPos.length;
-			 * 
-			 * int[] newleft = new int[newsize]; int[] newright = new
-			 * int[newsize]; int[] newtop = new int[newsize]; int[] newbottom =
-			 * new int[newsize];
-			 * 
-			 * if (itsAutoControl.isSelected()) { //We just use the numbers
-			 * derived from panels preferred sizes int toty = 0; for (int i=0;
-			 * i<v.size(); i++) { toty += ((MonPanel)v.get(i)).getSize().height;
-			 * }
-			 * 
-			 * int lastbot = 0; for (int i=0; i<v.size(); i++) { newleft[i] = 0;
-			 * newright[i] = 100; newtop[i] = lastbot; newbottom[i] =
-			 * ((MonPanel)v.get(i)).getSize().height; //newtop[i] =
-			 * (int)(((float)lastbot)/toty); //newbottom[i] =
-			 * (int)(((float)(((MonPanel)v.get(i)).getSize().height))/toty);
-			 * //newbottom[i] =
-			 * (int)(((float)(lastbot+((MonPanel)v.get(i)).getSize
-			 * ().height))/toty); lastbot = newbottom[i]+1; } } else { //We need
-			 * to let user specify the new numbers }
-			 * 
-			 * itsLeftPos = newleft; itsRightPos = newright; itsTopPos = newtop;
-			 * itsBottomPos = newbottom; } //synchronized
-			 */
-		}
-
-		public int getRowCount() {
-			return itsParent.getPanels().size();
-		}
-
 		public int getColumnCount() {
 			return 5;
 		}
 
-		public Object getValueAt(int row, int col) {
-			itsAllPanels = itsParent.getPanels();
+		// Returns the current number of panels being displayed
+		public int getRowCount() {
+			return getCurrentPanels().size();
+		}
 
-			if (col == 0) { // Panel name
-				Class c = itsAllPanels.get(row).getClass();
+/*		public Class getColumnClass(int c) {
+			return (getValueAt(0, c).getClass());
+		}*/
+		
+		// Returns value for the selected cell
+		public Object getValueAt(int row, int col) {
+			getCurrentPanels();
+			int val = 0;
+
+			
+			// Return panel type
+			if (col == 0) {
+				Class c = itsCurrentPanels.get(row).getClass();
 				return MonPanel.getName(c);
 			}
 
 			if (itsManualControl.isSelected()) {
 				if (col == 1) { // X-coordinate
-					return itsXPos.get(row) * 100;
+					return itsXPos.get(row);
 				} else if (col == 2) { // Y-coordinate
-					return itsYPos.get(row) * 100;
+					return itsYPos.get(row);
 				} else if (col == 3) { // Panel width
-					return itsWidth.get(row) * 100;
+					return itsWidth.get(row);
 				} else if (col == 4) { // Panel height
-					return itsHeight.get(row) * 100;
+					return itsHeight.get(row);
 				}
 			} else if (itsAutoControl.isSelected()) {
-				if (col == 1) { // X-coordinate
+				if (col == 1) {
 					return "N/A";
-				} else if (col == 2) { // Y-coordinate
+				} else if (col == 2) {
 					return "N/A";
-				} else if (col == 3) { // Panel width
+				} else if (col == 3) {
 					return "N/A";
-				} else if (col == 4) { // Panel height
+				} else if (col == 4) {
 					return "N/A";
 				}
 			}
@@ -137,72 +120,113 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 			if (col > 0) {
 				return true;
 			} else {
-				return false;
+				return false; // Panel names not editable
 			}
 		}
 
-		public void setValueAt(Object value, int row, int col) {
-			System.out.println("LayoutPanel:setValueAt");
-			if (col == 1) { // X-coordinate
-				String thisCell = value.toString();
-				itsXPos.set(row, Double.parseDouble(thisCell) / 100);
-			} else if (col == 2) { // Y-coordinate
-				String thisCell = value.toString();
-				itsYPos.set(row, Double.parseDouble(thisCell) / 100);
-			} else if (col == 3) { // Panel width
-				String thisCell = value.toString();
-				itsWidth.set(row, Double.parseDouble(thisCell) / 100);
-			} else if (col == 4) { // Panel height
-				String thisCell = value.toString();
-				itsHeight.set(row, Double.parseDouble(thisCell) / 100);
-			}
+		public Vector<MonPanel> getCurrentPanels() {
+			itsCurrentPanels = itsParent.getPanels();
+			return itsCurrentPanels;
+		}
 
+		// Called when a user edits a cell containing panel information
+		public void setValueAt(Object value, int row, int col) {
+			if (col == 1) { // X-coordinate
+				int setvalue = Integer.parseInt((String) value);
+				setvalue = setvalue / 10;
+				System.out.printf("setValueAt: setvalue is %d\n", setvalue);
+				itsXPos.set(row, setvalue);
+			} else if (col == 2) { // Y-coordinate
+				int setvalue = Integer.parseInt((String) value);
+				setvalue = setvalue / 10;
+				System.out.printf("setValueAt: setvalue is %d\n", setvalue);
+				itsYPos.set(row, setvalue);
+			} else if (col == 3) { // Panel width
+				int setvalue = Integer.parseInt((String) value);
+				setvalue = setvalue / 10;
+				System.out.printf("setValueAt: setvalue is %d\n", setvalue);
+				itsWidth.set(row, setvalue);
+			} else if (col == 4) { // Panel height
+				int setvalue = Integer.parseInt((String) value);
+				setvalue = setvalue / 10;
+				System.out.printf("setValueAt: setvalue is %d\n", setvalue);
+				itsHeight.set(row,  setvalue);
+			}
 			repaint();
 			fireTableCellUpdated(row, col);
 		}
 
+		public int[] getWindowSize() {
+			itsWindowSize[0] = LayoutPanel.this.getWidth();
+			itsWindowSize[1] = LayoutPanel.this.getHeight();
+			//System.out.printf("getWindowSize %d %d", itsWindowSize[0], itsWindowSize[1]);
+			return itsWindowSize;
+		}
+		
+		// Offsets/dimensions for all current panels retrieved when a user
+		// switches from Automatic to Manual mode
 		public void getCoordinates() {
-			// Only execute the below code if a user converts from Automatic to
-			// Manual layout control
+			// First get the current panels and window size
+			getCurrentPanels();
+			getWindowSize();
+			
+			for (int i = 0; i < itsCurrentPanels.size(); i++) { // For each panel
+				MonPanel thisPanel = (MonPanel) itsCurrentPanels.get(i);
+				double ten = 10.0;
+				
+				// Get panel dimensions in pixels
+				int pixelX = thisPanel.getX();
+				int pixelY = thisPanel.getY();
+				int pixelWidth = thisPanel.getWidth();
+				int pixelHeight = thisPanel.getHeight();
+				
+				// Convert to a percentage of the window size
+				castToDouble(pixelX, pixelY, pixelWidth, pixelHeight);
+				castToDouble(itsWindowSize[0],itsWindowSize[1]);
+				
+				double pcX = itsPanelDouble[0] / itsWindowSizeDouble[0];
+				double pcY = itsPanelDouble[1] / itsWindowSizeDouble[1];
+				double pcWidth = itsPanelDouble[2] / itsWindowSizeDouble[0];
+				double pcHeight = itsPanelDouble[3] / itsWindowSizeDouble[1];
+				
+				// Convert to an integer value between 0-10 for placement on grid
+				int gridX = 		(int) (pcX * ten);
+				int gridY = 		(int) (pcY * ten);
+				int gridWidth = 	(int) (pcWidth * ten);
+				int gridHeight =	(int) (pcHeight * ten);
 
-			itsAllPanels = itsParent.getPanels();
-			for (int i = 0; i < itsAllPanels.size(); i++) { // For each panel
-				MonPanel thisPanel = (MonPanel) itsAllPanels.get(i);
-
-				double pixelX = (double) thisPanel.getX();
-				double pixelY = (double) thisPanel.getY();
-				double pixelWidth = (double) thisPanel.getWidth();
-				double pixelHeight = (double) thisPanel.getHeight();
-
-				double pcX = pixelX
-						/ (double) Integer.parseInt(itsWindowWidth.getText());
-				double pcY = pixelY
-						/ (double) Integer.parseInt(itsWindowHeight.getText());
-				double pcWidth = pixelWidth
-						/ (double) Integer.parseInt(itsWindowWidth.getText());
-				double pcHeight = pixelHeight
-						/ (double) Integer.parseInt(itsWindowHeight.getText());
-
-				itsXPos.add(i, pcX); // X-coordinate
-				itsYPos.add(i, pcY); // Y-coordinate
-				itsWidth.add(i, pcWidth); // Width
-				itsHeight.add(i, pcHeight); // Height in pixels
+				itsXPos.add(i, gridX); // X-coordinate
+				itsYPos.add(i, gridY); // Y-coordinate
+				itsWidth.add(i, gridWidth); // Width
+				itsHeight.add(i, gridHeight); // Height in pixels
 			}
 		}
+		
+		// Casts panel offsets/dimensions from integer to double
+		public double[] castToDouble(int x, int y, int width, int height) {
+			itsPanelDouble[0] = (double) x;
+			itsPanelDouble[1] = (double) y;
+			itsPanelDouble[2] = (double) width;
+			itsPanelDouble[3] = (double) height;
+			
+			//System.out.printf("castToDouble %f %f %f %f\n", itsPanelDouble[0], itsPanelDouble[1], itsPanelDouble[2], itsPanelDouble[3]);
 
-		public void tableChanged(TableModelEvent evt) {
-			System.out.println("Table has been changed!!!");
+			return itsPanelDouble;
 		}
-
+		
+		public double[] castToDouble(int width, int height) {
+			itsWindowSizeDouble[0] = (double) width;
+			itsWindowSizeDouble[1] = (double) height;
+			
+			return itsWindowSizeDouble;
+		}
 	}
-
-	// //////////////////END NESTED CLASS///////////////////////
+	// ////////////////// END NESTED CLASS ///////////////////////
 
 	// PreviewPanel provides a basic preview of how panels are placed on the
 	// Display pane.
 	class PreviewPanel extends JPanel {
 		public PreviewPanel() {
-			// setBorder(BorderFactory.createLineBorder(Color.black));
 		}
 
 		public Dimension getPreferredSize() {
@@ -211,40 +235,42 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 
 		public void paintComponent(Graphics g) {
 			super.paintComponent(g);
+			double ten = 10.0;
 
 			if (itsAutoControl.isSelected()) {
 				g.drawString("Automatic control is selected.", 10, 20);
-				g.drawString("Panels will be stacked vertically.", 10, 30);
-				g.drawString("Switch to Manual layout control to rearrange panels.", 10, 40);
+				g.drawString("Panels will be stacked vertically.", 10, 40);
+				g.drawString("Switch to Manual layout control to", 10, 60);
+				g.drawString("rearrange panels.", 10, 75);
 			} else if (itsManualControl.isSelected()) {
 				if (!itsBackwards) {
-					Vector currentPanels = itsParent.getPanels();
-					int numPanels = currentPanels.size();
-					int previewWidth = this.getPreferredSize().width-10;
-					int previewHeight = this.getPreferredSize().height-10;
+					itsTableModel.getCurrentPanels();
+					
+					int numPanels = itsTableModel.itsCurrentPanels.size();
+					int previewWidth = this.getPreferredSize().width - 10;
+					int previewHeight = this.getPreferredSize().height - 10;
 
 					for (int i=0; i<numPanels; i++) {
-						MonPanel thisPan = (MonPanel)currentPanels.get(i);
+						MonPanel thisPan = (MonPanel) itsTableModel.itsCurrentPanels.get(i);
 						Class c = thisPan.getClass();
 						String panelname = MonPanel.getName(c);
-						double pX = itsTableModel.itsXPos.get(i);
-						double pY = itsTableModel.itsYPos.get(i);
-						double pW = itsTableModel.itsWidth.get(i);
-						double pH = itsTableModel.itsHeight.get(i);
 						
-						int drawX = (int)(pX * previewWidth);
-						int drawY = (int)(pY * previewHeight);
-						int drawW = (int)(pW * previewWidth);
-						int drawH = (int)(pH * previewHeight);
+						double pX = (double)itsTableModel.itsXPos.get(i) / ten;
+						double pY = (double)itsTableModel.itsYPos.get(i) / ten;
+						double pW = (double)itsTableModel.itsWidth.get(i) / ten;
+						double pH = (double)itsTableModel.itsHeight.get(i) / ten;
+
+						int drawX = (int) (pX * previewWidth);
+						int drawY = (int) (pY * previewHeight);
+						int drawW = (int) (pW * previewWidth);
+						int drawH = (int) (pH * previewHeight);
 
 						g.drawRect(drawX, drawY, drawW, drawH);
-						
+
 						// Draw the class name inside the box
-						int midX = drawW / 2;
-						int midY = drawH / 2;
 						Font cd = new Font("Helvetica", Font.PLAIN, 10);
 						g.setFont(cd);
-						g.drawString(panelname, drawX+10, drawY+10);
+						g.drawString(panelname, drawX + 10, drawY + 10);
 					}
 				}
 			}
@@ -265,12 +291,8 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 	protected JTextField itsWindowHeight = new JTextField("500", 4);
 	/** Button used to add a new panel to the setup. */
 	protected JButton itsAddButton = new JButton("Add");
-	/** Button for removing the selected panels from the display. */
-	protected JButton itsRemoveSelected = new JButton("Remove Selected");
-	/** Button for removing all panels. */
-	protected JButton itsRemoveAll = new JButton("Remove All");
 	/** Button for setting panel sizes. */
-	protected JButton itsSetPanels = new JButton("Set Panel Sizes");
+	protected JButton itsSetPanels = new JButton("OK");
 	/** Combo box for selecting what kind of MonPanel to add. */
 	protected JComboBox itsPanelType = null;
 	/** Reference to the TableModel. */
@@ -281,27 +303,27 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 	protected JScrollPane itsTableScrollPane = null;
 	/** Button for updating window size. */
 	protected JButton itsUpdateWindowSize = new JButton("Update window size");
-	/** Vector of panels currently displayed. */
-	protected Vector itsAllPanels = null;
-	/** Used for backwards compatibility - prevent PreviewPanel from showing if older saved setup */
+	/**
+	 * Used for backwards compatibility - prevent PreviewPanel from showing if
+	 * older saved setup
+	 */
 	protected static boolean itsBackwards = true;
-	
+
 	protected static int itsPreferredHeight = 0;
 	protected static int itsPreferredWidth = 0;
 
 	/** Constructor. */
 	public LayoutPanel(MonFrame parent) {
 		itsParent = parent;
+		setLayout(new GridBagLayout());
 		JPanel contentPane = new JPanel(new GridBagLayout());
 
 		GridBagConstraints c = new GridBagConstraints();
-		GridBagConstraints cremovep = new GridBagConstraints();
 		GridBagConstraints ccontp = new GridBagConstraints();
 		GridBagConstraints cprevp = new GridBagConstraints();
 
 		// Temporary layout panels
 		JPanel contpanel = new JPanel(new GridBagLayout());
-		JPanel removepanel = new JPanel(new GridBagLayout());
 		JPanel prevpanel = new JPanel(new GridBagLayout());
 
 		// Panel table
@@ -309,6 +331,17 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 		itsTableScrollPane = new JScrollPane(itsTable);
 		itsTableScrollPane.setPreferredSize(new Dimension(270, 500));
 
+		/*
+		// COMBO BOX
+		JComboBox percentCombo = new JComboBox();
+		percentCombo.addItem(50);
+		percentCombo.addItem(100);
+		DefaultCellEditor editor = new DefaultCellEditor(percentCombo);
+		TableColumnModel tcm = itsTable.getColumnModel();
+		tcm.getColumn(3).setCellEditor(editor);
+		*/
+		
+		
 		// Auto/Manual selection
 		itsAutoControl.addActionListener(this);
 		itsAutoControl.setActionCommand("auto");
@@ -336,7 +369,7 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 		// User can specify window width/height with Manual control
 		ccontp.gridy = 2;
 		ccontp.insets = new Insets(10, 0, 0, 0);
-		contpanel.add(new JLabel("Default size of window (pixels): "), ccontp);
+		contpanel.add(new JLabel("Size of window (pixels): "), ccontp);
 		ccontp.gridwidth = 1; // Reset span to 1-column
 		ccontp.gridy = 3;
 		ccontp.insets = new Insets(0, 0, 10, 10);
@@ -371,42 +404,44 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 		itsSetPanels.addActionListener(this);
 		itsSetPanels.setActionCommand("setpanels");
 
-		// Remove selected/all buttons
-		itsRemoveAll.addActionListener(this);
-		itsRemoveAll.setActionCommand("removeall");
-		itsRemoveSelected.addActionListener(this);
-		itsRemoveSelected.setActionCommand("removeselected");
-
-		cremovep.insets = new Insets(5, 0, 0, 20); // Top, left, bottom, right
-		cremovep.gridx = 0;
-		cremovep.gridy = 0;
-		removepanel.add(itsSetPanels, cremovep);
-		cremovep.insets = new Insets(5, 0, 0, 5);
-		cremovep.gridx = 1;
-		removepanel.add(itsRemoveSelected, cremovep);
-		cremovep.gridx = 2;
-		removepanel.add(itsRemoveAll, cremovep);
-
 		// Layout of panes on main control panel
-		c.gridheight = 2;
 		c.gridx = 0;
 		c.gridy = 0;
-		c.insets = new Insets(25, 0, 0, 0);
+		c.gridwidth = 2;
+		JLabel temp = new JLabel(
+				"<html>Panel offsets and dimensions are represented in the table as a percentage<br> (%) of the specified window pixel dimensions.");
+		c.insets = new Insets(0, 0, 15, 0);
+		contentPane.add(temp, c);
+		c.insets = new Insets(0, 0, 0, 0);
+		c.gridwidth = 1;
+		c.gridheight = 2;
+		c.gridx = 0;
+		c.gridy = 1;
 		contentPane.add(itsTableScrollPane, c);
 		c.gridheight = 1;
 		c.gridx = 1;
-		c.gridy = 0;
+		c.gridy = 1;
 		contentPane.add(contpanel, c);
 		c.gridx = 1;
-		c.gridy = 1;
-		contentPane.add(prevpanel, c);
-		c.gridwidth = 2;
-		c.gridx = 0;
 		c.gridy = 2;
-		contentPane.add(removepanel, c);
+		contentPane.add(prevpanel, c);
+		c.gridx = 1;
+		c.gridy = 3;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.anchor = GridBagConstraints.LAST_LINE_END;
+		c.insets = new Insets(20, 0, 0, 0);
+		contentPane.add(itsSetPanels, c);
 
-		add(contentPane);
+		c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		c.weightx = 0.5;
+		c.weighty = 0.5;
+		c.fill = GridBagConstraints.BOTH;
+		add(contentPane, c);
 
+		itsParent.addComponentListener(this);
+		
 		itsAutoControl.doClick(); // Enable auto layout control
 	}
 
@@ -415,7 +450,7 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 	 * opportunity for us to update the table display.
 	 */
 	public void update() {
-		itsTableModel.accomodateChanges();
+		//System.out.println("LayoutPanel:update");
 		itsTableModel.fireTableStructureChanged();
 		if (itsAutoControl.isSelected()) {
 			// Copy the current window size to the fields
@@ -426,12 +461,12 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 
 	/** Populate dimension ArrayLists with default coordinates in Manual mode */
 	public void defineCoordinates(int i) {
-		double zero = 0.0;
-		double hundred = 1.0;
+		int zero = 0;
+		int ten = 10;
 		itsTableModel.itsXPos.add(i, zero);
 		itsTableModel.itsYPos.add(i, zero);
-		itsTableModel.itsWidth.add(i, hundred);
-		itsTableModel.itsHeight.add(i, hundred);
+		itsTableModel.itsWidth.add(i, ten);
+		itsTableModel.itsHeight.add(i, ten);
 
 		return;
 	}
@@ -449,43 +484,48 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 			itsWindowWidth.setEnabled(true);
 			itsWindowHeight.setEnabled(true);
 			itsTable.setEnabled(true);
-
-		} else if (cmd == "removeselected") {
-			MonPanel thisPanel = (MonPanel) itsAllPanels.get(itsTable
-					.getSelectedRow());
-			itsParent.removePanel(thisPanel);
-		} else if (cmd == "removeall") {
-			itsParent.blankSetup();
 		} else if (cmd == "update") { // Update window size
 			int newWidth = Integer.parseInt(itsWindowWidth.getText());
 			int newHeight = Integer.parseInt(itsWindowHeight.getText());
 
 			itsParent.setSize(new Dimension(newWidth, newHeight));
 		} else if (cmd == "setpanels") {
-			setPanels();
+			if (itsManualControl.isSelected()) {
+				setPanels();
+			} else {
+				itsParent.showDisplayForced();
+			}
 		}
 		repaint();
 	}
 
 	public void setPanels() {
-		if (!itsBackwards) {
+		//System.out.println("LayoutPanel:setPanels");
+		if (!itsBackwards) { // 
 			if (itsManualControl.isSelected()) {
-				itsAllPanels = itsParent.getPanels();
+				itsTableModel.getCurrentPanels();
 				itsParent.clearPanels();
-				for (int i = 0; i < itsAllPanels.size(); i++) {
-					MonPanel panel = (MonPanel) itsAllPanels.get(i);
-					double x = itsTableModel.itsXPos.get(i);
-					double y = itsTableModel.itsYPos.get(i);
-					double width = itsTableModel.itsWidth.get(i);
-					double height = itsTableModel.itsHeight.get(i);
+				
+				itsParent.setUpML();
+				
+				for (int i = 0; i < itsTableModel.itsCurrentPanels.size(); i++) {
+					MonPanel panel = (MonPanel) itsTableModel.itsCurrentPanels.get(i);
+					int x = itsTableModel.itsXPos.get(i);
+					int y = itsTableModel.itsYPos.get(i);
+					int width = itsTableModel.itsWidth.get(i);
+					int height = itsTableModel.itsHeight.get(i);
+
+					//System.out.printf("setPanels: %d %d %d %d\n", x, y, width, height);
 
 					itsParent.redrawPanels(panel, x, y, width, height);
-					
+
 					validate();
 					repaint();
 				}
 			}
 		}
+
+		itsParent.showDisplayForced();
 
 	}
 
@@ -495,15 +535,18 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 			itsTable.setVisible(true);
 			itsTableModel.getCoordinates();
 			itsBackwards = false;
-			System.out.println("NOT itsBackwards!");
+			//System.out.println("NOT itsBackwards!");
 		} else if (e.getStateChange() == ItemEvent.SELECTED) {
 			// Manual to Automatic transition
 			System.out.println("Manual has been changed to auto mode");
-			itsAllPanels = itsParent.getPanels();
+			itsTableModel.getCurrentPanels();
 			itsParent.clearPanels();
-			for (int i = 0; i < itsAllPanels.size(); i++) {
-				MonPanel panel = (MonPanel) itsAllPanels.get(i);
-				itsParent.addPanelToDisplay(panel);
+			
+			itsParent.setUpMLAuto();
+			
+			for (int i = 0; i < itsTableModel.itsCurrentPanels.size(); i++) {
+				MonPanel panel = (MonPanel) itsTableModel.itsCurrentPanels.get(i);
+				itsParent.redrawPanelsAuto(panel);
 			}
 
 		}
@@ -511,13 +554,13 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 
 	/** Save a setup describing the selected layout control options. */
 	public void getSetup(SavedSetup setup) {
-		itsAllPanels = itsParent.getPanels();
+		itsTableModel.getCurrentPanels();
 
 		// Save Automatic/Manual layout preference
 		if (itsManualControl.isSelected()) {
 			setup.put("control", "manual");
 			// Save individual panel dimensions
-			for (int i = 0; i < itsAllPanels.size(); i++) {
+			for (int i = 0; i < itsTableModel.itsCurrentPanels.size(); i++) {
 				setup.put("panelx" + i, itsTableModel.itsXPos.get(i).toString());
 				setup.put("panely" + i, itsTableModel.itsYPos.get(i).toString());
 				setup.put("panelwidth" + i, itsTableModel.itsWidth.get(i)
@@ -532,7 +575,7 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 		// Save preferred window dimensions
 		setup.put("windowwidth", itsWindowWidth.getText());
 		setup.put("windowheight", itsWindowHeight.getText());
-		
+
 		return;
 	}
 
@@ -547,6 +590,7 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 
 		if (setup.containsKey("control")) {
 			itsBackwards = false;
+
 			// Set window to preferred dimensions
 			String savedWidth = setup.get("windowwidth");
 			String savedHeight = setup.get("windowheight");
@@ -557,39 +601,64 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener 
 				itsManualControl.doClick();
 				for (int i = 0; i < numpanels; i++) {
 					itsTableModel.itsXPos.add(i,
-							Double.parseDouble(setup.get("panelx" + i)));
+							Integer.parseInt(setup.get("panelx" + i)));
 					itsTableModel.itsYPos.add(i,
-							Double.parseDouble(setup.get("panely" + i)));
+							Integer.parseInt(setup.get("panely" + i)));
 					itsTableModel.itsWidth.add(i,
-							Double.parseDouble(setup.get("panelwidth" + i)));
+							Integer.parseInt(setup.get("panelwidth" + i)));
 					itsTableModel.itsHeight.add(i,
-							Double.parseDouble(setup.get("panelheight" + i)));
+							Integer.parseInt(setup.get("panelheight" + i)));
 				}
 
 				itsTableModel.fireTableStructureChanged();
 				itsTableModel.fireTableDataChanged();
-				
-				//setPanels();
-
 			} else {
 				itsAutoControl.doClick();
 			}
 			itsWindowWidth.setText(savedWidth);
 			itsWindowHeight.setText(savedHeight);
 		} else {
-			itsBackwards = true;
-			System.out
-					.println("LayoutPanel:loadSetup: Does not contain panel layout information");
+			itsBackwards = true; // Setup was saved previous to LayoutPanel
+									// implementation; no layout information
+									// saved
 		}
 		return;
 	}
 
 	public void resizeWindow() {
 		if (!itsBackwards) {
-			System.out.printf("%d %d", itsPreferredWidth, itsPreferredHeight);
-			itsParent.setSize(new Dimension(itsPreferredWidth, itsPreferredHeight));
+			//System.out.printf("%d %d", itsPreferredWidth, itsPreferredHeight);
+			itsParent.setSize(new Dimension(itsPreferredWidth,
+					itsPreferredHeight));
 			validate();
 			repaint();
 		}
+	}
+
+	public void componentHidden(ComponentEvent arg0) {
+	}
+
+	public void componentMoved(ComponentEvent arg0) {
+	}
+
+	public void componentResized(ComponentEvent arg0) {
+		if (itsManualControl.isSelected()) {
+			String width = Integer.toString(itsParent.getWidth());
+			String height = Integer.toString(itsParent.getHeight());
+			
+			itsWindowWidth.setText(width);
+			itsWindowHeight.setText(height);
+		}
+	}
+
+	public void componentShown(ComponentEvent arg0) {
+	}
+	
+	public int[] getWindowSize() {
+		int[] size = new int[2];
+		size[0] = Integer.parseInt(itsWindowWidth.getText());
+		size[1] = Integer.parseInt(itsWindowHeight.getText());
+		
+		return size;
 	}
 }

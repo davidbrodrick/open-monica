@@ -10,3 +10,4 @@ atnf.atoms.mon.gui.monpanel.DialPanel
 atnf.atoms.mon.gui.monpanel.HTMLComment
 atnf.atoms.mon.gui.monpanel.Lightning
 atnf.atoms.mon.gui.monpanel.ControlPanel
+atnf.atoms.mon.gui.monpanel.ConversionDiagram

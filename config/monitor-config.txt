@@ -1,0 +1,44 @@
+##############################
+# ARCHIVER OPTIONS:
+# Type of archiver to use
+Archiver ASCII
+# Max archive records to be returned for a single query
+# This is to prevent server CPU/memory saturation
+ArchiveMaxRecords 8192
+
+# Options specific to the ASCII archiver:
+# Where to save archived data
+ArchiveDir /tmp/monica-archive
+# Temporary directory - need to be able to read/write here
+ArchiveTempDir /tmp/monica-temp
+# Max size of file (bytes) before the archiver will rotate to new file
+ArchiveMaxSize 1048576
+# Max file age (in secs) before the archiver will rotate to a new file
+ArchiveMaxAge 604800
+# Number of threads to write data to disk
+ArchiveNumThreads 1
+
+##############################
+# OPTIONS FOR DATA MEMORY CACHE:
+# Max number of records to cache per point
+MaxBufferSize 50
+#Maximum age (in seconds) of data updates to be buffered
+MaxBufferAge 90
+
+##############################
+# OPTIONS FOR ENCRYPTION ENGINE
+# How Strong to encrypt the username/passwords
+EncryptionStrength 512
+# How often to change keys
+KeyLife 3600000
+
+##############################
+# NETWORK INTERFACE OPTIONS
+# Port the ASCII text Server will use
+ASCIIPort 8051
+
+#Settings for IceStorm pub/sub service
+PubSubEnabled false
+PubSubLocatorHost localhost
+PubSubLocatorPort 4061
+PubSubTopic MoniCA.PubSubControl
