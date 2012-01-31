@@ -1,0 +1,3 @@
+test.bool    "Test point" "" "" site T Timer-"2""int""1" - {EQ-"rand()>0.5", NumberToBool-} Boolean-"true""" - - -
+test.string    "Test point" "" "" site T Timer-"2""int""1" - {EQ-"rand()>0.5", NumberToBool-} StringMatch-"true""true" - - -
+test.range    "Test point" "" "" site T Timer-"2""int""1" - {EQ-"rand()"} Range-"0""0.5""false""" - - -

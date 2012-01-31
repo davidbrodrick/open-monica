@@ -20,6 +20,9 @@ import java.util.StringTokenizer;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+
+import net.miginfocom.swing.MigLayout;
+
 import java.io.*;
 
 /**
@@ -361,7 +364,10 @@ public class MonFrame extends JFrame implements ActionListener {
 	 * was initially loaded.
 	 */
 	public SavedSetup itsSetup = null;
-
+	
+	private static int itsWindowWidth = 0;
+	private static int itsWindowHeight = 0;
+	
 	/** C'tor. */
 	public MonFrame() {
 		super("Monitor Display " + theirNumCreated);
@@ -426,7 +432,7 @@ public class MonFrame extends JFrame implements ActionListener {
 		itsTabs.add("Display", itsMainPanel);
 		itsTabs.setForegroundAt(0, Color.blue);
 		itsTabs.add("Layout", itsLayoutPanel);
-		itsTabs.setForegroundAt(1, Color.green);
+		itsTabs.setForegroundAt(1, Color.orange);
 		getContentPane().add(itsTabs);
 
 		// Make handler for when the frame is closed - we will need to clean up
@@ -458,17 +464,23 @@ public class MonFrame extends JFrame implements ActionListener {
 	}
 
 	/**
-	 * Switch to the main display tab or layout tab depending on Auto/Manual
-	 * preference.
+	 * Switch to the main display tab OR layout tab depending on Auto/Manual preference.
 	 */
 	public synchronized void showDisplay() {
 		if (itsLayoutPanel.itsAutoControl.isSelected()) {
-			System.out.println("Auto control selected: displaying graph");
+			//System.out.println("Auto control selected: displaying graph");
 			itsTabs.setSelectedIndex(0);
 		} else { // Switch to Layout tab in Manual mode
-			System.out.println("Manual control selected; switching to Layout tab");
+			//System.out.println("Manual control selected; switching to Layout tab");
 			itsTabs.setSelectedIndex(1);
 		}
+	}
+	
+	/**
+	 * Switch to the main display tab
+	 */
+	public void showDisplayForced() {
+		itsTabs.setSelectedIndex(0);
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -594,59 +606,64 @@ public class MonFrame extends JFrame implements ActionListener {
 		}
 
 		if (!itsLayoutRedrawn) {
-			System.out.println("MonFrame:addPanelNow: itsLayout NOT redrawn");
-			itsMainPanel.add(newpan);
+			//System.out.println("MonFrame:addPanelNow: itsLayout NOT redrawn");
+			itsMainPanel.add(newpan, 	"grow");
 			rebuildSubPanelMenu();
 			validate();
 			repaint();
 			itsLayoutPanel.update();
 		} else {
-			System.out.println("MonFrame:addPanelNow: itsLayout redrawn");
+			//System.out.println("MonFrame:addPanelNow: itsLayout redrawn");
 			
 			rebuildSubPanelMenu();
-			redrawPanels(newpan, 0.0, 0.0, 0.5, 0.5);
+			redrawPanels(newpan, 0, 0, 5, 5);
 		}
 	}
-	
-	/** Redraw Display screen using Automatic layout control */
-	protected void addPanelToDisplay(MonPanel newpan) {
-		itsSetup = null;
-		newpan.setFrame(this);
-		newpan.setBorder(BorderFactory.createLoweredBevelBorder());
-		itsMainPanel.add(newpan);
-		repaint();
-		itsLayoutPanel.update();
-	}
 
+	/**
+	 * Setup the MiGLayout
+	 */
+	protected void setUpML() {
+		itsWindowWidth = itsMainPanel.getWidth();
+		itsWindowHeight = itsMainPanel.getHeight();
+		
+		// Creating a MigLayout with 10 columns and 10 rows
+		MigLayout ml = new MigLayout();
+		itsMainPanel.setLayout(ml);
+	}
+	
+	protected void setUpMLAuto() {
+		MigLayout ml = new MigLayout("nogrid, flowy, fillx", "", "");
+		itsMainPanel.setLayout(ml);
+	}
+	
 	/**
 	 * Redraw the Display using the coordinates set by the user in the Layout
 	 * Control panel.
 	 */
-	protected void redrawPanels(MonPanel panel, double x, double y,
-			double width, double height) {
-		//itsSetup = null;
-		itsMainPanel.setLayout(null); // Null layout to allow for absolute
-										// positioning
+	protected void redrawPanels(MonPanel panel, int x, int y,
+			int width, int height) {
+		//System.out.printf("MonFrame: redrawPanels x %d y %d width %d height %d\n", x, y, width, height);
 
-		int windowWidth = Integer.parseInt(itsLayoutPanel.itsWindowWidth
-				.getText());
-		int windowHeight = Integer.parseInt(itsLayoutPanel.itsWindowHeight
-				.getText());
-;
-		int xbound = (int) (x * windowWidth);
-		int ybound = (int) (y * windowHeight);
-		int widthbound = (int) (width * windowWidth);
-		int heightbound = (int) (height * windowHeight);
+		int x2 = x + width;
+		int y2 = y + height;
+		
+		itsMainPanel.add(panel,		"pos "+x+"0% "+y+"0% "+x2+"0% "+y2+"0%");
 
-		panel.setBounds(xbound, ybound, widthbound, heightbound);
-
-		itsMainPanel.add(panel);
-
-		validate();
+		itsLayoutPanel.update();
+		itsLayoutRedrawn = true; // Indicates layout has been manually altered
+	}
+	
+	/** Redraw Display screen using Automatic layout control */
+	protected void redrawPanelsAuto(MonPanel newpan) {
+		itsSetup = null;
+		newpan.setFrame(this);
+		newpan.setBorder(BorderFactory.createLoweredBevelBorder());
+		
+		itsMainPanel.add(newpan,	"grow");
 		repaint();
 		itsLayoutPanel.update();
-
-		itsLayoutRedrawn = true; // Indicates layout has been manually altered
+		itsLayoutRedrawn = false;
 	}
 
 	/** Clear existing panels. */
@@ -977,7 +994,7 @@ public class MonFrame extends JFrame implements ActionListener {
 	 * @return Current window setup configuration information.
 	 */
 	public SavedSetup getSetup() {
-		System.out.println("getSetup");
+		//System.out.println("getSetup");
 
 		/*
 		if (itsSetup != null) {

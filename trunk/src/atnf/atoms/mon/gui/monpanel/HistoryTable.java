@@ -168,7 +168,6 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 			temppanel2.add(itsPeriod);
 			itsPeriodUnits.setMaximumSize(new Dimension(90, 30));
 			temppanel2.add(itsPeriodUnits);
-			// temppanel2.add(new JLabel());
 			temppanel2.add(Box.createRigidArea(new Dimension(60, 0)));
 			templabel = new JLabel("Time Zone:   ");
 			templabel.setForeground(Color.black);
@@ -180,7 +179,6 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 			temppanel.add(itsDynamic);
 			temppanel2 = new JPanel();
 			temppanel2.setLayout(new BoxLayout(temppanel2, BoxLayout.X_AXIS));
-			// itsStatic.setMaximumSize(new Dimension(350,30));
 			temppanel2.add(itsStatic);
 			itsStart.setText(itsFormatter.format(new Date()));
 			itsStart.setMaximumSize(new Dimension(160, 30));
@@ -214,7 +212,6 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 			temppanel.setBorder(BorderFactory.createLineBorder(Color.black));
 			temppanel.add(itsChangesOnly);
 			temppanel.add(itsHideIncomplete);
-			// temppanel.add(itsSparse);
 			temppanel.add(itsNoDate);
 			temppanel.add(itsNoMS);
 			temppanel2 = new JPanel();
