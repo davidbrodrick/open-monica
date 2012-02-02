@@ -337,3 +337,113 @@ var connectionDeferred = server.getLoadingDeferred();
 }}}
 
 This method allows you to get the Dojo `Deferred` object that will get resolved when the server has gotten the list of points from MoniCA. The normal way of getting this `Deferred` is from the `connect` method, but this method returns exactly the same value, if required.
+
+=== Object `monicaPoint` ===
+
+==== Constructor ====
+
+{{{
+var pointReference = monicaPoint(spec, my);
+}}}
+
+The constructor function takes two arguments, both of which are optional.
+
+  * `spec` is an object that configures the point. It can have the following properties:
+    * `pointName`: the MoniCA name for this point, as a `String`.
+    * `isTimeSeries`: a `Boolean` indicating whether this point represents a time-series.
+    * `timeSeriesOptions`: an object that specifies the options used to gather the time-series. Its properties are:
+      * `startTime`: the time to start the series from, in the format `yyyy/mm/dd:HH:MM:SS`, or `-1` to make the series finish at the current time (the default).
+      * `spanTime`: the time to cover with this series, in minutes (default 60).
+      * `maxPoints`: the maximum number of points to keep from the time range (default 500).
+  * `my` is any object that you would like the `monicaPoint` to have access to.
+
+The user can make a new `monicaPoint` if they desire, but the constructor is usually only called by the `monicaServer` object when the user requests a new point or time-series. The `monicaPoint` will not work correctly unless the `my` argument is specified as the `monicaServer` object that will be responsible for updating it.
+
+==== Public Methods ====
+
+===== getPointDetails =====
+
+{{{
+var pointDetails = pointReference.getPointDetails();
+}}}
+
+This method gets the MoniCA name for the `pointReference` object, along with the description of the point and its units. This information is returned as an object with the properties:
+  * `name`: the MoniCA point name.
+  * `description`: the description for this point, from MoniCA.
+  * `units`: the units for the values for this point, from MoniCA.
+
+Example:
+{{{
+var pointDetails = pointReference.getPointDetails();
+console.log('the point ' + pointDetails.name + ' is described ' +
+  'as "' + pointDetails.description + '", with units ' +
+  pointDetails.units);
+}}}
+
+===== hasDescription =====
+
+{{{
+var descriptionAvailable = pointReference.hasDescription();
+}}}
+
+This method returns a `Boolean` indication of whether MoniCA has supplied a description for this point. This is primarily used by the `monicaServer` object, but can be called by the user if desired.
+
+===== setPointDetails =====
+
+{{{
+pointReference.setDetails(pointDetails);
+}}}
+
+This method is used to assign a description and units to the point, as well as the time between updates. These details are passed to this method through the `pointDetails` object which has the properties:
+  * `description`: A plain-English description for what this point represents.
+  * `units`: The units that the point values are in.
+  * `updateTime`: The point will request an update every `updateTime` seconds.
+
+This method is usually called by the `monicaServer` object after communicating with MoniCA after the user has executed the `getDescriptions` method. However, the user can override any of the MoniCA specifications for these details, but only if they call this method before executing `getDescriptions`, as this method will not override any of these details that have previously been set. You do not need to specify all of the details in a call to this method.
+
+Calling this method also begins the update process, as long as the `updateTime` has been specified. Each `monicaPoint` has its own timer, and will request an update when it expires, after `updateTime` seconds.
+
+For example, to set only the `updateTime` to 1 minute, and allow MoniCA to fill in the rest of the details:
+{{{
+var connectionEstablished = function() {
+  // Add a point.
+  var pointReference = server.addPoints([ 'site.environment.weather.Temperature' ]);
+  pointReference[0].setDetails({
+    'updateTime': 60
+  });
+  server.getDescriptions();
+}
+
+var server = monicaServer();
+server.connect().then(connectionEstablished);
+}}}
+
+===== resetPointDetails =====
+
+{{{
+pointReference.resetPointDetails();
+}}}
+
+This method allows the user to reset the point details that they may have set, and ask MoniCA to set them again.
+
+===== updateValue =====
+
+===== setTimeSeriesValues =====
+
+===== getTimeSeries =====
+
+===== latestValue =====
+
+===== addCallback =====
+
+===== timeSeriesOptions =====
+
+===== isTimeSeries =====
+
+===== timeSeriesInitialised =====
+
+===== timeRepresentation =====
+
+===== stopUpdating =====
+
+===== startUpdating =====
