@@ -1,0 +1,122 @@
+#left { width: 79%; border: 0px; float: left; }
+#right { 
+    background: lightgrey;
+    border: 0px;
+    width: 20%;
+    position: fixed;
+    right: 0px;
+    top: 0px;
+    height: 100%;
+    padding: 1em;
+    overflow: scroll;
+}
+
+.pointTreeControl {
+    background: white;
+}
+
+.adder {
+    border-top: 2px solid black;
+    margin-right: 1em;
+}
+
+.addButton {
+    margin: 0.5em;
+}
+
+.displayContainer {
+    min-height: 60px;
+    border-bottom: 1px dotted lightgrey;
+}
+
+.containerActive {
+    padding-top: 5px;
+    float: right;
+    border: 1px solid lightgrey;
+    background-color: lightgrey;
+    background-image: url('leftarrowslight.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 50px;
+    width: 20px;
+}
+
+.containerInactive {
+    padding-top: 5px;
+    float: right;
+    border: 1px solid lightgrey;
+    background-color: white;
+    background-image: url('leftarrowsdark.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 50px;
+    width: 20px;
+    cursor: pointer;
+}
+
+.containerBounds {
+    margin-right: 50px;
+}
+
+.containerTitle {
+    width: 100%;
+    background: lightblue;
+    border: 1px dotted black;
+    padding-left: 0.4em;
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+}
+
+.containerTitle input {
+    border: 1px solid red;
+}
+
+.titleEditable {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.pointTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em;
+}
+
+.pointTable th {
+    text-align: left;
+    border: 1px solid black;
+}
+
+.pointTable td {
+    text-align: center;
+    border: 1px dotted black;
+}
+
+.noborder {
+    border: 0px;
+}
+
+.columnName {
+    font-weight: bold;
+    border: 1px solid black;
+}
+
+.inError {
+    background: yellow;
+    color: red;
+}
+
+.titleOptions {
+    margin-right: 1em;
+}
+
+.titleOptions label {
+    font-weight: bold;
+    margin-right: 0.3em;
+}
+
+.optionsTitle {
+    font-weight: bold;
+    margin-right: 0.3em;
+}
+
