@@ -3,71 +3,191 @@
 
 = Introduction =
 
-Many users will find it more convenient to view data from your MoniCA server
-on a web page. This client library makes it easy to interface with the MoniCA
-server and provides a number of ways of presenting the data on a webpage.
+Many users will find it more convenient to view data from your MoniCA server on a web page. The open-monica distribution comes with a set of Javascript libraries to make it easy to build web pages that can display real-time MoniCA data. Alternatively, you can use the pre-built MoniCA frontpage.
 
-This client library requires the Perl client library, and includes a server-side
-CGI (Perl) script for fetching the data, and Javascript code for dynamic
-generation of the HTML pages.
+= Installation =
 
+== File Locations ==
 
-= Details =
+=== Required Files ===
 
-== Philosophy ==
+On your webserver, you will first need to install the Perl client so that it can be called by the server-side MoniCA query script.
 
-The MoniCA web interface is designed to be portable, easy to use, and flexible.
-It is possible to use only a single element (ie. point table, time series) in
-a particular web page, or you can use the pre-made MoniCA Web Client web
-interface.
+You should then copy the `/clientlibs/web/cgi-bin/monicainterface_json.pl` file to your webserver's `cgi-bin` directory.
 
-== Javascript ==
+Finally, copy the `/clientlibs/web/htdocs/monica_web_v2.src.js` to your desired directory on your webserver.
 
-The Javascript code can be found at `/clientlibs/web/htdocs/monica_web.js`, or
-at `/clientlibs/web/htdocs/monica_web.src.js` for the more human-readable
-version.
-
-This code contains the following objects.
-
-  * `monicaConnection`: the object responsible for communicating with the MoniCA server and updating the objects that use it
-  * `monicaContainer`: a general-purpose container HTML element that can contain any of the other MoniCA elements, and handles their editing and communication needs
-  * `pointTable`: can be used to show the latest values of any set of points
-  * `timeSeries`: can be used to show values for any set of points over any particular time range
-  * `monicaHTMLFrontPage`: builds a standard web interface, and allows for user interaction, in order to closely replicate the experience of the normal Java MoniCA client
-  * `linkParser`: takes a web address that has MoniCA markup and generates the appropriate MoniCA elements, either on a monicaHTMLFrontPage or standalone web page
-
-
-
-== Installation ==
+Optionally, you can install the Dojo toolkit onto your webserver, from http://dojotoolkit.org/. The open-monica Javascript library is built upon version 1.6 of the Dojo toolkit, and does not use the AMD functionality of version 1.7. Since version 1.7 is backwards compatible, you can still install it.
 
 === Standard MoniCA HTML front page ===
 
-This installation guide assumes a standard HTTP server setup, although there
-should not be too much dependency on this.
-
-The Javascript code depends on the following tools:
-  * the [http://dojotoolkit.org/ Dojo toolkit], necessary for cross-browser coding
+The included MoniCA frontpage depends on the following tools in addition to those listed above:
   * the [http://www.highcharts.com/ Highcharts plotting library]
   * the [http://jquery.com/ jQuery toolkit] (required by Highcharts)
 
-The server-side CGI code depends on the MoniCA Perl client library.
+You can download the latest Highcharts plotting library from [http://www.highcharts.com their homepage.] Ideally, create a directory `js` in the root HTML directory of your HTTP server, and ensure that it contains a link to, or direct copy of, the `highcharts.js` file, such that the address `http://www.yourserver.com/js/highcharts.js` would find the script.
 
-You should start by installing the MoniCA Perl library on your machine so that
-your normal Perl binaries can find it.
+Then copy the files `/clientlibs/web/htdocs/monica_front.*` to your desired location on the webserver. You will then need to do some configuration in the `monica_front.js` file.
 
-You should then download the latest Highcharts plotting library from
-[http://www.highcharts.com their homepage.] Ideally, create a directory `js`
-in the root HTML directory of your HTTP server, and ensure that it contains
-a link to, or direct copy of, the `highcharts.js` file, such that the address
-`http://www.yourserver.com/js/highcharts.js` would find the script.
+= Programming =
 
-Next, install the Perl query code `cgi-bin/monica_interface.pl` into your 
-`cgi-bin` directory. Remember the full path to this code, as you will need it later.
+== API ==
 
-Next, copy all the files and directories in `htdocs` to a location on your
-web server, and remember the full path.
+This section describes the MoniCA Javascript API, which is located in the file `monica_web_v2.src.js`.
 
-You will now need to configure `monica_frontpage.html` for your MoniCA setup.
-Open `monica_frontpage.html` in your favourite editor, and:
-  * change line 14 to reflect the location of your `highcharts.js` file
-  * change line 15 to reflect the location of your `monica_web.js` file
+The API makes available three objects.
+
+=== Object `monicaServer` ===
+
+==== Constructor ====
+
+{{{
+var server = monicaServer(spec, my);
+}}}
+
+The constructor function takes two arguments, both of which are optional.
+  * `spec` is an object that configures the server. It can have the following properties:
+    * `serverName`: the hostname of the MoniCA server (default `monhost-nar`).
+    * `protocol`: the protocol to use for connections to the webserver (default `http`).
+    * `webserverName`: the hostname of the webserver (default `www.narrabri.atnf.csiro.au`).
+    * `webserverPath`: the location of the JSON MoniCA query script (default `cgi-bin/obstools/web_monica/monicainterface_json.pl`).
+    * `updateInterval`: the minimum time between queries to the MoniCA server, in milliseconds (default `10000`).
+  * `my` is any object that you would like the `monicaServer` object to have access to. In this way, you can extend the server with new methods that can access this object.
+
+==== Public Methods ====
+
+===== connect =====
+
+{{{
+var connectionDeferred = server.connect();
+}}}
+
+Before you can start obtaining MoniCA data from a server, you must tell the `monicaServer` object to connect with this method. It returns a Dojo `Deferred` object that will be resolved when the connection is established. You should then point the `Deferred` to a function you want to execute once the connection is established, eg:
+
+{{{
+var connectionEstablished = function(serverObj) {
+  // This routine sets up all the MoniCA points that will appear on
+  // this page.
+  console.log(serverObj.server); // The name of the server that has connected.
+}
+
+connectionDeferred.then(connectionEstablished);
+}}}
+
+The connection can be simplified for brevity:
+{{{
+server.connect().then(connectionEstablished);
+}}}
+
+Use of the Dojo `Deferred` object to detect when the connection is established is the preferred method. However, you may also choose instead to use the Dojo pub/sub interface. When the MoniCA connection is established, the `monicaServer` object will publish the connection to the `connection` channel. All you need to do is setup a listener for this channel.
+
+{{{
+dojo.subscribe('connection', connectionEstablished);
+}}}
+
+The same information is passed to the function regardless of which method is chosen. The difference is that if you set up multiple `monicaServer` objects, the `connection` subscription will be triggered for every server, whereas the you will get a separate `Deferred` for each server that can be directed individually to different functions.
+
+For example, using the `connection` channel:
+{{{
+var narrabriConnection = function() {
+  // Do things for a connection to the Narrabri MoniCA server.
+}
+
+var parkesConnection = function() {
+  // Do things for a connection to the Parkes MoniCA server.
+}
+
+var connectionEstablished = function(serverObj) {
+  // Which server has connected?
+  if (serverObj.server === 'monhost-nar') {
+    narrabriConnection();
+  } else if (serverObj.server === 'monhost-pks') {
+    parkesConnection();
+  }
+}
+
+var narMonica = monicaServer({ serverName: 'monhost-nar' });
+var pksMonica = monicaServer({ serverName: 'monhost-pks' });
+
+// The subscription listener should be setup before the connection
+// method is called so we don't miss the signal.
+dojo.subscribe('connection', connectionEstablished);
+
+narMonica.connect();
+pksMonica.connect();
+}}}
+
+Whereas, using Dojo `Deferred` objects:
+
+{{{
+var narrabriConnection = function(serverObj) {
+  // Do things for a connection to the Narrabri MoniCA server.
+}
+
+var parkesConnection = function(serverObj) {
+  // Do things for a connection to the Parkes MoniCA server.
+}
+
+var narMonica = monicaServer({ serverName: 'monhost-nar' });
+var pksMonica = monicaServer({ serverName: 'monhost-pks' });
+
+narMonica.connect().then(narrabriConnection);
+pksMonica.connect().then(parkesConnection);
+}}}
+
+===== pointsList =====
+
+{{{
+var availablePoints = server.pointsList();
+}}}
+
+This method returns an `Array` containing a `String` for each MoniCA point name available on the server you have connected to.
+
+Example:
+{{{
+var connectionEstablished(serverObj) {
+  // Print out each point name to the web page.
+  var pointNames = server.pointsList();
+  for (var i = 0; i < pointNames.length; i++) {
+    dojo.place('<span>point ' + (i + 1) + ' = ' +
+      pointNames[i] + '</span>', dojo.body());
+  }
+}
+
+var server = monicaServer({ serverName: 'monhost-nar' });
+server.connect().then(connectionEstablished);
+}}}
+
+===== isPoint =====
+
+{{{
+var pointAvailable = server.isPoint(pointName);
+}}}
+
+This method takes a `String` `pointName` and returns `true` if `pointName` is a point available on the server, and `false` otherwise.
+
+===== getServerName =====
+
+{{{
+var serverName = server.getServerName();
+}}}
+
+This method returns a `String` representation of the name of the server that is connected.
+
+Example:
+{{{
+var connectionEstablished() {
+  // Print out the server name to the web page, which should be 'monhost-nar'
+  dojo.place('<span> server = ' +
+    server.getServerName() + '</span>', dojo.body());
+}
+
+var server = monicaServer({ serverName: 'monhost-nar' });
+server.connect().then(connectionEstablished);
+}}}
+
+===== addPoints =====
+
+{{{
+var pointReferences = server.addPoints(pointsList);
+}}}
