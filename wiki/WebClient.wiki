@@ -191,3 +191,21 @@ server.connect().then(connectionEstablished);
 {{{
 var pointReferences = server.addPoints(pointsList);
 }}}
+
+This method is used to tell the server to keep one or more MoniCA points up-to-date. For each point passed to this method that exists on the server, a `monicaPoint` object that can be used to query that point's details and value.
+
+Example:
+{{{
+var connectionEstablished = function() {
+  var pointsRequired = [ 'ca01.misc.station', 'ca02.misc.station' ];
+  var pointReferences = server.addPoints(pointsRequired);
+}
+}}}
+
+===== getPoints =====
+
+{{{
+var pointReferences = server.getPoints(pointsList);
+}}}
+
+This method is used to get references to the `monicaPoint` objects for points that have previously been added with the `addPoints` or `addTimeSeries` methods.
