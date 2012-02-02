@@ -208,4 +208,132 @@ var connectionEstablished = function() {
 var pointReferences = server.getPoints(pointsList);
 }}}
 
-This method is used to get references to the `monicaPoint` objects for points that have previously been added with the `addPoints` or `addTimeSeries` methods.
+This method is used to get references to the `monicaPoint` objects for points that have previously been added with the `addPoints` method. The method can be passed either a single `String` for `pointsList`, or an array of `String`s. Each `String` should be the name of a MoniCA point that you want the reference for. The method will return either a single `monicaPoint` object, if it was passed a single `String`, or an array of `monicaPoint`s the same length of the `pointsList` array. For any point that isn't being handled by the server, a `null` value will be returned.
+
+===== addTimeSeries =====
+
+{{{
+var seriesReference = server.addTimeSeries(seriesOptions);
+}}}
+
+This method makes the server keep track of a number of values for a particular point. The configuration of the time-series is passed through the `seriesOptions` object, that has the properties:
+  * `pointName`: the name of the MoniCA point.
+  * `timeSeriesOptions`: an object with the properties:
+    * `startTime`: the time to start the series from, in the format `yyyy/mm/dd:HH:MM:SS`, or `-1` to make the series finish at the current time (the default).
+    * `spanTime`: the time to cover with this series, in minutes (default 60).
+    * `maxPoints`: the maximum number of points to keep from the time range (default 500).
+
+This method returns a `monicaPoint` object that can be used to query the series' details and values.
+
+Example:
+{{{
+// Setup to get the temperature on the site for the last 12 hours.
+// Since temperature varies pretty slowly, we only need 100 points here.
+var seriesOptions = {
+  pointName: 'site.environment.weather.Temperature',
+  timeSeriesOptions: {
+    startTime: -1,
+    spanTime: 720,
+    maxPoints: 100
+  }
+}
+
+var seriesReference = server.addTimeSeries(seriesOptions);
+}}}
+
+===== getDescriptions =====
+
+{{{
+server.getDescriptions(pointReference);
+}}}
+
+This method instructs the server to query MoniCA for the description for the point described by the `pointReference` object, which will have been returned from a call to `addPoints`, `getPoints` or `addTimeSeries`. If you want to get the server to get descriptions for all points that have been added but do not yet have descriptions, call this method without an argument.
+
+This method is required and must be called for each added point and time-series, because the points will not update without a description.
+
+Continuing on from our previous `addPoints` example:
+{{{
+var connectionEstablished = function() {
+  var pointsRequired = [ 'ca01.misc.station', 'ca02.misc.station' ];
+  var pointReferences = server.addPoints(pointsRequired);
+  server.getDescriptions();
+}
+}}}
+
+If you want to do something when the server has finished retrieving the descriptions, you may subscribe to the `description` channel. Again extending the example:
+{{{
+var descriptionsGathered = function(serverInfo) {
+  // The serverInfo object we get here has one property:
+  //   server: the name of the server.
+  // And now we can do things knowing points on this server have
+  // some info for their descriptions.
+  console.log('Descriptions have been gathered.');
+}
+
+dojo.subscribe('description', descriptionsGathered);
+
+var connectionEstablished = function() {
+  var pointsRequired = [ 'ca01.misc.station', 'ca02.misc.station' ];
+  var pointReferences = server.addPoints(pointsRequired);
+  server.getDescriptions();
+}
+}}}
+
+
+===== requestUpdate =====
+
+{{{
+server.requestUpdate(pointReferences);
+}}}
+
+This method instructs the server to query MoniCA for a new value for each point described by the `pointReferences` array that is passed to it. The server adds the points to its internal list of points requiring updates, but will not actually query MoniCA for these values until its next normal update time, or until a user calls the `immediateUpdate` method.
+
+Users should not normally have to call this method, as the `monicaPoint` objects themselves will call it when they need to.
+
+===== immediateUpdate =====
+
+{{{
+server.immediateUpdate();
+}}}
+
+This method makes the server immediately make a query to MoniCA to get values for all points that have requested an update.
+
+Users should not normally have to call this method.
+
+===== startUpdating =====
+
+{{{
+server.startUpdating();
+}}}
+
+This method instructs the server to begin a timer that will expire every `spec.updateInterval` milliseconds. Each time the timer expires, the server will query MoniCA for new values for each point that has requested an update. If no points have requested an update, no action will be taken by the server.
+
+Users are advised to call this method as soon as the server resolves its loading `Deferred` or has published to the `connection` channel. For example:
+
+{{{
+var connectionEstablished = function(serverObj) {
+  // We can safely start the server updating now.
+  narMonica.startUpdating();
+  // Do things for a connection to the MoniCA server.
+}
+
+var narMonica = monicaServer({ serverName: 'monhost-nar' });
+
+narMonica.connect().then(connectionEstablished);
+}}}
+
+===== stopUpdating =====
+
+{{{
+server.stopUpdating();
+}}}
+
+This method stops the server's updating timer, thereby stopping the server from getting any new values for the points that it handles. All the points can still be queried and will return the last value it obtained from MoniCA.
+
+===== getLoadingDeferred =====
+
+{{{
+var connectionDeferred = server.getLoadingDeferred();
+}}}
+
+This method allows you to get the Dojo `Deferred` object that will get resolved when the server has gotten the list of points from MoniCA. The normal way of getting this `Deferred` is from the `connect` method, but this method returns exactly the same value, if required.
