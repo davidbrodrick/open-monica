@@ -637,3 +637,19 @@ If the `arrayHighcharts` parameter is not explicitly set to `true` in the `optio
   * `value`: The new value for this point.
   * `time`: The time for this value.
   * `errorState`: A `Boolean` indication of whether the state is in error. Due to the way MoniCA handles error states, the actual error state of the point is a logical `NOT` of this value.
+
+----
+
+This API also extends the `String` type with a method `sexagesimalToDecimal`. If the `String` it acts on has the regular expression format `/^[\+\-]*\d+\?\d+\'\d+\"\.\d*$/` (the format MoniCA returns for an angle), or `/^[\+\-]*\d+\:\d+\:\d+$/` (sexagesimal format), this method will return a number that is the decimal equivalent of the `String`, otherwise it will return the `String` unchanged.
+
+Example 1:
+{{{
+var decimalDegrees = '-12:34:56'.sexagesimalToDecimal();
+console.log(decimalDegrees); // This will be -12.58222.
+}}}
+
+Example 2:
+{{{
+var noChange = 'Hello'.sexagesimalToDecimal();
+console.log(noChange); // This will still be 'Hello'.
+}}}
