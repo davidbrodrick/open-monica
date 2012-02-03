@@ -5,6 +5,8 @@
 
 Many users will find it more convenient to view data from your MoniCA server on a web page. The open-monica distribution comes with a set of Javascript libraries to make it easy to build web pages that can display real-time MoniCA data. Alternatively, you can use the pre-built MoniCA frontpage.
 
+----
+
 = Installation =
 
 == File Locations ==
@@ -29,6 +31,8 @@ You can download the latest Highcharts plotting library from [http://www.highcha
 
 Then copy the files `/clientlibs/web/htdocs/monica_front.*` to your desired location on the webserver. You will then need to do some configuration in the `monica_front.js` file.
 
+----
+
 = Programming =
 
 == API ==
@@ -36,6 +40,8 @@ Then copy the files `/clientlibs/web/htdocs/monica_front.*` to your desired loca
 This section describes the MoniCA Javascript API, which is located in the file `monica_web_v2.src.js`.
 
 The API makes available three objects.
+
+----
 
 === Object `monicaServer` ===
 
@@ -338,6 +344,8 @@ var connectionDeferred = server.getLoadingDeferred();
 
 This method allows you to get the Dojo `Deferred` object that will get resolved when the server has gotten the list of points from MoniCA. The normal way of getting this `Deferred` is from the `connect` method, but this method returns exactly the same value, if required.
 
+----
+
 === Object `monicaPoint` ===
 
 ==== Constructor ====
@@ -428,22 +436,204 @@ This method allows the user to reset the point details that they may have set, a
 
 ===== updateValue =====
 
+{{{
+pointReference.updateValue(newValues);
+}}}
+
+This method is used to set the values for the MoniCA point, via the `newValues` object that is passed to it. This object has the properties:
+  * `value`: The new value for this point.
+  * `time`: The time for this new value. This time can be in any representation, but by default the MoniCA JSON returns the time for single point values as 'yyyy-mm-dd_HH:MM:SS' and for time-series values as the Unix time in milliseconds.
+  * `errorState`: A `Boolean` indication of whether the state is in error. Due to the way MoniCA handles error states, the actual error state of the point is a logical `NOT` of this value.
+
+Both the `value` and `time` properties must be present in the object for the value to be updated. This method is called by the `monicaServer` object responsible for the point, and is used for both single-valued points and to update time-series with new values, after it has been initialised with the `setTimeSeriesValues` method.
+
 ===== setTimeSeriesValues =====
+
+{{{
+pointReference.setTimeSeriesValues(seriesValues);
+}}}
+
+This method is used to initialise a time-series point, via the `seriesValues` object that is passed to it. This object has the properties:
+  * `data`: An array of value objects or arrays. For value objects, the properties are:
+    * `value`: The new value for this point.
+    * `time`: The time for this new value. This time can be in any representation, but by default the MoniCA JSON returns the time for single point values as 'yyyy-mm-dd_HH:MM:SS' and for time-series values as the Unix time in milliseconds.
+    * `errorState`: A `Boolean` indication of whether the state is in error. Due to the way MoniCA handles error states, the actual error state of the point is a logical `NOT` of this value.
+  * For value arrays, there must be at least 2 elements, the first being equivalent to the `time` property, and the second being the `value` property. The `errorState` property can be included as the optional third array element.
+
+This method is called by the `monicaServer` object responsible for the point, and will not do anything unless the point is designated as a time-series point.
 
 ===== getTimeSeries =====
 
+{{{
+var seriesValues = pointReference.getTimeSeries(options);
+}}}
+
+This method returns all the values for the point as an `Array` of value objects, each of which has the elements:
+  * `value`: The value for this point.
+  * `time`: The time for this value. This time can be in any representation, but by default the MoniCA JSON returns the time for single point values as 'yyyy-mm-dd_HH:MM:SS' and for time-series values as the Unix time in milliseconds.
+  * `errorState`: A `Boolean` indication of whether the state is in error. Due to the way MoniCA handles error states, the actual error state of the point is a logical `NOT` of this value.
+
+If the MoniCA server is solely responsible for keeping the time-series up-to-date, the `seriesValues` `Array` is guaranteed to be in time order.
+
+The `options` object can be used to alter the values coming back from this method. It currently supports the following properties:
+  * `arrayHighcharts`: A `Boolean` indicating whether `seriesValues` should be returned as an `Array` of `Array`s in the format expected by the Highcharts Javascript plotting library. In this format, each element of the `seriesValues` `Array` is a two-element `Array` with the first element being the `time` and the second being the `value`. By default, if this method is called without specifying this property in the `options` object (or if `options` is not passed), this value is set to `true`.
+  * `valueAsDecimalDegrees`: Many of the MoniCA points that have units of 'degrees' have their value expressed as a `String` with elements for degrees, minutes and seconds. If this property is specified as `true`, any such value is converted into a decimal number in degrees.
+
 ===== latestValue =====
+
+{{{
+var value = pointReference.latestValue(options);
+}}}
+
+This method returns the only value from a normal point, or the latest value from a time-series point. If the returned value is an object, its properties are:
+  * `value`: The value for this point.
+  * `time`: The time for this value. This time can be in any representation, but by default the MoniCA JSON returns the time for single point values as 'yyyy-mm-dd_HH:MM:SS' and for time-series values as the Unix time in milliseconds.
+  * `errorState`: A `Boolean` indication of whether the state is in error. Due to the way MoniCA handles error states, the actual error state of the point is a logical `NOT` of this value.
+
+The `options` object can be used to alter the values coming back from this method. It currently supports the following properties:
+  * `arrayHighcharts`: A `Boolean` indicating whether `value` should be returned as an `Array` in the format expected by the Highcharts Javascript plotting library. In this format, `value` is a two-element `Array` with the first element being the `time` and the second being the `value`. By default, if this method is called without specifying this property in the `options` object (or if `options` is not passed), and the point is designated as time-series, this value is set to `true`.
+  * `valueAsDecimalDegrees`: Many of the MoniCA points that have units of 'degrees' have their value expressed as a `String` with elements for degrees, minutes and seconds. If this property is specified as `true`, any such value is converted into a decimal number in degrees.
 
 ===== addCallback =====
 
+{{{
+pointReference.addCallback(functionReference);
+}}}
+
+Whenever a point is updated, either by the `monicaServer` or by a user through the `updateValue` or `setTimeSeriesValues` methods, any number of callback functions can be triggered by the `monicaPoint`. This method allows the user to add a function to the list of callbacks made by the `monicaPoint`.
+
+This callback function is passed the `pointReference` object so that it can act upon it.
+
+Example:
+{{{
+var callbackFn = function(pointReference) {
+  // We get the latest value, and the point name.
+  var value = pointReference.latestValue();
+  var details = pointReference.getPointDetails();
+  // And log it to the console.
+  console.log('The point ' + details.name + ' has the value ' +
+    value.value + ' at ' + value.time);
+}
+
+var connectionEstablished = function() {
+  // Add a point.
+  var pointReference = server.addPoints([ 'site.environment.weather.Temperature' ]);
+  pointReference[0].setDetails({
+    'updateTime': 60
+  });
+  pointReference[0].addCallback(callbackFn);
+  server.getDescriptions();
+}
+
+var server = monicaServer();
+server.connect().then(connectionEstablished);
+}}}
+
 ===== timeSeriesOptions =====
+
+{{{
+var options = pointReference.timeSeriesOptions(newOptions);
+}}}
+
+This method allows you to set or get the options controlling the time-series. If this method is called without arguments, it returns the current options object, which has the parameters:
+  * `startTime`: the time to start the series from, in the format `yyyy/mm/dd:HH:MM:SS`, or `-1` if the series finishes at the current time.
+  * `spanTime`: the time covered by this series, in minutes.
+  * `maxPoints`: the maximum number of points to keep from the time range.
+
+If you wish to change the time-series options, pass an object to this method, with one or more of the options object parameters as listed above. In this case, the `options` return value will be the new options object after your changes have been made.
 
 ===== isTimeSeries =====
 
+{{{
+var timeSeriesFlag = pointReference.isTimeSeries();
+}}}
+
+This method returns a `Boolean` indicating whether the point represented by the `pointReference` object is a time-series.
+
 ===== timeSeriesInitialised =====
+
+{{{
+var timeSeriesStarted = pointReference.timeSeriesInitialised();
+}}}
+
+This method returns a `Boolean` indicating whether the point represented by the `pointReference` object is a time-series that has been initialised with data satisfying its time-series options.
 
 ===== timeRepresentation =====
 
+{{{
+var timeStyle = pointReference.timeRepresentation();
+}}}
+
+This method returns a `String` indicating the representation of the time that will be returned when you get this point's value. It will be one of:
+  * `string`: This means the time will be in the format `yyyy-mm-dd_HH:MM:SS`.
+  * `unixms`: This means the time will be an integer number, being the Unix time in milliseconds.
+
 ===== stopUpdating =====
 
+{{{
+pointReference.stopUpdating();
+}}}
+
+This method instructs this point to stop requesting updates from its `monicaServer`.
+
 ===== startUpdating =====
+
+{{{
+pointReference.startUpdating();
+}}}
+
+This method instructs the point to start requesting updates from its `monicaServer`. The frequency of updates is controlled via the `setPointDetails` method.
+
+----
+
+=== Object `monicaPointValue` ===
+
+==== Constructor ====
+
+{{{
+var pointValue = monicaPointValue(spec, my);
+}}}
+
+
+The constructor function takes two arguments, both of which are optional.
+
+  * `spec` is an object that configures the point's initial value. It can have the following properties:
+    * `initialValue`: This is either an object or an `Array`. If it is an object, it should have the parameters:
+      * `value`: The new value for this point.
+      * `time`: The time for this new value. This time can be in any representation, but by default the MoniCA JSON returns the time for single point values as 'yyyy-mm-dd_HH:MM:SS' and for time-series values as the Unix time in milliseconds.
+      * `errorState`: A `Boolean` indication of whether the state is in error. Due to the way MoniCA handles error states, the actual error state of the point is a logical `NOT` of this value.
+    * If `initialValue` is an `Array`, it should have elements `[time, value, errorState]`. The `errorState` element is optional.
+  * `my` is any object that you would like the `monicaPoint` to have access to.
+
+The user can make a new `monicaPointValue` if they desire, but the constructor is usually only called by the `monicaPoint` object when the user requests a new point or time-series. The `monicaPointValue` will not work correctly unless the `my` argument is specified as the `monicaPoint` object that will be responsible for updating it.
+
+==== Public Methods ====
+
+===== setValue =====
+
+{{{
+pointValue.setValue(newValue);
+}}}
+
+This method is used to set the point's value. It can be passed either an object or an `Array`. A `newValue` object has the parameters:
+  * `value`: The new value for this point.
+  * `time`: The time for this new value. This time can be in any representation, but by default the MoniCA JSON returns the time for single point values as 'yyyy-mm-dd_HH:MM:SS' and for time-series values as the Unix time in milliseconds.
+  * `errorState`: A `Boolean` indication of whether the state is in error. Due to the way MoniCA handles error states, the actual error state of the point is a logical `NOT` of this value.
+Each of these parameters is optional.
+
+A `newValue` `Array` has the elements `[time, value, errorState]`. The `errorState` element is optional.
+
+===== getValue =====
+
+{{{
+var value = pointValue.getValue(options);
+}}}
+
+This method returns the value for this `monicaPointValue`. The format of the returned `value` depends on the `options` object that can be passed to this method, and has the parameters:
+  * `arrayHighcharts`: A `Boolean` indicating whether `value` should be returned as an `Array` in the format expected by the Highcharts Javascript plotting library. In this format, `value` is a two-element `Array` with the first element being the `time` and the second being the `value`.
+  * `valueAsDecimalDegrees`: Many of the MoniCA points that have units of 'degrees' have their value expressed as a `String` with elements for degrees, minutes and seconds. If this property is specified as `true`, any such value is converted into a decimal number in degrees.
+
+If the `arrayHighcharts` parameter is not explicitly set to `true` in the `options` object, the returned `value` will be an object with the parameters:
+  * `value`: The new value for this point.
+  * `time`: The time for this value.
+  * `errorState`: A `Boolean` indication of whether the state is in error. Due to the way MoniCA handles error states, the actual error state of the point is a logical `NOT` of this value.
