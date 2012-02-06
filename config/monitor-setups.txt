@@ -1,2 +1,0 @@
-{atnf.atoms.mon.gui.MonFrame`network`3`title`Network Connectivity Summary`setup0`{atnf.atoms.mon.gui.monpanel.ATPointTable\'temp\'2\'points\'network.connectivity\'sources\'OzF:localhost\'}`numpanels`1`}
-{atnf.atoms.mon.gui.MonFrame`misc.simulated`3`title`Some Simulated Data Points`setup0`{atnf.atoms.mon.gui.monpanel.ATPointTable\'temp\'2\'points\'dummy.0:dummy.1:dummy.2:dummy.3:dummy.4:dummy.5:dummy.6:dummy.7:dummy.8:dummy.9\'sources\'sim0:sim1:sim2\'}`numpanels`1`}
