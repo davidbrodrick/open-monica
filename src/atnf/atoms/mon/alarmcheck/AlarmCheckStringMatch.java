@@ -18,7 +18,7 @@ import atnf.atoms.mon.*;
  * value to be <i>okay</i> if it matches one of the strings in the set, or
  * considering it to be <i>in error</i> if it matches a string in the set.
  * <P>
- * The first argument determines which of these behaviors we use. If the
+ * The first argument determines which of these behaviours we use. If the
  * argument is <tt>true</tt> then we consider a string match be be good. If the
  * first argument is false then we consider a string match to be bad.
  * <P>
