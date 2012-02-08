@@ -56,7 +56,7 @@ public class TranslationEQ extends Translation {
     }
 
     Object val = data.getData();
-    if (val == null || val instanceof String) {
+    if (val == null) {
       // Return a null result
       return new PointData(itsParent.getFullName());
     }
