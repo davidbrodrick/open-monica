@@ -12,14 +12,16 @@ import atnf.atoms.util.Angle;
  * Translation class using a mathematical expression.
  * 
  * <P>
- * The "init" argument must be an expression, where x is the current monitor
- * point value and the result of evaluating the expression produces the
- * translated point value.
+ * The "init" argument must be an expression, where x is the current monitor point value and the result of evaluating the expression
+ * produces the translated point value.
  * 
  * <P>
  * Standard functions like log(), sqrt(), etc are understood. Check out
- * <code>http://www.singularsys.com/jep/doc/html/index.html</code> for detailed
- * documentation on JEP, the Java Mathematical Expression Parser.
+ * <code>http://www.singularsys.com/jep/doc/html/index.html</code> for detailed documentation on JEP, the Java Mathematical
+ * Expression Parser.
+ * 
+ * <P>
+ * One difference from the JEP documentation is that strings in the expression must be quoted in single quotes not double quotes.
  * 
  * @author Le Cuong Nguyen
  * @author David Brodrick
@@ -30,7 +32,7 @@ public class TranslationEQ extends Translation {
 
   /** The expression in String form. */
   protected String itsExpression;
-  
+
   /** Logger. */
   protected static Logger theirLogger = Logger.getLogger(TranslationEQ.class.getName());
 
@@ -75,7 +77,7 @@ public class TranslationEQ extends Translation {
 
     // Parse the expression using new value
     Object res = itsParser.getValueAsObject();
-    
+
     // Check for parse error
     if (itsParser.hasError()) {
       theirLogger.warn(itsParent.getFullName() + ": " + itsParser.getErrorInfo());
