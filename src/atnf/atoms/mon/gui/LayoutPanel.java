@@ -313,6 +313,8 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener,
 		itsParent = parent;
 		setLayout(new GridBagLayout());
 		JPanel contentPane = new JPanel(new GridBagLayout());
+		int[] windowsize = getWindowSize();
+		contentPane.setMinimumSize(new Dimension(windowsize[0], windowsize[1]));
 
 		GridBagConstraints c = new GridBagConstraints();
 		GridBagConstraints ccontp = new GridBagConstraints();
@@ -326,6 +328,7 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener,
 		itsTable = new JTable(itsTableModel);
 		itsTableScrollPane = new JScrollPane(itsTable);
 		itsTableScrollPane.setPreferredSize(new Dimension(270, 500));
+		itsTableScrollPane.setMinimumSize(new Dimension(270, 500));
 
 		/*
 		// COMBO BOX
@@ -353,6 +356,7 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener,
 		itsUpdateWindowSize.setActionCommand("update");
 
 		contpanel.setPreferredSize(new Dimension(240, 180));
+		contpanel.setMinimumSize(new Dimension(240, 180));
 
 		ccontp.gridx = 0;
 		ccontp.gridy = 0;
@@ -390,7 +394,7 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener,
 		TitledBorder previewtitle;
 		previewtitle = BorderFactory.createTitledBorder("Preview Pane");
 		prevpanel.setBorder(previewtitle);
-		// prevpanel.setPreferredSize(new Dimension(250,250));
+		prevpanel.setMinimumSize(new Dimension(250,300));
 		cprevp.gridx = 0;
 		cprevp.gridy = 0;
 		cprevp.anchor = GridBagConstraints.SOUTH;
@@ -406,6 +410,7 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener,
 		c.gridwidth = 2;
 		JLabel temp = new JLabel(
 				"<html>Panel offsets and dimensions are represented in the table as a fraction<br> out of 10, of the specified window pixel dimensions.");
+		temp.setMinimumSize(new Dimension(windowsize[0],50));
 		c.insets = new Insets(0, 0, 15, 0);
 		contentPane.add(temp, c);
 		c.insets = new Insets(0, 0, 0, 0);
