@@ -1,10 +1,7 @@
 package atnf.atoms.mon.externalsystem;
 
-import java.util.*;
 import java.net.*;
-import java.io.*;
 
-import net.wimpi.modbus.*;
 import net.wimpi.modbus.msg.*;
 import net.wimpi.modbus.io.*;
 import net.wimpi.modbus.net.*;
@@ -12,9 +9,7 @@ import net.wimpi.modbus.util.*;
 import net.wimpi.modbus.procimg.SimpleRegister;
 import net.wimpi.modbus.procimg.Register;
 
-import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.externalsystem.*;
 import atnf.atoms.mon.transaction.*;
 
 import org.apache.log4j.Logger;

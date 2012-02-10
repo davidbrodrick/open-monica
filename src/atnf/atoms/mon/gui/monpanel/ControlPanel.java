@@ -7,7 +7,6 @@
 
 package atnf.atoms.mon.gui.monpanel;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.io.PrintStream;
