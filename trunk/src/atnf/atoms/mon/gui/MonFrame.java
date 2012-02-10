@@ -633,7 +633,7 @@ public class MonFrame extends JFrame implements ActionListener {
 	}
 	
 	protected void setUpMLAuto() {
-		MigLayout ml = new MigLayout("nogrid, flowy, fillx", "", "");
+		MigLayout ml = new MigLayout("nogrid, flowy, fill", "", "");
 		itsMainPanel.setLayout(ml);
 	}
 	
