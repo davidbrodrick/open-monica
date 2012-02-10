@@ -17,18 +17,12 @@ import java.awt.geom.*;
 
 import javax.swing.*;
 
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.dial.StandardDialScale;
-import org.jfree.data.general.DefaultValueDataset;
-
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointEvent;
 import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.mon.client.DataMaintainer;
 import atnf.atoms.mon.gui.MonPanel;
 import atnf.atoms.mon.gui.MonPanelSetupPanel;
-import atnf.atoms.mon.gui.monpanel.DialPanel.DataListener;
 import atnf.atoms.mon.*;
 
 /**
@@ -51,14 +45,31 @@ public class ConversionDiagram extends MonPanel {
 	protected static Hashtable<String, String> itsMonPointsHash = new Hashtable<String, String>();
 	/** Stores all current data listeners */
 	protected static Vector<DataListener> itsDataListeners = new Vector<DataListener>();
-	
+
 	/** Array of monitor points used for DataListener */
 	protected final String[] itsMonPoints = { "conversion.C34.RFA",
 			"conversion.C34.RFB", "conversion.C26.RFA", "conversion.C26.RFB",
 			"conversion.C21.LO", "conversion.C21.LOCK", "conversion.C28.RFA",
 			"conversion.C28.RFB", "conversion.F14.ATTENA_M",
-			"conversion.F14.ATTENB_M", "conversion.F14.RFSELA_M_raw", "conversion.F14.RFSELB_M_raw",
-			"conversion.C34.RFA1M_raw", "conversion.C34.RFB1M_raw", "conversion.C21.RFA", "conversion.C21.RFB", "LO.L86.PLLLOCK", "LO.sitesynth.freq" };
+			"conversion.F14.ATTENB_M", "conversion.F14.RFSELA_M_raw",
+			"conversion.F14.RFSELB_M_raw", "conversion.C34.RFA1M_raw",
+			"conversion.C34.RFB1M_raw", "conversion.C21.RFA",
+			"conversion.C21.RFB", "LO.L86.PLLLock", "LO.sitesynth.freq",
+			"cabb.correlator.RMS-1A", "cabb.correlator.RMS-1B",
+			"cabb.correlator.RMS-2A", "cabb.correlator.RMS-2B",
+			"cabb.data_links.OptPow-1A-0R", "cabb.data_links.OptPow-1A-1Y",
+			"cabb.data_links.OptPow-1A-2G", "cabb.data_links.OptPow-1A-3B",
+			"cabb.data_links.OptPow-1B-0R", "cabb.data_links.OptPow-1B-1Y",
+			"cabb.data_links.OptPow-1B-2G", "cabb.data_links.OptPow-1B-3B",
+			"cabb.data_links.OptPow-2A-0R", "cabb.data_links.OptPow-2A-1Y",
+			"cabb.data_links.OptPow-2A-2G", "cabb.data_links.OptPow-2A-3B",
+			"cabb.data_links.OptPow-2B-0R", "cabb.data_links.OptPow-2B-1Y",
+			"cabb.data_links.OptPow-2B-2G", "cabb.data_links.OptPow-2B-3B",
+			"cabb.cl1f1.AttenA", "cabb.cl1f1.AttenB",
+			"cabb.cl1f2.AttenA", "cabb.cl1f2.AttenB",
+			"cabb.cl1f1.PLLLock", "cabb.cl1f2.PLLLock",
+			"receiver.CX.F16.AttenA", "receiver.CX.F16.AttenB",
+			"receiver.LS.F15.AttenA", "receiver.LS.F15.AttenB"};
 
 	static {
 		MonPanel.registerMonPanel("Conversion Diagram", ConversionDiagram.class);
@@ -127,7 +138,7 @@ public class ConversionDiagram extends MonPanel {
 		private Stroke semithickStroke = new BasicStroke((float) 1.5,
 				BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, null, 0);
 		private final double circlesize = 4;
-		
+
 		/** Various fonts for drawing */
 		private Font receiverFont = new Font("Helvetica", Font.BOLD, 11);
 		private Font normalFont = new Font("Helvetica", Font.PLAIN, 12);
@@ -137,7 +148,8 @@ public class ConversionDiagram extends MonPanel {
 				if (itsMonPoints[i].equals("conversion.F14.RFSELA_M_raw")
 						| itsMonPoints[i].equals("conversion.F14.RFSELB_M_raw")
 						| itsMonPoints[i].equals("conversion.C34.RFA1M_raw")
-						| itsMonPoints[i].equals("conversion.C34.RFB1M_raw")) {
+						| itsMonPoints[i].equals("conversion.C34.RFB1M_raw")
+						| itsMonPoints[i].startsWith("receiver")) {
 					itsMonPointsHash.put(itsMonPoints[i], "0");
 				} else {
 					itsMonPointsHash.put(itsMonPoints[i], "0.0");
@@ -146,15 +158,16 @@ public class ConversionDiagram extends MonPanel {
 		}
 
 		public Dimension getPreferredSize() {
-			return new Dimension(1000, 1000);
+			return new Dimension(1200, 1000);
 		}
 
 		public void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			Graphics2D g2d = (Graphics2D) g;
 
-			/////// BLACK C34 ///////
-			int[] c34d = { 250, 400, 200, 100 }; // Dotted box {x, y, width, height}
+			// ///// BLACK C34 ///////
+			int[] c34d = { 250, 410, 200, 90 }; // Dotted box {x, y, width,
+												// height}
 			double[] c34 = { 300, 435, 100, 30 }; // {x, y, width, height}
 
 			g2d.setColor(Color.black);
@@ -190,7 +203,7 @@ public class ConversionDiagram extends MonPanel {
 					circlesize));
 
 			// RFA Mon point
-			int[] monRFA = { 295, 585 };
+			int[] monRFA = { 295, 485 };
 			g2d.setColor(thisOrange);
 			drawMonitorPoint(g2d, monRFA[0] + 25, monRFA[1] - 7, 4); // LO
 			g2d.draw(new Line2D.Double(monRFA[0] + 55, monRFA[1] - 5,
@@ -202,7 +215,7 @@ public class ConversionDiagram extends MonPanel {
 			drawValues(g2d, "conversion.C34.RFB", monRFA[0] + 8,
 					monRFA[1] + 37, 2);
 
-			////// PURPLE F14 ////////
+			// //// PURPLE F14 ////////
 			int[] f14d = { 25, 50, 580, 250 }; // x, y, width, height
 			double[] f14r = { 300, 10, 30, 10, 30 }; // Receiver x, y, width,
 														// height, crossed
@@ -215,20 +228,20 @@ public class ConversionDiagram extends MonPanel {
 			double[] c26 = { 130, 325, 100, 70 }; // C26 x, y, width, height
 
 			g2d.setColor(thisPurple);
-			drawDottedBox(g2d, thisPurple, f14d[0]+65, f14d[1], f14d[2]-65, f14d[3]);
+			drawDottedBox(g2d, thisPurple, f14d[0] + 65, f14d[1], f14d[2] - 65,
+					f14d[3]);
 			g2d.drawString("F14", f14d[0] + 70, f14d[1] + f14d[3] - 5);
 			g2d.setStroke(semithickStroke);
 			g2d.setFont(receiverFont);
-			g2d.drawString("12mm", (int)f14r[0]-27, (int)f14r[1]+35);
-			g2d.drawString("7mm", (int)f14r[0]+38, (int)f14r[1]+35);
-			g2d.drawString("3mm", (int)f14r[0]+110, (int)f14r[1]+35);
+			g2d.drawString("12mm", (int) f14r[0] - 27, (int) f14r[1] + 35);
+			g2d.drawString("7mm", (int) f14r[0] + 38, (int) f14r[1] + 35);
+			g2d.drawString("3mm", (int) f14r[0] + 110, (int) f14r[1] + 35);
 			drawReceiver(g2d, f14r[0], f14r[1], f14r[2], f14r[3]); // 1
 			drawReceiver(g2d, f14r[0] + 60, f14r[1], f14r[2], f14r[3]); // 2
 			drawReceiver(g2d, f14r[0] + 130, f14r[1], f14r[2], f14r[3]); // 3
-			
+
 			g2d.setFont(normalFont);
 
-			
 			g2d.draw(new Line2D.Double(f14r[0] + f14r[2] / 2, f14r[1] + 35,
 					f14r[0] + f14r[2] / 2, f14r[1] + 60));
 			g2d.draw(new Line2D.Double(f14r[0] + f14r[2] / 2 + 60,
@@ -305,14 +318,26 @@ public class ConversionDiagram extends MonPanel {
 					f14dt[1] + 155));// X3 to Combining Box
 			g2d.draw(new Line2D.Double(f14dt[0] + f14dt[2], f14dt[1] + f14dt[3]
 					/ 2, f14r[0], f14dt[1] + f14dt[3] / 2)); // X2 to Receiver
-			g2d.draw(new Line2D.Double(f14dt[0] + 30 + f14dt[2] / 2, f14dt[1]+45, f14dt[0] + 30 + f14dt[2] / 2, f14d[1]+ 10 )); // X3 to Receiver
-			g2d.draw(new Line2D.Double(f14dt[0] + 30 + f14dt[2] / 2, f14d[1]+ 10, f14r[0]+60-20, f14d[1]+ 10));
-			g2d.draw(new Line2D.Double(f14r[0]+60-20, f14d[1]+ 10, f14r[0]+60-20, f14d[1]+ 34));
-			g2d.draw(new Line2D.Double(f14r[0]+60-20, f14d[1]+ 34, f14r[0]+60, f14d[1]+ 34));
-			g2d.draw(new Line2D.Double(f14dt[0] + 80 + f14dt[2] / 2, f14dt[1]+45, f14dt[0] + 80 + f14dt[2] / 2, f14d[1]+ 15 )); // X6 to Receiver
-			g2d.draw(new Line2D.Double(f14dt[0] + 80 + f14dt[2] / 2, f14d[1]+15, f14r[0] + 130-20, f14d[1]+ 15 ));
-			g2d.draw(new Line2D.Double(f14r[0] + 130-20, f14d[1]+ 15, f14r[0] + 130-20, f14d[1]+ 37));
-			g2d.draw(new Line2D.Double(f14r[0] + 130-20, f14d[1]+ 37, f14r[0]+130, f14d[1]+ 37));
+			g2d.draw(new Line2D.Double(f14dt[0] + 30 + f14dt[2] / 2,
+					f14dt[1] + 45, f14dt[0] + 30 + f14dt[2] / 2, f14d[1] + 10)); // X3
+																					// to
+																					// Receiver
+			g2d.draw(new Line2D.Double(f14dt[0] + 30 + f14dt[2] / 2,
+					f14d[1] + 10, f14r[0] + 60 - 20, f14d[1] + 10));
+			g2d.draw(new Line2D.Double(f14r[0] + 60 - 20, f14d[1] + 10,
+					f14r[0] + 60 - 20, f14d[1] + 34));
+			g2d.draw(new Line2D.Double(f14r[0] + 60 - 20, f14d[1] + 34,
+					f14r[0] + 60, f14d[1] + 34));
+			g2d.draw(new Line2D.Double(f14dt[0] + 80 + f14dt[2] / 2,
+					f14dt[1] + 45, f14dt[0] + 80 + f14dt[2] / 2, f14d[1] + 15)); // X6
+																					// to
+																					// Receiver
+			g2d.draw(new Line2D.Double(f14dt[0] + 80 + f14dt[2] / 2,
+					f14d[1] + 15, f14r[0] + 130 - 20, f14d[1] + 15));
+			g2d.draw(new Line2D.Double(f14r[0] + 130 - 20, f14d[1] + 15,
+					f14r[0] + 130 - 20, f14d[1] + 37));
+			g2d.draw(new Line2D.Double(f14r[0] + 130 - 20, f14d[1] + 37,
+					f14r[0] + 130, f14d[1] + 37));
 			g2d.draw(new Line2D.Double(f14dt[0] + f14dt[2] / 2, f14dt[1]
 					+ f14dt[3], f14dt[0] + f14dt[2] / 2, f14dt[1] + 155)); // X2
 																			// to
@@ -333,29 +358,32 @@ public class ConversionDiagram extends MonPanel {
 					+ 105 + f14dt[3], f14dt[0] + 80 + f14dt[2] / 2,
 					f14dt[1] + 155)); // X6/3 to Combining Box
 			drawCurvedThing(g2d, f14l86[0], f14l86[1], f14l86[2]);
-			g2d.drawString("L86", (int) f14l86[0]+23, (int) f14l86[1]+5);
-			
+			g2d.drawString("L86", (int) f14l86[0] + 23, (int) f14l86[1] + 5);
+
 			// L86 Frequency and lock states
 			g2d.setColor(thisOrange);
 			g2d.setStroke(thickStroke);
-			
-			drawMonitorPoint(g2d, f14l86[0]+10, f14l86[1]-20, circlesize); // Frequency
-			g2d.drawString("Freq (GHz)", (int)f14l86[0]+19, (int)f14l86[1]-15);
-			
-			g2d.draw(new Line2D.Double(f14l86[0]+10, f14l86[1]+20,
-					f14l86[0]+10, f14l86[1]+30));
-			g2d.draw(new Line2D.Double(f14l86[0]+10, f14l86[1]+30,
-					f14l86[0]+30, f14l86[1]+30));
-			drawMonitorPoint(g2d, f14l86[0]+30, f14l86[1]+28, circlesize); // LOCK
-			g2d.drawString("LOCK", (int)f14l86[0]+38, (int)f14l86[1]+34);
 
-			drawMonPointBox(g2d, f14l86[0]+19, f14l86[1]-44, true, false); // Freq
-			drawMonPointBox(g2d, f14l86[0]+35, f14l86[1]+40, true, false); // LOCK
-			drawValues(g2d, "LO.sitesynth.freq", (int)f14l86[0]+23, (int)f14l86[1]-33, 3);
-			drawValues(g2d, "LO.L86.PLLLOCK", (int)f14l86[0]+38, (int)f14l86[1]+52, 3);
-			
+			drawMonitorPoint(g2d, f14l86[0] + 10, f14l86[1] - 20, circlesize); // Frequency
+			g2d.drawString("Freq (GHz)", (int) f14l86[0] + 19,
+					(int) f14l86[1] - 15);
+
+			g2d.draw(new Line2D.Double(f14l86[0] + 10, f14l86[1] + 20,
+					f14l86[0] + 10, f14l86[1] + 30));
+			g2d.draw(new Line2D.Double(f14l86[0] + 10, f14l86[1] + 30,
+					f14l86[0] + 30, f14l86[1] + 30));
+			drawMonitorPoint(g2d, f14l86[0] + 30, f14l86[1] + 28, circlesize); // LOCK
+			g2d.drawString("LOCK", (int) f14l86[0] + 38, (int) f14l86[1] + 34);
+
+			drawMonPointBox(g2d, f14l86[0] + 19, f14l86[1] - 44, true, false); // Freq
+			drawMonPointBox(g2d, f14l86[0] + 35, f14l86[1] + 40, true, false); // LOCK
+			drawValues(g2d, "LO.sitesynth.freq", (int) f14l86[0] + 23,
+					(int) f14l86[1] - 33, 3);
+			drawValues(g2d, "LO.L86.PLLLock", (int) f14l86[0] + 38,
+					(int) f14l86[1] + 52, 3);
+
 			g2d.setColor(thisPurple);
-			
+
 			// Multibox
 			g2d.draw(new Rectangle2D.Double(f14m[0], f14m[1], f14m[2], f14m[3]));
 			g2d.draw(new Ellipse2D.Double(f14m[0] + 12, f14m[1] + 5,
@@ -373,7 +401,7 @@ public class ConversionDiagram extends MonPanel {
 
 			g2d.draw(new Ellipse2D.Double(f14m[0] + f14m[2] / 2, f14m[1]
 					+ f14m[3], circlesize, circlesize));
-			
+
 			// F14 ARROW
 			itsF14RFSELA = Integer.parseInt(itsMonPointsHash
 					.get("conversion.F14.RFSELA_M_raw"));
@@ -385,11 +413,12 @@ public class ConversionDiagram extends MonPanel {
 			// Attenuator
 			g2d.draw(new Line2D.Double(f14m[0] + f14m[2] / 2 + 2, f14m[1]
 					+ f14m[3] + 4, f14m[0] + f14m[2] / 2 + 2, f14m[1] + f14m[3]
-					+ 25+10));
-			
-			drawAttenuator(g2d,(int)f14m[0] + (int)f14m[2] / 2 - 20, (int)f14m[1]+ (int)f14m[3] + 35, 40, 40);
-			
-			/////// C26 //////////
+					+ 25 + 10));
+
+			drawAttenuator(g2d, (int) f14m[0] + (int) f14m[2] / 2 - 20,
+					(int) f14m[1] + (int) f14m[3] + 35, 40, 40);
+
+			// ///// C26 //////////
 			g2d.drawString("C26", (int) c26[0] + 5, (int) c26[1] + (int) c26[3]
 					- 5);
 			drawDottedBox(g2d, thisPurple, (int) c26[0], (int) c26[1],
@@ -406,10 +435,10 @@ public class ConversionDiagram extends MonPanel {
 					c26[0] + c26[2] / 2, c26[1]));
 			// Connect C26 and C34
 			g2d.draw(new Line2D.Double(c26[0] + c26[2] / 2, c26[1] + c26[3],
-					c26[0] + c26[2] / 2, c26[1] + c26[3] + 50));
+					c26[0] + c26[2] / 2, c26[1] + c26[3] + 30));
 			g2d.draw(new Line2D.Double(c26[0] + c26[2] / 2, c26[1] + c26[3]
-					+ 50, c34[0] + 14, c26[1] + c26[3] + 50));
-			g2d.draw(new Line2D.Double(c34[0] + 14, c26[1] + c26[3] + 50,
+					+ 30, c34[0] + 14, c26[1] + c26[3] + 30));
+			g2d.draw(new Line2D.Double(c34[0] + 14, c26[1] + c26[3] + 30,
 					c34[0] + 14, c34[1] + 5));
 
 			// C26 Monitor points
@@ -433,11 +462,11 @@ public class ConversionDiagram extends MonPanel {
 			g.setColor(thisOrange);
 
 			// F14 Mon points
-			int[] F14A = { 429, 228 };
-			g2d.draw(new Line2D.Double(f14m[0] + f14m[2] / 2 - 25 + 50, f14m[1]
-					+ f14m[3] + 25 + 25, f14m[0] + f14m[2] / 2 - 25 + 50 + 15,
+			int[] F14A = { 424, 228 };
+			g2d.draw(new Line2D.Double(f14m[0] + f14m[2] / 2 - 25 + 45, f14m[1]
+					+ f14m[3] + 25 + 25, f14m[0] + f14m[2] / 2 - 25 + 45 + 15,
 					f14m[1] + f14m[3] + 25 + 25)); // Atten monpt
-			drawMonitorPoint(g2d, f14m[0] + f14m[2] / 2 - 25 + 50 + 15, f14m[1]
+			drawMonitorPoint(g2d, f14m[0] + f14m[2] / 2 - 25 + 45 + 15, f14m[1]
 					+ f14m[3] + 25 + 23, circlesize);
 			g2d.drawString("ATTENUATOR (dB)", F14A[0], F14A[1]);
 
@@ -447,67 +476,60 @@ public class ConversionDiagram extends MonPanel {
 					F14A[1] + 17, 1);
 			drawValues(g2d, "conversion.F14.ATTENB_M", F14A[0] + 20,
 					F14A[1] + 37, 2);
-/*
-			int[] monF14K = { (int) f14dt[0] + (int) f14dt[3] / 2 + 24,
-					(int) f14dt[1] - 7 };
-
-			g2d.draw(new Line2D.Double(f14dt[0] + f14dt[3] / 2, f14dt[1],
-					f14dt[0] + f14dt[3] / 2, f14dt[1] - 10)); // X2
-			g2d.draw(new Line2D.Double(f14dt[0] + f14dt[3] / 2, f14dt[1] - 10,
-					f14dt[0] + f14dt[3] / 2 + 15, f14dt[1] - 10));
-			drawMonitorPoint(g2d, f14dt[0] + f14dt[3] / 2 + 15, f14dt[1] - 12,
-					circlesize);
-			g2d.drawString("K-LO (V)", monF14K[0], monF14K[1]);
-
-			drawMonPointBox(g2d, monF14K[0], monF14K[1] - 30, false, true);
-			drawValues(g2d, "conversion.F14.K-LO_A", monF14K[0],
-					monF14K[1] - 18, 1);
-			drawValues(g2d, "conversion.F14.K-LO_B", monF14K[0] + 50,
-					monF14K[1] - 18, 2);
-
-			g2d.setColor(thisOrange);
-
-			g2d.draw(new Line2D.Double(f14dt[0] + 30 + f14dt[3] / 2,
-					f14dt[1] + 45, f14dt[0] + 30 + f14dt[3] / 2, f14dt[1] + 35)); // X3
-			g2d.draw(new Line2D.Double(f14dt[0] + 30 + f14dt[3] / 2,
-					f14dt[1] + 35, f14dt[0] + 30 + f14dt[3] / 2 + 15,
-					f14dt[1] + 35));
-			drawMonitorPoint(g2d, f14dt[0] + 30 + f14dt[3] / 2 + 15,
-					f14dt[1] + 33, circlesize);
-			g2d.drawString("W-50TRBL (V)", (int) f14dt[0] + 30 + (int) f14dt[3]
-					/ 2 + 24, (int) f14dt[1] + 38);
-
-			int[] F14W = { (int) f14dt[0] + 80 + (int) f14dt[2] + 24,
-					(int) f14dt[1] + 43 + (int) f14dt[3] / 2 + 5 };
-
-			g2d.draw(new Line2D.Double(f14dt[0] + 80 + f14dt[2], f14dt[1] + 45
-					+ f14dt[3] / 2, f14dt[0] + 80 + f14dt[2] + 15, f14dt[1]
-					+ 45 + f14dt[3] / 2)); // X6/1
-			drawMonitorPoint(g2d, f14dt[0] + 80 + f14dt[2] + 15, f14dt[1] + 43
-					+ f14dt[3] / 2, circlesize);
-			g2d.drawString("W-100GDBL (V)", F14W[0], F14W[1]);
-			g2d.draw(new Line2D.Double(f14dt[0] + 80 + f14dt[2], f14dt[1] + 75
-					+ f14dt[3] / 2, f14dt[0] + 80 + f14dt[2] + 15, f14dt[1]
-					+ 75 + f14dt[3] / 2)); // X6/2
-			drawMonitorPoint(g2d, f14dt[0] + 80 + f14dt[2] + 15, f14dt[1] + 73
-					+ f14dt[3] / 2, circlesize);
-			g2d.drawString("W-50GDBL (V)", F14W[0], F14W[1] + 30);
-			g2d.draw(new Line2D.Double(f14dt[0] + 80 + f14dt[2], f14dt[1] + 105
-					+ f14dt[3] / 2, f14dt[0] + 80 + f14dt[2] + 15, f14dt[1]
-					+ 105 + f14dt[3] / 2)); // X6/3
-			drawMonitorPoint(g2d, f14dt[0] + 80 + f14dt[2] + 15, f14dt[1] + 103
-					+ f14dt[3] / 2, circlesize);
-			g2d.drawString("W-25GDBL (V)", F14W[0], F14W[1] + 59);
-
-			drawMonPointBox(g2d, F14W[0], F14W[1] + 3, true, true);
-			drawMonPointBox(g2d, F14W[0], F14W[1] + 30 + 3, true, true);
-			drawMonPointBox(g2d, F14W[0], F14W[1] + 59 + 3, true, true);
-
-			drawValues(g2d, "conversion.F14.W-100GDBL", F14W[0], F14W[1] + 15,
-					3);
-			drawValues(g2d, "conversion.F14.W-50GDBL", F14W[0], F14W[1] + 45, 3);
-			drawValues(g2d, "conversion.F14.W-25GDBL", F14W[0], F14W[1] + 75, 3);
-*/
+			/*
+			 * int[] monF14K = { (int) f14dt[0] + (int) f14dt[3] / 2 + 24, (int)
+			 * f14dt[1] - 7 };
+			 * 
+			 * g2d.draw(new Line2D.Double(f14dt[0] + f14dt[3] / 2, f14dt[1],
+			 * f14dt[0] + f14dt[3] / 2, f14dt[1] - 10)); // X2 g2d.draw(new
+			 * Line2D.Double(f14dt[0] + f14dt[3] / 2, f14dt[1] - 10, f14dt[0] +
+			 * f14dt[3] / 2 + 15, f14dt[1] - 10)); drawMonitorPoint(g2d,
+			 * f14dt[0] + f14dt[3] / 2 + 15, f14dt[1] - 12, circlesize);
+			 * g2d.drawString("K-LO (V)", monF14K[0], monF14K[1]);
+			 * 
+			 * drawMonPointBox(g2d, monF14K[0], monF14K[1] - 30, false, true);
+			 * drawValues(g2d, "conversion.F14.K-LO_A", monF14K[0], monF14K[1] -
+			 * 18, 1); drawValues(g2d, "conversion.F14.K-LO_B", monF14K[0] + 50,
+			 * monF14K[1] - 18, 2);
+			 * 
+			 * g2d.setColor(thisOrange);
+			 * 
+			 * g2d.draw(new Line2D.Double(f14dt[0] + 30 + f14dt[3] / 2, f14dt[1]
+			 * + 45, f14dt[0] + 30 + f14dt[3] / 2, f14dt[1] + 35)); // X3
+			 * g2d.draw(new Line2D.Double(f14dt[0] + 30 + f14dt[3] / 2, f14dt[1]
+			 * + 35, f14dt[0] + 30 + f14dt[3] / 2 + 15, f14dt[1] + 35));
+			 * drawMonitorPoint(g2d, f14dt[0] + 30 + f14dt[3] / 2 + 15, f14dt[1]
+			 * + 33, circlesize); g2d.drawString("W-50TRBL (V)", (int) f14dt[0]
+			 * + 30 + (int) f14dt[3] / 2 + 24, (int) f14dt[1] + 38);
+			 * 
+			 * int[] F14W = { (int) f14dt[0] + 80 + (int) f14dt[2] + 24, (int)
+			 * f14dt[1] + 43 + (int) f14dt[3] / 2 + 5 };
+			 * 
+			 * g2d.draw(new Line2D.Double(f14dt[0] + 80 + f14dt[2], f14dt[1] +
+			 * 45 + f14dt[3] / 2, f14dt[0] + 80 + f14dt[2] + 15, f14dt[1] + 45 +
+			 * f14dt[3] / 2)); // X6/1 drawMonitorPoint(g2d, f14dt[0] + 80 +
+			 * f14dt[2] + 15, f14dt[1] + 43 + f14dt[3] / 2, circlesize);
+			 * g2d.drawString("W-100GDBL (V)", F14W[0], F14W[1]); g2d.draw(new
+			 * Line2D.Double(f14dt[0] + 80 + f14dt[2], f14dt[1] + 75 + f14dt[3]
+			 * / 2, f14dt[0] + 80 + f14dt[2] + 15, f14dt[1] + 75 + f14dt[3] /
+			 * 2)); // X6/2 drawMonitorPoint(g2d, f14dt[0] + 80 + f14dt[2] + 15,
+			 * f14dt[1] + 73 + f14dt[3] / 2, circlesize);
+			 * g2d.drawString("W-50GDBL (V)", F14W[0], F14W[1] + 30);
+			 * g2d.draw(new Line2D.Double(f14dt[0] + 80 + f14dt[2], f14dt[1] +
+			 * 105 + f14dt[3] / 2, f14dt[0] + 80 + f14dt[2] + 15, f14dt[1] + 105
+			 * + f14dt[3] / 2)); // X6/3 drawMonitorPoint(g2d, f14dt[0] + 80 +
+			 * f14dt[2] + 15, f14dt[1] + 103 + f14dt[3] / 2, circlesize);
+			 * g2d.drawString("W-25GDBL (V)", F14W[0], F14W[1] + 59);
+			 * 
+			 * drawMonPointBox(g2d, F14W[0], F14W[1] + 3, true, true);
+			 * drawMonPointBox(g2d, F14W[0], F14W[1] + 30 + 3, true, true);
+			 * drawMonPointBox(g2d, F14W[0], F14W[1] + 59 + 3, true, true);
+			 * 
+			 * drawValues(g2d, "conversion.F14.W-100GDBL", F14W[0], F14W[1] +
+			 * 15, 3); drawValues(g2d, "conversion.F14.W-50GDBL", F14W[0],
+			 * F14W[1] + 45, 3); drawValues(g2d, "conversion.F14.W-25GDBL",
+			 * F14W[0], F14W[1] + 75, 3);
+			 */
 			/*
 			 * drawMonitorPoint(g2d, (int)f14m[0]+(int)f14m[2]+20,
 			 * (int)f14m[1]-2, circlesize); drawMonitorPoint(g2d,
@@ -545,9 +567,9 @@ public class ConversionDiagram extends MonPanel {
 			 * (int)f14m[0]+(int)f14m[2]+44, (int)f14m[1]+77+5);
 			 */
 
-			/////// GREEN C21 /////////
-			int[] c21d = { 815, 50, 150, 250 }; // Dotted box x, y, width,
-												// height
+			// ///// GREEN C21 /////////
+			int[] c21d = { 815, 110, 150, 190 }; // Dotted box x, y, width,
+													// height
 			double[] c21r = { 910, 10, 30, 10, 30 }; // Receiver x, y, width,
 														// height
 
@@ -556,43 +578,50 @@ public class ConversionDiagram extends MonPanel {
 			g2d.drawString("C21", c21d[0] + 5, c21d[1] + c21d[3] - 5);
 			g2d.setStroke(semithickStroke);
 			drawReceiver(g2d, c21r[0], c21r[1], c21r[2], c21r[3]);
+			drawAttenuator(g2d, (int) c21r[0] - 5, (int) c21r[1] + 50, 40, 40);
+			g2d.draw(new Line2D.Double(c21r[0] + c21r[2] / 2, c21r[1] + c21r[4]
+					+ 2, c21r[0] + c21r[2] / 2, c21r[1] + 50));
 			g2d.setFont(receiverFont);
-			g2d.drawString("16cm", (int)c21r[0]-25, (int)c21r[1]+35);
+			g2d.drawString("16cm", (int) c21r[0] - 25, (int) c21r[1] + 35);
 			g2d.setFont(normalFont);
-			g2d.draw(new Line2D.Double(c21r[0] + c21r[2] / 2, c21r[1] + 35,
-					c21r[0] + c21r[2] / 2, c21r[1] + 85));
-			drawCrossedCircle(g2d, c21r[0], c21r[1] + 85, c21r[4]);
-			g2d.draw(new Line2D.Double(c21r[0], c21r[1] + 100, c21r[0] - 55,
-					c21r[1] + 100)); // Line to Curved thing
-			g2d.draw(new Line2D.Double(c21r[0] + c21r[2] / 2, c21r[1] + 115,
-					c21r[0] + c21r[2] / 2, c21r[1] + 390)); // Line(1-3)
-															// extending to C34
+			g2d.draw(new Line2D.Double(c21r[0] + c21r[2] / 2, c21r[1] + 90,
+					c21r[0] + c21r[2] / 2, c21r[1] + 115));
+			drawCrossedCircle(g2d, c21r[0], c21r[1] + 115, c21r[4]);
+			g2d.draw(new Line2D.Double(c21r[0], c21r[1] + 130, c21r[0] - 65,
+					c21r[1] + 130)); // Line to Curved thing
+			g2d.draw(new Line2D.Double(c21r[0] + c21r[2] / 2,
+					c21r[1] + 115 + 30, c21r[0] + c21r[2] / 2, c21r[1] + 390)); // Line(1-3)
+																				// extending
+																				// to
+																				// C34
 			g2d.draw(new Line2D.Double(c21r[0] + c21r[2] / 2, c21r[1] + 390,
 					c34[0] + 39, c21r[1] + 390));
 			g2d.draw(new Line2D.Double(c34[0] + 39, c21r[1] + 390, c34[0] + 39,
 					c34[1] + 5));
-			drawCurvedThing(g2d, c21r[0] - 75, c21r[1] + 90, 20);
+			drawCurvedThing(g2d, c21r[0] - 85, c21r[1] + 120, 20);
 
-			int[] monC21 = { 875, 102 };
+			int[] monC21 = { 870, 132 };
 			g2d.setColor(thisOrange);
 			g2d.setStroke(thickStroke);
-			g2d.draw(new Line2D.Double(c21r[0] - 65, c21r[1] + 110,
-					c21r[0] - 65, c21r[1] + 120));
-			g2d.draw(new Line2D.Double(c21r[0] - 65, c21r[1] + 120,
-					c21r[0] - 45, c21r[1] + 120));
-			drawMonitorPoint(g2d, c21r[0] - 45, c21r[1] + 118, circlesize); // LOCK
-			g2d.drawString("LOCK", monC21[0], monC21[1] + 30);
-			drawMonitorPoint(g2d, (int) c21r[0] - 45, c21r[1] + 85, circlesize); // LO
-			g2d.drawString("LO (V)", monC21[0], monC21[1]);
+			g2d.draw(new Line2D.Double(c21r[0] - 75, c21r[1] + 140,
+					c21r[0] - 75, c21r[1] + 150));
+			g2d.draw(new Line2D.Double(c21r[0] - 75, c21r[1] + 150,
+					c21r[0] - 55, c21r[1] + 150));
+			drawMonitorPoint(g2d, c21r[0] - 55, c21r[1] + 148, circlesize); // LOCK
+			g2d.drawString("LOCK", monC21[0] - 5, monC21[1] + 32);
+			drawMonitorPoint(g2d, (int) c21r[0] - 55, c21r[1] + 117, circlesize); // LO
+			g2d.drawString("LO (V)", monC21[0] - 5, monC21[1] + 2);
 
-			drawMonPointBox(g2d, monC21[0], monC21[1] - 30, true, false); // LO
-			drawMonPointBox(g2d, monC21[0], monC21[1] + 35, true, false);
+			drawMonPointBox(g2d, monC21[0] - 10, monC21[1] - 26, true, false); // LO
+			drawMonPointBox(g2d, monC21[0] - 5, monC21[1] + 35, true, false);
 
-			drawValues(g2d, "conversion.C21.LO", monC21[0] + 10,
-					monC21[1] - 18, 3);
-			drawValues(g2d, "conversion.C21.LOCK", monC21[0], monC21[1] + 47, 3);
+			drawValues(g2d, "conversion.C21.LO", monC21[0] - 10,
+					monC21[1] - 14, 3);
+			drawValues(g2d, "conversion.C21.LOCK", monC21[0] - 5,
+					monC21[1] + 47, 3);
 
-			int[] monC21RF = { (int)c21r[0] + (int)c21r[2] / 2 - 58, (int)c21r[1] + 210 };
+			int[] monC21RF = { (int) c21r[0] + (int) c21r[2] / 2 - 58,
+					(int) c21r[1] + 210 };
 			g2d.setColor(thisOrange);
 			g2d.setStroke(thickStroke);
 			g2d.draw(new Line2D.Double(c21r[0] + c21r[2] / 2, c21r[1] + 205,
@@ -601,59 +630,334 @@ public class ConversionDiagram extends MonPanel {
 					circlesize);
 			g2d.drawString("RF (V)", monC21RF[0], monC21RF[1]);
 			drawMonPointBox(g2d, monC21RF[0], monC21RF[1] + 5, false, false);
-			drawValues(g2d, "conversion.C21.RFA",  monC21RF[0]+10, monC21RF[1] + 17, 1);
-			drawValues(g2d, "conversion.C21.RFB",  monC21RF[0]+10, monC21RF[1] + 37, 2);
+			drawValues(g2d, "conversion.C21.RFA", monC21RF[0] + 10,
+					monC21RF[1] + 17, 1);
+			drawValues(g2d, "conversion.C21.RFB", monC21RF[0] + 10,
+					monC21RF[1] + 37, 2);
 			
-			///////// BLUE C28 ////////
-			int[] c28d = { 635, 50, 150, 250 }; // Dotted box x, y, width,
-												// height
+			//			drawAttenuator(g2d, (int) c21r[0] - 5, (int) c21r[1] + 50, 40, 40);
+			g2d.setColor(thisOrange);
+			g2d.setStroke(thickStroke);
+			g2d.draw(new Line2D.Double((int) c21r[0]+35, (int) c21r[1] + 70, (int) c21r[0]+50, (int) c21r[1] + 70));
+			drawMonitorPoint(g2d, (int) c21r[0]+50, (int) c21r[1] + 70-2, circlesize);
+			g2d.drawString("ATTEN (0-15 dB)", (int) c21r[0] +57, (int) c21r[1] + 75);
+			drawMonPointBox(g2d, (int) c21r[0] +55, (int) c21r[1] + 80, false, false);
+			drawValues(g2d, "receiver.LS.F15.AttenA", (int) c21r[0] +72, (int) c21r[1] + 91, 1);
+			drawValues(g2d, "receiver.LS.F15.AttenB", (int) c21r[0] +72, (int) c21r[1] + 111, 2);
+
+			
+
+			// /////// BLUE C28 ////////
+			int[] c28d = { 635, 110, 150, 190 }; // Dotted box x, y, width,
+													// height
 			double[] c28r = { 695, 10, 30, 10, 30 }; // Dotted box x, y, width,
 														// height
 
 			g2d.setColor(thisBlue);
 			drawDottedBox(g2d, thisBlue, c28d[0], c28d[1], c28d[2], c28d[3]);
 			g2d.drawString("C28", c28d[0] + 5, c28d[1] + c28d[3] - 5);
-
 			g2d.setStroke(semithickStroke);
 			drawReceiver(g2d, c28r[0], c28r[1], c28r[2], c28r[3]);
+			drawAttenuator(g2d, (int) c28r[0] - 5, (int) c28r[1] + 50, 40, 40);
+			g2d.draw(new Line2D.Double(c28r[0] - 5 + 20, c28r[1] + c28r[4] + 2,
+					c28r[0] - 5 + 20, c28r[1] + 50));
 			g2d.setFont(receiverFont);
-			g2d.drawString("C/X", (int)c28r[0]-15, (int)c28r[1]+35);
+			g2d.drawString("4cm", (int) c28r[0] - 15, (int) c28r[1] + 35);
 			g2d.setFont(normalFont);
-			g2d.draw(new Line2D.Double(c28r[0] + c28r[2] / 2, c28r[1] + 35,
-					c28r[0] + c28r[2] / 2, c28r[1] + 340));
-			g2d.draw(new Line2D.Double(c28r[0] + c28r[2] / 2, c28r[1] + 340,
+			g2d.draw(new Line2D.Double(c28r[0] - 5 + 20, c28r[1] + 90,
+					c28r[0] - 5 + 20, c28r[1] + 340));
+			g2d.draw(new Line2D.Double(c28r[0] - 5 + 20, c28r[1] + 340,
 					c34[0] + 89, c28r[1] + 340));
 			g2d.draw(new Line2D.Double(c34[0] + 89, c28r[1] + 340, c34[0] + 89,
 					c34[1] + 5));
 
-			int[] monC28RF = { 734, 120 };
+			int[] monC28RF = { (int) c28r[0] + (int) c28r[2] / 2 + 15 + 10,
+					(int) c28r[1] + 153 + 5 };
 			g2d.setColor(thisOrange);
 			g2d.setStroke(thickStroke);
-			g2d.draw(new Line2D.Double(c28r[0] + c28r[2] / 2, c28r[1] + 105,
-					c28r[0] + c28r[2] / 2 + 15, c28r[1] + 105));
-			drawMonitorPoint(g2d, c28r[0] + c28r[2] / 2 + 15, c28r[1] + 103,
+			g2d.draw(new Line2D.Double(c28r[0] + c28r[2] / 2, c28r[1] + 155,
+					c28r[0] + c28r[2] / 2 + 15, c28r[1] + 155));
+			drawMonitorPoint(g2d, c28r[0] + c28r[2] / 2 + 15, c28r[1] + 153,
 					circlesize);
 			g2d.drawString("RF (V)", monC28RF[0], monC28RF[1]);
 			drawMonPointBox(g2d, monC28RF[0], monC28RF[1] + 5, true, false);
-			drawMonPointBox(g2d, monC28RF[0], monC28RF[1] + 20 + 5, true,false);
+			drawMonPointBox(g2d, monC28RF[0], monC28RF[1] + 20 + 5, true, false);
 
 			drawValues(g2d, "conversion.C28.RFA", monC28RF[0] + 10,
 					monC28RF[1] + 17, 1);
 			drawValues(g2d, "conversion.C28.RFB", monC28RF[0] + 10,
 					monC28RF[1] + 20 + 17, 2);
+			
+			g2d.setColor(thisOrange);
+			g2d.setStroke(thickStroke);
+			g2d.draw(new Line2D.Double((int) c28r[0] +35, (int) c28r[1] + 70, (int) c28r[0] +50, (int) c28r[1] + 70));
+			drawMonitorPoint(g2d, (int) c28r[0] +50, (int) c28r[1] + 70-2, circlesize);
+			g2d.drawString("ATTEN (0-15 dB)", (int) c28r[0] +57, (int) c28r[1] + 75);
+			drawMonPointBox(g2d, (int) c28r[0] +55, (int) c28r[1] + 80, false, false);
+			drawValues(g2d, "receiver.CX.F16.AttenA", (int) c28r[0] +71, (int) c28r[1] + 91, 1);
+			drawValues(g2d, "receiver.CX.F16.AttenB", (int) c28r[0] +71, (int) c28r[1] + 111, 2);
 
-			/////////// CC2 ////////////
-			int[] cc2d = {250, 625, 200, 100};
+			
+			// ///////// CC2 ////////////
+			int[] cc2d = { 300, 550, 100, 30 };
 			drawDottedBox(g2d, Color.black, cc2d[0], cc2d[1], cc2d[2], cc2d[3]);
 			g2d.setStroke(semithickStroke);
-			g2d.draw(new Line2D.Double(c34[0] + c34[2] / 2, c34[1] + c34[3] + 35, c34[0] + c34[2] / 2, c34[1] + c34[3] + 70));
-			g2d.draw(new Line2D.Double(c34[0] + c34[2] / 2, c34[1] + c34[3] + 70, cc2d[0]+10, cc2d[1]+cc2d[3]-10));
-			g2d.draw(new Line2D.Double(c34[0] + c34[2] / 2, c34[1] + c34[3] + 70, cc2d[0]+cc2d[2]-10, cc2d[1]+cc2d[3]-10));
+			g2d.draw(new Line2D.Double(c34[0] + c34[2] / 2, c34[1] + c34[3]
+					+ 35, c34[0] + c34[2] / 2, cc2d[1] + 10));
+			g2d.draw(new Line2D.Double(c34[0] + c34[2] / 2, cc2d[1] + 10,
+					cc2d[0] + 10, cc2d[1] + cc2d[3] - 10));
+			g2d.draw(new Line2D.Double(c34[0] + c34[2] / 2, cc2d[1] + 10,
+					cc2d[0] + cc2d[2] - 10, cc2d[1] + cc2d[3] - 10));
+
+			g2d.draw(new Line2D.Double(cc2d[0] + 10, cc2d[1] + cc2d[3] - 10,
+					cc2d[0] + 10, cc2d[1] + cc2d[3] + 10));
+			g2d.draw(new Line2D.Double(cc2d[0] + cc2d[2] - 10, cc2d[1]
+					+ cc2d[3] - 10, cc2d[0] + cc2d[2] - 10, cc2d[1] + cc2d[3]
+					+ 10));
+			g2d.draw(new Line2D.Double(cc2d[0] + 10, cc2d[1] + cc2d[3] + 10,
+					c34d[0] - 5 + 25, cc2d[1] + cc2d[3] + 10));
+			g2d.draw(new Line2D.Double(cc2d[0] + cc2d[2] - 10, cc2d[1]
+					+ cc2d[3] + 10, c34d[0] + 160 - 5 + 25, cc2d[1] + cc2d[3]
+					+ 10));
+
+			g2d.draw(new Line2D.Double(c34d[0] - 5 + 25,
+					cc2d[1] + cc2d[3] + 10, c34d[0] - 5 + 25, cc2d[1] + cc2d[3]
+							+ 20));
+			g2d.draw(new Line2D.Double(c34d[0] + 160 - 5 + 25, cc2d[1]
+					+ cc2d[3] + 10, c34d[0] + 160 - 5 + 25, cc2d[1] + cc2d[3]
+					+ 20));
+
+			drawAttenuator(g2d, (int) c34d[0], cc2d[1] + cc2d[3] + 20, 40, 40);
+			drawAttenuator(g2d, (int) c34d[0] + 160, cc2d[1] + cc2d[3] + 20,
+					40, 40);
+
+			g2d.draw(new Line2D.Double((int) c34d[0] + 20, cc2d[1] + cc2d[3]
+					+ 20 + 40, (int) c34d[0] + 20, cc2d[1] + cc2d[3] + 80));
+			g2d.draw(new Line2D.Double((int) c34d[0] + 160 + 20, cc2d[1]
+					+ cc2d[3] + 20 + 40, (int) c34d[0] + 160 + 20, cc2d[1]
+					+ cc2d[3] + 80));
+
+			drawCrossedCircle(g2d, c34d[0] + 5, cc2d[1] + cc2d[3] + 80, 30);
+			drawCurvedThing(g2d, c34d[0] -80, cc2d[1] + cc2d[3] + 85, 20);
+			g2d.draw(new Line2D.Double(c34d[0] -60, cc2d[1] + cc2d[3] + 95, c34d[0] + 5, cc2d[1] + cc2d[3] + 95));
+			drawCrossedCircle(g2d, c34d[0] + 165, cc2d[1] + cc2d[3] + 80, 30);
+			drawCurvedThing(g2d, c34d[0] + 245, cc2d[1] + cc2d[3] + 85, 20);
+			g2d.draw(new Line2D.Double(c34d[0] + 195, cc2d[1] + cc2d[3] + 95, c34d[0] + 245, cc2d[1] + cc2d[3] + 95));
 			
-			// Line split
-			// Lines branching off
+			g2d.draw(new Line2D.Double((int) c34d[0] + 20, cc2d[1] + cc2d[3]
+					+ 80 + 30, (int) c34d[0] + 20, cc2d[1] + cc2d[3] + 130));
+			g2d.draw(new Line2D.Double((int) c34d[0] + 160 + 20, cc2d[1]
+					+ cc2d[3] + 80 + 30, (int) c34d[0] + 160 + 20, cc2d[1]
+					+ cc2d[3] + 130));
+
+			g2d.draw(new Rectangle2D.Double(c34d[0] - 5, cc2d[1] + cc2d[3]
+					+ 130, 50, 40));
+			g2d.draw(new Rectangle2D.Double(c34d[0] + 160 - 5, cc2d[1]
+					+ cc2d[3] + 130, 50, 40));
+			g2d.drawString("Digitiser", c34d[0] - 3, cc2d[1] + cc2d[3] + 100
+					+ 55);
+			g2d.drawString("Digitiser", c34d[0] + 160 - 3, cc2d[1] + cc2d[3]
+					+ 100 + 55);
+
+			g2d.setColor(Color.RED);
+			g2d.draw(new Line2D.Double((int) c34d[0] + 20 - 15, cc2d[1]
+					+ cc2d[3] + 130 + 41, (int) c34d[0] + 20 - 15, cc2d[1]
+					+ cc2d[3] + 230));
+			g2d.draw(new Line2D.Double((int) c34d[0] + 20 - 15 + 160, cc2d[1]
+					+ cc2d[3] + 130 + 41, (int) c34d[0] + 20 - 15 + 160,
+					cc2d[1] + cc2d[3] + 230));
+			g2d.setColor(Color.YELLOW);
+			g2d.draw(new Line2D.Double((int) c34d[0] + 20 - 5, cc2d[1]
+					+ cc2d[3] + 130 + 41, (int) c34d[0] + 20 - 5, cc2d[1]
+					+ cc2d[3] + 230));
+			g2d.draw(new Line2D.Double((int) c34d[0] + 20 - 5 + 160, cc2d[1]
+					+ cc2d[3] + 130 + 41, (int) c34d[0] + 20 - 5 + 160, cc2d[1]
+					+ cc2d[3] + 230));
+			g2d.setColor(Color.GREEN);
+			g2d.draw(new Line2D.Double((int) c34d[0] + 20 + 5, cc2d[1]
+					+ cc2d[3] + 130 + 41, (int) c34d[0] + 20 + 5, cc2d[1]
+					+ cc2d[3] + 230));
+			g2d.draw(new Line2D.Double((int) c34d[0] + 20 + 5 + 160, cc2d[1]
+					+ cc2d[3] + 130 + 41, (int) c34d[0] + 20 + 5 + 160, cc2d[1]
+					+ cc2d[3] + 230));
+			g2d.setColor(Color.BLUE);
+			g2d.draw(new Line2D.Double((int) c34d[0] + 20 + 15, cc2d[1]
+					+ cc2d[3] + 130 + 41, (int) c34d[0] + 20 + 15, cc2d[1]
+					+ cc2d[3] + 230));
+			g2d.draw(new Line2D.Double((int) c34d[0] + 20 + 15 + 160, cc2d[1]
+					+ cc2d[3] + 130 + 41, (int) c34d[0] + 20 + 15 + 160,
+					cc2d[1] + cc2d[3] + 230));
+
+			g2d.setColor(Color.BLACK);
+			g2d.draw(new Rectangle2D.Double(c34d[0] - 10, cc2d[1] + cc2d[3]
+					+ 230, 60, 40));
+			g2d.draw(new Rectangle2D.Double(c34d[0] + 160 - 10, cc2d[1]
+					+ cc2d[3] + 230, 60, 40));
+			g2d.drawString("Correlator", c34d[0] - 9, cc2d[1] + cc2d[3] + 200
+					+ 55);
+			g2d.drawString("Correlator", c34d[0] + 160 - 9, cc2d[1] + cc2d[3]
+					+ 200 + 55);
+
+			// Monpoints
+			g2d.setColor(thisOrange);
+			g2d.setStroke(thickStroke);
+			g2d.draw(new Line2D.Double((int) c34d[0], cc2d[1] + cc2d[3] + 20
+					+ 20, (int) c34d[0] - 15, cc2d[1] + cc2d[3] + 40));
+			g2d.draw(new Line2D.Double((int) c34d[0] + 200, cc2d[1]
+					+ cc2d[3] + 40, (int) c34d[0] + 215, cc2d[1]
+					+ cc2d[3] + 40));
+			drawMonitorPoint(g2d, (int) c34d[0] - 19, cc2d[1] + cc2d[3]
+					+ 38, circlesize);
+			drawMonitorPoint(g2d, (int) c34d[0] + 215, cc2d[1]
+					+ cc2d[3] + 20 + 20 - 2, circlesize);
+			g2d.drawString("ATTEN (0-15 dB)", (int) c34d[0] - 125, cc2d[1]
+					+ cc2d[3] + 45);
+			g2d.drawString("ATTEN (0-15 dB)", (int) c34d[0] + 225, cc2d[1] + cc2d[3] + 45);
+			drawMonPointBox(g2d, (int) c34d[0]- 125, cc2d[1] + cc2d[3]
+					+ 50, false, true);
+			drawMonPointBox(g2d, (int) c34d[0]+ 225, cc2d[1]
+					+ cc2d[3] + 50, false, true);
+			drawValues(g2d, "cabb.cl1f1.AttenA", (int) c34d[0]- 110, cc2d[1] + cc2d[3]
+					+ 62, 1);
+			drawValues(g2d, "cabb.cl1f1.AttenB", (int) c34d[0]- 55, cc2d[1] + cc2d[3]
+					+ 62, 2);
+			drawValues(g2d, "cabb.cl1f2.AttenA", (int) c34d[0]+240, cc2d[1] + cc2d[3]
+					+ 62, 1);
+			drawValues(g2d, "cabb.cl1f2.AttenB", (int) c34d[0]+290, cc2d[1] + cc2d[3]
+					+ 62, 2);
+			g2d.setColor(thisOrange);
+			g2d.setStroke(thickStroke);
+			g2d.drawString("Optical Power (F1)", (int) c34d[0] - 115,
+					cc2d[1] + cc2d[3] + 150);
+			g2d.drawString("Optical Power (F2)", (int) c34d[0] + 13 + 200, cc2d[1]
+					+ cc2d[3] + 150);
+			drawMonitorPoint(g2d, (int) c34d[0] + 20 - 15 - 130, cc2d[1]
+					+ cc2d[3] + 130 + 40 + 5 - 20 + 5, circlesize);
+			g2d.drawString("R/0", (int) c34d[0] + 20 - 15 - 130 - 25, cc2d[1]
+					+ cc2d[3] + 130 + 40 + 5 - 20 + 12);
+			drawMonitorPoint(g2d, (int) c34d[0] + 20 - 15 - 130, cc2d[1]
+					+ cc2d[3] + 130 + 40 + 17 - 7, circlesize);
+			g2d.drawString("Y/1", (int) c34d[0] + 20 - 15 - 130 - 25, cc2d[1]
+					+ cc2d[3] + 130 + 40 + 30 - 13);
+			drawMonitorPoint(g2d, (int) c34d[0] + 20 - 15 - 130, cc2d[1]
+					+ cc2d[3] + 130 + 40 + 36 - 5, circlesize);
+			g2d.drawString("G/2", (int) c34d[0] + 20 - 15 - 130 - 25, cc2d[1]
+					+ cc2d[3] + 130 + 40 + 43 - 5);
+			drawMonitorPoint(g2d, (int) c34d[0] + 20 - 15 - 130, cc2d[1]
+					+ cc2d[3] + 130 + 40 + 49 + 2, circlesize);
+			g2d.drawString("3/B", (int) c34d[0] + 20 - 15 - 130 - 25, cc2d[1]
+					+ cc2d[3] + 130 + 40 + 56 + 2);
+			// F2
+			drawMonitorPoint(g2d, (int) c34d[0] + 317, cc2d[1] + cc2d[3] + 130
+					+ 40 + 5 - 20 + 5, circlesize);
+			g2d.drawString("R/0", (int) c34d[0] + 324, cc2d[1] + cc2d[3] + 130
+					+ 40 + 5 - 20 + 12);
+			drawMonitorPoint(g2d, (int) c34d[0] + 317, cc2d[1] + cc2d[3] + 130
+					+ 40 + 17 - 7, circlesize);
+			g2d.drawString("Y/1", (int) c34d[0] + 324, cc2d[1] + cc2d[3] + 130
+					+ 40 + 30 - 13);
+			drawMonitorPoint(g2d, (int) c34d[0] + 317, cc2d[1] + cc2d[3] + 130
+					+ 40 + 36 - 5, circlesize);
+			g2d.drawString("G/2", (int) c34d[0] + 324, cc2d[1] + cc2d[3] + 130
+					+ 40 + 43 - 5);
+			drawMonitorPoint(g2d, (int) c34d[0] + 317, cc2d[1] + cc2d[3] + 130
+					+ 40 + 49 + 2, circlesize);
+			g2d.drawString("3/B", (int) c34d[0] + 324, cc2d[1] + cc2d[3] + 130
+					+ 40 + 56 + 2);
+
+			drawMonPointBox(g2d, (int) c34d[0] - 115, cc2d[1]
+					+ cc2d[3] + 155, false, true);
+			drawMonPointBox(g2d, (int) c34d[0] - 115, cc2d[1]
+					+ cc2d[3] + 175, false, true);
+			drawMonPointBox(g2d, (int) c34d[0] - 115, cc2d[1]
+					+ cc2d[3] + 195, false, true);
+			drawMonPointBox(g2d, (int) c34d[0] - 115, cc2d[1]
+					+ cc2d[3] + 215, false, true);
+			drawValues(g2d, "cabb.data_links.OptPow-1A-0R",
+					(int) c34d[0] - 110, cc2d[1] + cc2d[3] + 167, 1);
+			drawValues(g2d, "cabb.data_links.OptPow-1B-0R",
+					(int) c34d[0] - 60, cc2d[1] + cc2d[3] + 167, 2);
+			drawValues(g2d, "cabb.data_links.OptPow-1A-1Y",
+					(int) c34d[0] - 110, cc2d[1]+ cc2d[3] + 187, 1);
+			drawValues(g2d, "cabb.data_links.OptPow-1B-1Y",
+					(int) c34d[0] - 60, cc2d[1] + cc2d[3] + 187, 2);
+			drawValues(g2d, "cabb.data_links.OptPow-1A-2G",
+					(int) c34d[0] - 110, cc2d[1] + cc2d[3] + 207, 1);
+			drawValues(g2d, "cabb.data_links.OptPow-1B-2G",
+					(int) c34d[0] - 60, cc2d[1] + cc2d[3] + 207, 2);
+			drawValues(g2d, "cabb.data_links.OptPow-1A-3B",
+					(int) c34d[0] - 110, cc2d[1] + cc2d[3] + 227, 1);
+			drawValues(g2d, "cabb.data_links.OptPow-1B-3B",
+					(int) c34d[0] - 60, cc2d[1] + cc2d[3] + 227, 2);
+			drawMonPointBox(g2d, (int) c34d[0] + 215, cc2d[1] + cc2d[3]
+					+ 155, false, true);
+			drawMonPointBox(g2d, (int) c34d[0] + 215, cc2d[1] + cc2d[3]
+					+ 175, false, true);
+			drawMonPointBox(g2d, (int) c34d[0] + 215, cc2d[1] + cc2d[3]
+					+ 195, false, true);
+			drawMonPointBox(g2d, (int) c34d[0] + 215, cc2d[1] + cc2d[3]
+					+ 215, false, true);
+			drawValues(g2d, "cabb.data_links.OptPow-2A-0R",
+					(int) c34d[0] +220, cc2d[1] + cc2d[3] + 167, 1);
+			drawValues(g2d, "cabb.data_links.OptPow-2B-0R",
+					(int) c34d[0] +270, cc2d[1] + cc2d[3] + 167, 2);
+			drawValues(g2d, "cabb.data_links.OptPow-2A-1Y",
+					(int) c34d[0] +220, cc2d[1]+ cc2d[3] + 187, 1);
+			drawValues(g2d, "cabb.data_links.OptPow-2B-1Y",
+					(int) c34d[0] +270, cc2d[1] + cc2d[3] + 187, 2);
+			drawValues(g2d, "cabb.data_links.OptPow-2A-2G",
+					(int) c34d[0] +220, cc2d[1] + cc2d[3] + 207, 1);
+			drawValues(g2d, "cabb.data_links.OptPow-2B-2G",
+					(int) c34d[0] +270, cc2d[1] + cc2d[3] + 207, 2);
+			drawValues(g2d, "cabb.data_links.OptPow-2A-3B",
+					(int) c34d[0] +220, cc2d[1] + cc2d[3] + 227, 1);
+			drawValues(g2d, "cabb.data_links.OptPow-2B-3B",
+					(int) c34d[0] +270, cc2d[1] + cc2d[3] + 227, 2);
+			g2d.setColor(thisOrange);
+			g2d.setStroke(thickStroke);
+			g2d.draw(new Line2D.Double((int) c34d[0] - 10, cc2d[1] + cc2d[3]
+					+ 230 + 20, (int) c34d[0] - 10 - 15, cc2d[1] + cc2d[3]
+					+ 230 + 20));
+			g2d.draw(new Line2D.Double((int) c34d[0] + 10 + 160 + 40, cc2d[1]
+					+ cc2d[3] + 230 + 20, (int) c34d[0] + 160 + 10 + 40 + 15,
+					cc2d[1] + cc2d[3] + 230 + 20));
+			drawMonitorPoint(g2d, (int) c34d[0] - 10 - 15 - 4, cc2d[1]
+					+ cc2d[3] + 230 + 20 - 2, circlesize);
+			drawMonitorPoint(g2d, (int) c34d[0] + 160 + 40 + 10 + 15, cc2d[1]
+					+ cc2d[3] + 230 + 20 - 2, circlesize);
+			g2d.drawString("RMS-1", (int) c34d[0] - 10 - 15 - 50, cc2d[1]
+					+ cc2d[3] + 230 + 20 + 5);
+			g2d.drawString("RMS-2", (int) c34d[0] + 160 + 40 + 10 + 15 + 10,
+					cc2d[1] + cc2d[3] + 230 + 20 + 5);
+			drawMonPointBox(g2d, (int) c34d[0] - 10 - 15 - 100, cc2d[1]
+					+ cc2d[3] + 230 + 20 + 5 + 5, false, true);
+			drawMonPointBox(g2d, (int) c34d[0] + 160 + 40 + 15 + 20, cc2d[1]
+					+ cc2d[3] + 230 + 20 + 5 + 5, false, true);
+			drawValues(g2d, "cabb.correlator.RMS-1A", (int) c34d[0] - 10 - 15
+					- 100 + 5, cc2d[1] + cc2d[3] + 230 + 20 + 5 + 17, 1);
+			drawValues(g2d, "cabb.correlator.RMS-1B", (int) c34d[0] - 10 - 15
+					- 100 + 55, cc2d[1] + cc2d[3] + 230 + 20 + 5 + 17, 2);
+			drawValues(g2d, "cabb.correlator.RMS-2A", (int) c34d[0] + 160 + 40
+					+ 15 + 20 + 5, cc2d[1] + cc2d[3] + 230 + 20 + 5 + 17, 1);
+			drawValues(g2d, "cabb.correlator.RMS-2B", (int) c34d[0] + 160 + 40
+					+ 15 + 20 + 55, cc2d[1] + cc2d[3] + 230 + 20 + 5 + 17, 2);
+
+			g2d.setColor(thisOrange);
+			g2d.setStroke(thickStroke);
+			g2d.draw(new Line2D.Double(c34d[0] -70, cc2d[1] + cc2d[3] + 105, c34d[0] -70, cc2d[1] + cc2d[3] + 115));
+			g2d.draw(new Line2D.Double(c34d[0] +255, cc2d[1] + cc2d[3] + 105, c34d[0] +255, cc2d[1] + cc2d[3] + 115));
+			g2d.draw(new Line2D.Double(c34d[0] -70, cc2d[1] + cc2d[3] + 115, c34d[0] -90, cc2d[1] + cc2d[3] + 115));
+			g2d.draw(new Line2D.Double(c34d[0] +255, cc2d[1] + cc2d[3] + 115, c34d[0] +275, cc2d[1] + cc2d[3] + 115));
+			drawMonitorPoint(g2d, c34d[0] -94, cc2d[1] + cc2d[3] + 113, circlesize);
+			drawMonitorPoint(g2d, c34d[0] +275, cc2d[1] + cc2d[3] + 113, circlesize);
+			g2d.drawString("LOCK", c34d[0] -130, cc2d[1] + cc2d[3] + 105);
+			g2d.drawString("LOCK", c34d[0] +284, cc2d[1] + cc2d[3] + 105);
+			drawMonPointBox(g2d, c34d[0] -145, cc2d[1] + cc2d[3] + 110, true, true);
+			drawMonPointBox(g2d, c34d[0] +285, cc2d[1] + cc2d[3] + 110, true, true);
+			drawValues(g2d, "cabb.cl1f1.PLLLock", c34d[0] -145, cc2d[1] + cc2d[3] + 122, 3);
+			drawValues(g2d, "cabb.cl1f2.PLLLock", c34d[0] +285, cc2d[1] + cc2d[3] + 122, 3);
 			
-			/////////////////////////////////////
+			// ///////////////////////////////////
 			// Antenna label
 			g2d.setColor(Color.black);
 			Font antennaFont = new Font("Helvetica", Font.PLAIN, 28);
@@ -774,7 +1078,8 @@ public class ConversionDiagram extends MonPanel {
 		void drawC34RFA(Graphics2D g, int position) {
 			g.setColor(Color.RED);
 
-			double[] C34RF = { 350, 565, 548, 300 }; // base x, base y, top y
+			// double[] c34 = { 300, 435, 100, 30 };
+			double[] C34RF = { 350, 465, 448, 300 }; // base x, base y, top y
 
 			switch (position) {
 			case 0:
@@ -805,7 +1110,7 @@ public class ConversionDiagram extends MonPanel {
 		void drawC34RFB(Graphics2D g, int position) {
 			g.setColor(Color.BLUE);
 
-			double[] C34RF = { 350, 565, 556.5 }; // base x, base y, top y
+			double[] C34RF = { 350, 465, 456.5 }; // base x, base y, top y
 			double[] C34RFx = { C34RF[0] - 19, C34RF[0] - 6.5, C34RF[0] + 6,
 					C34RF[0] + 18.5 }; // X-Pos 0-4
 
@@ -926,12 +1231,14 @@ public class ConversionDiagram extends MonPanel {
 			g.draw(c);
 
 		}
-		
+
 		void drawAttenuator(Graphics2D g, int x, int y, int width, int height) {
 			g.drawRect(x, y, width, height);
-			double thisX = x+5;
-			double[] theseY = {y+20, y+15};
-			double[] zigzag = {thisX+3, thisX+3+4, thisX+3+4*2, thisX+3+4*3, thisX+3+4*4, thisX+3+4*5, thisX+3+4*6};
+			double thisX = x + 5;
+			double[] theseY = { y + 20, y + 15 };
+			double[] zigzag = { thisX + 3, thisX + 3 + 4, thisX + 3 + 4 * 2,
+					thisX + 3 + 4 * 3, thisX + 3 + 4 * 4, thisX + 3 + 4 * 5,
+					thisX + 3 + 4 * 6 };
 			g.draw(new Line2D.Double(zigzag[0], theseY[0], zigzag[1], theseY[1]));
 			g.draw(new Line2D.Double(zigzag[1], theseY[1], zigzag[2], theseY[0]));
 			g.draw(new Line2D.Double(zigzag[2], theseY[0], zigzag[3], theseY[1]));
@@ -991,7 +1298,7 @@ public class ConversionDiagram extends MonPanel {
 		DataListener(String point) {
 			itsPoint = point;
 			DataMaintainer.subscribe(itsPoint, this);
-			System.out.println("DataListener: Subscribed to " + itsPoint);
+			// System.out.println("DataListener: Subscribed to " + itsPoint);
 		}
 
 		public void onPointEvent(Object source, final PointEvent evt) {
@@ -1001,7 +1308,8 @@ public class ConversionDiagram extends MonPanel {
 					try {
 						PointData pd = evt.getPointData();
 
-						System.out.println("New data value for  " + pd.getName() + " is " + pd.getData());
+						// System.out.println("New data value for  " +
+						// pd.getName() + " is " + pd.getData());
 
 						itsMonPointsHash.put(pd.getNameOnly(), pd.getData()
 								.toString());
@@ -1054,8 +1362,13 @@ public class ConversionDiagram extends MonPanel {
 
 			for (int i = 0; i < itsMonPoints.length; i++) {
 				if (itsMonPoints[i].equals("LO.sitesynth.freq")) {
-					System.out.println("site not antenna point");
-					DataListener currentListener = new DataListener("site" + "." + itsMonPoints[i]);
+					DataListener currentListener = new DataListener("site"
+							+ "." + itsMonPoints[i]);
+					itsDataListeners.add(currentListener);
+				} else if (itsMonPoints[i].startsWith("cabb.cl1f")) {
+					//System.out.println("Starts with cabb.cl1f");
+					DataListener currentListener = new DataListener("cacscc"
+							+ focusAntenna + "." + itsMonPoints[i]);
 					itsDataListeners.add(currentListener);
 				} else {
 					DataListener currentListener = new DataListener("ca0"
@@ -1098,7 +1411,7 @@ public class ConversionDiagram extends MonPanel {
 	public MonPanelSetupPanel getControls() {
 		return new ConversionDiagramSetupPanel(this, itsFrame);
 	}
-	
+
 	public void resetListeners() {
 		Iterator<DataListener> i = itsDataListeners.iterator();
 		while (i.hasNext()) {

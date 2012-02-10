@@ -133,22 +133,18 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener,
 		public void setValueAt(Object value, int row, int col) {
 			if (col == 1) { // X-coordinate
 				int setvalue = Integer.parseInt((String) value);
-				setvalue = setvalue / 10;
 				System.out.printf("setValueAt: setvalue is %d\n", setvalue);
 				itsXPos.set(row, setvalue);
 			} else if (col == 2) { // Y-coordinate
 				int setvalue = Integer.parseInt((String) value);
-				setvalue = setvalue / 10;
 				System.out.printf("setValueAt: setvalue is %d\n", setvalue);
 				itsYPos.set(row, setvalue);
 			} else if (col == 3) { // Panel width
 				int setvalue = Integer.parseInt((String) value);
-				setvalue = setvalue / 10;
 				System.out.printf("setValueAt: setvalue is %d\n", setvalue);
 				itsWidth.set(row, setvalue);
 			} else if (col == 4) { // Panel height
 				int setvalue = Integer.parseInt((String) value);
-				setvalue = setvalue / 10;
 				System.out.printf("setValueAt: setvalue is %d\n", setvalue);
 				itsHeight.set(row,  setvalue);
 			}

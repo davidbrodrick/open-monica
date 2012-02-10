@@ -7,13 +7,8 @@
 
 package atnf.atoms.mon.translation;
 
-import java.lang.reflect.Constructor;
-
-import org.apache.log4j.Logger;
-
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
-import atnf.atoms.mon.util.MonitorUtils;
 
 /**
  * The <code>Translation</code> class is one of the core classes of the monitor system. Translation sub-classes are responsible
