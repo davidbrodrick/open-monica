@@ -133,19 +133,19 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener,
 		public void setValueAt(Object value, int row, int col) {
 			if (col == 1) { // X-coordinate
 				int setvalue = Integer.parseInt((String) value);
-				System.out.printf("setValueAt: setvalue is %d\n", setvalue);
+				//System.out.printf("setValueAt: setvalue is %d\n", setvalue);
 				itsXPos.set(row, setvalue);
 			} else if (col == 2) { // Y-coordinate
 				int setvalue = Integer.parseInt((String) value);
-				System.out.printf("setValueAt: setvalue is %d\n", setvalue);
+				//System.out.printf("setValueAt: setvalue is %d\n", setvalue);
 				itsYPos.set(row, setvalue);
 			} else if (col == 3) { // Panel width
 				int setvalue = Integer.parseInt((String) value);
-				System.out.printf("setValueAt: setvalue is %d\n", setvalue);
+				//System.out.printf("setValueAt: setvalue is %d\n", setvalue);
 				itsWidth.set(row, setvalue);
 			} else if (col == 4) { // Panel height
 				int setvalue = Integer.parseInt((String) value);
-				System.out.printf("setValueAt: setvalue is %d\n", setvalue);
+				//System.out.printf("setValueAt: setvalue is %d\n", setvalue);
 				itsHeight.set(row,  setvalue);
 			}
 			repaint();
@@ -405,7 +405,7 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener,
 		c.gridy = 0;
 		c.gridwidth = 2;
 		JLabel temp = new JLabel(
-				"<html>Panel offsets and dimensions are represented in the table as a percentage<br> (%) of the specified window pixel dimensions.");
+				"<html>Panel offsets and dimensions are represented in the table as a fraction<br> out of 10, of the specified window pixel dimensions.");
 		c.insets = new Insets(0, 0, 15, 0);
 		contentPane.add(temp, c);
 		c.insets = new Insets(0, 0, 0, 0);
@@ -534,7 +534,7 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener,
 			//System.out.println("NOT itsBackwards!");
 		} else if (e.getStateChange() == ItemEvent.SELECTED) {
 			// Manual to Automatic transition
-			System.out.println("Manual has been changed to auto mode");
+			//System.out.println("Manual has been changed to auto mode");
 			itsTableModel.getCurrentPanels();
 			itsParent.clearPanels();
 			
