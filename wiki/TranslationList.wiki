@@ -29,8 +29,9 @@ Please maintain lists in lexigraphic order.
 || !DailyPulse || Generates a single "True" pulse at a specified time each day. || *Time:* Time of day to generate the pulse, in "HH:MM" 24-hour format. *!TimeZone:* The time zone that the time should be interpreted in, eg "Australia/Sydney". ||
 || Delta || Calculate the difference between successive input values, as prev_val - new_val. || ||
 || Difference || !DualListen implementation which returns the difference between the two values being monitored. _deprecated use Calculation_ || *Point1:* Name of listened-to point 1. *Point2:* Name of listened-to point 2. ||
-|| EQ || Apply an arbitrary equation to numerical input. Uses JEP for expression parsing. || *Equation:* Use x to represent the input number. ||
+|| !EmailOnChange || Sends an email, using the hosts default mail transport, if the input changes. || *Recipient:* Destination address. *Subject:* The email subject line. *Body:* The email body. The subject and body support macro's which will substitute for the current value, etc., please consult the Javadoc for full details. ||
 || !EnumMap || Map numbers into strings. || *Maps:* As many number to string mappings as required, each having the format `number:string`. *Default:* Any argument without a `:` is treated as the default string to be used when no explicit map exists for the input. ||
+|| EQ || Apply an arbitrary equation to numerical input. Uses JEP for expression parsing. || *Equation:* Use x to represent the input number. ||
 || Failover || Assume the value of the highest precedence listened-to point which has valid data. || Each argument must be the name of a point to listen to, in the order of priority. ||
 || !HexString || Map an integer input to a hex string output. || ||
 || !HighTimer || Reports the amount of time (as a !RelTime) the (numeric or boolean) input has been in a high/mark state. Output will be zero while input is in a low/space state. || ||
@@ -51,6 +52,7 @@ Please maintain lists in lexigraphic order.
 || Ratio || !DualListen implementation which produces the ratio of two other points. _deprecated use Calculation_ || *Numerator:* Name of the point to be used as numerator. *Divisor:* Name of point to be used as the divisor. ||
 || !RelTimeToSeconds || Get the value of a !RelTime object as it's number of elapsed seconds expressed as a Double. || ||
 || !ResettableIntegrator || Integrates the normal input but resets the integral when a specified listened-to point is "True". || *Reset:* The name of the point to listen to which determines when to reset the integral. Integral will be reset when the value of this point is "true". Value must either be a boolean or number, which will be interpreted as a boolean. *!UseArchive:* Optional argument which may be set to "true" in order to load the previous integral value from the archive when the server first starts. ||
+|| !ResettablePulse || Outputs a pulse once triggered, but the pulse can be reset to a low state by a listened-to point. || *Mark:* The mark period in seconds. *Reset:* Name of the point to listen to which can reset the pulse. ||
 || !RoundToInt || Round the Number input to the nearest integer value. || ||
 || !SinceHighTimer || Measures the interval since the input was last 'high'. Input must be a Boolean or Number. Output is a !RelTime. || ||
 || !StringToArray || Break the input String into an array of tokens. || *Regexp:* Delimiter for splitting string, as used by the Java String.split method. If no argument is given the space character is used by default. ||
