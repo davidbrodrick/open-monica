@@ -437,6 +437,10 @@ var monicaServer = function(spec, my) {
 					// Give the value to the point.
 					valRef = hasPoint(data.pointData[pPVi].pointName);
 					if (valRef !== undefined) {
+						// Do a logical NOT on the error state to reverse the
+						// MoniCA ASCII interface backwards error boolean.
+						data.pointData[pVi].errorState =
+							!data.pointData[pVi].errorState;
 						valRef.updateValue(data.pointData[pPVi]);
 					}
 				}
@@ -1006,7 +1010,7 @@ var monicaPoint = function(spec, my) {
     }
 
     if (typeof newValues.value !== 'undefined' &&
-	typeof newValues.time !== 'undefined') {
+				typeof newValues.time !== 'undefined') {
       if (spec.isTimeSeries === false) {
 				// Just replace the only value.
 				pointValues[0].setValue(newValues);
