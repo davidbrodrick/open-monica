@@ -16,7 +16,8 @@ import atnf.atoms.time.*;
 
 /**
  * Provides an initial value input to the parent point. This is probably most useful for setting the startup value for control
- * points which will then subsequently have values assigned to them by outside agents.
+ * points which will then subsequently have values assigned to them by outside agents, or for assigning values for constants which
+ * never change.
  * 
  * Three arguments must be supplied:
  * <ol>
