@@ -26,6 +26,9 @@ public class MoniCAMain {
     /** Logger. */
     private static Logger theirLogger = Logger.getLogger(MoniCAMain.class.getName());
 
+    /** Records if the server is fully up and running. */
+    private static boolean theirServerRunning = false;
+    
     /**
      * The ICE Adapter to be used for initialising the ICE server interface.
      * This is optional, if left as null then a new adapter will be created
@@ -126,6 +129,9 @@ public class MoniCAMain {
         ExternalSystem.startAll();
         theirLogger.debug("ExternalSystems started");
         
+        // Server is now running
+        theirServerRunning = true;
+        
         return true;
     }
 
@@ -155,6 +161,12 @@ public class MoniCAMain {
         // TODO: Close pub/sub server
     }
 
+    /** Report if the server is now fully started and up and running. */
+    public static boolean serverFullyStarted()
+    {
+      return theirServerRunning;
+    }
+    
     public static void main(String[] argv)
     {
       //java.util.logging.Logger.getLogger(java.util.logging.Logger.GLOBAL_LOGGER_NAME).addHandler(new JuliToLog4JHandler());

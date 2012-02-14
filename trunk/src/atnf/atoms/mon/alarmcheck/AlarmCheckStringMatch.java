@@ -26,7 +26,7 @@ import atnf.atoms.mon.*;
  * <P>
  * NOTE: All string comparisons are performed in a case insensitive manner.
  * 
- * @author David Brodrick
+ * @author David Brodrick, Camille Nicodemus
  */
 public class AlarmCheckStringMatch extends AlarmCheck {
 	/** Does a match indicate OK (true) or error (false). */
