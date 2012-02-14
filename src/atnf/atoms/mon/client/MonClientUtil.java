@@ -20,25 +20,21 @@ import atnf.atoms.mon.gui.*;
 import atnf.atoms.mon.util.*;
 
 /**
- * MonClientUtil is a client-side class which contains various methods to
- * perform useful client-side operations. This class doesn't really encapsulate
- * a well defined object, but rather it ties together various pieces of
- * functionality so that most of the useful methods are available in one spot.
+ * MonClientUtil is a client-side class which contains various methods to perform useful client-side operations. This class doesn't
+ * really encapsulate a well defined object, but rather it ties together various pieces of functionality so that most of the useful
+ * methods are available in one spot.
  * 
  * <P>
- * One of the things it does it control what server the client will connect to.
- * This is normally done by presenting the user with a dialog box, however the
- * server name can also be specified as a property called "server", eg
+ * One of the things it does it control what server the client will connect to. This is normally done by presenting the user with a
+ * dialog box, however the server name can also be specified as a property called "server", eg
  * <tt>-Dserver=monhost-nar.atnf.csiro.au</tt>.
  * 
  * @author David Brodrick
- * @version $Id: MonClientUtil.java,v 1.9 2008/03/18 00:52:10 bro764 Exp bro764
- *          $
+ * @version $Id: MonClientUtil.java,v 1.9 2008/03/18 00:52:10 bro764 Exp bro764 $
  */
 public class MonClientUtil {
   /**
-   * Hashmap contains a Hashtable of SavedSetups for each class, indexed by
-   * class name .
+   * Hashmap contains a Hashtable of SavedSetups for each class, indexed by class name .
    */
   private static Hashtable<String, Hashtable<String, SavedSetup>> theirSetups;
 
@@ -156,7 +152,7 @@ public class MonClientUtil {
     JProgressBar progressBar = null;
     if (headless.equals("false")) {
       frame = new JFrame("MoniCA");
-      //frame.setUndecorated(true);
+      // frame.setUndecorated(true);
       frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
       progressBar = new JProgressBar();
       progressBar.setString("Connecting to Server");
@@ -192,7 +188,7 @@ public class MonClientUtil {
         }
         System.out.println("MonClientUtil: Connecting to host \"" + host + "\" on port " + port);
         if (headless.equals("false")) {
-          if (chosenserver!=null && chosenserver.get(2) != null) {
+          if (chosenserver != null && chosenserver.get(2) != null) {
             progressBar.setString("Attempting Direct Connection to Server");
           } else {
             progressBar.setString("Connecting to Server");
@@ -208,7 +204,7 @@ public class MonClientUtil {
       addLocalSetups(); // Also load any which have been saved locally
       if (headless.equals("false")) {
         progressBar.setString("Fetching Point List");
-      }      
+      }
       cachePointNames(); // Cache the list of points available on the server
     } catch (Exception e) {
       if (headless.equals("true")) {
@@ -223,7 +219,7 @@ public class MonClientUtil {
         System.exit(1);
       } else {
         boolean connected = false;
-        if (chosenserver!=null && chosenserver.get(2) != null) {
+        if (chosenserver != null && chosenserver.get(2) != null) {
           try {
             // Choose a random local port
             int localport = 8060 + (new Random()).nextInt() % 2000;
@@ -235,7 +231,7 @@ public class MonClientUtil {
             theirServer = new MoniCAClientIce("localhost", localport);
             theirSetups = new Hashtable<String, Hashtable<String, SavedSetup>>();
             progressBar.setString("Fetching Saved Setups");
-            addServerSetups(); // Get all SavedSetups from server            
+            addServerSetups(); // Get all SavedSetups from server
             addLocalSetups(); // Also load any which have been saved locally
             progressBar.setString("Fetching Point List");
             cachePointNames(); // Cache the list of points available on the server
@@ -283,9 +279,8 @@ public class MonClientUtil {
   }
 
   /**
-   * Return the names of all sources for each of the given points. The return
-   * Vector will be of the same length as the argument Vector. Each entry will
-   * be an array of Strings or possibly <tt>null</tt>.
+   * Return the names of all sources for each of the given points. The return Vector will be of the same length as the argument
+   * Vector. Each entry will be an array of Strings or possibly <tt>null</tt>.
    * 
    * @param names
    *          Vector containing String names for the points.
@@ -323,16 +318,14 @@ public class MonClientUtil {
   }
 
   /**
-   * Download all the SavedSetups which are available on the server and add them
-   * to our collection.
+   * Download all the SavedSetups which are available on the server and add them to our collection.
    */
   public static void addServerSetups() {
     try {
-      System.err.println("MonClientUtil:addServerSetups: Loading setups");
       Vector<SavedSetup> setups = theirServer.getAllSetups();
       if (setups != null && setups.size() > 0) {
-        System.err.println("MonClientUtil:addServerSetups: Loaded " +
-         setups.size() + " setups from server");
+        // System.err.println("MonClientUtil:addServerSetups: Loaded " +
+        // setups.size() + " setups from server");
         mergeSetups(setups);
       } else {
         // System.err.println("MonClientUtil:addServerSetups: None available");
@@ -344,8 +337,7 @@ public class MonClientUtil {
   }
 
   /**
-   * Download all the SavedSetups which available locally and add them to our
-   * collection.
+   * Download all the SavedSetups which available locally and add them to our collection.
    */
   public static void addLocalSetups() {
     // Figure out which platform we are on.
@@ -685,9 +677,8 @@ public class MonClientUtil {
   }
 
   /**
-   * Sub-class of TreeUtil for building the Navigator window, which knows to put
-   * the "favourites" menu at the top, and to put a separator item beneath it
-   * when building a Menu tree.
+   * Sub-class of TreeUtil for building the Navigator window, which knows to put the "favourites" menu at the top, and to put a
+   * separator item beneath it when building a Menu tree.
    */
   public static class NavigatorTree extends TreeUtil {
     public NavigatorTree(String name, Object root) {
@@ -754,8 +745,7 @@ public class MonClientUtil {
     }
 
     /**
-     * Make a Menu structure, without the root node. The children of the root
-     * node will be added to the specified menu element.
+     * Make a Menu structure, without the root node. The children of the root node will be added to the specified menu element.
      */
     public void getMenus(JMenu menu) {
       int numChild = itsRootNode.getChildCount();
