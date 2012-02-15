@@ -15,7 +15,7 @@ my %input=$in->Vars;
 print $in->header('text/json');
 
 #debugging
-#$input{"server"}="monhost-nar";
+#$input{"server"}="localhost";
 
 # the input should contain the name of the server to connect to
 my $mon=monconnect($input{"server"});
@@ -29,7 +29,7 @@ my $mon=monconnect($input{"server"});
 my $action=$input{"action"};
 
 # debugging
-#$action="names";
+#$action="points";
 #$input{"points"}="site.environment.weather.BoxTemperature,2011-01-11:23:37:29,14400,200;site.environment.weather.BoxHumidity,-1,60,200".
 #    ";site.environment.weather.DewPoint,2011-01-01:00:01:00,5,200";
 #$input{"points"}="site.environment.weather.BoxHumidity;site.environment.weather.BoxTemperature;site.environment.weather.DewPoint;site.environment.weather.PrecipitableWater";
@@ -76,8 +76,10 @@ if ($action eq "points"){
 	} elsif ($time_format[$i] == 1) {
 	    print " time: ".(bat2unixtime($point_vals[$i]->bat)*1000).",";
 	}
+	my $estate = (($point_vals[$i]->errorstate ne "true") &&
+								($point_vals[$i]->errorstate ne "false")) ? "false" : $point_vals[$i]->errorstate;
 	print " value: '".$thisvalue."',".
-	    " errorState: ".$point_vals[$i]->errorstate." }";
+	    " errorState: ".$estate." }";
 #	print $point_vals[$i]->point." ".bat2cal($point_vals[$i]->bat,0)." ".
 #	$point_vals[$i]->val.
 #	" ".$point_vals[$i]->errorstate."\n";
