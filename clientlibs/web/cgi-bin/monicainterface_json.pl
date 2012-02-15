@@ -77,7 +77,7 @@ if ($action eq "points"){
 	    print " time: ".(bat2unixtime($point_vals[$i]->bat)*1000).",";
 	}
 	print " value: '".$thisvalue."',".
-	    " errorState: '".$point_vals[$i]->errorstate."' }";
+	    " errorState: ".$point_vals[$i]->errorstate." }";
 #	print $point_vals[$i]->point." ".bat2cal($point_vals[$i]->bat,0)." ".
 #	$point_vals[$i]->val.
 #	" ".$point_vals[$i]->errorstate."\n";

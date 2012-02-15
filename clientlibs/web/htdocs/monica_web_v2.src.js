@@ -439,8 +439,8 @@ var monicaServer = function(spec, my) {
 					if (valRef !== undefined) {
 						// Do a logical NOT on the error state to reverse the
 						// MoniCA ASCII interface backwards error boolean.
-						data.pointData[pVi].errorState =
-							!data.pointData[pVi].errorState;
+						data.pointData[pPVi].errorState =
+							!data.pointData[pPVi].errorState;
 						valRef.updateValue(data.pointData[pPVi]);
 					}
 				}
