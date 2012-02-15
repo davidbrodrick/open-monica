@@ -30,12 +30,10 @@ import atnf.atoms.time.RelTime;
  * 
  * @author Le Cuong Nguyen
  */
-public abstract class MonitorUtils
-{
+public abstract class MonitorUtils {
   private static Hashtable itsMacros = new Hashtable();
 
-  public static String[] toStringArray(Object[] data)
-  {
+  public static String[] toStringArray(Object[] data) {
     String[] res = new String[data.length];
     for (int i = 0; i < res.length; i++) {
       res[i] = (String) (data[i]);
@@ -43,8 +41,7 @@ public abstract class MonitorUtils
     return res;
   }
 
-  public static Object deSerialize(byte[] data) throws Exception
-  {
+  public static Object deSerialize(byte[] data) throws Exception {
     ByteArrayInputStream bais = new ByteArrayInputStream(data);
     ObjectInputStream ois = new ObjectInputStream(bais);
     Object res = ois.readObject();
@@ -53,8 +50,7 @@ public abstract class MonitorUtils
     return res;
   }
 
-  public static String[] tokToStringArray(String line)
-  {
+  public static String[] tokToStringArray(String line) {
     StringTokenizer tok = new StringTokenizer(line, "\"");
     String[] res = new String[tok.countTokens()];
     for (int i = 0; tok.hasMoreTokens(); i++) {
@@ -62,26 +58,25 @@ public abstract class MonitorUtils
     }
     return res;
   }
-  
+
   /**
    * Break a line into tokens, uses whitespaces and braces as token markers.
    */
-  public static String[] getTokens(String line)
-  {
+  public static String[] getTokens(String line) {
     Vector res = new Vector();
     int startPos = 0;
     int endPos = line.length();
     int start = 0;
     for (; startPos < endPos; startPos++) {
-      char c = line.charAt(startPos);      
+      char c = line.charAt(startPos);
       while (c == ' ' || c == '\t') {
-        //Found a whitespace
+        // Found a whitespace
         startPos++;
         c = line.charAt(startPos);
       }
-      start = startPos;      
+      start = startPos;
       if (line.charAt(startPos) == '{') {
-        //Composite
+        // Composite
         start++;
         while (startPos < endPos && line.charAt(startPos) != '}') {
           startPos++;
@@ -90,7 +85,7 @@ public abstract class MonitorUtils
         startPos++;
       } else {
         if (line.charAt(startPos) == '\"') {
-          //String literal
+          // String literal
           start++;
           startPos++;
           while (startPos < endPos && line.charAt(startPos) != '\"') {
@@ -105,25 +100,25 @@ public abstract class MonitorUtils
         } else {
           while (startPos < endPos && line.charAt(startPos) != ' ' && line.charAt(startPos) != '\t' && line.charAt(startPos) != ',') {
             if (line.charAt(startPos) == '\"') {
-              //String literal attached to a string
+              // String literal attached to a string
               int temp1 = startPos;
               startPos++;
               while (startPos < endPos && line.charAt(startPos) != '\"') {
-                //Find the end of it
+                // Find the end of it
                 startPos++;
               }
               if (startPos != endPos) {
                 startPos++;
               }
             } else {
-              startPos++;              
+              startPos++;
             }
           }
           res.add(line.substring(start, startPos));
         }
       }
     }
-    
+
     String[] res_str = new String[res.size()];
     for (int i = 0; i < res_str.length; i++) {
       res_str[i] = (String) (res.elementAt(i));
@@ -131,8 +126,7 @@ public abstract class MonitorUtils
     return res_str;
   }
 
-  public static byte[] compress(Object data)
-  {
+  public static byte[] compress(Object data) {
     if (data == null) {
       return null;
     }
@@ -150,8 +144,7 @@ public abstract class MonitorUtils
     return null;
   }
 
-  public static Object decompress(byte[] data)
-  {
+  public static Object decompress(byte[] data) {
     if (data == null) {
       return null;
     }
@@ -166,14 +159,12 @@ public abstract class MonitorUtils
     return null;
   }
 
-  public static String replaceTok(String line, String replacement)
-  {
+  public static String replaceTok(String line, String replacement) {
     return replaceTok(line, replacement, "$1");
   }
 
   /** Replaces a particular token in a string with another token */
-  public static String replaceTok(String line, String replacement, String tok)
-  {
+  public static String replaceTok(String line, String replacement, String tok) {
     StringBuffer res = new StringBuffer(line);
     char[] tokChars = tok.toCharArray();
     for (int i = 0; i < res.length() - tok.length() + 1; i++) {
@@ -192,8 +183,7 @@ public abstract class MonitorUtils
   }
 
   /** Reads and parses a file */
-  public static String[] parseFile(Reader reader)
-  {
+  public static String[] parseFile(Reader reader) {
     ArrayList result = new ArrayList();
     itsMacros = new Hashtable();
 
@@ -258,8 +248,7 @@ public abstract class MonitorUtils
     return toStringArray(result.toArray());
   }
 
-  public static String[] parseFile(String filename)
-  {
+  public static String[] parseFile(String filename) {
     try {
       FileReader fr = new FileReader(filename);
       return parseFile(fr);
@@ -270,8 +259,7 @@ public abstract class MonitorUtils
     return null;
   }
 
-  protected static void parseCommand(String line)
-  {
+  protected static void parseCommand(String line) {
     StringTokenizer tok = new StringTokenizer(line);
     String command = tok.nextToken().trim();
     if (command.equalsIgnoreCase("!define")) {
@@ -282,14 +270,17 @@ public abstract class MonitorUtils
       }
     }
   }
-  
+
   /**
    * Parse type code and value strings and return the appropriate object.
    * 
-   * @param type One of <tt>int</tt>, <tt>flt</tt>, <tt>dbl</tt>, <tt>str</tt>, <tt>bool</tt>.
-   * @param strval The string representation of the value, eg "3.141", or "true".
+   * @param type
+   *          One of <tt>int</tt>, <tt>flt</tt>, <tt>dbl</tt>, <tt>str</tt>, <tt>bool</tt>.
+   * @param strval
+   *          The string representation of the value, eg "3.141", or "true".
    * @return The appropriate Object.
-   * @throws IllegalArgumentException If the type code is invalid or the string value cannot be parsed.
+   * @throws IllegalArgumentException
+   *           If the type code is invalid or the string value cannot be parsed.
    */
   public static Object parseFixedValue(String type, String strval) throws IllegalArgumentException {
     Object res;
@@ -315,6 +306,41 @@ public abstract class MonitorUtils
       }
     } catch (Exception e) {
       throw new IllegalArgumentException("Unable to parse data value");
+    }
+    return res;
+  }
+
+  /**
+   * Try to interpret the input as a boolean.
+   * 
+   * If the input is a boolean then this is trivial. If the input is numeric then we interpret 0 as false and any other value as
+   * true.
+   * 
+   * An exception will be thrown if the input cannot be parsed.
+   */
+  public static boolean parseAsBoolean(Object in) throws IllegalArgumentException {
+    boolean res;
+    if (in == null) {
+      throw new IllegalArgumentException("Input must not be null");
+    } else if (in instanceof Boolean) {
+      res = ((Boolean) in).booleanValue();
+    } else if (in instanceof Number) {
+      if (((Number) in).doubleValue() == 0.0) {
+        res = false;
+      } else {
+        res = true;
+      }
+    } else if (in instanceof String) {
+      String instr = (String) in;
+      if (instr.equalsIgnoreCase("true")) {
+        res = true;
+      } else if (instr.equalsIgnoreCase("false")) {
+        res = false;
+      } else {
+        throw new IllegalArgumentException("String could not be parsed as a boolean");
+      }
+    } else {
+      throw new IllegalArgumentException("Could not interpret input as a boolean");
     }
     return res;
   }
