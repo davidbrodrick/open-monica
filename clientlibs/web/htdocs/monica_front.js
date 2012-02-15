@@ -1020,7 +1020,7 @@ var pointTable = function(spec, my) {
     if (dojo.byId(idPrefix + 'Units')) {
       dojo.attr(idPrefix + 'Units', 'innerHTML', pDetails.units);
     }
-    if (pState.errorState === false) {
+    if (pState.errorState === true) {
       // This is an error condition.
       dojo.addClass(idPrefix, 'inError');
     } else {
@@ -1390,38 +1390,38 @@ function init() {
 
     dojo.subscribe('pointsSelected',
       function (pointsList) {
-	var dType = displays.activeObject().type();
-	if (dType === 'pointTable') {
-	  // Add the points to the point table.
-	  displays.activeObject().addPoints(pointsList);
+				var dType = displays.activeObject().type();
+				if (dType === 'pointTable') {
+					// Add the points to the point table.
+					displays.activeObject().addPoints(pointsList);
+					
+					// Ask MoniCA to update these points.
+					var pointRefs = monica.addPoints(pointsList);
+					for (var i = 0; i < pointsList.length; i++) {
+						// Add a callback for this point.
+						pointRefs[i].addCallback(displays.activeObject().callbackFn());
+					}
+					
+					// Ask MoniCA to get the descriptions and start updating.
+					monica.getDescriptions();
+				} else if (dType === 'timeSeries') {
+					// Add the points to the time series.
+					displays.activeObject().addSeries(pointsList);
+					
+					// Ask MoniCA to update these points.
+					for (var i = 0; i < pointsList.length; i++) {
+						var seriesRef = monica.addTimeSeries({
+								pointName: pointsList[i],
+								timeSeriesOptions: displays.activeObject().getTimeSeriesOptions()
+						});
 
-	  // Ask MoniCA to update these points.
-	  var pointRefs = monica.addPoints(pointsList);
-	  for (var i = 0; i < pointsList.length; i++) {
-	    // Add a callback for this point.
-	    pointRefs[i].addCallback(displays.activeObject().callbackFn());
-	  }
+						// Add a callback for this point.
+						seriesRef.addCallback(displays.activeObject().callbackFn());
+					}
 
-	  // Ask MoniCA to get the descriptions and start updating.
-	  monica.getDescriptions();
-	} else if (dType === 'timeSeries') {
-	  // Add the points to the time series.
-	  displays.activeObject().addSeries(pointsList);
-
-	  // Ask MoniCA to update these points.
-	  for (var i = 0; i < pointsList.length; i++) {
-	    var seriesRef = monica.addTimeSeries({
-	      pointName: pointsList[i],
-	      timeSeriesOptions: displays.activeObject().getTimeSeriesOptions()
-	    });
-
-	    // Add a callback for this point.
-	    seriesRef.addCallback(displays.activeObject().callbackFn());
-	  }
-
-	  // Ask MoniCA to get the descriptions and start updating.
-	  monica.getDescriptions();
-	}
+					// Ask MoniCA to get the descriptions and start updating.
+					monica.getDescriptions();
+				}
       }
     );
 
