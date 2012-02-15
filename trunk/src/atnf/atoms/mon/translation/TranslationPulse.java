@@ -12,11 +12,11 @@ import org.apache.log4j.Logger;
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.translation.Translation;
+import atnf.atoms.mon.util.MonitorUtils;
 
 /**
  * Outputs True for a fixed mark period when triggered and then outputs False for at least the specified space period irrespective
- * of input. This sequence is triggered by looking at the input as a boolean (if the input is a Number it will be cast to an integer
- * and interpreted as value of zero means false, with any other value meaning true).
+ * of input. This sequence is triggered by looking at the input as a boolean.
  * 
  * It requires two arguments:
  * <ol>
@@ -70,27 +70,17 @@ public class TranslationPulse extends Translation {
       }
     } else {
       // Currently idle (generating space), need to check input for new trigger
-      if (data != null && data.getData() != null) {
-        Object rawinput = data.getData();
-        if (rawinput instanceof Boolean) {
-          output = (Boolean) rawinput;
-        } else if (rawinput instanceof Number) {
-          int intval = ((Number) rawinput).intValue();
-          if (intval == 0) {
-            output = new Boolean(false);
-          } else {
-            output = new Boolean(true);
-          }
-        } else {
-          Logger logger = Logger.getLogger(this.getClass().getName());
-          logger.error("(" + itsParent.getFullName() + "): Expect Boolean or Number input");
-          output = null;
-        }
+      try {
+        output = new Boolean(MonitorUtils.parseAsBoolean(data.getData()));
+      } catch (IllegalArgumentException e) {
+        Logger logger = Logger.getLogger(this.getClass().getName());
+        logger.error("(" + itsParent.getFullName() + "): " + e);
+        output = null;
+      }
 
-        if (output != null && output.booleanValue()) {
-          // Input is now high, triggering a new pulse
-          itsLastPulse = now;
-        }
+      if (output != null && output.booleanValue()) {
+        // Input is now high, triggering a new pulse
+        itsLastPulse = now;
       }
     }
     return new PointData(itsParent.getFullName(), now, output);

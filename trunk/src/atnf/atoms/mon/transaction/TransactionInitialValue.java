@@ -19,7 +19,7 @@ import atnf.atoms.time.*;
  * points which will then subsequently have values assigned to them by outside agents, or for assigning values for constants which
  * never change.
  * 
- * Three arguments must be supplied:
+ * Two arguments must be supplied:
  * <ol>
  * <li><b>Type code:</b> The type code of the data to be provided as input, one of <tt>int</tt>, <tt>flt</tt>, <tt>dbl</tt>,
  * <tt>str</tt>, <tt>bool</tt>.
@@ -66,7 +66,7 @@ public class TransactionInitialValue extends Transaction {
         itsParent.firePointEvent(evt);
       } else {
         // Reschedule
-        theirProcessTimer.schedule(this, theirDelay);
+        theirProcessTimer.schedule(new WaitingTask(), theirDelay);
       }
     }
   }

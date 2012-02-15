@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.translation.Translation;
+import atnf.atoms.mon.util.MonitorUtils;
 
 /**
  * Measures the amount of time that the output has been in a low/space state. The output will be zero if the input is in a high/mark
@@ -38,17 +39,14 @@ public class TranslationLowTimer extends Translation {
     AbsTime now = data.getTimestamp();
 
     // Get the input as a Boolean
-    Object rawinput = data.getData();
-    Boolean inputstate = null;
-    if (rawinput instanceof Boolean) {
-      inputstate = (Boolean) rawinput;
-    } else if (rawinput instanceof Number) {
-      int intval = ((Number) rawinput).intValue();
-      if (intval == 0) {
-        inputstate = new Boolean(false);
-      } else {
-        inputstate = new Boolean(true);
-      }
+    Boolean inputstate;
+    try {
+      inputstate = new Boolean(MonitorUtils.parseAsBoolean(data.getData()));
+    } catch (IllegalArgumentException e) {
+      Logger logger = Logger.getLogger(this.getClass().getName());
+      logger.error("(" + itsParent.getFullName() + "): " + e);
+      inputstate = null;
+      output = null;
     }
 
     if (inputstate != null) {
@@ -64,10 +62,6 @@ public class TranslationLowTimer extends Translation {
         // Output continues to be low
         output = Time.diff(now, itsLastLow);        
       }
-    } else {
-      Logger logger = Logger.getLogger(this.getClass().getName());
-      logger.error("(" + itsParent.getFullName() + "): Expect Boolean or Number input");
-      output = null;
     }
     if (output != null) {
       return new PointData(itsParent.getFullName(), now, output);

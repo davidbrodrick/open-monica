@@ -45,19 +45,19 @@ import org.apache.log4j.Logger;
  */
 public class TranslationEmailOnChange extends Translation {
   /** The previous data value. */
-  private Object itsLastValue;
+  protected Object itsLastValue;
 
   /** The email recipient. */
-  private String itsRecipient;
+  protected String itsRecipient;
 
   /** The email subject line template. */
-  private String itsSubject;
+  protected String itsSubject;
 
   /** The email body template. */
-  private String itsBody;
+  protected String itsBody;
 
   /** Logger. */
-  private static Logger theirLogger = Logger.getLogger(TranslationEmailOnChange.class);
+  protected static Logger theirLogger = Logger.getLogger(TranslationEmailOnChange.class);
 
   public TranslationEmailOnChange(PointDescription parent, String[] init) {
     super(parent, init);
@@ -70,7 +70,7 @@ public class TranslationEmailOnChange extends Translation {
   }
 
   /** Detects when the data value has changed. */
-  private boolean detectChange(PointData pd) {
+  protected boolean detectTrigger(PointData pd) {
     boolean res;
     Object newvalue = pd.getData();
     if (newvalue == null || itsLastValue == null) {
@@ -98,7 +98,7 @@ public class TranslationEmailOnChange extends Translation {
   }
 
   /** Substitute parameters for macro flags in the string. */
-  private String doSubstitutions(String arg, PointData data) {
+  protected String doSubstitutions(String arg, PointData data) {
     // Substitute value
     String res = arg.replaceAll("\\$V", data.getData().toString());
     // Substitute units
@@ -116,7 +116,7 @@ public class TranslationEmailOnChange extends Translation {
 
   /** Just return the input, but send an email if value changed. */
   public PointData translate(PointData data) {
-    if (detectChange(data)) {
+    if (detectTrigger(data)) {
       String subject = doSubstitutions(itsSubject, data);
       String body = doSubstitutions(itsBody, data);
       MailSender.sendMail(itsRecipient, subject, body);

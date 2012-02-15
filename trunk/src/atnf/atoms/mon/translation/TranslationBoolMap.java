@@ -9,8 +9,11 @@
 
 package atnf.atoms.mon.translation;
 
+import org.apache.log4j.Logger;
+
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
+import atnf.atoms.mon.util.MonitorUtils;
 
 /**
  * This takes two string arguments. The first string is what should be
@@ -59,40 +62,23 @@ extends Translation
   PointData
   translate(PointData data)
   {
-    //preconditions
-    if (data==null) {
-      return null;
-    }
-    Object val = data.getData();
-
-    //If we got null-data then throw a null-data result
-    if (val==null) {
-      return new PointData(itsParent.getFullName());
-    }
-
-    String resd = null;
-    if (val instanceof Boolean) {
-      if (((Boolean)val).booleanValue()) {
-        resd = itsTrueVal;
+    String resstr = null;
+    // Get the input as a Boolean
+    try {
+      boolean inputstate = MonitorUtils.parseAsBoolean(data.getData());
+      if (inputstate) {
+        resstr = itsTrueVal;
       } else {
-        resd = itsFalseVal;
-      }
-    } else if (val instanceof Number) {
-      if (((Number)val).intValue()!=0) {
-        resd = itsTrueVal;
-      } else {
-        resd = itsFalseVal;
-      }
-    } else {
-      System.err.println("TranslationBoolMap (for " + itsParent.getSource()
-			 + "." + itsParent.getName() +
-			 "): UNHANDLED DATA TYPE!");
+        resstr = itsFalseVal;
+      }      
+    } catch (IllegalArgumentException e) {
+      Logger logger = Logger.getLogger(this.getClass().getName());
+      logger.error("(" + itsParent.getFullName() + "): " + e);
       return null;
     }
 
     //Create return structure with right details
-    PointData res = new PointData(itsParent.getFullName(), resd);
-
+    PointData res = new PointData(itsParent.getFullName(), resstr);
     return res;
   }
 
