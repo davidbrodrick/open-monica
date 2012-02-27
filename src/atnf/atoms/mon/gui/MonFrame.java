@@ -467,13 +467,13 @@ public class MonFrame extends JFrame implements ActionListener {
 	 * Switch to the main display tab OR layout tab depending on Auto/Manual preference.
 	 */
 	public synchronized void showDisplay() {
-		if (itsLayoutPanel.itsAutoControl.isSelected()) {
+	  //if (itsLayoutPanel.itsAutoControl.isSelected()) {
 			//System.out.println("Auto control selected: displaying graph");
 			itsTabs.setSelectedIndex(0);
-		} else { // Switch to Layout tab in Manual mode
+		//} else { // Switch to Layout tab in Manual mode
 			//System.out.println("Manual control selected; switching to Layout tab");
-			itsTabs.setSelectedIndex(1);
-		}
+			//itsTabs.setSelectedIndex(1);
+		//}
 	}
 	
 	/**
