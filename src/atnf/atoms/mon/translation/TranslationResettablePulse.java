@@ -132,18 +132,12 @@ public class TranslationResettablePulse extends Translation implements PointList
       return;
     }
 
-    boolean newvalue = false;
-    if (pd.getData() instanceof Boolean) {
-      newvalue = ((Boolean) pd.getData()).booleanValue();
-    } else if (pd.getData() instanceof Number) {
-      if (((Number) pd.getData()).intValue() == 0) {
-        newvalue = false;
-      } else {
-        newvalue = true;
-      }
-    } else {
-      theirLogger.warn("(" + itsParent.getFullName() + ": Listened-to point " + itsPointName
-          + " must have Boolean or Numeric values");
+    boolean newvalue = false;    
+    try {
+      newvalue = MonitorUtils.parseAsBoolean(pd.getData());
+    } catch (IllegalArgumentException e) {
+      theirLogger.error("(" + itsParent.getFullName() + "): " + e);
+      return;
     }
 
     if (newvalue) {
