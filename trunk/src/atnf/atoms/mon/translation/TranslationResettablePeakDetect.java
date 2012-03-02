@@ -103,21 +103,15 @@ public class TranslationResettablePeakDetect extends Translation implements Poin
       return;
     }
 
-    Boolean newvalue = null;
-    if (pd.getData() instanceof Boolean) {
-      newvalue = new Boolean(((Boolean) pd.getData()).booleanValue());
-    } else if (pd.getData() instanceof Number) {
-      if (((Number) pd.getData()).intValue() == 0) {
-        newvalue = new Boolean(false);
-      } else {
-        newvalue = new Boolean(true);
-      }
-    } else {
-      theirLogger.warn("(" + itsParent.getFullName() + ": Listened-to point " + itsPointName
-          + " must have Boolean or Numeric values");
+    boolean newvalue = false;    
+    try {
+      newvalue = MonitorUtils.parseAsBoolean(pd.getData());
+    } catch (IllegalArgumentException e) {
+      theirLogger.error("(" + itsParent.getFullName() + "): " + e);
+      return;
     }
 
-    if (newvalue != null && newvalue.booleanValue()) {
+    if (newvalue) {
       // The peak has been reset
       itsNeedsReset = true;
     }
