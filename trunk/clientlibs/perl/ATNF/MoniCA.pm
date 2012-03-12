@@ -223,7 +223,7 @@ use Math::BigFloat;
 use Math::BigInt;
 use Astro::Time;
 use Time::Local;
-use POSIX qw (ceil);
+use POSIX qw (floor ceil);
 
 use Carp;
 require Exporter;
