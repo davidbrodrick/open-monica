@@ -89,7 +89,7 @@ This will produce output along the lines of:
 
 {{{
 MonClientUtil: Connecting to host "narrabri.ozforecast.com.au" on port 8052
-ARCHIVE QUERY RESULTS FOR home.weather.wind_avg_speed
+ARCHIVE QUERY RESULTS FOR home.weather.wind_speed
         (2010-08-05 03:22:01.639)       2.52
         (2010-08-05 03:22:50.320)       3.6
         (2010-08-05 03:23:38.065)       7.2
