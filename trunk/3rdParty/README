@@ -2,3 +2,10 @@ These third party files are distributed for your convenience.
 
 Please consult the license files embedded within each jar file and/or the 
 website of the original vendor for licensing and other documentation.
+
+
+clientlibs/restlet has the ollowing dependencies o top of monica (client):
+
+   org.restlet.jar (2.1rc3)
+   gson-2.1.jar
+

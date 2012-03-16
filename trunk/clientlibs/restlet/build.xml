@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<project name="monica-restlet" basedir="." default="jar">
+
+  <!-- Define some names/properties -->
+  <property name="src" value="src"/>
+  <property name="output" value="build"/>
+  <property name="javadoc" value="javadoc"/>
+  <property name="jarname" value="monica-restlet.jar"/>
+  <property name="prefix" value="install"/>
+
+  <!-- Purge build and doc directories (but not jar file) -->
+  <target name="clean">
+    <delete dir="${output}"/>
+    <delete dir="${javadoc}"/>
+    <delete file="${jarname}"/>
+  </target>
+  
+  
+  <!-- Compile the java classes -->
+  <target name="compile">
+    <mkdir dir="${output}"/>
+    <javac destdir="${output}" debug="true" includeantruntime="false" 
+	   target="1.5">
+      <src path="${src}"/>            
+      <classpath>
+	<pathelement path="${classpath}"/>
+	<pathelement location="../../3rdParty/"/>
+	<pathelement location="../../open-monica.jar"/>
+      </classpath>
+    </javac>
+  </target>
+
+
+  <!-- Build and sign the jar file -->
+  <target name="jar" depends="compile">
+    <jar destfile="${jarname}">
+      <manifest>
+        <attribute name="Main-Class" value="cass.monica.rest.MoniCAApplication"/>
+      </manifest>
+      <fileset dir="${output}"/>
+    </jar>
+  </target>
+
+  <!-- Install the jar files to a run-time directory -->
+  <target name="install" depends="jar">
+    <!-- Copy jar files to lib area -->
+    <property name="libdir" value="${prefix}/lib"/>
+    <mkdir dir="${libdir}"/>
+    <copy file="${jarname}" todir="${libdir}"/>
+    <copy todir="${libdir}">
+      <fileset dir="../../3rdParty/">
+        <include name="org.restlet.jar"/>
+        <include name="gson-2.1.jar"/>
+        <include name="Ice.jar"/>
+      </fileset>
+      <fileset dir="../../">
+        <include name="open-monica.jar"/>
+      </fileset>
+    </copy>
+    <property name="bindir" value="${prefix}/bin"/>
+    <mkdir dir="${bindir}"/>
+    <copy file="run_restlet.sh" todir="${bindir}"/>
+    <chmod file="${bindir}/run_restlet.sh" perm="ugo+rx"/>
+  </target>
+
+  <!-- Build javadoc documentation tree -->	
+  <target name="javadoc">
+    <mkdir dir="${javadoc}/"/>
+    <javadoc destdir="${javadoc}/"> 
+      <link href="http://java.sun.com/javase/6/docs/api/"/>
+      <fileset dir="${src}/" includes="**/*.java" />
+    </javadoc>
+  </target>
+  
+</project>
