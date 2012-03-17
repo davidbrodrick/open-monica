@@ -49,7 +49,7 @@ public class MoniCAApplication extends Application {
         // Create a component
         Component component = new Component();
         component.getServers().add(Protocol.HTTP, 8111);
-	String monicaserver = "bullawa"; //"narrabri.ozforecast.com.au"
+	String monicaserver = "narrabri.ozforecast.com.au"
 	if (args.length == 1) {
 	    monicaserver = args[0];
 	}
