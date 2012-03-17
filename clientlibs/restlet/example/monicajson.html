@@ -1,0 +1,24 @@
+<html>                                                                  
+ <head>                                                                  
+ <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>          
+ </head>  
+<body>
+  <input type="text" id="pointname" value="sim0.dummy.0"/>
+  <input type="button" value="Query" onClick="getPoint();"/>
+  <script type="text/javascript">                                         
+   function getPoint() {
+      var name = $("#pointname").val();
+      var request = jQuery.getJSON(
+                     "http://localhost:8111/point/"+name+"?callback=?",
+                    function(data){
+                         $("#point").html("<b>"+data.itsName+"</b> ["
+                                         +data.itsTimestamp+"] &rarr; "
+                                         +data.itsData);
+
+                     }
+      )
+   }
+ </script>       
+ <div id="point"></div>
+</body>
+</html>
