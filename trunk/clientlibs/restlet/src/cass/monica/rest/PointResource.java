@@ -8,7 +8,6 @@ import org.restlet.resource.Get;
 import org.restlet.resource.Post;
 import org.restlet.resource.ServerResource;
 
-import org.restlet.data.Form;
 import org.restlet.representation.Representation;
 import org.restlet.resource.Options;
 
@@ -19,14 +18,22 @@ import atnf.atoms.mon.comms.MoniCAClient;
 
 
 public class PointResource extends ServerResource {  
-	String pointName;
-	// "home.weather.wind_speed"
+    String pointName;
+    PointData pointData;
+    String callback = "";
 	
     @Override
     public void doInit() {
 	// getQuery gets '?key=value' parameters
-	System.err.println(getQuery());
+	//	System.err.println(getQuery());
+	callback = this.getQuery().getFirstValue("callback", "");
     	this.pointName = (String) getRequestAttributes().get("name");
+    	try {
+	    this.pointData = getClient().getData(this.pointName);
+	} catch (Exception e) {
+	    System.err.println(e);			
+	    this.pointData = null;
+	}
     }	
 
     @Override
@@ -42,24 +49,18 @@ public class PointResource extends ServerResource {
     	return getApplication().getGson();
     }
 
-    @Get
+    @Get   
     public Representation getPoint() {
-    	return new StringRepresentation(generateJSON(), 
-    			                        MediaType.APPLICATION_JSON);
+	String out  = "";
+	if (this.pointData != null && this.pointData.isValid()) {
+	    String data = getGson().toJson(this.pointData);
+	    if (callback != "") {
+		out += callback+"("+data+")";
+	    } else {
+		out += data;
+	    }
+	} 	
+	return new StringRepresentation(out, 
+					MediaType.APPLICATION_JAVASCRIPT);
     }
-
-    private String generateJSON() {
-    	String out = "{}";
-
-    	try {
-    		PointData data = getClient().getData(this.pointName);
-    		if (data.isValid()) {
-    			return getGson().toJson(data);
-    		}
-		} catch (Exception e) {
-		      System.err.println(e);			
-		}
-    	return out;
-    }
-
 }
