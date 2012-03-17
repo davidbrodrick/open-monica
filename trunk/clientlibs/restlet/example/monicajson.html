@@ -3,9 +3,9 @@
  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>          
  </head>  
 <body>
-  <input type="text" id="pointname" value="sim0.dummy.0"/>
+  <input type="text" id="pointname" value="home.weather.wind_speed"/>
   <input type="button" value="Query" onClick="getPoint();"/>
-  <script type="text/javascript">                                         
+  <script type="text/javascript">        
    function getPoint() {
       var name = $("#pointname").val();
       var request = jQuery.getJSON(
