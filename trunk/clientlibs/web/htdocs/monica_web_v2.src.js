@@ -714,6 +714,34 @@ var monicaServer = function(spec, my) {
 	that.getLoadingDeferred = function() {
 		return loadingDeferred;
 	};
+	
+	/**
+	 * Set a point's value.
+	 * @param {object} setDetails The object describing the setting.
+	 */
+	that.setPointValue = function(setDetails) {
+		// The error checking is in the point methods, so we just check
+		// for the sufficient number of properties here.
+		if (typeof setDetails !== 'undefined' &&
+				typeof setDetails.point !== 'undefined' &&
+				typeof setDetails.value !== 'undefined' &&
+				typeof setDetails.user !== 'undefined' &&
+				typeof setDetails.pass !== 'undefined' &&
+				typeof setDetails.type !== 'undefined') {
+			var commsObj = {
+				content: {
+					action: 'setpoints',
+					settings: setDetails.point + '$' + setDetails.value +
+						'$' + setDetails.type + ';' + setDetails.user + '$' +
+						setDetails.pass
+				}
+			};
+			
+			return comms(commsObj);
+		} else {
+			return null;
+		}
+	};
 
   // Return our object.
   return that;
@@ -1220,6 +1248,53 @@ var monicaPoint = function(spec, my) {
   that.startUpdating = function() {
     configureTimer();
   };
+	
+	/**
+	 * Ask the server to set this point to a new value.
+	 * @param {object} setDetails The object describing the setting.
+	 */
+	that.setValue = function(setDetails) {
+		// Check we have a sufficient set of details.
+		if (typeof setDetails === 'undefined') {
+			return null;
+		}
+		
+		if (typeof setDetails.value === 'undefined' ||
+				typeof setDetails.user === 'undefined' ||
+				typeof setDetails.pass === 'undefined') {
+			return null;
+		}
+		
+		// Have we got a specified type?
+		if (typeof setDetails.type === 'undefined') {
+			// Try to figure it out.
+			if (dojo.isString(setDetails.value) === true) {
+				setDetails.type = 'str';
+			} else if (setDetails.value === true ||
+								 setDetails.value === false) {
+				setDetails.type = 'bool';
+			} else {
+				// Too generic.
+				return null;
+			}
+		}
+		
+		// Call the server now.
+		setDetails.point = spec.pointName;
+		var setPromise = new dojo.Deferred;
+		serverObject.setPointValue(setDetails).then(function(data, ioargs) {
+			if (typeof data !== 'undefined' &&
+					typeof data.setResult !== 'undefined') {
+				setPromise.resolve(data.setResult[0]);
+			} else {
+				setPromise.reject('Error while setting point value.');
+			}
+		}, function(error, ioargs) {
+			setPromise.reject('Error while setting point value.');
+		});
+		
+		return setPromise;
+	};
 
   // return our object
   return that;

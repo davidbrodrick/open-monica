@@ -231,6 +231,45 @@ if ($action eq "points"){
 
     # the points we get straight up
     
+} elsif ($action eq "setpoints") {
+		# Set a number of points.
+		# The calling routine should have sent us a string called "settings".
+		# This string is a semi-colon separated list of the settings to make.
+		# Each setting is a $-separated list of point$value$type.
+		# After the last ; should be the user and password, separated by $.
+		my @setels=split(/\;/,$input{"settings"});
+
+		my $userpass=pop @setels;
+		my ($user,$pass)=split(/\$/,$userpass);
+
+		my @setpoints;
+		for (my $i=0;$i<=$#setels;$i++) {
+				my @pels = split(/\$/,$setels[$i]);
+				my $ns = new MonSetPoint({
+						point => $pels[0],
+						val => $pels[1],
+						type => $pels[2] });
+				push @setpoints,$ns;
+		}
+		
+		my @successes = monset($mon, $user, $pass, @setpoints);
+
+		# Output some JSON.
+		print "{ setResult: [";
+		for (my $i=0;$i<=$#setpoints;$i++) {
+				if ($i>0){
+						print ",";
+				}
+				print "{ pointName: '".$setpoints[$i]->point."',".
+						"setSuccess: ";
+				if ($setpoints[$i]->success==1){
+						print "true";
+				} else {
+						print "false";
+				}
+				print "}";
+		}
+		print "]}";
 }
 
 # finished
