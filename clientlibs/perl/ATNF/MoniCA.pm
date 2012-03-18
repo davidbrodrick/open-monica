@@ -28,6 +28,36 @@ sub val {
   return $self->[2];
 }
 
+package MonSetPoint;
+
+sub new {
+		my $proto = shift;
+		my $class = ref($proto) || $proto;
+
+		my $monobject = shift;
+		my $self = $monobject;
+
+		bless ($self, $class);
+}
+
+sub point {
+		my $self = shift;
+		if (@_) { $self->{'point'} = shift }
+		return $self->{'point'};
+}
+
+sub val {
+		my $self = shift;
+		if (@_) { $self->{'val'} = shift }
+		return $self->{'val'};
+}
+
+sub type {
+		my $self = shift;
+		if (@_) { $self->{'type'} = shift }
+		return $self->{'type'};
+}
+
 package MonBetweenPoint;
 
 sub new {
@@ -352,6 +382,69 @@ sub monpoll2 ($@) {
     } else {
 	return $vals[0];
     }
+}
+
+=item B<monset>
+
+		my $setresult = monset($mon, $user, $pass, $monsetpoint);
+    my @setresults = monset($mon, $user, $pass, @monsetpoints);
+
+Calls the "set" function, returning a Boolean indication of whether the
+set was successful.
+
+		$mon          Monitor server.
+		$monsetpoint  A filled-in MonSetPoint object.
+		@monsetpoints An array of filled-in MonSetPoint objects.
+=cut
+
+sub monset ($$$@) {
+		my $mon=shift;
+		my $user=shift;
+		my $pass=shift;
+		my @monsetpoints=@_;
+		my $nset = scalar(@monsetpoints);
+
+		if ($nset == 0) {
+				warn "No monitoring set points specified!\n";
+				return undef;
+		}
+
+		# Check all the information is there for each point.
+		my $allok = 1;
+		for (my $i=0; $i<$nset; $i++) {
+				if (!defined $monsetpoints[$i]->point ||
+						!defined $monsetpoints[$i]->val ||
+						!defined $monsetpoints[$i]->type) {
+						$allok = 0;
+				}
+		}
+
+		if ($allok == 1) {
+				print $mon "set\n";
+				print $mon "$user\n";
+				print $mon "$pass\n";
+				print $mon "$nset\n";
+				foreach (@monsetpoints) {
+						print $mon $_->point."\t".$_->type."\t".$_->val."\n";
+				}
+		}
+
+		my @vals=();
+		for (my $i=0;$i<$nset;$i++) {
+				my $line=<$mon>;
+				if ($line=~/OK$/) {
+						push @vals,1;
+				} else {
+						push @vals,0;
+				}
+		}
+
+		if (wantarray) {
+				return @vals;
+		} else {
+				return $vals[0];
+		}
+
 }
 
 =item B<monsince>
