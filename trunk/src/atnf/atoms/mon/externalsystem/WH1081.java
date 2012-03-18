@@ -136,6 +136,12 @@ public class WH1081 extends ExternalSystem
       res[7] = new Float(line.substring(20, line.length()).trim());
       line = stdInput.readLine(); // History position
       res[10] = new Integer(Integer.parseInt(line.substring(20, line.length()).trim(), 16));
+      
+      // Ensure streams are closed to prevent too many open files
+      stdInput.close();
+      stdError.close();
+      p.getInputStream().close();
+      p.destroy();
 
       // Check for invalid values
       if (status != 0) {
