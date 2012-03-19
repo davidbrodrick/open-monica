@@ -1623,19 +1623,12 @@ String.prototype.sexagesimalToDecimal = function(options) {
 		
 	// Convert it into decimal now.
 	var decimal = parseInt(hexaSplit[0]) +
-		parseInt(hexaSplit[1]).arcmin2degrees() +
-		parseFloat(hexaSplit[2]).arcsec2degrees();
+		parseInt(hexaSplit[1])/60 +
+		parseFloat(hexaSplit[2])/3600;
 		
 	// Correct the sign now.
 	decimal *= sign;
 		
-	// Apply any options.
-	if (typeof options.units !== 'undefined' &&
-			options.units === 'hours') {
-		// The string was representing hours.
-		decimal = decimal.hours2degrees();
-	}
-		
 	// Convert it into turns now.
-	return decimal.degrees2turns();
+	return decimal;
 };
