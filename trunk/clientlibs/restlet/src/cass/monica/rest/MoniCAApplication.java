@@ -69,9 +69,6 @@ public class MoniCAApplication extends Application {
         // Attach the resources to the router
         // redundant - use vector version
         router.attach("/point/{name}", PointResource.class);
-        // accept comma separated list of points
-        router.attach("/points/{names}", PointListResource.class);
-        
         // Return the root router
         return router;
     }
