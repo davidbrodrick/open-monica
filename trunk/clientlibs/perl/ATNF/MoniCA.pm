@@ -262,8 +262,8 @@ use vars qw(@ISA @EXPORT);
 
 @ISA    = qw( Exporter );
 @EXPORT = qw( bat2time monconnect monpoll monsince parse_tickphase current_bat 
-	      monbetween monpreceeding monfollowing montill 
-	      bat2mjd mjd2bat bat2time atca_tied monnames
+	      monbetween monpreceeding monfollowing montill monset
+	      bat2mjd mjd2bat bat2time atca_tied monnames monlist2hash
               mondetails monpoll2 bat2cal bat2unixtime perltime2mjd );
 
 =item B<monconnect>
@@ -298,10 +298,10 @@ sub monconnect($) {
 
     $mon           Monitor server
     $pointname     Single monitor point
-    @pointnames  List of monitor points
+    @pointnames    List of monitor points
     $pointval      MonPoint object, representing the first returned monitor
                    point
-    @pointvals   List of MonPoint objects
+    @pointvals     List of MonPoint objects
 
 =cut
 
@@ -757,6 +757,72 @@ sub monfollowing ($$@) {
   }
 }
 
+=item B<monset>
+
+   my $pointval = monpoll($mon, $pointname);
+   my @pointvals = monpoll($mon, @pointnames);
+
+  Calls the "poll" function, returnint the most recent values for one
+  or more monitor points. Note calling in scalar mode only the first
+  monitor point is returned.
+
+     $mon           Monitor server
+     $pointname     Single monitor point
+     @pointnames  List of monitor points
+     $pointval      MonPoint object, representing the first returned monitor
+                    point
+     @pointvals   List of MonPoint objects
+
+=cut
+
+sub monset ($@) {
+  my $mon = shift;
+  my @setpoints = @_;
+  my $nset = scalar(@setpoints);
+
+  if ($nset==0) {
+    carp "No monitor points to set!\n";
+    return undef;
+  }
+
+  print $mon <<EOF;
+set
+a
+b
+$nset
+EOF
+
+  foreach (@setpoints) {
+    print $mon $_->[0], "\t", $_->[1], "\t", $_->[2], "\n";
+  }
+
+  my %ret = ();
+
+  my $ok = 1;
+  my ($state, $point);
+  for (my $i=0; $i<$nset; $i++) {
+    my $line = <$mon>;
+    chomp $line;
+    ($point, $state) = $line =~ /(\S+)\s+(\S+)/;
+    if (!defined $point || !defined $state) {
+      carp "Did not understand server response \"$line\"";
+      return undef;
+    }
+    $ok = 0 if ($state ne 'OK');
+    $ret{$point} = $state;
+  }
+
+  if (wantarray) {
+    return %ret;
+  } else {
+    if ($ok) {
+      return 'OK';
+    } else {
+      return 'ERROR';
+    }
+  }
+}
+
 =item B<bat2cal>
 
   my $calstring = bat2cal($bat)
@@ -1024,6 +1090,48 @@ sub atca_tied($$$;$) {
   $state[$#state]->[1] = $mjd2;
 
   return @state;
+}
+
+=item B<monlist2hash>
+
+  my %monpoints = ('some.mon.point1' => 'point1',
+                   'some.mon.ppint2' => 'cat',
+                  );
+  my @vals = monpoll($mon, keys(%monpoints));
+  my %monvals = monlist2hash(@vals, %monpoints);
+  print $monvals{cat}->NOTSURE;
+
+Convert a list of monitor points returned by monpoll to a hashed list with custom keys
+
+    $bat        BAT value
+    $calstring  string representation of BAT time
+
+=cut
+
+sub monlist2hash(\@%) {
+  my $vals = shift;
+  my %points = @_;
+
+  my %monvals = ();
+
+  my ($found, $key, $value);
+  foreach (@$vals) {
+    $found = 0;
+    keys(%points); # Reset each operation
+    while (($key, $value) = each %points) {
+      if ($key eq $_->point) {
+	$monvals{$value} = $_;
+	$found = 1;
+	last;
+      }
+    }
+    if (!$found) {
+      carp "Warning: Ignoring point ". $_->point;
+    }
+  }
+  
+  return(%monvals);
+
 }
 
 
