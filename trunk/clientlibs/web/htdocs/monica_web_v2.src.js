@@ -1493,7 +1493,7 @@ String.prototype.sexagesimalToDecimal = function() {
 
   // Check that the string looks like a known sexagesimal format.
   if (/^[\+\-]*\d+[\?\u00B0]\d+\'\d+\"\.\d*$/.test(this)) {
-    matchEls = this.match(/^([\+\-]*)(\d+)\?(\d+)\'(\d+)\"\.(\d*)$/);
+    matchEls = this.match(/^([\+\-]*)(\d+)[\?\u00B0](\d+)\'(\d+)\"\.(\d*)$/);
     sign = matchEls[1] !== '' ? matchEls[1] : '+';
     dd = parseInt(matchEls[2]);
     mm = parseInt(matchEls[3]);
