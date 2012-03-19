@@ -122,6 +122,12 @@ var monicaServer = function(spec, my) {
   spec.updateInterval = spec.updateInterval || 10000;
 
   /**
+   * A global error function to call if the connection fails.
+   * @type {function}
+   */
+  spec.errorCallback = spec.errorCallback || handleErrors;
+  
+  /**
    * The names of all available data points on the MoniCA server.
    * @type {array}
    */
@@ -173,7 +179,7 @@ var monicaServer = function(spec, my) {
     }
 
     // Set our default error handler if not specified.
-    options.errorCall = options.errorCall || handleErrors;
+    options.errorCall = options.errorCall || spec.errorCallback;
 
     // Add the name of the server automatically.
     if (typeof options.content === 'undefined') {
@@ -192,7 +198,7 @@ var monicaServer = function(spec, my) {
       sync: false,
       content: options.content,
       handleAs: 'json',
-      error: handleErrors
+      error: options.errorCall
     });
 
     return postDeferred;
