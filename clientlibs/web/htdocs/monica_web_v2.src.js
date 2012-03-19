@@ -1541,8 +1541,8 @@ String.prototype.sexagesimalToDecimal = function() {
     ss = parseInt(matchEls[4]) +
     parseInt(matchEls[5]) / Math.pow(10, matchEls[5].length);
     formMatch = true;
-  } else if (/^[\+\-]*\d+\:\d+\:\d+$/.test(this)) {
-    matchEls = this.match(/^([\+\-]*)(\d+)\:(\d+)\:(\d+)$/);
+  } else if (/^[\+\-]*\d+\:\d+\:[\d\.]+$/.test(this)) {
+    matchEls = this.match(/^([\+\-]*)(\d+)\:(\d+)\:([\d\.]+)$/);
     sign = matchEls[0] !== '' ? matchEls[0] : '+';
     dd = parseInt(matchEls[1]);
     mm = parseInt(matchEls[2]);
