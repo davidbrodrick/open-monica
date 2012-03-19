@@ -1546,7 +1546,7 @@ String.prototype.sexagesimalToDecimal = function() {
     sign = matchEls[0] !== '' ? matchEls[0] : '+';
     dd = parseInt(matchEls[1]);
     mm = parseInt(matchEls[2]);
-    ss = parseInt(matchEls[3]);
+    ss = parseFloat(matchEls[3]);
     formMatch = true;
   }
 
