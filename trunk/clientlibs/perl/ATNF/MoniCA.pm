@@ -95,7 +95,7 @@ sub new {
     my $class=ref($proto)||$proto;
     
     my $monline=shift;
-    my $self=[$monline=~/^(\S+)\t+(\S+)\t+(\S+)\t+(\S+)\t+(\S.*)$/];
+    my $self=[$monline=~/^(.*?)\t+(.*?)\t+(.*?)\t+(.*?)\t+(.*?)$/];
     
     bless ($self,$class);
 }
