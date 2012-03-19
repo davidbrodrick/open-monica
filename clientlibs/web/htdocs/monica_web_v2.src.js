@@ -1521,45 +1521,121 @@ var monicaPointValue = function(spec, my) {
  * Extend the String object with a method that converts a sexagesimal
  * formatted string into a decimal number.
  */
-String.prototype.sexagesimalToDecimal = function() {
-  // Variables in this method
-  var matchEls, dd, mm, ss, sign, formMatch, decRep;
+// String.prototype.sexagesimalToDecimal = function() {
+//   // Variables in this method
+//   var matchEls, dd, mm, ss, sign, formMatch, decRep;
 
-  /**
-   * An indicator that goes true when the string looks like a
-   * sexagesimal quantity.
-   * @type {boolean}
-   */
-  formMatch = false;
+//   /**
+//    * An indicator that goes true when the string looks like a
+//    * sexagesimal quantity.
+//    * @type {boolean}
+//    */
+//   formMatch = false;
 
-  // Check that the string looks like a known sexagesimal format.
-  if (/^[\+\-]*\d+[\?\u00B0]\d+\'\d+\"\.\d*$/.test(this)) {
-    matchEls = this.match(/^([\+\-]*)(\d+)[\?\u00B0](\d+)\'(\d+)\"\.(\d*)$/);
-    sign = matchEls[1] !== '' ? matchEls[1] : '+';
-    dd = parseInt(matchEls[2]);
-    mm = parseInt(matchEls[3]);
-    ss = parseInt(matchEls[4]) +
-    parseInt(matchEls[5]) / Math.pow(10, matchEls[5].length);
-    formMatch = true;
-  } else if (/^[\+\-]*\d+\:\d+\:[\d\.]+$/.test(this)) {
-    matchEls = this.match(/^([\+\-]*)(\d+)\:(\d+)\:([\d\.]+)$/);
-    sign = matchEls[0] !== '' ? matchEls[0] : '+';
-    dd = parseInt(matchEls[1]);
-    mm = parseInt(matchEls[2]);
-    ss = parseFloat(matchEls[3]);
-    formMatch = true;
-  }
+//   // Check that the string looks like a known sexagesimal format.
+//   if (/^[\+\-]*\d+[\?\u00B0]\d+\'\d+\"\.\d*$/.test(this)) {
+//     matchEls = this.match(/^([\+\-]*)(\d+)[\?\u00B0](\d+)\'(\d+)\"\.(\d*)$/);
+//     sign = matchEls[1] !== '' ? matchEls[1] : '+';
+//     dd = parseInt(matchEls[2]);
+//     mm = parseInt(matchEls[3]);
+//     ss = parseInt(matchEls[4]) +
+//     parseInt(matchEls[5]) / Math.pow(10, matchEls[5].length);
+//     formMatch = true;
+//   } else if (/^[\+\-]*\d+\:\d+\:[\d\.]+$/.test(this)) {
+//     matchEls = this.match(/^([\+\-]*)(\d+)\:(\d+)\:([\d\.]+)$/);
+//     sign = matchEls[0] !== '' ? matchEls[0] : '+';
+//     dd = parseInt(matchEls[1]);
+//     mm = parseInt(matchEls[2]);
+//     ss = parseFloat(matchEls[3]);
+//     formMatch = true;
+//   }
 
-  if (formMatch === true) {
-    decRep = dd + mm / 60 + ss / 3600;
-    if (sign === '-') {
-      decRep *= -1;
-    }
+//   if (formMatch === true) {
+//     decRep = dd + mm / 60 + ss / 3600;
+//     if (sign === '-') {
+//       decRep *= -1;
+//     }
 
-    return decRep;
-  } else {
-    // The string wasn't recognisably sexagesimal, so we just return
-    // it unchanged.
-    return this;
-  }
+//     return decRep;
+//   } else {
+//     // The string wasn't recognisably sexagesimal, so we just return
+//     // it unchanged.
+//     return this;
+//   }
+// };
+
+String.prototype.sexagesimalToDecimal = function(options) {
+	// Default options.
+	options = options || {};
+	if (typeof options.units === 'undefined') {
+		options.units = 'degrees';
+	};
+
+	// Check for the sign of the number.
+	var sign = 1;
+	// Remove any plus sign at the start of the string.
+	var h = this.replace(/^\+/, '');
+  h = h.replace(/[\?\u00B0\']/g, ':');
+  h = h.replace(/\"/g, '');
+	if (/^\-/.test(h)) {
+		// The string appears to be a negative number.
+		sign = -1;
+	}
+	if (sign === -1) {
+		// We need to get rid of the negative sign at the front of the string.
+		h = h.replace(/^\-/, '');
+	}
+
+  
+	// Break it into the component elements.
+	if (/^\d+h\d+m[\d\.]+s*$/.test(h) === true) {
+		// The string is in hours.
+		options.units = 'hours';
+		h = h.replace(/[hm]/g, ' ');
+		h = h.replace(/s/, '');
+	} else if (/^\d+d\d+m[\d\.]+s*$/.test(h) === true) {
+		// The string is in degrees.
+		options.units = 'degrees';
+		h = h.replace(/[dm]/g, ' ');
+		h = h.replace(/s/, '');
+	}
+	var hexaSplit = h.split(/[\s\:]/g);
+		
+	// Check that we only get 3 elements.
+	if (hexaSplit.length !== 3) {
+		// The string doesn't look right.
+		return this;
+	}
+	// And that each element consists only of numerals.
+	for (var i = 0; i < hexaSplit.length; i++) {
+		if (/^[\d\.]+$/.test(hexaSplit[i]) === false) {
+			// A non-numeric value showed up.
+			return this;
+		}
+	}
+		
+	// Replace any leading zeroes in the split components.
+	for (i = 0; i < hexaSplit.length; i++) {
+		if (hexaSplit[i] !== '0') {
+			hexaSplit[i] = hexaSplit[i].replace(/^0/, '');
+		}
+	}
+		
+	// Convert it into decimal now.
+	var decimal = parseInt(hexaSplit[0]) +
+		parseInt(hexaSplit[1]).arcmin2degrees() +
+		parseFloat(hexaSplit[2]).arcsec2degrees();
+		
+	// Correct the sign now.
+	decimal *= sign;
+		
+	// Apply any options.
+	if (typeof options.units !== 'undefined' &&
+			options.units === 'hours') {
+		// The string was representing hours.
+		decimal = decimal.hours2degrees();
+	}
+		
+	// Convert it into turns now.
+	return decimal.degrees2turns();
 };
