@@ -5,7 +5,7 @@ sub new {
   my $class = ref($proto) || $proto;
 
   my $monline = shift;
-  my $self = [$monline =~ /^(\S+)\s+(\S+)\s+(\S.*)$/];
+  my $self = [$monline =~ /^(\S+)\t+(\S+)\t+(\S.*)$/];
 
   bless ($self, $class);
 }
@@ -58,6 +58,12 @@ sub type {
 		return $self->{'type'};
 }
 
+sub success {
+		my $self = shift;
+		if (@_) { $self->{'success'} = shift }
+		return $self->{'success'};
+}
+
 package MonBetweenPoint;
 
 sub new {
@@ -65,7 +71,7 @@ sub new {
   my $class = ref($proto) || $proto;
 
   my $monline = shift;
-  my $self = [$monline =~ /^(\S+)\s+(\S.*)$/];
+  my $self = [$monline =~ /^(\S+)\t+(\S.*)$/];
 
   bless ($self, $class);
 }
@@ -89,7 +95,7 @@ sub new {
     my $class=ref($proto)||$proto;
     
     my $monline=shift;
-    my $self=[$monline=~/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)$/];
+    my $self=[$monline=~/^(\S+)\t+(\S+)\t+(\S+)\t+(\S+)\t+(\S.*)$/];
     
     bless ($self,$class);
 }
@@ -131,7 +137,7 @@ sub new {
     my $class=ref($proto) || $proto;
 
     my $monline=shift;
-    my $self=[$monline=~/^(\S+)\s+(\S+)\s+\"(.*?)\"\s+\"(.*)\"$/];
+    my $self=[$monline=~/^(\S+)\t+(\S+)\t+\"(.*?)\"\t+\"(.*)\"$/];
 
     bless ($self,$class);
 }
@@ -389,8 +395,8 @@ sub monpoll2 ($@) {
 		my $setresult = monset($mon, $user, $pass, $monsetpoint);
     my @setresults = monset($mon, $user, $pass, @monsetpoints);
 
-Calls the "set" function, returning a Boolean indication of whether the
-set was successful.
+Calls the "set" function, returning the same set of points with their
+success values filled.
 
 		$mon          Monitor server.
 		$monsetpoint  A filled-in MonSetPoint object.
@@ -433,16 +439,16 @@ sub monset ($$$@) {
 		for (my $i=0;$i<$nset;$i++) {
 				my $line=<$mon>;
 				if ($line=~/OK$/) {
-						push @vals,1;
+						$monsetpoints[$i]->success=1;
 				} else {
-						push @vals,0;
+						$monsetpoints[$i]->success=0;
 				}
 		}
 
 		if (wantarray) {
-				return @vals;
+				return @monsetpoints;
 		} else {
-				return $vals[0];
+				return $monsetpoints[0];
 		}
 
 }
