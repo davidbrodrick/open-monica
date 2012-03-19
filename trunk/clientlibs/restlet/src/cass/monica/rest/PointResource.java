@@ -59,6 +59,11 @@ public class PointResource extends ServerResource {
 	    } else {
 		out += data;
 	    }
+	} else {
+	    out = "{'error': 'not a valid point.'}";
+	    if (callback != "") {
+		out = callback+"("+out+")";
+	    }
 	} 	
 	return new StringRepresentation(out, 
 					MediaType.APPLICATION_JAVASCRIPT);
