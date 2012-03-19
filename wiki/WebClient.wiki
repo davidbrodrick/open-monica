@@ -208,6 +208,15 @@ var connectionEstablished = function() {
 }
 }}}
 
+===== removePoints =====
+
+{{{
+server.removePoints(referencesList);
+}}}
+
+This method is used to tell the server to forget about the point references listed in the array `referencesList`. Each element in the array should be a reference to a `monicaPoint` object that you got from a call to `addPoints` on the same server.
+
+
 ===== getPoints =====
 
 {{{
