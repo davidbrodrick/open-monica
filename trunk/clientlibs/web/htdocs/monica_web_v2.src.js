@@ -75,6 +75,9 @@ var monicaServer = function(spec, my) {
 	
 	// Variables in getPoints.
 	var retArr;
+  
+  // Variables in removePoint(s).
+  var rPi, rPref;
 
   /**
    * The object that we will return to our caller.
@@ -244,12 +247,22 @@ var monicaServer = function(spec, my) {
   /**
    * Check whether we have already made an object for a particular
    * MoniCA point.
-   * @param {string} name The name of the MoniCA point to check for.
+   * @param {variable} name The name of the MoniCA point to check for,
+   *                        or a point reference.
    */
   var hasPoint = function(name) {
     for (hPi = 0; hPi < points.length; hPi++) {
-      if (name === points[hPi].getPointDetails().name) {
-				return points[hPi];
+      if (dojo.isString(name) === true) {
+        if (name === points[hPi].getPointDetails().name) {
+			    return points[hPi];
+        }
+      } else {
+        if (name === points[hPi]) {
+          return {
+            pointRef: points[hPi],
+            index: hPi
+          };
+        }
       }
     }
     return undefined;
@@ -257,14 +270,29 @@ var monicaServer = function(spec, my) {
 
   /**
    * Add a point to the list.
-   * @param {object} pointRef A reference to the monicaPoint object
+   * @param {object} pointRef A reference to the monicaPoint object.
    */
   var addPoint = function(pointRef) {
-    if (pointRef) {
+    if (typeof pointRef !== 'undefined') {
       points.push(pointRef);
     }
   };
 
+  /**
+   * Remove a point from the list.
+   * @param {object} pointRef A reference to the monicaPoint object.
+   */
+  var removePoint = function(pointRef) {
+    if (typeof pointRef !== 'undefined') {
+      rPref = hasPoint(pointRef);
+      if (rPref.pointRef === pointRef) {
+        // Do some cleanup before we get rid of it.
+        pointRef.stopTimer();
+        points.splice(rPref.index, 1);
+      }
+    }      
+  };
+  
   /**
    * Parse some point descriptions coming from a MoniCA server, and give them
    * to the correct points.
@@ -566,6 +594,19 @@ var monicaServer = function(spec, my) {
     return pointReferences;
   };
 
+  /**
+   * Remove some MoniCA points from our update list.
+   * @param {array} oldPoints The references for the points to remove.
+   */
+  that.removePoints = function(oldPoints) {
+    if (dojo.isArray(oldPoints) === false) {
+      return;
+    }
+    for (rPi = 0; rPi < oldPoints.length; rPi++) {
+      removePoint(oldPoints[rPi]);
+    }
+  };
+  
 	/**
 	 * Get the point reference for a named point or set of points.
 	 * @param {variable} pointNames A string or an array of strings,
