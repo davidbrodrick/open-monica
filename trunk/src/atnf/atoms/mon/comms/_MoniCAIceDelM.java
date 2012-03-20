@@ -7,7 +7,7 @@
 //
 // **********************************************************************
 
-// Ice version 3.4.0
+// Ice version 3.4.1
 
 package atnf.atoms.mon.comms;
 
@@ -108,6 +108,56 @@ public final class _MoniCAIceDelM extends Ice._ObjectDelM implements _MoniCAIceD
                 __is.startReadEncaps();
                 boolean __ret;
                 __ret = __is.readBool();
+                __is.endReadEncaps();
+                return __ret;
+            }
+            catch(Ice.LocalException __ex)
+            {
+                throw new IceInternal.LocalExceptionWrapper(__ex, false);
+            }
+        }
+        finally
+        {
+            __handler.reclaimOutgoing(__og);
+        }
+    }
+
+    public PointDataIce[]
+    getAfter(String[] names, long t, java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper
+    {
+        IceInternal.Outgoing __og = __handler.getOutgoing("getAfter", Ice.OperationMode.Idempotent, __ctx);
+        try
+        {
+            try
+            {
+                IceInternal.BasicStream __os = __og.os();
+                stringarrayHelper.write(__os, names);
+                __os.writeLong(t);
+            }
+            catch(Ice.LocalException __ex)
+            {
+                __og.abort(__ex);
+            }
+            boolean __ok = __og.invoke();
+            try
+            {
+                if(!__ok)
+                {
+                    try
+                    {
+                        __og.throwUserException();
+                    }
+                    catch(Ice.UserException __ex)
+                    {
+                        throw new Ice.UnknownUserException(__ex.ice_name());
+                    }
+                }
+                IceInternal.BasicStream __is = __og.is();
+                __is.startReadEncaps();
+                PointDataIce[] __ret;
+                __ret = pointdatasetHelper.read(__is);
+                __is.readPendingObjects();
                 __is.endReadEncaps();
                 return __ret;
             }
@@ -276,6 +326,56 @@ public final class _MoniCAIceDelM extends Ice._ObjectDelM implements _MoniCAIceD
                 __is.startReadEncaps();
                 PointDataIce[][] __ret;
                 __ret = pointdatasetarrayHelper.read(__is);
+                __is.readPendingObjects();
+                __is.endReadEncaps();
+                return __ret;
+            }
+            catch(Ice.LocalException __ex)
+            {
+                throw new IceInternal.LocalExceptionWrapper(__ex, false);
+            }
+        }
+        finally
+        {
+            __handler.reclaimOutgoing(__og);
+        }
+    }
+
+    public PointDataIce[]
+    getBefore(String[] names, long t, java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper
+    {
+        IceInternal.Outgoing __og = __handler.getOutgoing("getBefore", Ice.OperationMode.Idempotent, __ctx);
+        try
+        {
+            try
+            {
+                IceInternal.BasicStream __os = __og.os();
+                stringarrayHelper.write(__os, names);
+                __os.writeLong(t);
+            }
+            catch(Ice.LocalException __ex)
+            {
+                __og.abort(__ex);
+            }
+            boolean __ok = __og.invoke();
+            try
+            {
+                if(!__ok)
+                {
+                    try
+                    {
+                        __og.throwUserException();
+                    }
+                    catch(Ice.UserException __ex)
+                    {
+                        throw new Ice.UnknownUserException(__ex.ice_name());
+                    }
+                }
+                IceInternal.BasicStream __is = __og.is();
+                __is.startReadEncaps();
+                PointDataIce[] __ret;
+                __ret = pointdatasetHelper.read(__is);
                 __is.readPendingObjects();
                 __is.endReadEncaps();
                 return __ret;
@@ -467,7 +567,7 @@ public final class _MoniCAIceDelM extends Ice._ObjectDelM implements _MoniCAIceD
     }
 
     public boolean
-    setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, java.util.Map<String, String> __ctx)
+    setData(String[] names, PointDataIce[] values, String username, String passwd, java.util.Map<String, String> __ctx)
         throws IceInternal.LocalExceptionWrapper
     {
         IceInternal.Outgoing __og = __handler.getOutgoing("setData", Ice.OperationMode.Normal, __ctx);
@@ -477,7 +577,7 @@ public final class _MoniCAIceDelM extends Ice._ObjectDelM implements _MoniCAIceD
             {
                 IceInternal.BasicStream __os = __og.os();
                 stringarrayHelper.write(__os, names);
-                pointdatasetHelper.write(__os, rawvalues);
+                pointdatasetHelper.write(__os, values);
                 __os.writeString(username);
                 __os.writeString(passwd);
                 __os.writePendingObjects();

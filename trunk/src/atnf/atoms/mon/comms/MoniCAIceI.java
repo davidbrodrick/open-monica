@@ -148,7 +148,43 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     }
     return temp;
   }
-
+  
+  /** Return the last values before the given time for the given points. */
+  public PointDataIce[] getBefore(String[] names, long t, Ice.Current __current)
+  {
+    PointDataIce[] temp = new PointDataIce[names.length];
+    for (int i = 0; i < names.length; i++) {
+      PointData pd = PointBuffer.getPreceding(names[i], AbsTime.factory(t));
+      PointDataIce pdi;
+      if (pd != null) {
+        pdi = MoniCAIceUtil.getPointDataAsIce(PointBuffer.getPointData(names[i]));
+      } else {
+        // No data available so create dummy data with null value
+        pdi = MoniCAIceUtil.getPointDataAsIce(new PointData(names[i]));
+      }
+      temp[i] = pdi;
+    }
+    return temp;
+  }
+  
+  /** Return the next values after the given time for the given points. */
+  public PointDataIce[] getAfter(String[] names, long t, Ice.Current __current)
+  {
+    PointDataIce[] temp = new PointDataIce[names.length];
+    for (int i = 0; i < names.length; i++) {
+      PointData pd = PointBuffer.getFollowing(names[i], AbsTime.factory(t));
+      PointDataIce pdi;
+      if (pd != null) {
+        pdi = MoniCAIceUtil.getPointDataAsIce(PointBuffer.getPointData(names[i]));
+      } else {
+        // No data available so create dummy data with null value
+        pdi = MoniCAIceUtil.getPointDataAsIce(new PointData(names[i]));
+      }
+      temp[i] = pdi;
+    }
+    return temp;
+  }
+  
   /** Set new values for the specified points. */
   public boolean setData(String[] names, PointDataIce[] rawvalues, String encname, String encpass, Ice.Current __current)
   {
