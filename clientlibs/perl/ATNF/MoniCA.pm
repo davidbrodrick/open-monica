@@ -390,68 +390,68 @@ sub monpoll2 ($@) {
     }
 }
 
-# =item B<monset>
+=item B<monset>
 
-# 		my $setresult = monset($mon, $user, $pass, $monsetpoint);
-#     my @setresults = monset($mon, $user, $pass, @monsetpoints);
+		my $setresult = monset($mon, $user, $pass, $monsetpoint);
+    my @setresults = monset($mon, $user, $pass, @monsetpoints);
 
-# Calls the "set" function, returning the same set of points with their
-# success values filled.
+Calls the "set" function, returning the same set of points with their
+success values filled.
 
-# 		$mon          Monitor server.
-# 		$monsetpoint  A filled-in MonSetPoint object.
-# 		@monsetpoints An array of filled-in MonSetPoint objects.
-# =cut
+		$mon          Monitor server.
+		$monsetpoint  A filled-in MonSetPoint object.
+		@monsetpoints An array of filled-in MonSetPoint objects.
+=cut
 
-# sub monset ($$$@) {
-# 		my $mon=shift;
-# 		my $user=shift;
-# 		my $pass=shift;
-# 		my @monsetpoints=@_;
-# 		my $nset = scalar(@monsetpoints);
+sub monset ($$$@) {
+		my $mon=shift;
+		my $user=shift;
+		my $pass=shift;
+		my @monsetpoints=@_;
+		my $nset = scalar(@monsetpoints);
 
-# 		if ($nset == 0) {
-# 				warn "No monitoring set points specified!\n";
-# 				return undef;
-# 		}
+		if ($nset == 0) {
+				warn "No monitoring set points specified!\n";
+				return undef;
+		}
 
-# 		# Check all the information is there for each point.
-# 		my $allok = 1;
-# 		for (my $i=0; $i<$nset; $i++) {
-# 				if (!defined $monsetpoints[$i]->point ||
-# 						!defined $monsetpoints[$i]->val ||
-# 						!defined $monsetpoints[$i]->type) {
-# 						$allok = 0;
-# 				}
-# 		}
+		# Check all the information is there for each point.
+		my $allok = 1;
+		for (my $i=0; $i<$nset; $i++) {
+				if (!defined $monsetpoints[$i]->point ||
+						!defined $monsetpoints[$i]->val ||
+						!defined $monsetpoints[$i]->type) {
+						$allok = 0;
+				}
+		}
 
-# 		if ($allok == 1) {
-# 				print $mon "set\n";
-# 				print $mon "$user\n";
-# 				print $mon "$pass\n";
-# 				print $mon "$nset\n";
-# 				foreach (@monsetpoints) {
-# 						print $mon $_->point."\t".$_->type."\t".$_->val."\n";
-# 				}
-# 		}
+		if ($allok == 1) {
+				print $mon "set\n";
+				print $mon "$user\n";
+				print $mon "$pass\n";
+				print $mon "$nset\n";
+				foreach (@monsetpoints) {
+						print $mon $_->point."\t".$_->type."\t".$_->val."\n";
+				}
+		}
 
-# 		my @vals=();
-# 		for (my $i=0;$i<$nset;$i++) {
-# 				my $line=<$mon>;
-# 				if ($line=~/OK$/) {
-# 						$monsetpoints[$i]->success=1;
-# 				} else {
-# 						$monsetpoints[$i]->success=0;
-# 				}
-# 		}
+		my @vals=();
+		for (my $i=0;$i<$nset;$i++) {
+				my $line=<$mon>;
+				if ($line=~/OK$/) {
+						$monsetpoints[$i]->success=1;
+				} else {
+						$monsetpoints[$i]->success=0;
+				}
+		}
 
-# 		if (wantarray) {
-# 				return @monsetpoints;
-# 		} else {
-# 				return $monsetpoints[0];
-# 		}
+		if (wantarray) {
+				return @monsetpoints;
+		} else {
+				return $monsetpoints[0];
+		}
 
-# }
+}
 
 =item B<monsince>
 
@@ -763,71 +763,71 @@ sub monfollowing ($$@) {
   }
 }
 
-=item B<monset>
+# =item B<monset>
 
-   my $pointval = monpoll($mon, $pointname);
-   my @pointvals = monpoll($mon, @pointnames);
+#    my $pointval = monpoll($mon, $pointname);
+#    my @pointvals = monpoll($mon, @pointnames);
 
-  Calls the "poll" function, returnint the most recent values for one
-  or more monitor points. Note calling in scalar mode only the first
-  monitor point is returned.
+#   Calls the "poll" function, returnint the most recent values for one
+#   or more monitor points. Note calling in scalar mode only the first
+#   monitor point is returned.
 
-     $mon           Monitor server
-     $pointname     Single monitor point
-     @pointnames  List of monitor points
-     $pointval      MonPoint object, representing the first returned monitor
-                    point
-     @pointvals   List of MonPoint objects
+#      $mon           Monitor server
+#      $pointname     Single monitor point
+#      @pointnames  List of monitor points
+#      $pointval      MonPoint object, representing the first returned monitor
+#                     point
+#      @pointvals   List of MonPoint objects
 
-=cut
+# =cut
 
-sub monset ($@) {
-  my $mon = shift;
-  my @setpoints = @_;
-  my $nset = scalar(@setpoints);
+# sub monset ($@) {
+#   my $mon = shift;
+#   my @setpoints = @_;
+#   my $nset = scalar(@setpoints);
 
-  if ($nset==0) {
-    carp "No monitor points to set!\n";
-    return undef;
-  }
+#   if ($nset==0) {
+#     carp "No monitor points to set!\n";
+#     return undef;
+#   }
 
-  print $mon <<EOF;
-set
-a
-b
-$nset
-EOF
+#   print $mon <<EOF;
+# set
+# a
+# b
+# $nset
+# EOF
 
-  foreach (@setpoints) {
-    print $mon $_->[0], "\t", $_->[1], "\t", $_->[2], "\n";
-  }
+#   foreach (@setpoints) {
+#     print $mon $_->[0], "\t", $_->[1], "\t", $_->[2], "\n";
+#   }
 
-  my %ret = ();
+#   my %ret = ();
 
-  my $ok = 1;
-  my ($state, $point);
-  for (my $i=0; $i<$nset; $i++) {
-    my $line = <$mon>;
-    chomp $line;
-    ($point, $state) = $line =~ /(\S+)\s+(\S+)/;
-    if (!defined $point || !defined $state) {
-      carp "Did not understand server response \"$line\"";
-      return undef;
-    }
-    $ok = 0 if ($state ne 'OK');
-    $ret{$point} = $state;
-  }
+#   my $ok = 1;
+#   my ($state, $point);
+#   for (my $i=0; $i<$nset; $i++) {
+#     my $line = <$mon>;
+#     chomp $line;
+#     ($point, $state) = $line =~ /(\S+)\s+(\S+)/;
+#     if (!defined $point || !defined $state) {
+#       carp "Did not understand server response \"$line\"";
+#       return undef;
+#     }
+#     $ok = 0 if ($state ne 'OK');
+#     $ret{$point} = $state;
+#   }
 
-  if (wantarray) {
-    return %ret;
-  } else {
-    if ($ok) {
-      return 'OK';
-    } else {
-      return 'ERROR';
-    }
-  }
-}
+#   if (wantarray) {
+#     return %ret;
+#   } else {
+#     if ($ok) {
+#       return 'OK';
+#     } else {
+#       return 'ERROR';
+#     }
+#   }
+# }
 
 =item B<bat2cal>
 
