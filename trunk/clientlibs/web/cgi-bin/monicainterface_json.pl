@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+use lib '.';
+
 use strict;
 use CGI;
 use ATNF::MoniCA;
@@ -154,7 +156,7 @@ if ($action eq "points"){
 #	    print bat2cal(mjd2bat($start_mjd)->as_hex)." is starting time\n";
 #	    exit;
  	    # get the data
- 	    my @point_timevals=monsince_new($mon,$start_mjd,$pointname,$maxnper);
+ 	    my @point_timevals=monsince($mon,$start_mjd,$pointname,$maxnper);
 	    # print back the data as JSON
 	    print "{ name: '".$pointname."', data: [";
 	    my $d=0;
@@ -577,69 +579,3 @@ sub description {
     return $self->[3];
 }
 
-package MonFullPoint;
-
-sub new {
-    my $proto=shift;
-    my $class=ref($proto)||$proto;
-    
-    my $monline=shift;
-    my $self=[$monline=~/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)$/];
-    
-    bless ($self,$class);
-}
-
-sub point {
-    my $self=shift;
-    if (@_) { $self->[0] = shift }
-    return $self->[0];
-}
-
-sub bat {
-    my $self=shift;
-    if (@_) { $self->[1] = shift }
-    return $self->[1];
-}
-
-sub val {
-    my $self=shift;
-    if (@_) { $self->[2] = shift }
-    return $self->[2];
-}
-
-sub units {
-    my $self=shift;
-    if (@_) { $self->[3] = shift }
-    return $self->[3];
-}
-
-sub errorstate {
-    my $self=shift;
-    if (@_) { $self->[4] = shift }
-    return $self->[4];
-}
-
-package MonSincePoint;
-
-sub new {
-    my $proto=shift;
-    my $class=ref($proto)||$proto;
-
-    my $monline=shift;
-    my $self=[$monline=~/^(\S+)\s+(\S+)$/];
-    
-    bless ($self,$class);
-}
-
-sub bat {
-    my $self=shift;
-    if (@_) { $self->[0] = shift }
-    return $self->[0];
-}
-
-sub val {
-    my $self=shift;
-    if (@_) { $self->[1] = shift }
-    return $self->[1];
-}
-    
