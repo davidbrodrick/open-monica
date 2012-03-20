@@ -139,7 +139,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
       PointData pd = PointBuffer.getPointData(names[i]);
       PointDataIce pdi;
       if (pd != null) {
-        pdi = MoniCAIceUtil.getPointDataAsIce(PointBuffer.getPointData(names[i]));
+        pdi = MoniCAIceUtil.getPointDataAsIce(pd);
       } else {
         // No data available so create dummy data with null value
         pdi = MoniCAIceUtil.getPointDataAsIce(new PointData(names[i]));
@@ -157,7 +157,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
       PointData pd = PointBuffer.getPreceding(names[i], AbsTime.factory(t));
       PointDataIce pdi;
       if (pd != null) {
-        pdi = MoniCAIceUtil.getPointDataAsIce(PointBuffer.getPointData(names[i]));
+        pdi = MoniCAIceUtil.getPointDataAsIce(pd);
       } else {
         // No data available so create dummy data with null value
         pdi = MoniCAIceUtil.getPointDataAsIce(new PointData(names[i]));
@@ -175,7 +175,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
       PointData pd = PointBuffer.getFollowing(names[i], AbsTime.factory(t));
       PointDataIce pdi;
       if (pd != null) {
-        pdi = MoniCAIceUtil.getPointDataAsIce(PointBuffer.getPointData(names[i]));
+        pdi = MoniCAIceUtil.getPointDataAsIce(pd);
       } else {
         // No data available so create dummy data with null value
         pdi = MoniCAIceUtil.getPointDataAsIce(new PointData(names[i]));
