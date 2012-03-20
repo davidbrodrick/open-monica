@@ -102,6 +102,50 @@ public abstract class MoniCAClient {
    * @return Vector of latest values in same order as argument. */
   public abstract Vector<PointData> getData(Vector<String> pointnames) throws Exception;
 
+  /** Return the last data before the specified timestamp.
+   * @param pointnames Points to obtain data for.
+   * @param t The reference timestamp.
+   * @return Vector of last values in same order as argument. */
+  public PointData getBefore(String pointname, AbsTime t) throws Exception
+  {
+      Vector<String> pointnames = new Vector<String>(1);
+      pointnames.add(pointname);
+      Vector<PointData> data = getBefore(pointnames, t);
+      PointData res=null;
+      if (data!=null&&data.size()>0) {
+        res=data.get(0);
+      }
+      return res;  
+  }
+
+  /** Return the last data before the specified timestamp.
+   * @param pointnames Points to obtain data for.
+   * @param t The reference timestamp.
+   * @return Vector of last values in same order as argument. */
+  public abstract Vector<PointData> getBefore(Vector<String> pointnames, AbsTime t) throws Exception;
+  
+  /** Return the next data after the specified timestamp.
+   * @param pointnames Points to obtain data for.
+   * @param t The reference timestamp.
+   * @return Vector of next values in same order as argument. */
+  public PointData getAfter(String pointname, AbsTime t) throws Exception
+  {
+      Vector<String> pointnames = new Vector<String>(1);
+      pointnames.add(pointname);
+      Vector<PointData> data = getAfter(pointnames, t);
+      PointData res=null;
+      if (data!=null&&data.size()>0) {
+        res=data.get(0);
+      }
+      return res;  
+  }
+  
+  /** Return the next data after the specified timestamp.
+   * @param pointnames Points to obtain data for.
+   * @param t The reference timestamp.
+   * @return Vector of next values in same order as argument. */
+  public abstract Vector<PointData> getAfter(Vector<String> pointnames, AbsTime t) throws Exception;
+  
   /** Return archived data for the given point.
    * @param pointname Point to get data for.
    * @param start The oldest data to be retrieved.

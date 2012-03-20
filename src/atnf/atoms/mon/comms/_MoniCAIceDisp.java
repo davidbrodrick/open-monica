@@ -7,7 +7,7 @@
 //
 // **********************************************************************
 
-// Ice version 3.4.0
+// Ice version 3.4.1
 
 package atnf.atoms.mon.comms;
 
@@ -89,6 +89,12 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
         return addSetup(setup, username, passwd, null);
     }
 
+    public final PointDataIce[]
+    getAfter(String[] names, long t)
+    {
+        return getAfter(names, t, null);
+    }
+
     public final String[]
     getAllPointNames()
     {
@@ -111,6 +117,12 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
     getArchiveData(String[] names, long start, long end, long maxsamples)
     {
         return getArchiveData(names, start, end, maxsamples, null);
+    }
+
+    public final PointDataIce[]
+    getBefore(String[] names, long t)
+    {
+        return getBefore(names, t, null);
     }
 
     public final long
@@ -138,9 +150,9 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
     }
 
     public final boolean
-    setData(String[] names, PointDataIce[] rawvalues, String username, String passwd)
+    setData(String[] names, PointDataIce[] values, String username, String passwd)
     {
-        return setData(names, rawvalues, username, passwd, null);
+        return setData(names, values, username, passwd, null);
     }
 
     public static Ice.DispatchStatus
@@ -238,6 +250,42 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
     }
 
     public static Ice.DispatchStatus
+    ___getBefore(MoniCAIce __obj, IceInternal.Incoming __inS, Ice.Current __current)
+    {
+        __checkMode(Ice.OperationMode.Idempotent, __current.mode);
+        IceInternal.BasicStream __is = __inS.is();
+        __is.startReadEncaps();
+        String[] names;
+        names = stringarrayHelper.read(__is);
+        long t;
+        t = __is.readLong();
+        __is.endReadEncaps();
+        IceInternal.BasicStream __os = __inS.os();
+        PointDataIce[] __ret = __obj.getBefore(names, t, __current);
+        pointdatasetHelper.write(__os, __ret);
+        __os.writePendingObjects();
+        return Ice.DispatchStatus.DispatchOK;
+    }
+
+    public static Ice.DispatchStatus
+    ___getAfter(MoniCAIce __obj, IceInternal.Incoming __inS, Ice.Current __current)
+    {
+        __checkMode(Ice.OperationMode.Idempotent, __current.mode);
+        IceInternal.BasicStream __is = __inS.is();
+        __is.startReadEncaps();
+        String[] names;
+        names = stringarrayHelper.read(__is);
+        long t;
+        t = __is.readLong();
+        __is.endReadEncaps();
+        IceInternal.BasicStream __os = __inS.os();
+        PointDataIce[] __ret = __obj.getAfter(names, t, __current);
+        pointdatasetHelper.write(__os, __ret);
+        __os.writePendingObjects();
+        return Ice.DispatchStatus.DispatchOK;
+    }
+
+    public static Ice.DispatchStatus
     ___setData(MoniCAIce __obj, IceInternal.Incoming __inS, Ice.Current __current)
     {
         __checkMode(Ice.OperationMode.Normal, __current.mode);
@@ -245,8 +293,8 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
         __is.startReadEncaps();
         String[] names;
         names = stringarrayHelper.read(__is);
-        PointDataIce[] rawvalues;
-        rawvalues = pointdatasetHelper.read(__is);
+        PointDataIce[] values;
+        values = pointdatasetHelper.read(__is);
         String username;
         username = __is.readString();
         String passwd;
@@ -254,7 +302,7 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
         __is.readPendingObjects();
         __is.endReadEncaps();
         IceInternal.BasicStream __os = __inS.os();
-        boolean __ret = __obj.setData(names, rawvalues, username, passwd, __current);
+        boolean __ret = __obj.setData(names, values, username, passwd, __current);
         __os.writeBool(__ret);
         return Ice.DispatchStatus.DispatchOK;
     }
@@ -315,10 +363,12 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
     {
         "addPoints",
         "addSetup",
+        "getAfter",
         "getAllPointNames",
         "getAllPoints",
         "getAllSetups",
         "getArchiveData",
+        "getBefore",
         "getCurrentTime",
         "getData",
         "getEncryptionInfo",
@@ -351,53 +401,61 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
             }
             case 2:
             {
-                return ___getAllPointNames(this, in, __current);
+                return ___getAfter(this, in, __current);
             }
             case 3:
             {
-                return ___getAllPoints(this, in, __current);
+                return ___getAllPointNames(this, in, __current);
             }
             case 4:
             {
-                return ___getAllSetups(this, in, __current);
+                return ___getAllPoints(this, in, __current);
             }
             case 5:
             {
-                return ___getArchiveData(this, in, __current);
+                return ___getAllSetups(this, in, __current);
             }
             case 6:
             {
-                return ___getCurrentTime(this, in, __current);
+                return ___getArchiveData(this, in, __current);
             }
             case 7:
             {
-                return ___getData(this, in, __current);
+                return ___getBefore(this, in, __current);
             }
             case 8:
             {
-                return ___getEncryptionInfo(this, in, __current);
+                return ___getCurrentTime(this, in, __current);
             }
             case 9:
             {
-                return ___getPoints(this, in, __current);
+                return ___getData(this, in, __current);
             }
             case 10:
             {
-                return ___ice_id(this, in, __current);
+                return ___getEncryptionInfo(this, in, __current);
             }
             case 11:
             {
-                return ___ice_ids(this, in, __current);
+                return ___getPoints(this, in, __current);
             }
             case 12:
             {
-                return ___ice_isA(this, in, __current);
+                return ___ice_id(this, in, __current);
             }
             case 13:
             {
-                return ___ice_ping(this, in, __current);
+                return ___ice_ids(this, in, __current);
             }
             case 14:
+            {
+                return ___ice_isA(this, in, __current);
+            }
+            case 15:
+            {
+                return ___ice_ping(this, in, __current);
+            }
+            case 16:
             {
                 return ___setData(this, in, __current);
             }

@@ -7,7 +7,7 @@
 //
 // **********************************************************************
 
-// Ice version 3.4.0
+// Ice version 3.4.1
 
 package atnf.atoms.mon.comms;
 
@@ -250,6 +250,122 @@ public final class MoniCAIcePrxHelper extends Ice.ObjectPrxHelperBase implements
         IceInternal.BasicStream __is = __result.__is();
         __is.startReadEncaps();
         __ret = __is.readBool();
+        __is.endReadEncaps();
+        return __ret;
+    }
+
+    public PointDataIce[]
+    getAfter(String[] names, long t)
+    {
+        return getAfter(names, t, null, false);
+    }
+
+    public PointDataIce[]
+    getAfter(String[] names, long t, java.util.Map<String, String> __ctx)
+    {
+        return getAfter(names, t, __ctx, true);
+    }
+
+    private PointDataIce[]
+    getAfter(String[] names, long t, java.util.Map<String, String> __ctx, boolean __explicitCtx)
+    {
+        if(__explicitCtx && __ctx == null)
+        {
+            __ctx = _emptyContext;
+        }
+        int __cnt = 0;
+        while(true)
+        {
+            Ice._ObjectDel __delBase = null;
+            try
+            {
+                __checkTwowayOnly("getAfter");
+                __delBase = __getDelegate(false);
+                _MoniCAIceDel __del = (_MoniCAIceDel)__delBase;
+                return __del.getAfter(names, t, __ctx);
+            }
+            catch(IceInternal.LocalExceptionWrapper __ex)
+            {
+                __cnt = __handleExceptionWrapperRelaxed(__delBase, __ex, null, __cnt);
+            }
+            catch(Ice.LocalException __ex)
+            {
+                __cnt = __handleException(__delBase, __ex, null, __cnt);
+            }
+        }
+    }
+
+    private static final String __getAfter_name = "getAfter";
+
+    public Ice.AsyncResult begin_getAfter(String[] names, long t)
+    {
+        return begin_getAfter(names, t, null, false, null);
+    }
+
+    public Ice.AsyncResult begin_getAfter(String[] names, long t, java.util.Map<String, String> __ctx)
+    {
+        return begin_getAfter(names, t, __ctx, true, null);
+    }
+
+    public Ice.AsyncResult begin_getAfter(String[] names, long t, Ice.Callback __cb)
+    {
+        return begin_getAfter(names, t, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getAfter(String[] names, long t, java.util.Map<String, String> __ctx, Ice.Callback __cb)
+    {
+        return begin_getAfter(names, t, __ctx, true, __cb);
+    }
+
+    public Ice.AsyncResult begin_getAfter(String[] names, long t, Callback_MoniCAIce_getAfter __cb)
+    {
+        return begin_getAfter(names, t, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getAfter(String[] names, long t, java.util.Map<String, String> __ctx, Callback_MoniCAIce_getAfter __cb)
+    {
+        return begin_getAfter(names, t, __ctx, true, __cb);
+    }
+
+    private Ice.AsyncResult begin_getAfter(String[] names, long t, java.util.Map<String, String> __ctx, boolean __explicitCtx, IceInternal.CallbackBase __cb)
+    {
+        __checkAsyncTwowayOnly(__getAfter_name);
+        IceInternal.OutgoingAsync __result = new IceInternal.OutgoingAsync(this, __getAfter_name, __cb);
+        try
+        {
+            __result.__prepare(__getAfter_name, Ice.OperationMode.Idempotent, __ctx, __explicitCtx);
+            IceInternal.BasicStream __os = __result.__os();
+            stringarrayHelper.write(__os, names);
+            __os.writeLong(t);
+            __os.endWriteEncaps();
+            __result.__send(true);
+        }
+        catch(Ice.LocalException __ex)
+        {
+            __result.__exceptionAsync(__ex);
+        }
+        return __result;
+    }
+
+    public PointDataIce[] end_getAfter(Ice.AsyncResult __result)
+    {
+        Ice.AsyncResult.__check(__result, this, __getAfter_name);
+        if(!__result.__wait())
+        {
+            try
+            {
+                __result.__throwUserException();
+            }
+            catch(Ice.UserException __ex)
+            {
+                throw new Ice.UnknownUserException(__ex.ice_name());
+            }
+        }
+        PointDataIce[] __ret;
+        IceInternal.BasicStream __is = __result.__is();
+        __is.startReadEncaps();
+        __ret = pointdatasetHelper.read(__is);
+        __is.readPendingObjects();
         __is.endReadEncaps();
         return __ret;
     }
@@ -711,6 +827,122 @@ public final class MoniCAIcePrxHelper extends Ice.ObjectPrxHelperBase implements
         return __ret;
     }
 
+    public PointDataIce[]
+    getBefore(String[] names, long t)
+    {
+        return getBefore(names, t, null, false);
+    }
+
+    public PointDataIce[]
+    getBefore(String[] names, long t, java.util.Map<String, String> __ctx)
+    {
+        return getBefore(names, t, __ctx, true);
+    }
+
+    private PointDataIce[]
+    getBefore(String[] names, long t, java.util.Map<String, String> __ctx, boolean __explicitCtx)
+    {
+        if(__explicitCtx && __ctx == null)
+        {
+            __ctx = _emptyContext;
+        }
+        int __cnt = 0;
+        while(true)
+        {
+            Ice._ObjectDel __delBase = null;
+            try
+            {
+                __checkTwowayOnly("getBefore");
+                __delBase = __getDelegate(false);
+                _MoniCAIceDel __del = (_MoniCAIceDel)__delBase;
+                return __del.getBefore(names, t, __ctx);
+            }
+            catch(IceInternal.LocalExceptionWrapper __ex)
+            {
+                __cnt = __handleExceptionWrapperRelaxed(__delBase, __ex, null, __cnt);
+            }
+            catch(Ice.LocalException __ex)
+            {
+                __cnt = __handleException(__delBase, __ex, null, __cnt);
+            }
+        }
+    }
+
+    private static final String __getBefore_name = "getBefore";
+
+    public Ice.AsyncResult begin_getBefore(String[] names, long t)
+    {
+        return begin_getBefore(names, t, null, false, null);
+    }
+
+    public Ice.AsyncResult begin_getBefore(String[] names, long t, java.util.Map<String, String> __ctx)
+    {
+        return begin_getBefore(names, t, __ctx, true, null);
+    }
+
+    public Ice.AsyncResult begin_getBefore(String[] names, long t, Ice.Callback __cb)
+    {
+        return begin_getBefore(names, t, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getBefore(String[] names, long t, java.util.Map<String, String> __ctx, Ice.Callback __cb)
+    {
+        return begin_getBefore(names, t, __ctx, true, __cb);
+    }
+
+    public Ice.AsyncResult begin_getBefore(String[] names, long t, Callback_MoniCAIce_getBefore __cb)
+    {
+        return begin_getBefore(names, t, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getBefore(String[] names, long t, java.util.Map<String, String> __ctx, Callback_MoniCAIce_getBefore __cb)
+    {
+        return begin_getBefore(names, t, __ctx, true, __cb);
+    }
+
+    private Ice.AsyncResult begin_getBefore(String[] names, long t, java.util.Map<String, String> __ctx, boolean __explicitCtx, IceInternal.CallbackBase __cb)
+    {
+        __checkAsyncTwowayOnly(__getBefore_name);
+        IceInternal.OutgoingAsync __result = new IceInternal.OutgoingAsync(this, __getBefore_name, __cb);
+        try
+        {
+            __result.__prepare(__getBefore_name, Ice.OperationMode.Idempotent, __ctx, __explicitCtx);
+            IceInternal.BasicStream __os = __result.__os();
+            stringarrayHelper.write(__os, names);
+            __os.writeLong(t);
+            __os.endWriteEncaps();
+            __result.__send(true);
+        }
+        catch(Ice.LocalException __ex)
+        {
+            __result.__exceptionAsync(__ex);
+        }
+        return __result;
+    }
+
+    public PointDataIce[] end_getBefore(Ice.AsyncResult __result)
+    {
+        Ice.AsyncResult.__check(__result, this, __getBefore_name);
+        if(!__result.__wait())
+        {
+            try
+            {
+                __result.__throwUserException();
+            }
+            catch(Ice.UserException __ex)
+            {
+                throw new Ice.UnknownUserException(__ex.ice_name());
+            }
+        }
+        PointDataIce[] __ret;
+        IceInternal.BasicStream __is = __result.__is();
+        __is.startReadEncaps();
+        __ret = pointdatasetHelper.read(__is);
+        __is.readPendingObjects();
+        __is.endReadEncaps();
+        return __ret;
+    }
+
     public long
     getCurrentTime()
     {
@@ -1167,19 +1399,19 @@ public final class MoniCAIcePrxHelper extends Ice.ObjectPrxHelperBase implements
     }
 
     public boolean
-    setData(String[] names, PointDataIce[] rawvalues, String username, String passwd)
+    setData(String[] names, PointDataIce[] values, String username, String passwd)
     {
-        return setData(names, rawvalues, username, passwd, null, false);
+        return setData(names, values, username, passwd, null, false);
     }
 
     public boolean
-    setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, java.util.Map<String, String> __ctx)
+    setData(String[] names, PointDataIce[] values, String username, String passwd, java.util.Map<String, String> __ctx)
     {
-        return setData(names, rawvalues, username, passwd, __ctx, true);
+        return setData(names, values, username, passwd, __ctx, true);
     }
 
     private boolean
-    setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, java.util.Map<String, String> __ctx, boolean __explicitCtx)
+    setData(String[] names, PointDataIce[] values, String username, String passwd, java.util.Map<String, String> __ctx, boolean __explicitCtx)
     {
         if(__explicitCtx && __ctx == null)
         {
@@ -1194,7 +1426,7 @@ public final class MoniCAIcePrxHelper extends Ice.ObjectPrxHelperBase implements
                 __checkTwowayOnly("setData");
                 __delBase = __getDelegate(false);
                 _MoniCAIceDel __del = (_MoniCAIceDel)__delBase;
-                return __del.setData(names, rawvalues, username, passwd, __ctx);
+                return __del.setData(names, values, username, passwd, __ctx);
             }
             catch(IceInternal.LocalExceptionWrapper __ex)
             {
@@ -1209,37 +1441,37 @@ public final class MoniCAIcePrxHelper extends Ice.ObjectPrxHelperBase implements
 
     private static final String __setData_name = "setData";
 
-    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] rawvalues, String username, String passwd)
+    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] values, String username, String passwd)
     {
-        return begin_setData(names, rawvalues, username, passwd, null, false, null);
+        return begin_setData(names, values, username, passwd, null, false, null);
     }
 
-    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, java.util.Map<String, String> __ctx)
+    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] values, String username, String passwd, java.util.Map<String, String> __ctx)
     {
-        return begin_setData(names, rawvalues, username, passwd, __ctx, true, null);
+        return begin_setData(names, values, username, passwd, __ctx, true, null);
     }
 
-    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, Ice.Callback __cb)
+    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] values, String username, String passwd, Ice.Callback __cb)
     {
-        return begin_setData(names, rawvalues, username, passwd, null, false, __cb);
+        return begin_setData(names, values, username, passwd, null, false, __cb);
     }
 
-    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, java.util.Map<String, String> __ctx, Ice.Callback __cb)
+    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] values, String username, String passwd, java.util.Map<String, String> __ctx, Ice.Callback __cb)
     {
-        return begin_setData(names, rawvalues, username, passwd, __ctx, true, __cb);
+        return begin_setData(names, values, username, passwd, __ctx, true, __cb);
     }
 
-    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, Callback_MoniCAIce_setData __cb)
+    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] values, String username, String passwd, Callback_MoniCAIce_setData __cb)
     {
-        return begin_setData(names, rawvalues, username, passwd, null, false, __cb);
+        return begin_setData(names, values, username, passwd, null, false, __cb);
     }
 
-    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, java.util.Map<String, String> __ctx, Callback_MoniCAIce_setData __cb)
+    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] values, String username, String passwd, java.util.Map<String, String> __ctx, Callback_MoniCAIce_setData __cb)
     {
-        return begin_setData(names, rawvalues, username, passwd, __ctx, true, __cb);
+        return begin_setData(names, values, username, passwd, __ctx, true, __cb);
     }
 
-    private Ice.AsyncResult begin_setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, java.util.Map<String, String> __ctx, boolean __explicitCtx, IceInternal.CallbackBase __cb)
+    private Ice.AsyncResult begin_setData(String[] names, PointDataIce[] values, String username, String passwd, java.util.Map<String, String> __ctx, boolean __explicitCtx, IceInternal.CallbackBase __cb)
     {
         __checkAsyncTwowayOnly(__setData_name);
         IceInternal.OutgoingAsync __result = new IceInternal.OutgoingAsync(this, __setData_name, __cb);
@@ -1248,7 +1480,7 @@ public final class MoniCAIcePrxHelper extends Ice.ObjectPrxHelperBase implements
             __result.__prepare(__setData_name, Ice.OperationMode.Normal, __ctx, __explicitCtx);
             IceInternal.BasicStream __os = __result.__os();
             stringarrayHelper.write(__os, names);
-            pointdatasetHelper.write(__os, rawvalues);
+            pointdatasetHelper.write(__os, values);
             __os.writeString(username);
             __os.writeString(passwd);
             __os.writePendingObjects();

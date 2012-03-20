@@ -7,7 +7,7 @@
 //
 // **********************************************************************
 
-// Ice version 3.4.0
+// Ice version 3.4.1
 
 package atnf.atoms.mon.comms;
 
@@ -130,21 +130,57 @@ public interface MoniCAIcePrx extends Ice.ObjectPrx
 
     public PointDataIce[] end_getData(Ice.AsyncResult __result);
 
-    public boolean setData(String[] names, PointDataIce[] rawvalues, String username, String passwd);
+    public PointDataIce[] getBefore(String[] names, long t);
 
-    public boolean setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, java.util.Map<String, String> __ctx);
+    public PointDataIce[] getBefore(String[] names, long t, java.util.Map<String, String> __ctx);
 
-    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] rawvalues, String username, String passwd);
+    public Ice.AsyncResult begin_getBefore(String[] names, long t);
 
-    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, java.util.Map<String, String> __ctx);
+    public Ice.AsyncResult begin_getBefore(String[] names, long t, java.util.Map<String, String> __ctx);
 
-    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, Ice.Callback __cb);
+    public Ice.AsyncResult begin_getBefore(String[] names, long t, Ice.Callback __cb);
 
-    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, java.util.Map<String, String> __ctx, Ice.Callback __cb);
+    public Ice.AsyncResult begin_getBefore(String[] names, long t, java.util.Map<String, String> __ctx, Ice.Callback __cb);
 
-    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, Callback_MoniCAIce_setData __cb);
+    public Ice.AsyncResult begin_getBefore(String[] names, long t, Callback_MoniCAIce_getBefore __cb);
 
-    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, java.util.Map<String, String> __ctx, Callback_MoniCAIce_setData __cb);
+    public Ice.AsyncResult begin_getBefore(String[] names, long t, java.util.Map<String, String> __ctx, Callback_MoniCAIce_getBefore __cb);
+
+    public PointDataIce[] end_getBefore(Ice.AsyncResult __result);
+
+    public PointDataIce[] getAfter(String[] names, long t);
+
+    public PointDataIce[] getAfter(String[] names, long t, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_getAfter(String[] names, long t);
+
+    public Ice.AsyncResult begin_getAfter(String[] names, long t, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_getAfter(String[] names, long t, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_getAfter(String[] names, long t, java.util.Map<String, String> __ctx, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_getAfter(String[] names, long t, Callback_MoniCAIce_getAfter __cb);
+
+    public Ice.AsyncResult begin_getAfter(String[] names, long t, java.util.Map<String, String> __ctx, Callback_MoniCAIce_getAfter __cb);
+
+    public PointDataIce[] end_getAfter(Ice.AsyncResult __result);
+
+    public boolean setData(String[] names, PointDataIce[] values, String username, String passwd);
+
+    public boolean setData(String[] names, PointDataIce[] values, String username, String passwd, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] values, String username, String passwd);
+
+    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] values, String username, String passwd, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] values, String username, String passwd, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] values, String username, String passwd, java.util.Map<String, String> __ctx, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] values, String username, String passwd, Callback_MoniCAIce_setData __cb);
+
+    public Ice.AsyncResult begin_setData(String[] names, PointDataIce[] values, String username, String passwd, java.util.Map<String, String> __ctx, Callback_MoniCAIce_setData __cb);
 
     public boolean end_setData(Ice.AsyncResult __result);
 

@@ -7,7 +7,7 @@
 //
 // **********************************************************************
 
-// Ice version 3.4.0
+// Ice version 3.4.1
 
 package atnf.atoms.mon.comms;
 
@@ -60,17 +60,23 @@ public class PointDataIce implements java.lang.Cloneable, java.io.Serializable
 
         if(_r != null)
         {
-            if(name != _r.name && name != null && !name.equals(_r.name))
+            if(name != _r.name)
             {
-                return false;
+                if(name == null || _r.name == null || !name.equals(_r.name))
+                {
+                    return false;
+                }
             }
             if(timestamp != _r.timestamp)
             {
                 return false;
             }
-            if(value != _r.value && value != null && !value.equals(_r.value))
+            if(value != _r.value)
             {
-                return false;
+                if(value == null || _r.value == null || !value.equals(_r.value))
+                {
+                    return false;
+                }
             }
             if(alarm != _r.alarm)
             {

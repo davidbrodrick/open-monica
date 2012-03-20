@@ -7,7 +7,7 @@
 //
 // **********************************************************************
 
-// Ice version 3.4.0
+// Ice version 3.4.1
 
 package atnf.atoms.mon.comms;
 
@@ -40,7 +40,13 @@ public interface _MoniCAIceDel extends Ice._ObjectDel
     PointDataIce[] getData(String[] names, java.util.Map<String, String> __ctx)
         throws IceInternal.LocalExceptionWrapper;
 
-    boolean setData(String[] names, PointDataIce[] rawvalues, String username, String passwd, java.util.Map<String, String> __ctx)
+    PointDataIce[] getBefore(String[] names, long t, java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper;
+
+    PointDataIce[] getAfter(String[] names, long t, java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper;
+
+    boolean setData(String[] names, PointDataIce[] values, String username, String passwd, java.util.Map<String, String> __ctx)
         throws IceInternal.LocalExceptionWrapper;
 
     String[] getAllSetups(java.util.Map<String, String> __ctx)

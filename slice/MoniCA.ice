@@ -5,6 +5,8 @@ module atnf {
         ////////////
         //Data structure definitions
         sequence<string> stringarray;
+        sequence<int>    intarray;
+        sequence<float>  floatarray;
 
         //PointDescriptionIce contains pickled fields which fully describe
         //a specific point
@@ -58,6 +60,12 @@ module atnf {
         class DataValueAngle extends DataValue {
           double value;
         };
+        class DataValueFloatArray extends DataValue {
+          floatarray value;
+        };        
+        class DataValueIntArray extends DataValue {
+          intarray value;
+        };
         
         //PointDataIce encapsulates a single record/datum
         struct PointDataIce {
@@ -100,6 +108,10 @@ module atnf {
           idempotent pointdatasetarray getArchiveData(stringarray names, long start, long end, long maxsamples);
           //Get latest data for the given points
           idempotent pointdataset getData(stringarray names);
+          //Get the last updates which were before the specified time
+          idempotent pointdataset getBefore(stringarray names, long t);
+          //Get the next updates which were after the specified time
+          idempotent pointdataset getAfter(stringarray names, long t);          
           //Set new values for the given points
           //If israw is true then translation will be applied to the specified values
           bool setData(stringarray names, pointdataset values, string username, string passwd);

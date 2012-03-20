@@ -7,7 +7,7 @@
 //
 // **********************************************************************
 
-// Ice version 3.4.0
+// Ice version 3.4.1
 
 package atnf.atoms.mon.comms;
 
@@ -34,7 +34,11 @@ public interface _MoniCAIceOperationsNC
 
     PointDataIce[] getData(String[] names);
 
-    boolean setData(String[] names, PointDataIce[] rawvalues, String username, String passwd);
+    PointDataIce[] getBefore(String[] names, long t);
+
+    PointDataIce[] getAfter(String[] names, long t);
+
+    boolean setData(String[] names, PointDataIce[] values, String username, String passwd);
 
     String[] getAllSetups();
 

@@ -7,7 +7,7 @@
 //
 // **********************************************************************
 
-// Ice version 3.4.0
+// Ice version 3.4.1
 
 package atnf.atoms.mon.comms;
 
@@ -91,21 +91,33 @@ public class PointDescriptionIce implements java.lang.Cloneable, java.io.Seriali
             {
                 return false;
             }
-            if(source != _r.source && source != null && !source.equals(_r.source))
+            if(source != _r.source)
             {
-                return false;
+                if(source == null || _r.source == null || !source.equals(_r.source))
+                {
+                    return false;
+                }
             }
-            if(description != _r.description && description != null && !description.equals(_r.description))
+            if(description != _r.description)
             {
-                return false;
+                if(description == null || _r.description == null || !description.equals(_r.description))
+                {
+                    return false;
+                }
             }
-            if(shortdescription != _r.shortdescription && shortdescription != null && !shortdescription.equals(_r.shortdescription))
+            if(shortdescription != _r.shortdescription)
             {
-                return false;
+                if(shortdescription == null || _r.shortdescription == null || !shortdescription.equals(_r.shortdescription))
+                {
+                    return false;
+                }
             }
-            if(units != _r.units && units != null && !units.equals(_r.units))
+            if(units != _r.units)
             {
-                return false;
+                if(units == null || _r.units == null || !units.equals(_r.units))
+                {
+                    return false;
+                }
             }
             if(enabled != _r.enabled)
             {
