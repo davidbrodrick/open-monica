@@ -87,7 +87,7 @@ public class PointResource extends ServerResource {
 			AbsTime t = AbsTime.factory(getQuery().getFirst("after").getValue());
 			PointData pointData;
 			try {
-				pointData = getClient().getBefore(pointName, t);
+				pointData = getClient().getAfter(pointName, t);
 			} catch (Exception e) {
 				System.err.println(e);
 				pointData = null;
