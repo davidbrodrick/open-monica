@@ -390,68 +390,68 @@ sub monpoll2 ($@) {
     }
 }
 
-=item B<monset>
+# =item B<monset>
 
-		my $setresult = monset($mon, $user, $pass, $monsetpoint);
-    my @setresults = monset($mon, $user, $pass, @monsetpoints);
+# 		my $setresult = monset($mon, $user, $pass, $monsetpoint);
+#     my @setresults = monset($mon, $user, $pass, @monsetpoints);
 
-Calls the "set" function, returning the same set of points with their
-success values filled.
+# Calls the "set" function, returning the same set of points with their
+# success values filled.
 
-		$mon          Monitor server.
-		$monsetpoint  A filled-in MonSetPoint object.
-		@monsetpoints An array of filled-in MonSetPoint objects.
-=cut
+# 		$mon          Monitor server.
+# 		$monsetpoint  A filled-in MonSetPoint object.
+# 		@monsetpoints An array of filled-in MonSetPoint objects.
+# =cut
 
-sub monset ($$$@) {
-		my $mon=shift;
-		my $user=shift;
-		my $pass=shift;
-		my @monsetpoints=@_;
-		my $nset = scalar(@monsetpoints);
+# sub monset ($$$@) {
+# 		my $mon=shift;
+# 		my $user=shift;
+# 		my $pass=shift;
+# 		my @monsetpoints=@_;
+# 		my $nset = scalar(@monsetpoints);
 
-		if ($nset == 0) {
-				warn "No monitoring set points specified!\n";
-				return undef;
-		}
+# 		if ($nset == 0) {
+# 				warn "No monitoring set points specified!\n";
+# 				return undef;
+# 		}
 
-		# Check all the information is there for each point.
-		my $allok = 1;
-		for (my $i=0; $i<$nset; $i++) {
-				if (!defined $monsetpoints[$i]->point ||
-						!defined $monsetpoints[$i]->val ||
-						!defined $monsetpoints[$i]->type) {
-						$allok = 0;
-				}
-		}
+# 		# Check all the information is there for each point.
+# 		my $allok = 1;
+# 		for (my $i=0; $i<$nset; $i++) {
+# 				if (!defined $monsetpoints[$i]->point ||
+# 						!defined $monsetpoints[$i]->val ||
+# 						!defined $monsetpoints[$i]->type) {
+# 						$allok = 0;
+# 				}
+# 		}
 
-		if ($allok == 1) {
-				print $mon "set\n";
-				print $mon "$user\n";
-				print $mon "$pass\n";
-				print $mon "$nset\n";
-				foreach (@monsetpoints) {
-						print $mon $_->point."\t".$_->type."\t".$_->val."\n";
-				}
-		}
+# 		if ($allok == 1) {
+# 				print $mon "set\n";
+# 				print $mon "$user\n";
+# 				print $mon "$pass\n";
+# 				print $mon "$nset\n";
+# 				foreach (@monsetpoints) {
+# 						print $mon $_->point."\t".$_->type."\t".$_->val."\n";
+# 				}
+# 		}
 
-		my @vals=();
-		for (my $i=0;$i<$nset;$i++) {
-				my $line=<$mon>;
-				if ($line=~/OK$/) {
-						$monsetpoints[$i]->success=1;
-				} else {
-						$monsetpoints[$i]->success=0;
-				}
-		}
+# 		my @vals=();
+# 		for (my $i=0;$i<$nset;$i++) {
+# 				my $line=<$mon>;
+# 				if ($line=~/OK$/) {
+# 						$monsetpoints[$i]->success=1;
+# 				} else {
+# 						$monsetpoints[$i]->success=0;
+# 				}
+# 		}
 
-		if (wantarray) {
-				return @monsetpoints;
-		} else {
-				return $monsetpoints[0];
-		}
+# 		if (wantarray) {
+# 				return @monsetpoints;
+# 		} else {
+# 				return $monsetpoints[0];
+# 		}
 
-}
+# }
 
 =item B<monsince>
 
