@@ -646,7 +646,6 @@ var timeSeries = function(spec, my) {
    * @param {object} pointRef A reference to the point that has been updated.
    */
   that.updatePlot = function(pointRef) {
-    console.log('updating plot');
     // Get the details about the point we've been called for.
     pDetails = pointRef.getPointDetails();
     // Find the appropriate series.
@@ -1011,7 +1010,6 @@ var pointTable = function(spec, my) {
    *                          more details about it.
    */
   that.updateTable = function(pointRef) {
-    console.log('updating table');
     pDetails = pointRef.getPointDetails();
     idPrefix = makeSafeId(pDetails.name);
     pState = pointRef.latestValue();
