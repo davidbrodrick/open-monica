@@ -223,7 +223,13 @@ This method is used to tell the server to forget about the point references list
 var pointReferences = server.getPoints(pointsList);
 }}}
 
-This method is used to get references to the `monicaPoint` objects for points that have previously been added with the `addPoints` method. The method can be passed either a single `String` for `pointsList`, or an array of `String`s. Each `String` should be the name of a MoniCA point that you want the reference for. The method will return either a single `monicaPoint` object, if it was passed a single `String`, or an array of `monicaPoint`s the same length of the `pointsList` array. For any point that isn't being handled by the server, a `null` value will be returned.
+This method is used to get references to the `monicaPoint` objects for points that have previously been added with the `addPoints` method. The method can be passed either a single `String` for `pointsList`, or an array of `String`s. Each `String` should be the name of a MoniCA point that you want the reference for.
+
+The return value for this method is as follows:
+  * If the method was passed a single `String` - being the name of a MoniCA point - and the `monicaServer` object has only a single `monicaPoint` object related to that point, it will return a single `monicaPoint` reference.
+  * If the method was passed a single `String` - being the name of a MoniCA point - and the `monicaServer` object has more than one `monicaPoint` object related to that point (ie. both a point-value and a time-series object), it will return an array of `monicaPoint` references.
+  * If the method was passed an array of `String`s - each being the name of a MoniCA point - each element of the return array may be either a single `monicaPoint` reference or an array of `monicaPoint` references, based on the two rules above.
+  * For any point that isn't being handled by the `monicaServer` object, a `null` value will be returned.
 
 ===== addTimeSeries =====
 
