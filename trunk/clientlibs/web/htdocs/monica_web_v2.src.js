@@ -42,9 +42,12 @@ var monicaServer = function(spec, my) {
    * Some general purpose private variables.
    */
   // some counters for various functions
-  var aPi, hPi, gDi, pPDi, rUi, aTULi, uPi, pPVi, iPi, gPi;
+  var aPi, hPi, gDi, pPDi, rUi, aTULi, uPi, pPVi, iPi, gPi, pPVj, pPDj, aPj;
   // an array of point references to return to the add points caller.
   var pointReferences = [];
+  
+  // Variables in addPoints.
+  var canAdd, tempAdd;
 
   // Variables in parsePointDescriptions.
   var descrRef;
@@ -162,6 +165,13 @@ var monicaServer = function(spec, my) {
    */
   var requireUpdating = [];
 
+  /**
+   * The list of point references who are just about to receive data,
+   * in the order this module has requested them.
+   * @type {array}
+   */
+  var updatesArriving = [];
+  
 	/**
 	 * Our deferred promise for when we're loading.
 	 * @type {Deferred}
@@ -251,20 +261,28 @@ var monicaServer = function(spec, my) {
    *                        or a point reference.
    */
   var hasPoint = function(name) {
+    var retArr = [];
     for (hPi = 0; hPi < points.length; hPi++) {
       if (dojo.isString(name) === true) {
         if (name === points[hPi].getPointDetails().name) {
-			    return points[hPi];
+			    // return points[hPi];
+          retArr.push(points[hPi]);
         }
       } else {
         if (name === points[hPi]) {
-          return {
+          // return {
+          retArr.push({
             pointRef: points[hPi],
             index: hPi
-          };
+          });
         }
       }
     }
+
+    if (retArr.length > 0) {
+      return retArr;
+    }
+
     return undefined;
   };
 
@@ -285,10 +303,12 @@ var monicaServer = function(spec, my) {
   var removePoint = function(pointRef) {
     if (typeof pointRef !== 'undefined') {
       rPref = hasPoint(pointRef);
-      if (rPref.pointRef === pointRef) {
+      // hasPoint returns an array, but should really be able to return
+      // only a single value when dealing with a reference.
+      if (rPref[0].pointRef === pointRef) {
         // Do some cleanup before we get rid of it.
         pointRef.stopTimer();
-        points.splice(rPref.index, 1);
+        points.splice(rPref[0].index, 1);
       }
     }      
   };
@@ -305,7 +325,9 @@ var monicaServer = function(spec, my) {
       for (pPDi = 0; pPDi < data.data.length; pPDi++) {
 				descrRef = hasPoint(data.data[pPDi].pointName);
 				if (descrRef !== undefined) {
-					descrRef.setPointDetails(data.data[pPDi]);
+          for (pPDj = 0; pPDj < descrRef.length; pPDj++) {
+				    descrRef[pPDj].setPointDetails(data.data[pPDi]);
+          }
 				}
       }
     }
@@ -398,12 +420,28 @@ var monicaServer = function(spec, my) {
   };
 
   /**
+   * Convert a length 1 array into a single value.
+   * @param {array} tArr The array that may have a length of one.
+   */
+  var reduceArray = function(tArr) {
+    if (dojo.isArray(tArr) !== 'true') {
+      return tArr;
+    }
+    if (tArr.length === 1) {
+      return tArr[0];
+    } else {
+      return tArr;
+    }
+  };
+  
+  /**
    * Get values for all the points that require updating.
    */
   var updatePoints = function() {
     // Make a string to request the point values.
     pollString = '';
     pollAdded = 0;
+    updatesArriving = [];
     for (uPi = 0; uPi < requireUpdating.length; uPi++) {
       if (requireUpdating[uPi].isTimeSeries() === true &&
 					requireUpdating[uPi].timeSeriesInitialised() === false) {
@@ -424,6 +462,7 @@ var monicaServer = function(spec, my) {
 				} // We don't append anything for string time, since this is the
 				// the default behaviour, and we can save on bandwidth.
 				pollAdded++;
+        updatesArriving.push(requireUpdating[uPi]);
       }
     }
 
@@ -475,7 +514,16 @@ var monicaServer = function(spec, my) {
 						// MoniCA ASCII interface backwards error boolean.
 						data.pointData[pPVi].errorState =
 							!data.pointData[pPVi].errorState;
-						valRef.updateValue(data.pointData[pPVi]);
+            for (pPVj = 0; pPVj < valRef.length; pPVj++) {
+              // Check for an array of possible updaters.
+              if (valRef.length > 1) {
+                // Check that the right point gets the update.
+                if (valRef[pPVj] !== updatesArriving[pPVi]) {
+                  continue;
+                }
+              }
+					    valRef[pPVj].updateValue(data.pointData[pPVi]);
+            }
 					}
 				}
       }
@@ -577,9 +625,22 @@ var monicaServer = function(spec, my) {
     pointReferences = [];
     for (aPi = 0; aPi < newPoints.length; aPi++) {
       // Check if we have this point already.
-      pointReferences[aPi] = hasPoint(newPoints[aPi]);
+      tempAdd = hasPoint(newPoints[aPi]);
       // And make a new point if we don't.
-      if (pointReferences[aPi] === undefined) {
+      canAdd = true;
+      if (tempAdd !== undefined) {
+        // There is already a point with this name, but it may
+        // be a time series.
+        for (aPj = 0; aPj < tempAdd.length; aPj++) {
+          if (tempAdd[aPj].isTimeSeries() === false) {
+            // This is a point reference, so we don't need to add
+            // this point.
+            canAdd = false;
+            pointReferences[aPi] = tempAdd[aPj];
+          }
+        }
+      }
+      if (canAdd === true) {
 				pointReferences[aPi] = monicaPoint({
 						pointName: newPoints[aPi]
 				}, that);
@@ -615,14 +676,14 @@ var monicaServer = function(spec, my) {
 	 */
 	that.getPoints = function(pointNames) {
 		if (dojo.isArray(pointNames)) {
-			// Get the reference for each point name.
+			// Get the references for each point name.
 			for (gPi = 0; gPi < pointNames.length; gPi++) {
-				retArr[gPi] = hasPoint(pointNames[gPi]);
+				retArr[gPi] = reduceArray(hasPoint(pointNames[gPi]));
 			}
 			
 			return retArr;
 		} else if (dojo.isString(pointNames)) {
-			return hasPoint(pointNames);
+			return reduceArray(hasPoint(pointNames));
 		} else {
 			return null;
 		}
@@ -942,6 +1003,12 @@ var monicaPoint = function(spec, my) {
    * Add ourselves to our server's update list.
    */
   var requestUpdate = function() {
+    // Check if we should be requesting an update yet.
+    if (that.isTimeSeries() === true &&
+        that.timeSeriesInitialised() === false) {
+      // We're not ready for updates yet.
+      return;
+    }
     serverObject.requestUpdate( [that] );
   };
 

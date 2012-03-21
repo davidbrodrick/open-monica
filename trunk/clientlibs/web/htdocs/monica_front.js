@@ -646,6 +646,7 @@ var timeSeries = function(spec, my) {
    * @param {object} pointRef A reference to the point that has been updated.
    */
   that.updatePlot = function(pointRef) {
+    console.log('updating plot');
     // Get the details about the point we've been called for.
     pDetails = pointRef.getPointDetails();
     // Find the appropriate series.
@@ -666,7 +667,7 @@ var timeSeries = function(spec, my) {
     } else {
       // We only need to get the latest data point.
       nv = pointRef.latestValue({
-	valueAsDecimalDegrees: true
+	        valueAsDecimalDegrees: true
       });
       // Add the new value to the plot.
       pointFound.chartSeries.addPoint(
@@ -1010,6 +1011,7 @@ var pointTable = function(spec, my) {
    *                          more details about it.
    */
   that.updateTable = function(pointRef) {
+    console.log('updating table');
     pDetails = pointRef.getPointDetails();
     idPrefix = makeSafeId(pDetails.name);
     pState = pointRef.latestValue();
@@ -1026,6 +1028,9 @@ var pointTable = function(spec, my) {
     } else {
       dojo.removeClass(idPrefix, 'inError');
     }
+    
+    // Need a return here to allow the next callback to operate.
+    return;
   };
 
   /**
@@ -1372,7 +1377,8 @@ var displayHandler = function(spec, my) {
 function init() {
   // Set up a MoniCA object.
   var setupOptions = {
-    updateInterval: 4000
+    updateInterval: 4000,
+    serverName: 'monhost-pks'
   };
   var monica = monicaServer(setupOptions);
 
@@ -1512,7 +1518,7 @@ function init() {
 	var dMinutes = (todaysDate.getUTCMinutes() < 10) ?
 	  '0' + todaysDate.getUTCMinutes() : todaysDate.getUTCMinutes();
 	dojo.attr(aId + 'StartTimeTime', 'value',
-	  dHours + ':' + dMinutes + ':00');
+    dHours + ':' + dMinutes + ':00');
 	if (cOptions.startTime === -1) {
 	  // Disable the
 	}
@@ -1543,13 +1549,13 @@ function init() {
       isoFormat: isoFormatter,
       value: '',
       postMixInProperties: function() {
-	this.inherited(arguments);
-	// Convert our value to the Date object.
-	this.value = dojo.date.locale.parse(this.value,
-					    this.isoFormat);
+	      this.inherited(arguments);
+	      // Convert our value to the Date object.
+	      this.value = dojo.date.locale.parse(this.value,
+				this.isoFormat);
       },
       serialize: function(dateObject, options) {
-	return dojo.date.locale.format(dateObject, this.isoFormat);
+	      return dojo.date.locale.format(dateObject, this.isoFormat);
       }
     }
   );
