@@ -949,7 +949,8 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
 
   /** Get all points (excluding aliases). */
   public static synchronized PointDescription[] getAllUniquePoints() {
-    return (PointDescription[]) theirUniquePoints.values().toArray();
+    Object[] pointobjarr = theirUniquePoints.values().toArray();    
+    return Arrays.copyOf(pointobjarr, pointobjarr.length, PointDescription[].class);
   }
 
   /** Check if the point with the specified name exists */

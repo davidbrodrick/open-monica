@@ -22,6 +22,7 @@ import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import atnf.atoms.mon.PointData;
 import atnf.atoms.time.AbsTime;
 import atnf.atoms.time.RelTime;
 
@@ -343,5 +344,85 @@ public abstract class MonitorUtils {
       throw new IllegalArgumentException("Could not interpret input as a boolean");
     }
     return res;
+  }
+  
+  /** Find the index of the first PointData with a timestamp after the one specified. 
+   * @return -1 if no suitable data could be found. */
+  public static int getNextPointData(Vector<PointData> data, AbsTime ts) {
+    synchronized (data) {
+      System.err.println("Seeking first point after " + ts.toString(AbsTime.Format.UTC_STRING));
+      for (int i=0; i<data.size(); i++ ) {
+        //System.err.println(i + " " + data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING));
+      }
+    int fullsize = data.size();
+    // Handle special cases
+    if (data.get(0).getTimestamp().isAfter(ts)) {
+      // All data is after the reference time
+      return 0;
+    }
+    if (data.get(fullsize-1).getTimestamp().isBeforeOrEquals(ts)) {
+      // No data is after the reference time
+      return -1;
+    }
+      
+    int start = 0;
+    int end = fullsize - 1;
+    
+    while ((end-start)>1) {
+      int mid = start + (end - start)/2;      
+      if (data.get(mid).getTimestamp().isBeforeOrEquals(ts)) {
+        start = mid + 1;
+      } else {
+        end = mid;
+      }
+      System.err.println("Checking span start=" + start + ", end=" + end);
+    }
+    if (data.get(start).getTimestamp().isBeforeOrEquals(ts)) {
+      // Next element is the final result
+      start++;
+    }
+    System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
+    return start;
+    }
+  }
+
+  /** Find the index of the first PointData with a timestamp before or equal to the one specified. 
+   * @return -1 if no suitable data could be found. */
+  public static int getPrevEqualsPointData(Vector<PointData> data, AbsTime ts) {
+    synchronized (data) {
+      System.err.println("Seeking first point before or equals " + ts.toString(AbsTime.Format.UTC_STRING));
+      for (int i=0; i<data.size(); i++ ) {
+        //System.err.println(i + " " + data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING));
+      }
+    int fullsize = data.size();
+    // Handle special cases
+    if (data.get(fullsize-1).getTimestamp().isBeforeOrEquals(ts)) {
+      // All data is before the reference time
+      return fullsize-1;
+    }
+    if (data.get(0).getTimestamp().isAfter(ts)) {
+      // No data is before the reference time
+      return -1;
+    }
+      
+    int start = 0;
+    int end = fullsize - 1;
+    
+    while ((end-start)>1) {
+      int mid = start + (end - start)/2;      
+      if (data.get(mid).getTimestamp().isBeforeOrEquals(ts)) {
+        start = mid;
+      } else {
+        end = mid - 1;
+      }
+      System.err.println("Checking span start=" + start + ", end=" + end);
+    }
+    //if (data.get(start).getTimestamp().isBeforeOrEquals(ts)) {
+      // Next element is the final result
+    //  start++;
+    //}
+    System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
+    return start;
+    }
   }
 }
