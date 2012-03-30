@@ -9,6 +9,7 @@
 package atnf.atoms.mon.gui.monpanel;
 
 import atnf.atoms.mon.*;
+import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.mon.gui.*;
 import atnf.atoms.mon.client.*;
 import atnf.atoms.time.*;
@@ -644,7 +645,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 	/** Each entry is a Vector containing the data for an individual row. */
 	protected Vector itsRows = new Vector();
 	/** Contains all the data. */
-	protected Vector itsData = new Vector();
+	protected Vector<Vector<PointData>> itsData = new Vector<Vector<PointData>>();
 	/** Indicates that the worker thread should continue to run. */
 	protected boolean itsKeepRunning = true;
 	/** Indicates if we've just been configured to show a different setup. */
@@ -1081,18 +1082,28 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 			AbsTime nexttime = null;
 			if (itsFirstRow) {
 				// Next row will correspond to the next update of column 1
-				Vector v = (Vector) itsData.get(0);
+			  Vector<PointData> v = itsData.get(0);
 				if (v == null || v.size() == 0) {
 					return null;
 				}
-				for (int i = 0; i < v.size(); i++) {
+				if (lasttime == null) {
+				  // First row				  
+				  nexttime = v.firstElement().getTimestamp();
+				} else {
+				  int nexti = MonitorUtils.getNextPointData(v, lasttime);
+				  if (nexti!=-1) {
+				    // Found the next row
+				    nexttime = v.get(nexti).getTimestamp();
+				  }
+				}
+				/*for (int i = 0; i < v.size(); i++) {
 					PointData pd = (PointData) v.get(i);
 					AbsTime thistime = pd.getTimestamp();
 					if (lasttime == null || thistime.isAfter(lasttime)) {
 						nexttime = thistime;
 						break;
 					}
-				}
+				}*/
 			} else if (itsNewRow) {
 				// Next row will correspond to next update of any column
 				AbsTime earliest = null;
@@ -1163,24 +1174,29 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 
 			boolean founddata = false;
 			for (int i = 0; i < itsData.size(); i++) {
-				Vector v = (Vector) itsData.get(i);
+				Vector<PointData> v = itsData.get(i);
 				if (v == null || v.size() == 0) {
 					res.add(null);
 					continue;
 				}
-				for (int j = v.size() - 1; j >= 0; j--) {
+				int previ = MonitorUtils.getPrevEqualsPointData(v, nexttime);
+				if (previ==-1) {
+				  res.add(null);
+				} else {
+          res.add(v.get(previ).getData());
+          founddata = true;				  
+				}
+				/*for (int j = v.size() - 1; j >= 0; j--) {
 					PointData pd = (PointData) v.get(j);
 					AbsTime thistime = pd.getTimestamp();
 					if (thistime.isBeforeOrEquals(nexttime)) {
-						res.add(pd.getData());
-						founddata = true;
 						break;
 					}
 				}
 				// If there was no data then add a blank cell
 				if (res.size() != i + 2) {
-					res.add(null);
-				}
+				  res.add(null);
+				}*/
 			}
 			if (!founddata) {
 				res = null;
@@ -1297,7 +1313,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 			start = itsStartTime;
 			end = start.add(itsPeriod);
 		}
-		Vector<Vector> alldata = new Vector<Vector>();
+		Vector<Vector<PointData>> alldata = new Vector<Vector<PointData>>();
 		for (int i = 0; i < itsPoints.size(); i++) {
 			try {
 				Vector v = MonClientUtil.getServer().getArchiveData(
@@ -1305,7 +1321,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 				if (v != null) {
 					alldata.add(v);
 				} else {
-					alldata.add(new Vector());
+					alldata.add(new Vector<PointData>());
 				}
 			} catch (Exception e) {
 			}

@@ -18,7 +18,7 @@ import java.util.Vector;
  * four relays for control.
  *
  * <P>The kits are available, for instance, from http://www.ozitronics.com/ or
- * http://www.oceancontrols.com.au/controllers/diy/serial_temp_k190.html
+ * http://www.oceancontrols.com.au/KTA-389.html
  * 
  * <P>The MoniCA interface to the microcontroller is via a socket, so the board needs 
  * to be plugged in to a serial/ethernet converter or redirected from the serial port
