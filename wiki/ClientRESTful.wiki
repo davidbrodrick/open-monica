@@ -1,0 +1,21 @@
+#summary RESTful interface for MoniCA
+
+= Introduction =
+
+Add your content here.
+
+
+= GET interface =
+
+== Get ==
+
+To get the latest value for a single point, you can use a query in the following format:
+
+{{{
+http://bullawa:8111/point/home.weather.wind_dir
+}}}
+
+The server will respond with a JSON result like:
+{{{
+{"status":"ok", "data":[{"name":"home.weather.wind_dir","ts":"2012-04-13 03:31:39.600","value":200.0,"alarm":false}]}
+}}}
