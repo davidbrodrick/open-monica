@@ -8,6 +8,8 @@ Add your content here.
 
 This accepts a POST query in JSON format which can query one or multiple points in a single operation. The result is a JSON object containing the requested data.
 
+The query form action URL must be */points/*. eg http://bullawa:8111/points
+
 == Get ==
 
 {{{
