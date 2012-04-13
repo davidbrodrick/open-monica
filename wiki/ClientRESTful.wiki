@@ -8,7 +8,7 @@ Add your content here.
 
 This accepts a POST query in JSON format which can query one or multiple points in a single operation. The result is a JSON object containing the requested data.
 
-The query form action URL must be */points/*. eg http://bullawa:8111/points
+The query form action URL must be */points/*. eg `http://bullawa:8111/points`
 
 == Get ==
 
@@ -16,7 +16,7 @@ The query form action URL must be */points/*. eg http://bullawa:8111/points
 {"type": "get", "points": ["home.weather.wind_speed", "home.weather.wind_dir"]}'
 }}}
 
-The result will contain the data for each point. If any of the point names were not known then there will be no data for that point. I all of the point names were not known then the status will be "fail".
+The result will contain the latest data for each point. If any of the point names were not known then there will be no data for that point. I all of the point names were not known then the status will be "fail".
 {{{
 {"status":"ok", "data":[{"name":"home.weather.wind_speed","ts":"2012-04-13 03:49:51.926","value":17.71,"alarm":false}, {"name":"home.weather.wind_dir","ts":"2012-04-13 03:49:51.926","value":163.0,"alarm":false}]}
 }}}
