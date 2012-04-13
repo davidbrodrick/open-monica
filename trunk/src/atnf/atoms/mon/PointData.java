@@ -10,6 +10,8 @@ package atnf.atoms.mon;
 import atnf.atoms.time.*;
 import java.io.*;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Class: PointData
  * <P>
@@ -18,17 +20,21 @@ import java.io.*;
  * @author David Brodrick
  */
 public class PointData implements Serializable {
+  /** Name of the point that we contain data for. */
+  @SerializedName("name")
+  private String itsName = null;
+
   /** Timestamp for when the data was collected. */
+  @SerializedName("ts")
   private AbsTime itsTimestamp = null;
 
   /** The data value. */
+  @SerializedName("value")
   private Object itsData = null;
-
-  /** Name of the point that we contain data for. */
-  private String itsName = null;
 
   /** Indicates if this data represents an alarm condition. A value of True indicates
    * an alarm, a value of False indicates no alarm. */
+  @SerializedName("alarm")
   private boolean itsAlarm;
 
   public PointData(PointData orig) {

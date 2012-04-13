@@ -150,9 +150,11 @@ public class MoniCAServerASCII extends Thread {
     try {
       itsReader.close();
       itsWriter.close();
+      itsSocket.shutdownInput();
+      itsSocket.shutdownOutput();
       itsSocket.close();
     } catch (Exception e) {
-      // Who gives a rats?
+      theirLogger.warn("When closing socket: " + e);
     }
   }
 

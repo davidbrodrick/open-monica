@@ -21,8 +21,8 @@ import java.net.*;
  */
 public abstract class TCPSocket extends ExternalSystem
 {
-    /** The socket used for communicating with the remote service. */
-    protected Socket itsSocket = null;
+  /** The socket used for communicating with the remote service. */
+  protected Socket itsSocket = null;
 
     /** The port to connect to the remote end-point. */
     protected int itsPort = -1;
