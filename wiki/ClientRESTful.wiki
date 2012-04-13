@@ -4,8 +4,24 @@
 
 Add your content here.
 
+= POST Interface =
+
+This accepts a POST query in JSON format which can query one or multiple points in a single operation. The result is a JSON object containing the requested data.
+
+== Get ==
+
+{{{
+{"type": "get", "points": ["home.weather.wind_speed", "home.weather.wind_dir"]}'
+}}}
+
+The result will contain the data for each point. If any of the point names were not known then there will be no data for that point. I all of the point names were not known then the status will be "fail".
+{{{
+{"status":"ok", "data":[{"name":"home.weather.wind_speed","ts":"2012-04-13 03:49:51.926","value":17.71,"alarm":false}, {"name":"home.weather.wind_dir","ts":"2012-04-13 03:49:51.926","value":163.0,"alarm":false}]}
+}}}
 
 = GET interface =
+
+This accepts GET query parameters for a single point.
 
 == Get ==
 
@@ -18,4 +34,43 @@ http://bullawa:8111/point/home.weather.wind_dir
 The server will respond with a JSON result like:
 {{{
 {"status":"ok", "data":[{"name":"home.weather.wind_dir","ts":"2012-04-13 03:31:39.600","value":200.0,"alarm":false}]}
+}}}
+
+== Between ==
+
+To query all of the data for a single point between two nominated times you can use the following:
+
+{{{
+http://bullawa:8111/point/home.weather.wind_dir?start=2012-04-13%2003:34:30&end=2012-04-13%2003:35:00
+}}}
+
+The response should look like the example below. Please note that in the interests of efficiency the name of the point is excluded from the individual results of this query:
+{{{
+{"status":"ok", "data":[{"ts":"2012-04-13 03:34:31.044","value":203.0,"alarm":false}, {"ts":"2012-04-13 03:34:33.622","value":186.0,"alarm":false}, {"ts":"2012-04-13 03:34:36.201","value":179.0,"alarm":false}, {"ts":"2012-04-13 03:34:38.777","value":194.0,"alarm":false}, {"ts":"2012-04-13 03:34:41.353","value":130.0,"alarm":false}, {"ts":"2012-04-13 03:34:43.929","value":189.0,"alarm":false}, {"ts":"2012-04-13 03:34:46.506","value":183.0,"alarm":false}, {"ts":"2012-04-13 03:34:49.087","value":175.0,"alarm":false}, {"ts":"2012-04-13 03:34:51.665","value":179.0,"alarm":false}, {"ts":"2012-04-13 03:34:54.242","value":187.0,"alarm":false}, {"ts":"2012-04-13 03:34:56.818","value":206.0,"alarm":false}, {"ts":"2012-04-13 03:34:59.394","value":179.0,"alarm":false}]}
+}}}
+
+== After ==
+
+To query the first value in the archive for a particular point which is after or equals a specified time you can use the following syntax:
+
+{{{
+http://bullawa:8111/point/home.weather.wind_dir?after=2012-04-13%2003:34:30
+}}}
+
+A single point should be returned:
+{{{
+{"status":"ok", "data":[{"name":"home.weather.wind_dir","ts":"2012-04-13 03:42:27.279","value":172.0,"alarm":false}]}
+}}}
+
+== Before ==
+
+To query the last value in the archive for a particular point which is before or equals a specified time you can use the following syntax:
+
+{{{
+http://bullawa:8111/point/home.weather.wind_dir?before=2012-04-13%2003:34:30
+}}}
+
+A single point should be returned:
+{{{
+{"status":"ok", "data":[{"name":"home.weather.wind_dir","ts":"2012-04-11 14:18:17.280","value":187.0,"alarm":false}]}
 }}}
