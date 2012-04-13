@@ -19,6 +19,36 @@ The result will contain the data for each point. If any of the point names were 
 {"status":"ok", "data":[{"name":"home.weather.wind_speed","ts":"2012-04-13 03:49:51.926","value":17.71,"alarm":false}, {"name":"home.weather.wind_dir","ts":"2012-04-13 03:49:51.926","value":163.0,"alarm":false}]}
 }}}
 
+== Between ==
+
+This operation returns data from the archive in between the specified start and end time. Although the point names can be specified as an array, only a single point may be specified for this query:
+
+{{{
+{"type":"between","start":"2012-04-13 03:34:30","end":"2012-04-13 03:35:00","points":["home.weather.wind_dir"]}
+}}}
+
+The response should look like the example below. Please note that in the interests of efficiency the name of the point is excluded from the individual results of this query:
+{{{
+{"status":"ok", "data":[{"ts":"2012-04-13 03:34:31.044","value":203.0,"alarm":false}, {"ts":"2012-04-13 03:34:33.622","value":186.0,"alarm":false}, {"ts":"2012-04-13 03:34:36.201","value":179.0,"alarm":false}, {"ts":"2012-04-13 03:34:38.777","value":194.0,"alarm":false}, {"ts":"2012-04-13 03:34:41.353","value":130.0,"alarm":false}, {"ts":"2012-04-13 03:34:43.929","value":189.0,"alarm":false}, {"ts":"2012-04-13 03:34:46.506","value":183.0,"alarm":false}, {"ts":"2012-04-13 03:34:49.087","value":175.0,"alarm":false}, {"ts":"2012-04-13 03:34:51.665","value":179.0,"alarm":false}, {"ts":"2012-04-13 03:34:54.242","value":187.0,"alarm":false}, {"ts":"2012-04-13 03:34:56.818","value":206.0,"alarm":false}, {"ts":"2012-04-13 03:34:59.394","value":179.0,"alarm":false}]}
+}}}
+
+== After ==
+
+Queries the first values available for a set of points which are after or equals the specified time:
+
+{{{
+{"type":"after","time":"2012-04-13 03:59:00","points":["home.weather.wind_speed","home.weather.wind_dir"]}
+}}}
+
+Example result:
+{{{
+{"status":"ok", "data":[{"name":"home.weather.wind_speed","ts":"2012-04-13 03:59:16.265","value":9.66,"alarm":false}, {"name":"home.weather.wind_dir","ts":"2012-04-13 03:59:16.265","value":135.0,"alarm":false}]}
+}}}
+
+== Before ==
+
+As with the "after" query above, except the query type must be specified as "before".
+
 = GET interface =
 
 This accepts GET query parameters for a single point.
@@ -64,13 +94,4 @@ A single point should be returned:
 
 == Before ==
 
-To query the last value in the archive for a particular point which is before or equals a specified time you can use the following syntax:
-
-{{{
-http://bullawa:8111/point/home.weather.wind_dir?before=2012-04-13%2003:34:30
-}}}
-
-A single point should be returned:
-{{{
-{"status":"ok", "data":[{"name":"home.weather.wind_dir","ts":"2012-04-11 14:18:17.280","value":187.0,"alarm":false}]}
-}}}
+As with the "after" query above, except the query type must be specified as "before".
