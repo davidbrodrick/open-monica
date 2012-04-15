@@ -1,20 +1,46 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link rel="stylesheet" type="text/css"
+          href="http://yui.yahooapis.com/3.4.1/build/cssreset/cssreset-min.css">
     <link rel="stylesheet"
-	  href="http://ajax.googleapis.com/ajax/libs/dojo/1.7.2/dijit/themes/claro/claro.css" />
+	        href="/jslib/dojo/1.7.2/dijit/themes/claro/claro.css" />
     <link rel="stylesheet" href="monica_front.css" />
-    <script src="//ajax.googleapis.com/ajax/libs/dojo/1.7.2/dojo/dojo.js"</script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"
-	    type="text/javascript"></script>
-    <script src="/js/highcharts.js" type="text/javascript"></script>
+    <script src="/jslib/dojo/1.7.2/dojo/dojo.js"></script>
+    <script src="/jslib/jquery/1.7.1/jquery.min.js"
+	          type="text/javascript"></script>
+    <script src="/jslib/highcharts/2.2.1/js/highcharts.js" type="text/javascript"></script>
     <script type="text/javascript"
-	    src="/web_monica/monica_web_v2.src.js"></script>
+	          src="/web_monica/monica_web_v2.src.js"></script>
     <script type="text/javascript" src="monica_front.js"></script>
     <title>MoniCA Client Page</title>
   </head>
   <body class="claro">
-    <div id="left"></div>
-    <div id="right"></div>
+    <div id="left">
+      <div id="topadder" class="adder topadder elHide">
+        <button type="button" class="addButton" id="topadderPointTable">
+          Add Point Table</button>
+        <button type="button" class="addButton" id="topadderTimeSeries">
+          Add Time Series</button>
+      </div>
+      <div id="elementsarea" class="adder elementsarea"></div>
+      <div id="bottomadder" class="adder bottomadder elHide">
+        <button type="button" class="addButton" id="bottomadderPointTable">
+          Add Point Table</button>
+        <button type="button" class="addButton" id="bottomadderTimeSeries">
+          Add Time Series</button>
+      </div>
+    </div>
+    <div id="right">
+      <div id="serverarea" class="serverarea">
+        <label for="serverselect">MoniCA server:</label>
+        <select name="serverselect" id="serverselect"></select>
+        <button type="button" id="serverselectConnect">Connect</button>
+      </div>
+      <div id="searcharea" class="searcharea">
+        <!-- <p>Point Search</p> -->
+      </div>
+      <div id="treearea" class="treearea"></div>
+    </div>
   </body>
 </html>

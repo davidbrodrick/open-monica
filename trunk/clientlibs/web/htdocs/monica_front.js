@@ -1,8 +1,241 @@
 dojo.require('dojo.NodeList-traverse');
 dojo.require('dojo.data.ItemFileReadStore');
+dojo.require('dojo.hash');
 dojo.require('dijit.Tree');
 dojo.require('dijit.tree.dndSource');
 dojo.require('dijit.form.DateTextBox');
+dojo.require('dojo.store.Memory');
+dojo.require('dijit.form.FilteringSelect');
+
+var mfUseful = {
+  randomString: function() {
+    var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+	  var string_length = 8;
+	  var randomstring = '';
+	  for (var i=0; i<string_length; i++) {
+	    var rnum = Math.floor(Math.random() * chars.length);
+		  randomstring += chars.substring(rnum,rnum+1);
+	  }
+    return randomstring;
+  },
+  hashToObject: function(hVal) {
+    hVal = hVal || dojo.hash();
+    
+    var nhObj = dojo.queryToObject(hVal);
+    
+    if (typeof nhObj.displays !== 'undefined') {
+      if (dojo.isArray(nhObj.displays) === false) {
+        nhObj.displays = [ nhObj.displays ];
+      }
+      for (var mi = 0; mi < nhObj.displays.length; mi++) {
+        // Convert from JSON.
+        var mj = dojo.fromJson(decodeURI(nhObj.displays[mi]));
+        // If the JSON string has escaped characters, sometimes it takes
+        // more than one go to turn it into a JS object.
+        while(dojo.isString(mj)) {
+          mj = dojo.fromJson(mj);
+        }
+        nhObj.displays[mi] = mj;
+      }
+    }
+    
+    return nhObj;
+  },
+  objectToHash: function(nhObj) {
+    if (typeof nhObj === 'undefined') {
+      return null;
+    }
+    
+    if (typeof nhObj.displays !== 'undefined') {
+      for (var i = 0; i < nhObj.displays.length; i++) {
+        nhObj.displays[i] = dojo.toJson(nhObj.displays[i]);
+      }
+    }
+    
+    return dojo.objectToQuery(nhObj);
+  },
+  onEnter: function(elementId, callback) {
+    // Check that the element exists.
+    if (dojo.byId(elementId) === null) {
+	    return;
+	  }
+	
+	  // Check that the callback function exists.
+	  if (dojo.isFunction(callback) === false) {
+	    return;
+	  }
+	
+	  var handleKeys = function(evtObj) {
+	    // Check for the Enter keys.
+	    if (evtObj.keyCode === dojo.keys.ENTER ||
+		      evtObj.keyCode === dojo.keys.NUMPAD_ENTER) {
+			  // Fire the callback.
+			  callback(evtObj);
+		  }
+	  };
+	
+	  // Connect the onkeydown event to the element.
+	  dojo.connect(dojo.byId(elementId), 'onkeydown', handleKeys);
+	
+	  return;
+  }
+      
+};
+
+var editableText = function(spec, my) {
+  /**
+   * Some general purpose private variables
+   */
+  var i, temp;
+
+  /**
+   * The object that we will return to our caller.
+   * @type {object}
+   */
+  var that = {};
+
+  // Set some sensible defaults in the spec object.
+  /**
+   * The list of objects controlling this object.
+   * @type {object}
+   */
+  spec = spec || {};
+
+  /**
+   * The IDs of the DOM element to attach to.
+   * @type {string}
+   */
+  spec.editableNode = spec.editableNode || '';
+  spec.referenceNode = spec.referenceNode || spec.editableNode;
+
+  /**
+   * The activity on the reference node which will trigger the edit.
+   * @type {string}
+   */
+  spec.editAction = spec.editAction || 'onclick';
+
+  /**
+   * A function to call when the user has finished editing the box.
+   * @type {function}
+   */
+  spec.editedFn = spec.editedFn || null;
+  
+  /**
+   * Our editable node.
+   * @type {DOMnode}
+   */
+  var editNode;
+
+  /**
+   * The current state of the editable node.
+   * @type {number}
+   */
+  var state = 0; // 0 = not-editing, 1 = editing
+
+  /**
+   * The current connection handler.
+   * @type {handler}
+   */
+  var connector = null;
+
+  /**
+   * Some keycodes we don't like when we're in editing mode.
+   * @type {array}
+   */
+  var stopCodes = [dojo.keys.ALT, dojo.keys.CLEAR, dojo.keys.CTRL,
+      dojo.keys.F1, dojo.keys.F10, dojo.keys.F11,
+      dojo.keys.F12, dojo.keys.F13, dojo.keys.F14,
+      dojo.keys.F15, dojo.keys.F2, dojo.keys.F3,
+      dojo.keys.F4, dojo.keys.F5, dojo.keys.F6,
+      dojo.keys.F7, dojo.keys.F8, dojo.keys.F9,
+      dojo.keys.HELP, dojo.keys.LEFT_WINDOW,
+      dojo.keys.PAGE_DOWN, dojo.keys.PAGE_UP,
+      dojo.keys.PAUSE, dojo.keys.RIGHT_WINDOW];
+
+  /**
+   * Some keycodes we ignore when we're in editing mode.
+   * @type {array}
+   */
+  var ignoreCodes = [dojo.keys.CAPS_LOCK, dojo.keys.END,
+      dojo.keys.DOWN_ARROW, dojo.keys.INSERT,
+      dojo.keys.HOME, dojo.keys.INSERT,
+      dojo.keys.LEFT_ARROW, dojo.keys.NUM_LOCK,
+      dojo.keys.RIGHT_ARROW, dojo.keys.SCROLL_LOCK,
+      dojo.keys.SELECT, dojo.keys.SHIFT,
+      dojo.keys.TAB, dojo.keys.UP_ARROW];
+
+  // Our methods follow.
+
+  // Our private methods.
+  var connect = function() {
+    if (spec.referenceNode === '' ||
+	      spec.editAction === '') {
+      return;
+    }
+
+    if (state === 0) {
+      if (connector !== null) {
+	      dojo.disconnect(connector);
+      }
+      connector = dojo.connect(spec.referenceNode, spec.editAction,
+	      function() {
+	        temp = dojo.attr(spec.editableNode, 'innerHTML');
+	        editNode = dojo.create('input',
+	          {
+	            type: 'text',
+	            value: temp
+	          }
+	        );
+	        dojo.place(editNode, spec.editableNode, 'only');
+	        state = 1;
+	        connect();
+	      }
+      );
+    } else {
+      if (connector !== null) {
+	      dojo.disconnect(connector);
+      }
+      connector = dojo.connect(spec.editableNode, 'onkeydown',
+	      function(evtObj) {
+	        // Check for keycodes to stop.
+	        for (i = 0; i < stopCodes.length; i++) {
+	          if (evtObj.keyCode === stopCodes[i]) {
+	            dojo.stopEvent(evtObj);
+	            return;
+	          }
+	        }
+	        // Check for keycodes to ignore.
+	        for (i = 0; i < ignoreCodes.length; i++) {
+	          if (evtObj.keyCode === ignoreCodes[i]) {
+	            return;
+	          }
+	        }
+	        // Check for ENTER
+	        if (evtObj.keyCode === dojo.keys.ENTER ||
+	            evtObj.keyCode === dojo.keys.NUMPAD_ENTER) {
+	          temp = dojo.attr(editNode, 'value');
+	          dojo.empty(spec.editableNode);
+	          dojo.attr(spec.editableNode, 'innerHTML', temp);
+	          state = 0;
+	          connect();
+            if (spec.editedFn !== null) {
+              spec.editedFn(dojo.attr(spec.editableNode, 'id'), temp);
+            }
+	          return;
+	        }
+	      }
+      );
+    }
+  };
+
+  // Our public methods.
+
+  // Make the connection.
+  connect();
+
+  return that;
+};
+
 
 var pointSelector = function(spec, my) {
   /**
@@ -62,6 +295,24 @@ var pointSelector = function(spec, my) {
    */
   var clickedPoints = [];
 
+  /**
+   * Our randomly generated ID.
+   * @type {string}
+   */
+  var theId = mfUseful.randomString();
+
+  /**
+   * The autocomplete memory.
+   * @type {object}
+   */
+  var autocompleteMemory;
+
+  /**
+   * The filtering select element.
+   * @type {object}
+   */
+  var filteringSelect;
+  
   // Our methods follow.
 
   // Our private methods.
@@ -77,38 +328,38 @@ var pointSelector = function(spec, my) {
       heirarchy = allPoints[i].split(/\./);
       search = tree;
       for (j = 1; j < heirarchy.length; j++) {
-	isFound = 0;
-	// Search for an existing element.
-	for (k = 0; k < search.length; k++) {
-	  if (search[k].label === heirarchy[j]) {
-	    isFound = 1;
-	    search = search[k].children;
-	    break;
-	  }
-	}
-	if (isFound === 0) {
-	  // Need to create this level.
-	  search.push({
-	    id: ++count,
-	    label: heirarchy[j],
-	    children: []
-	  });
-	  search = search[search.length - 1].children;
-	}
+	      isFound = 0;
+	      // Search for an existing element.
+	      for (k = 0; k < search.length; k++) {
+	        if (search[k].label === heirarchy[j]) {
+	          isFound = 1;
+	          search = search[k].children;
+	          break;
+	        }
+	      }
+	      if (isFound === 0) {
+	        // Need to create this level.
+	        search.push({
+	            id: ++count,
+	            label: heirarchy[j],
+	            children: []
+	                    });
+	        search = search[search.length - 1].children;
+	      }
       }
       search.push({
-	id: allPoints[i],
-	label: heirarchy[0],
-	pointName: allPoints[i]
+	        id: allPoints[i],
+	        label: heirarchy[0],
+	        pointName: allPoints[i]
       });
     }
 
     // Prepare the Dojo tree model for all the children.
     store = new dojo.data.ItemFileReadStore({
       data: {
-	identifier: 'id',
-	label: 'label',
-	items: tree
+	      identifier: 'id',
+	      label: 'label',
+	      items: tree
       }
     });
 
@@ -119,6 +370,30 @@ var pointSelector = function(spec, my) {
   };
 
   /**
+   * Prepare an autocomplete memory.
+   */
+  var pointsMemory = function() {
+    var pData = [];
+    for (i = 0; i < allPoints.length; i++) {
+      pData.push({
+        name: allPoints[i],
+        id: allPoints[i]
+      });
+    }
+    autocompleteMemory = new dojo.store.Memory({
+      data: pData
+    });
+
+    filteringSelect = new dijit.form.FilteringSelect({
+      id: 'pointAutocomplete',
+      name: 'pointAutocomplete',
+      store: autocompleteMemory,
+      searchAttr: 'name',
+      queryExpr: '\.${0}*'
+    });
+  };
+  
+  /**
    * Prepare the Dojo tree for display.
    */
   var makeControl = function() {
@@ -126,8 +401,7 @@ var pointSelector = function(spec, my) {
       model: pointsTreeModel,
       showRoot: false,
       'class': 'pointTreeControl',
-      id: 'pointTreeControl'
-//      dndController: dndSource
+      id: theId
     });
   };
 
@@ -142,9 +416,9 @@ var pointSelector = function(spec, my) {
     var adderFn = function(item) {
       var kids = store.getValues(item, 'children');
       if (kids.length > 0) {
-	parents.push(item);
+	      parents.push(item);
       } else {
-	clickedPoints.push(store.getValue(item, 'id'));
+	      clickedPoints.push(store.getValue(item, 'id'));
       }
     };
 
@@ -155,12 +429,12 @@ var pointSelector = function(spec, my) {
     while (parents.length > 0) {
       var kiddies = store.getValues(parents[0], 'children');
       for (i = 0; i < kiddies.length; i++) {
-	adderFn(kiddies[i]);
+	      adderFn(kiddies[i]);
       }
       parents.splice(0, 1);
     }
-
-    dojo.publish('pointsSelected', [ clickedPoints ]);
+      
+    dojo.publish('/monica/pointsSelected', [ clickedPoints ]);
   };
 
   // Our public methods.
@@ -169,7 +443,7 @@ var pointSelector = function(spec, my) {
    * @param {array} pointNames The names of points to display in the tree.
    */
   that.addPoints = function(pointNames) {
-
+    
   };
 
   /**
@@ -180,6 +454,7 @@ var pointSelector = function(spec, my) {
     allPoints = pointNames;
     // Refresh the model.
     pointsTree();
+    pointsMemory();
   };
 
   /**
@@ -199,157 +474,34 @@ var pointSelector = function(spec, my) {
     // Activate it for use.
     dojo.connect(treeControl, 'onDblClick',
       function (evtObj) {
-	// Get a list of points to add.
-	compilePoints(evtObj);
+	      // Get a list of points to add.
+	      compilePoints(evtObj);
       }
     );
   };
-
-  return that;
-};
-
-var editableText = function(spec, my) {
+  
   /**
-   * Some general purpose private variables
+   * Remove our Dojo tree control.
    */
-  var i, temp;
-
-  /**
-   * The object that we will return to our caller.
-   * @type {object}
-   */
-  var that = {};
-
-  // Set some sensible defaults in the spec object.
-  /**
-   * The list of objects controlling this object.
-   * @type {object}
-   */
-  spec = spec || {};
-
-  /**
-   * The IDs of the DOM element to attach to.
-   * @type {string}
-   */
-  spec.editableNode = spec.editableNode || '';
-  spec.referenceNode = spec.referenceNode || spec.editableNode;
-
-  /**
-   * The activity on the reference node which will trigger the edit.
-   * @type {string}
-   */
-  spec.editAction = spec.editAction || 'onclick';
-
-  /**
-   * Our editable node.
-   * @type {DOMnode}
-   */
-  var editNode;
-
-  /**
-   * The current state of the editable node.
-   * @type {number}
-   */
-  var state = 0; // 0 = not-editing, 1 = editing
-
-  /**
-   * The current connection handler.
-   * @type {handler}
-   */
-  var connector = null;
-
-  /**
-   * Some keycodes we don't like when we're in editing mode.
-   * @type {array}
-   */
-  var stopCodes = [dojo.keys.ALT, dojo.keys.CLEAR, dojo.keys.CTRL,
-      dojo.keys.F1, dojo.keys.F10, dojo.keys.F11,
-      dojo.keys.F12, dojo.keys.F13, dojo.keys.F14,
-      dojo.keys.F15, dojo.keys.F2, dojo.keys.F3,
-      dojo.keys.F4, dojo.keys.F5, dojo.keys.F6,
-      dojo.keys.F7, dojo.keys.F8, dojo.keys.F9,
-      dojo.keys.HELP, dojo.keys.LEFT_WINDOW,
-      dojo.keys.PAGE_DOWN, dojo.keys.PAGE_UP,
-      dojo.keys.PAUSE, dojo.keys.RIGHT_WINDOW];
-
-  /**
-   * Some keycodes we ignore when we're in editing mode.
-   * @type {array}
-   */
-  var ignoreCodes = [dojo.keys.CAPS_LOCK, dojo.keys.END,
-      dojo.keys.DOWN_ARROW, dojo.keys.INSERT,
-      dojo.keys.HOME, dojo.keys.INSERT,
-      dojo.keys.LEFT_ARROW, dojo.keys.NUM_LOCK,
-      dojo.keys.RIGHT_ARROW, dojo.keys.SCROLL_LOCK,
-      dojo.keys.SELECT, dojo.keys.SHIFT,
-      dojo.keys.TAB, dojo.keys.UP_ARROW];
-
-  // Our methods follow.
-
-  // Our private methods.
-  var connect = function() {
-    if (spec.referenceNode === '' ||
-	spec.editAction === '') {
-      return;
-    }
-
-    if (state === 0) {
-      if (connector !== null) {
-	dojo.disconnect(connector);
-      }
-      connector = dojo.connect(spec.referenceNode, spec.editAction,
-	function() {
-	  temp = dojo.attr(spec.editableNode, 'innerHTML');
-	  editNode = dojo.create('input',
-	    {
-	      type: 'text',
-	      value: temp
-	    }
-	  );
-	  dojo.place(editNode, spec.editableNode, 'only');
-	  state = 1;
-	  connect();
-	}
-      );
-    } else {
-      if (connector !== null) {
-	dojo.disconnect(connector);
-      }
-      connector = dojo.connect(spec.editableNode, 'onkeydown',
-	function(evtObj) {
-	  // Check for keycodes to stop.
-	  for (i = 0; i < stopCodes.length; i++) {
-	    if (evtObj.keyCode === stopCodes[i]) {
-	      dojo.stopEvent(evtObj);
-	      return;
-	    }
-	  }
-	  // Check for keycodes to ignore.
-	  for (i = 0; i < ignoreCodes.length; i++) {
-	    if (evtObj.keyCode === ignoreCodes[i]) {
-	      return;
-	    }
-	  }
-	  // Check for ENTER
-	  if (evtObj.keyCode === dojo.keys.ENTER ||
-	      evtObj.keyCode === dojo.keys.NUMPAD_ENTER) {
-	    temp = dojo.attr(editNode, 'value');
-	    dojo.empty(spec.editableNode);
-	    dojo.attr(spec.editableNode, 'innerHTML', temp);
-	    state = 0;
-	    connect();
-	    return;
-	  }
-	}
-      );
-    }
+  that.removeTree = function() {
+    dojo.destroy(theId);
   };
 
-  // Our public methods.
-
-  // Make the connection.
-  connect();
-
+  /**
+   * Attach a Dojo filtering select element to the named ID.
+   * @param {string} nodeId The node to attach the element to.
+   */
+  that.attachFilter = function(nodeId) {
+    if (typeof nodeId === 'undefined') {
+      return;
+    }
+    
+    dojo.byId(nodeId).appendChild(filteringSelect.domNode);
+    
+    // Activate it for use.
+    mfUseful.onEnter(filteringSelect.id, compilePoints);
+  };
+  
   return that;
 };
 
@@ -399,6 +551,12 @@ var timeSeries = function(spec, my) {
   spec.optionsDOM = spec.optionsDOM || '';
 
   /**
+   * The ID of our parent display.
+   * @type {string}
+   */
+  spec.parentId = spec.parentId || '';
+  
+  /**
    * Which plotting library do we use? Options are:
    * highstock: the HighCharts Stock library (default)
    * highcharts: the HighCharts library
@@ -422,10 +580,76 @@ var timeSeries = function(spec, my) {
 
   // The time series we handle.
   var ourSeries = [];
+  
+  // A function we call when our time-series options change.
+  var optionsChangedFunc = spec.optionsChangedFunc || null;
+  
+  // Are we in the throes of loading.
+  var isLoading = true;
 
   // Our methods follow.
 
   // Our private methods.
+  /**
+   * Watch out for a change to the hash.
+   */
+  var hashChanged = function(newHash) {
+    // Get the hash in object format.
+    var nhObj = mfUseful.hashToObject(newHash);
+    var optionsUpdated = isLoading;
+    
+    // Check for our display.
+    if (typeof nhObj.displays !== 'undefined') {
+      for (var i = 0; i < nhObj.displays.length; i++) {
+        if (nhObj.displays[i].id === spec.parentId) {
+          // This is our display.
+          // Check the time-series options.
+          if (typeof nhObj.displays[i].options !== 'undefined') {
+            // Have the options changed?
+            if (nhObj.displays[i].options.spanTime !== 
+                    seriesOptions.spanTime ||
+                nhObj.displays[i].options.startTime !== 
+                    seriesOptions.startTime ||
+                nhObj.displays[i].options.maxPoints !== 
+                    seriesOptions.maxPoints) {
+              // The options have changed.
+              for (var j = 0; j < ourSeries.length; j++) {
+                if (ourSeries[j].monicaRef !== null &&
+                    ourSeries[j].chartSeries !== null) {
+                  // Remove each series from the plot.
+                  removeSeriesFromPlot(ourSeries[j]);
+                  // Ask for the series again with the new options.
+                  // console.log(nhObj.displays[i].options.startTime);
+                  ourSeries[j].monicaRef.
+                    timeSeriesOptions(nhObj.displays[i].options);
+                }
+              }
+              optionsUpdated = true;
+            }
+            // We alter our options.
+            seriesOptions = dojo.clone(nhObj.displays[i].options);
+          } else {
+            // There are no options, so we put them in there.
+            nhObj.displays[i].options = seriesOptions;
+            dojo.hash(mfUseful.objectToHash(nhObj), true);
+            optionsUpdated = true;
+          }
+          // Check the listed points.
+          if (typeof nhObj.displays[i].points !== 'undefined') {
+            for (var j = 0; j < nhObj.displays[i].points.length; j++) {
+              addPoint(nhObj.displays[i].points[j]);
+            }
+          }
+          if (optionsUpdated === true) {
+            if (dojo.isFunction(optionsChangedFunc) === true) {
+              optionsChangedFunc(that);
+            }
+          }
+        }
+      }
+    }
+  };
+
   /**
    * Add a point to the series that we handle.
    * @param {string} pointName The name of the point to add.
@@ -444,6 +668,14 @@ var timeSeries = function(spec, my) {
       monicaRef: null
     };
     ourSeries.push(newPoint);
+
+    // Send a message saying we need a MoniCA point.
+    dojo.publish('/monica/pointRequired', {
+      name: pointName,
+      type: 'timeSeries',
+      callbackFn: that.updatePlot,
+      options: seriesOptions
+    });
   };
 
   /**
@@ -453,7 +685,7 @@ var timeSeries = function(spec, my) {
   var findSeries = function(searchName) {
     for (fSi = 0; fSi < ourSeries.length; fSi++) {
       if (ourSeries[fSi].name === searchName) {
-	return ourSeries[fSi];
+	      return ourSeries[fSi];
       }
     }
 
@@ -475,9 +707,9 @@ var timeSeries = function(spec, my) {
       // We add our series.
       iSeries = internal2Chart(aSeries);
       aSeries.chartSeries = plotObject.addSeries(
-	iSeries[0], // The series to add to the plot.
-	true, // A flag telling the plot to redraw.
-	false // A flag indicating we don't want animation.
+	      iSeries[0], // The series to add to the plot.
+	      true, // A flag telling the plot to redraw.
+	      false // A flag indicating we don't want animation.
       );
     }
   };
@@ -499,11 +731,11 @@ var timeSeries = function(spec, my) {
       // Go through and determine which series are ready to be added to
       // our plot.
       for (i2Ci = 0; i2Ci < ourSeries.length; i2Ci++) {
-	if (ourSeries[i2Ci].monicaRef.timeSeriesInitialised() === true &&
-	    ourSeries[i2Ci].chartSeries === null) {
-	  // This plot has data and hasn't yet been added to the plot.
-	  oRefs.push(ourSeries[i2Ci]);
-	}
+	      if (ourSeries[i2Ci].monicaRef.timeSeriesInitialised() === true &&
+	          ourSeries[i2Ci].chartSeries === null) {
+	        // This plot has data and hasn't yet been added to the plot.
+	        oRefs.push(ourSeries[i2Ci]);
+	      }
       }
     }
 
@@ -513,12 +745,14 @@ var timeSeries = function(spec, my) {
       tDetails = oRefs[i2Ci].monicaRef.getPointDetails();
       tName = tDetails.description;
       if (tDetails.units !== '') {
-	tName += ' [' + tDetails.units + ']';
+	      tName += ' [' + tDetails.units + ']';
       }
       oObjs.push({
-	name: tName,
-	id: tDetails.name,
-	data: oRefs[i2Ci].monicaRef.getTimeSeries()
+	      name: tName,
+	      id: tDetails.name,
+	      data: oRefs[i2Ci].monicaRef.getTimeSeries({
+	        valueAsDecimalDegrees: true
+        })
       });
     }
 
@@ -531,11 +765,11 @@ var timeSeries = function(spec, my) {
   var makePlotArea = function() {
     // Set up the Highcharts global options.
     if (spec.plottingLibrary === 'highcharts' ||
-	spec.plottingLibrary === 'highstock') {
+	      spec.plottingLibrary === 'highstock') {
       Highcharts.setOptions({
-	global: {
-	  useUTC: true
-	}
+	      global: {
+	      useUTC: true
+	      }
       });
     }
 
@@ -545,76 +779,91 @@ var timeSeries = function(spec, my) {
     // Make the plot object.
     if (spec.plottingLibrary === 'highstock') {
       plotObject = new Highcharts.StockChart({
-	chart: {
-	  renderTo: spec.plotDOM,
-	  height: 300,
-	  animation: false
-	},
-	plotOptions: {
-	  series: {
-	    animation: false
-	  }
-	},
-	title: {
-	  text: 'MoniCA plot'
-	},
-	xAxis: {
-	  title: {
-	    text: 'Time (UT)'
-	  }
-	},
-	yAxis: {
-	  title: {
-	    text: 'Value'
-	  }
-	},
-	series: mSeries
+	      chart: {
+	        renderTo: spec.plotDOM,
+	        height: 300,
+	        animation: false
+	      },
+	      plotOptions: {
+	        series: {
+	          animation: false
+	        }
+	      },
+	      title: {
+	        text: 'MoniCA plot'
+	      },
+	      xAxis: {
+	        title: {
+	          text: 'Time (UT)'
+	        }
+	      },
+	      yAxis: {
+	        title: {
+	          text: 'Value'
+	        }
+	      },
+	      series: mSeries
       });
     } else if (spec.plottingLibrary === 'highcharts') {
       plotObject = new Highcharts.Chart({
-	chart: {
-	  renderTo: spec.plotDOM,
-	  height: 300,
-	  defaultSeriesType: 'line',
-	  animation: false
-	},
-	plotOptions: {
-	  series: {
-	    animation: false
-	  }
-	},
-	title: {
-	  text: 'MoniCA plot'
-	},
-	xAxis: {
-	  type: 'datetime',
-	  title: {
-	    enabled: true,
-	    text: 'Time (UTC)',
-	    startOnTick: false,
-	    endOnTick: false,
-	    showLastLabel: true
-	  }
-	},
-	yAxis: {
-	  title: {
-	    text: 'Value'
-	  }
-	},
-	series: mSeries
+	      chart: {
+	        renderTo: spec.plotDOM,
+	        height: 300,
+	        defaultSeriesType: 'line',
+	        animation: false
+	      },
+	      plotOptions: {
+	        series: {
+	          animation: false
+	        }
+	      },
+	      title: {
+	        text: 'MoniCA plot'
+	      },
+	      xAxis: {
+	        type: 'datetime',
+	        title: {
+	          enabled: true,
+	          text: 'Time (UTC)',
+	          startOnTick: false,
+	          endOnTick: false,
+	          showLastLabel: true
+	        }
+	      },
+	      yAxis: {
+	        title: {
+	          text: 'Value'
+	        }
+	      },
+	      series: mSeries
       });
     }
 
     // Get the series references for the series we just added.
     if (spec.plottingLibrary === 'highcharts' ||
-	spec.plottingLibrary === 'highstock') {
+	      spec.plottingLibrary === 'highstock') {
       for (i = 0; i < mSeries.length; i++) {
-	pRef = findSeries(mSeries[i].id);
-	pRef.chartSeries = plotObject.get(mSeries[i].id);
+	      pRef = findSeries(mSeries[i].id);
+	      pRef.chartSeries = plotObject.get(mSeries[i].id);
       }
     }
   };
 
+  /**
+   * Remove a series from the plot.
+   * @param {object} aSeries The series to remove.
+   */
+  var removeSeriesFromPlot = function(aSeries) {
+    if (typeof aSeries === 'undefined') {
+      return;
+    }
+    if (aSeries.chartSeries === null) {
+      return;
+    }
+    aSeries.chartSeries.remove();
+    aSeries.chartSeries = null;
+  };
+  
   /**
    * Add a point to the time series that we handle.
    * @param {string} pointName The name of the point to add.
@@ -670,10 +919,10 @@ var timeSeries = function(spec, my) {
       });
       // Add the new value to the plot.
       pointFound.chartSeries.addPoint(
-	nv, // The value to add.
-	true, // A flag telling the plot to redraw.
-	true, // A flag indicating we want to pop off the first value.
-	false // A flag indicating we don't want animation.
+	      nv, // The value to add.
+	      true, // A flag telling the plot to redraw.
+	      true, // A flag indicating we want to pop off the first value.
+	      false // A flag indicating we don't want animation.
       );
     }
   };
@@ -684,7 +933,26 @@ var timeSeries = function(spec, my) {
   that.callbackFn = function() {
     return that.updatePlot;
   };
+  
+  /**
+   * Add a callback for when our series options are changed.
+   * @param {function} callBack The function to call.
+   */
+  that.onOptionsChange = function(callBack) {
+    optionsChangedFunc = callBack || optionsChangedFunc;
+  };
 
+  /**
+   * Get the ID for our parent display.
+   */
+  that.parentId = function() {
+    return spec.parentId;
+  };
+  
+  hashChanged(dojo.hash());
+  isLoading = false;
+  dojo.subscribe('/dojo/hashchange', hashChanged);
+  
   return that;
 };
 
@@ -728,6 +996,12 @@ var pointTable = function(spec, my) {
    * @type {string}
    */
   spec.optionsDOM = spec.optionsDOM || '';
+  
+  /**
+   * The ID of our parent display.
+   * @type {string}
+   */
+  spec.parentId = spec.parentId || '';
 
   /**
    * The table we make.
@@ -751,6 +1025,28 @@ var pointTable = function(spec, my) {
 
   // Our private methods.
   /**
+   * Watch out for a change to the hash.
+   */
+  var hashChanged = function(newHash) {
+    // Get the hash in object format.
+    var nhObj = mfUseful.hashToObject(newHash);
+    
+    // Check for our display.
+    if (typeof nhObj.displays !== 'undefined') {
+      for (var i = 0; i < nhObj.displays.length; i++) {
+        if (nhObj.displays[i].id === spec.parentId) {
+          // This is our display, so we check the listed points.
+          if (typeof nhObj.displays[i].points !== 'undefined') {
+            for (var j = 0; j < nhObj.displays[i].points.length; j++) {
+              addPoint(nhObj.displays[i].points[j]);
+            }
+          }
+        }
+      }
+    }
+  };
+  
+  /**
    * Take a point name and turn it into an ID that can be assigned
    * to a DOM element.
    * @param {string} pointName The name of the point.
@@ -759,6 +1055,21 @@ var pointTable = function(spec, my) {
     return pointName.replace(/\./g, '_');
   };
 
+  /**
+   * Evaluate a point pattern for the table.
+   * @param {string} pName The name of the point.
+   */
+  var producePattern = function(pName) {
+    var rPattern;
+    if (/^\D+\d*.*$/.test(pName) === true) {
+      rPattern = /^(\D+)(\d*)(.*)$/i.exec(pName);
+    } else if (/^\d+$/.test(pName) === true) {
+      rPattern = [pName, 's', pName];
+    }
+
+    return rPattern;
+  };
+  
   /**
    * Return the table with the named column or matching point pattern.
    * @param {string} pointName The name of the point to find a table for.
@@ -772,7 +1083,7 @@ var pointTable = function(spec, my) {
 
     // Find the point pattern and the column name.
     pointElements = pointName.split(/\./);
-    pointPattern = /^(\D+)(\d*)(.*)$/i.exec(pointElements[0]);
+    pointPattern = producePattern(pointElements[0]);
     pointPrefix = pointElements[1];
     for (i = 2; i < pointElements.length; i++) {
       pointPrefix += '.' + pointElements[i];
@@ -780,17 +1091,17 @@ var pointTable = function(spec, my) {
 
     for (i = 0; i < ourTables.length; i++) {
       if (ourTables[i].pointPattern[1] === pointPattern[1]) {
-	rObj.table = ourTables[i];
-	for (j = 0; j < ourTables[i].columns.length; j++) {
-	  if (ourTables[i].columns[j] === pointElements[0]) {
-	    rObj.column = j + 1;
-	  }
-	}
-	for (k = 0; k < ourTables[i].rows.length; k++) {
-	  if (ourTables[i].rows[k].prefix === pointPrefix) {
-	    rObj.row = ourTables[i].rows[k];
-	  }
-	}
+	      rObj.table = ourTables[i];
+	      for (j = 0; j < ourTables[i].columns.length; j++) {
+	        if (ourTables[i].columns[j] === pointElements[0]) {
+	          rObj.column = j + 1;
+	        }
+	      }
+	      for (k = 0; k < ourTables[i].rows.length; k++) {
+	        if (ourTables[i].rows[k].prefix === pointPrefix) {
+	          rObj.row = ourTables[i].rows[k];
+	        }
+	      }
       }
     }
 
@@ -803,7 +1114,7 @@ var pointTable = function(spec, my) {
   var makeTableCell = function() {
     return (dojo.create('td',
       {
-	innerHTML: '&nbsp;'
+	      innerHTML: '&nbsp;'
       })
     );
   };
@@ -818,7 +1129,7 @@ var pointTable = function(spec, my) {
     // Do we already know this table's point pattern?
     if (tTable.pointPattern === null) {
       // Determine the point pattern.
-      tTable.pointPattern = /^(\D+)(\d*)(.*)$/i.exec(columnName);
+      tTable.pointPattern = producePattern(columnName);
     }
 
     // Add the column to the table, and resort.
@@ -829,7 +1140,7 @@ var pointTable = function(spec, my) {
     var nCol = -1;
     for (i = 0; i < tTable.columns.length; i++) {
       if (tTable.columns[i] === columnName) {
-	nCol = i + 1;
+	      nCol = i + 1;
       }
     }
 
@@ -860,7 +1171,7 @@ var pointTable = function(spec, my) {
   var newTableRow = function(tTable, templatePointName) {
 
     pointElements = templatePointName.split(/\./);
-    pointPattern = /^(\D+)(\d*)(.*)$/i.exec(pointElements[0]);
+    pointPattern = producePattern(pointElements[0]);
     pointPrefix = pointElements[1];
     for (i = 2; i < pointElements.length; i++) {
       pointPrefix += '.' + pointElements[i];
@@ -882,8 +1193,8 @@ var pointTable = function(spec, my) {
     // The first cell is the description header.
     tRow.columns.push(dojo.create('th',
       {
-	id: makeSafeId(templatePointName) + 'Description',
-	innerHTML: '&nbsp;'
+	      id: makeSafeId(templatePointName) + 'Description',
+	      innerHTML: '&nbsp;'
       })
     );
 
@@ -895,8 +1206,8 @@ var pointTable = function(spec, my) {
     // A column for the units.
     tRow.columns.push(dojo.create('td',
       {
-	id: makeSafeId(templatePointName) + 'Units',
-	innerHTML: '&nbsp;'
+	      id: makeSafeId(templatePointName) + 'Units',
+	      innerHTML: '&nbsp;'
       })
     );
 
@@ -917,8 +1228,8 @@ var pointTable = function(spec, my) {
       pointPattern: null,
       rows: [],
       headerRow: {
-	domNode: null,
-	columns: []
+	      domNode: null,
+	      columns: []
       },
       domNode: null
     };
@@ -927,7 +1238,7 @@ var pointTable = function(spec, my) {
     // Make a new DOM node for our table.
     nTable.domNode = dojo.create('table',
       {
-	'class': 'pointTable'
+	      'class': 'pointTable'
       }
     );
 
@@ -947,6 +1258,22 @@ var pointTable = function(spec, my) {
     return nTable;
   };
 
+  /**
+   * Modify our tables to remove a point.
+   * @param {string} oldPoint The point name to remove.
+   */
+  var removePointFromTable = function(oldPoint) {
+    // Which table?
+    var aTable = whichTable(oldPoint);
+    
+    // Delete the table cell.
+    if (aTable.table !== null &&
+        aTable.column !== -1 &&
+        aTable.row !== null) {
+      dojo.destroy(aTable.row.columns[aTable.column]);
+    }
+  };
+  
   /**
    * Modify our tables for a new point.
    */
@@ -972,10 +1299,10 @@ var pointTable = function(spec, my) {
 
     // We describe it appropriately.
     if (aTable.table !== null &&
-	aTable.column !== -1 &&
-	aTable.row !== null) {
+	      aTable.column !== -1 &&
+	      aTable.row !== null) {
       dojo.attr(aTable.row.columns[aTable.column], 'id',
-	makeSafeId(newPoint));
+	      makeSafeId(newPoint));
     }
   };
 
@@ -985,21 +1312,30 @@ var pointTable = function(spec, my) {
    */
   var addPoint = function(pointName) {
     // Check it's not already on our list.
-    added = 0;
+    added = false;
     for (j = 0; j < ourPoints.length; j++) {
       if (ourPoints[j] === pointName) {
-	added = 1;
-	break;
+	      added = true;
+	      break;
       }
     }
 
     // Add the point if it's not already there.
-    if (added === 0) {
+    if (added === false) {
       ourPoints.push(pointName);
     }
 
     // Update the table.
     addPoint2Table(pointName);
+
+    // Send a message saying we need a MoniCA point.
+    dojo.publish('/monica/pointRequired', {
+      name: pointName,
+      type: 'point',
+      callbackFn: that.updateTable
+    });
+    
+    return !added;
   };
 
   // Our public methods.
@@ -1012,6 +1348,10 @@ var pointTable = function(spec, my) {
   that.updateTable = function(pointRef) {
     pDetails = pointRef.getPointDetails();
     idPrefix = makeSafeId(pDetails.name);
+    // Check that we still have this ID.
+    if (!dojo.byId(idPrefix)) {
+      return;
+    }
     pState = pointRef.latestValue();
     dojo.attr(idPrefix, 'innerHTML', pState.value);
     if (dojo.byId(idPrefix + 'Description')) {
@@ -1026,19 +1366,6 @@ var pointTable = function(spec, my) {
     } else {
       dojo.removeClass(idPrefix, 'inError');
     }
-    
-    // Need a return here to allow the next callback to operate.
-    return;
-  };
-
-  /**
-   * Add some new points to our table.
-   * @param {array} points An array of point names to handle.
-   */
-  that.addPoints = function(points) {
-    for (pn = 0; pn < points.length; pn++) {
-      addPoint(points[pn]);
-    }
   };
 
   /**
@@ -1048,12 +1375,8 @@ var pointTable = function(spec, my) {
     return that.updateTable;
   };
 
-  /**
-   * Return our type.
-   */
-  that.type = function() {
-    return 'pointTable';
-  };
+  hashChanged(dojo.hash());
+  dojo.subscribe('/dojo/hashchange', hashChanged);
 
   return that;
 };
@@ -1105,56 +1428,254 @@ var displayHandler = function(spec, my) {
    * All the displays we are handling.
    * @type {array}
    */
-  var myDisplays = [];
-
-  /**
-   * The number of containers we have.
-   * @type {number}
-   */
-  var nContainers = 0;
-
-  /**
-   * The ID of the active display.
-   * @type {string}
-   */
-  var currentActive = '';
-
-  /**
-   * The objects to return as the active objects.
-   * @type {array}
-   */
-  var activeObjects = [];
+  var myDisplays = { 
+    active: null
+  };
 
   // Our methods follow.
 
   // Our private methods.
   /**
+   * Get a list of all the displays.
+   */
+  var allDisplays = function() {
+    var retArr = [];
+    for (i in myDisplays) {
+      if (i !== 'active' &&
+          myDisplays.hasOwnProperty(i)) {
+        retArr.push(i);
+      }
+    }
+    return retArr;
+  };
+
+  var checkTitle = function(displayObj) {
+    // Check that we have our title right.
+    if (typeof displayObj.title !== 'undefined') {
+      dojo.attr(generateId(displayObj.id, 'editable'),
+        'innerHTML', displayObj.title);
+    }
+  };
+  
+  /**
+   * Watch out for a change to the hash.
+   */
+  var hashChanged = function(newHash) {
+    // Get the hash in object format.
+    var nhObj = mfUseful.hashToObject(newHash);
+    // Get all our displays.
+    var allIds = allDisplays();
+    
+    // Check for displays.
+    if (typeof nhObj.displays !== 'undefined') {
+      // Check that each display exists.
+      for (i = 0; i < nhObj.displays.length; i++) {
+        if (typeof myDisplays[nhObj.displays[i].id] === 'undefined') {
+          // We need to create a new display.
+          addDisplay(nhObj.displays[i].id);
+          checkTitle(nhObj.displays[i]);
+          if (nhObj.displays[i].type === 'pointTable') {
+            makePointTable(nhObj.displays[i].id);
+          } else if (nhObj.displays[i].type === 'timeSeries') {
+            makeTimeSeries(nhObj.displays[i].id);
+          }
+        } else {
+          checkTitle(nhObj.displays[i]);
+        }
+      }
+    }
+  };
+  
+  /**
+   * Make a new display.
+   */
+  var addDisplay = function(nId) {
+    newId = addContainer(nId);
+    setupContainer(newId);
+    activateDisplay(newId);
+    return newId;
+  };
+
+  /**
+   * Create and add a point table to the named display.
+   */
+  var makePointTable = function(nId) {
+    var npt = pointTable({
+      parentId: nId,
+      tableDOM: generateId(nId, 'content')
+    });
+    myDisplays[nId].activeObject = npt;
+  };
+  
+  /**
+   * Create and add a time series to the named display.
+   */
+  var makeTimeSeries = function(nId) {
+    // Add the time-series options.
+    var aId = 'timeSeries' + nId + 'Option';
+    var oId = generateId(myDisplays[nId].id, 'options');
+    dojo.place(
+      '<br /><label for="' + aId + 'MaxPoints">Display</label>' +
+      '<input type="text" id="' + aId + 'MaxPoints" ' +
+      'name="' + aId + 'MaxPoints" value="" size="5" />' +
+      '<label for="' + aId + 'MaxPoints"> points covering</label>' +
+      '<input type="text" id="' + aId + 'SpanTime" ' +
+	    'name="' + aId + 'SpanTime" value="" size="5" />' +
+      '<label for="' + aId + 'SpanTime"> minutes</label>' +
+      '<select name="' + aId +
+      'TimeType" id="' + aId + 'TimeType">' +
+      '<option value="starting">starting</option>' +
+      '<option value="ending">ending</option>' +
+      '</select><label id="' + aId + 'NowLabel" ' +
+      'for="' + aId + 'TimeType"> now</label>' +
+      '<input type="text" id="' + aId + 'DateField" />' +
+      '<input type="text" id="' + aId + 'TimeField" />' +
+      '<button type="button" id="' + aId + 'OptionButton"' +
+      'name="' + nId + '">Refresh</button>',
+      oId, 'last'
+    );
+
+    // A function to show the correct time selection elements.
+    var showOptions = function(sId, sType) {
+      if (sType === 'ending') {
+        dojo.removeClass(sId + 'NowLabel', 'elHide');
+        dojo.addClass(sId + 'DateField', 'elHide');
+        dojo.addClass(sId + 'TimeField', 'elHide');
+      } else if (sType === 'starting') {
+        dojo.addClass(sId + 'NowLabel', 'elHide');
+        dojo.removeClass(sId + 'DateField', 'elHide');
+        dojo.removeClass(sId + 'TimeField', 'elHide');
+      }
+    };
+    
+    // A function to fill in the time-series option boxes.
+    var fillOptions = function(changedObj) {
+      var cId = 'timeSeries' + changedObj.parentId() + 'Option';
+      var cOptions = changedObj.getTimeSeriesOptions();
+      dojo.attr(cId + 'SpanTime', 'value', cOptions.spanTime);
+      if (cOptions.startTime === -1) {
+        // Select the ending option.
+        dojo.attr(cId + 'TimeType', 'value', 'ending');
+        showOptions(cId, 'ending');
+      } else {
+        // Select the starting option.
+        dojo.attr(cId + 'TimeType', 'value', 'starting');
+        showOptions(cId, 'starting');
+        // Fill in the time from the hash.
+        var te = /^(.*?)\:(.*)$/.exec(cOptions.startTime);
+        dojo.attr(cId + 'DateField', 'value', te[1]);
+        dojo.attr(cId + 'TimeField', 'value', te[2]);
+      }
+      dojo.attr(cId + 'MaxPoints', 'value', cOptions.maxPoints);
+    };
+
+    var changeOptions = function(evtObj) {
+      var cId = 'timeSeries' + evtObj.target.name + 'Option';
+      var cOptions = {
+        spanTime: dojo.attr(cId + 'SpanTime', 'value'),
+        maxPoints: dojo.attr(cId + 'MaxPoints', 'value'),
+        startTime: -1
+      };
+      // Set the start time if required.
+      if (dojo.attr(cId + 'TimeType', 'value') === 'starting') {
+        var pt = dojo.attr(cId + 'DateField', 'value') +
+          ':' + dojo.attr(cId + 'TimeField', 'value');
+        cOptions.startTime = pt;
+      }
+      // Get the current hash.
+      var chObj = mfUseful.hashToObject(dojo.hash());
+      // Find our display.
+      for (var i = 0; i < chObj.displays.length; i++) {
+        if (chObj.displays[i].id === evtObj.target.name) {
+          chObj.displays[i].options = cOptions;
+        }
+      }
+      dojo.hash(mfUseful.objectToHash(chObj));
+    };
+    
+    dojo.connect(dojo.byId(aId + 'OptionButton'), 'onclick', changeOptions);
+
+    var timeTypeChanged = function(evtObj) {
+      // var cId = 'timeSeries' + evtObj.target.name + 'Option';
+      var cId = evtObj.target.id.replace(/TimeType$/,'');
+      // Get the option that is now selected.
+      var selValue = dojo.attr(cId + 'TimeType', 'value');
+      showOptions(cId, selValue);
+      if (selValue === 'starting') {
+        // Check for values in the starting boxes.
+        var dValue = dojo.attr(cId + 'DateField', 'value');
+        var tValue = dojo.attr(cId + 'TimeField', 'value');
+        if (dValue === '' || tValue === '') {
+          // We need to fill in some values, using the current time.
+          var tTime = new Date();
+          var td = tTime.getUTCFullYear() + '-' +
+            (tTime.getUTCMonth() + 1).zeroPad(10) + '-' +
+            tTime.getUTCDate().zeroPad(10);
+          var tt = tTime.getUTCHours().zeroPad(10) + ':' +
+            tTime.getUTCMinutes().zeroPad(10) + ':' +
+            tTime.getUTCSeconds().zeroPad(10);
+          dojo.attr(cId + 'DateField', 'value', td);
+          dojo.attr(cId + 'TimeField', 'value', tt);
+        }
+      }
+    };
+    dojo.connect(dojo.byId(aId + 'TimeType'), 'onchange', timeTypeChanged);
+    
+    var npt = timeSeries({
+      parentId: nId,
+      plotDOM: generateId(nId, 'content'),
+      plottingLibrary: 'highcharts',
+      optionsChangedFunc: fillOptions
+    });
+    myDisplays[nId].activeObject = npt;
+    
+  };
+  
+  /**
    * Add a container for the display.
    */
-  var addContainer = function() {
+  var addContainer = function(nId) {
     // Make a new ID.
-    idString = 'displayContainer' + nContainers;
-    // Increment this counter for the next time.
-    nContainers++;
+    idString = nId || mfUseful.randomString();
 
     // Make the div.
     newDiv = dojo.create('div',
       {
-	id: idString,
-	'class': spec.containerClass
+	      id: idString,
+	      'class': spec.containerClass
       }
     );
     // And push it on to our displays list.
-    myDisplays.push(idString);
-    activeObjects.push({});
+    myDisplays[idString] = {
+      id: idString,
+      node: newDiv,
+      activeObject: null
+    };
 
     // Add it to the page.
-    dojo.place(newDiv, spec.referenceNode, 'before');
+    dojo.place(newDiv, spec.referenceNode);
 
     // Return the ID of this new node.
     return idString;
   };
 
+  /**
+   * Change the text of our display title.
+   * @param {string} editableId The ID of the editable object.
+   * @param {string} newTitle The text of the new title.
+   */
+  var getNewText = function(editableId, newTitle) {
+    // Get the hash in object format.
+    var nhObj = mfUseful.hashToObject();
+    for (i = 0; i < nhObj.displays.length; i++) {
+      var tId = generateId(nhObj.displays[i].id, 'editable');
+      if (tId === editableId) {
+        nhObj.displays[i].title = newTitle;
+      }
+    }
+    dojo.hash(mfUseful.objectToHash(nhObj));
+  };
+  
   /**
    * Set up a display container.
    * @param {string} container The ID of the container to set up.
@@ -1164,15 +1685,15 @@ var displayHandler = function(spec, my) {
     activeId = generateId(container, 'active');
     activeDiv = dojo.create('div',
       {
-	id: activeId,
-	'class': 'containerInactive'
+	      id: activeId,
+	      'class': 'containerInactive'
       }
     );
     dojo.byId(container).appendChild(activeDiv);
 
     leftDiv = dojo.create('div',
       {
-	'class': 'containerBounds'
+	      'class': 'containerBounds'
       }
     );
     dojo.byId(container).appendChild(leftDiv);
@@ -1181,8 +1702,8 @@ var displayHandler = function(spec, my) {
     titleId = generateId(container, 'title');
     titleDiv = dojo.create('div',
       {
-	id: titleId,
-	'class': 'containerTitle'
+	      id: titleId,
+	      'class': 'containerTitle'
       }
     );
     leftDiv.appendChild(titleDiv);
@@ -1191,15 +1712,16 @@ var displayHandler = function(spec, my) {
     editableId = generateId(container, 'editable');
     editableSpan = dojo.create('span',
       {
-	id: editableId,
-	'class': 'titleEditable',
-	innerHTML: 'Click to edit title'
+	      id: editableId,
+	      'class': 'titleEditable',
+	      innerHTML: 'Click to edit title'
       }
     );
     titleDiv.appendChild(editableSpan);
     // Make it editable.
     editHandler = editableText({
-      editableNode: editableSpan
+      editableNode: editableSpan,
+      editedFn: getNewText
     });
 
     // Provide an options area that can be filled with options
@@ -1207,8 +1729,8 @@ var displayHandler = function(spec, my) {
     optionsId = generateId(container, 'options');
     optionsSpan = dojo.create('span',
       {
-	id: optionsId,
-	'class': 'titleOptions'
+	      id: optionsId,
+	      'class': 'titleOptions'
       }
     );
     titleDiv.appendChild(optionsSpan);
@@ -1218,8 +1740,8 @@ var displayHandler = function(spec, my) {
     contentId = generateId(container, 'content');
     contentDiv = dojo.create('div',
       {
-	id: contentId,
-	'class': 'containerContent'
+	      id: contentId,
+	      'class': 'containerContent'
       }
     );
     leftDiv.appendChild(contentDiv);
@@ -1228,8 +1750,8 @@ var displayHandler = function(spec, my) {
     actionsId = generateId(container, 'actions');
     actionsDiv = dojo.create('div',
       {
-	id: actionsId,
-	'class': 'containerActions'
+	      id: actionsId,
+	      'class': 'containerActions'
       }
     );
     leftDiv.appendChild(actionsDiv);
@@ -1237,7 +1759,7 @@ var displayHandler = function(spec, my) {
     // Setup the action handlers.
     dojo.connect(activeDiv, 'onclick',
       function() {
-	activateDisplay(container);
+	      activateDisplay(container);
       }
     );
   };
@@ -1277,13 +1799,17 @@ var displayHandler = function(spec, my) {
    * Deactivate the currently active tab.
    */
   var deactivateCurrent = function() {
-    if (currentActive !== '') {
-      dojo.removeClass(generateId(currentActive, 'active'),
-		       'containerActive');
-      dojo.addClass(generateId(currentActive, 'active'),
-		    'containerInactive');
-      currentActive = '';
+    if (myDisplays['active'] === null) {
+      return;
     }
+    var ca = myDisplays['active'].id;
+    if (ca !== '') {
+      dojo.removeClass(generateId(ca, 'active'),
+		    'containerActive');
+      dojo.addClass(generateId(ca, 'active'),
+		    'containerInactive');
+    }
+    myDisplays['active'] = null;
   };
 
   /**
@@ -1291,27 +1817,46 @@ var displayHandler = function(spec, my) {
    * @param {string} container The ID of the container to activate.
    */
   var activateDisplay = function(container) {
-    activeId = generateId(container, 'active');
-    if (activeId === currentActive) {
+    if (myDisplays['active'] != null &&
+        myDisplays['active'].id === container) {
       return;
     }
     deactivateCurrent();
-    dojo.removeClass(activeId, 'containerInactive');
-    dojo.addClass(activeId, 'containerActive');
-    currentActive = container;
+    myDisplays['active'] = myDisplays[container];
+    if (myDisplays['active'] != null) {
+      activeId = generateId(myDisplays['active'].id, 'active');
+      dojo.removeClass(activeId, 'containerInactive');
+      dojo.addClass(activeId, 'containerActive');
+    }
   };
 
   // Our public methods.
   /**
    * Add a new display.
    */
-  that.add = function() {
-    newId = addContainer();
-    setupContainer(newId);
-    activateDisplay(newId);
-    return newId;
+  that.add = function(nId) {
+    return addDisplay(nId);
   };
 
+  /**
+   * Return the title text for a named display.
+   * @param {string} cId The ID of the display to query.
+   */
+  that.displayTitle = function(cId) {
+    return dojo.attr(generateId(cId, 'editable'), 'innerHTML');
+  };
+  
+  /**
+   * Check for a particular display ID.
+   * @param {string} cId The ID of the display to check for.
+   */
+  that.hasId = function(cId) {
+    if (typeof myDisplays[cId] !== 'undefined') {
+      return true;
+    }
+    return false;
+  };
+  
   /**
    * Assign an object that we will return when asked.
    * @param {string} assignId The ID of the display to assign the object to.
@@ -1321,246 +1866,439 @@ var displayHandler = function(spec, my) {
     // Find the ID.
     if (assignId === '') {
       // Use the currently active ID.
-      assignId = currentActive;
+      assignId = myDisplays['active'].id;
     }
-    for (i = 0; i < myDisplays.length; i++) {
-      if (myDisplays[i] === assignId) {
-	activeObjects[i] = assignObject;
-      }
-    }
+    myDisplays[assignId].activeObject = assignObject;
   };
 
   /**
    * Return the object for the currently active display.
    */
   that.activeObject = function() {
-    for (i = 0; i < myDisplays.length; i++) {
-      if (myDisplays[i] === currentActive) {
-	return activeObjects[i];
-      }
-    }
-    return null;
+    return myDisplays['active'].activeObject;
   };
 
   /**
-   * Return the index of the currently active display, so other routines
-   * can keep their IDs consistent.
+   * Return the object for the named display.
+   * @param {string} oId The ID to retrieve the object for.
    */
-  that.activeIndex = function() {
-    for (i = 0; i < myDisplays.length; i++) {
-      if (myDisplays[i] === currentActive) {
-	return i;
-      }
+  that.getObject = function(oId) {
+    if (typeof myDisplays[oId] !== 'undefined') {
+      return myDisplays[oId].activeObject;
     }
-    return -1;
+    return null;
   };
-
+  
+  /**
+   * Return the ID of the currently active display.
+   */
+  that.activeId = function() {
+    return myDisplays['active'].id;
+  };
+  
   /**
    * Return the DOM ID of the content node for the active display.
    */
   that.activeContent = function() {
-    return generateId(currentActive, 'content');
+    return generateId(myDisplays['active'].id, 'content');
   };
 
   /**
    * Return the DOM ID of the options node for the active display.
    */
   that.activeOptions = function() {
-    return generateId(currentActive, 'options');
+    return generateId(myDisplays['active'].id, 'options');
   };
 
+  /**
+   * Get a list of all the displays.
+   */
+  that.allDisplays = function() {
+    return allDisplays();
+  };
+
+  // Go through the hash on initialisation.
+  hashChanged(dojo.hash());
+  dojo.subscribe('/dojo/hashchange', hashChanged);
+  
   return that;
 };
 
-function init() {
-  // Set up a MoniCA object.
+
+/**
+ * This is the function called on page load.
+ */
+var init = function() {
+  // Here is the list of our MoniCA servers.
+  var monicaServers = [
+    {
+      serverName: 'monhost-nar',
+      location: 'ATCA'
+    },
+    {
+      serverName: 'monhost-pks',
+      location: 'Parkes'
+    },
+    {
+      serverName: 'monhost-mop',
+      location: 'Mopra'
+    }
+  ];
+
+  // Fill the server list.
+  for (var i = 0; i < monicaServers.length; i++) {
+    var servero = dojo.create('option', {
+      innerHTML: monicaServers[i].location,
+      value: monicaServers[i].serverName
+    });
+    dojo.place(servero, 'serverselect');
+  }
+
+  // Set up a default MoniCA object.
   var setupOptions = {
-    updateInterval: 4000,
-    serverName: 'monhost-pks'
+    updateInterval: 2000,
+    autoDescriptions: true
   };
-  var monica = monicaServer(setupOptions);
 
-  // Some subroutines we'll need later
+  // The reference to the MoniCA server object.
+  var monica = null;
+  // And an indicator to say we've connected.
+  var monicaConnected = false;
 
-  // Set up a routine to call when we get the point names.
+  // A list of points that are requested before MoniCA
+  // has connected.
+  var prePoints = [];
+  
+  // Our tree.
+  var treeDisplay;
+
+  /**
+   * This routine is called when the hash has been changed and Dojo has
+   * published an event to the '/dojo/hashchange' channel. It looks at
+   * the new hash and calls the appropriate routines to keep the page
+   * consistent.
+   * @param {string} newHash The new value of the location hash.
+   */
+  var hashChanged = function(newHash) {
+    // The hash has changed, so we do things.
+    
+    // Convert the new hash into an object.
+    var nhObj = mfUseful.hashToObject(newHash);
+    
+    // Check if the new hash has a server entry.
+    if (typeof nhObj.serverName === 'undefined') {
+      // We have no connection so we disconnect.
+      disconnectServer();
+    } else {
+      // We have a connection so we connect.
+      connectServer(nhObj.serverName);
+    }
+  };
+  
+  /**
+   * This routine is called when the server connect button is pressed and
+   * inserts the location value into the page hash, or removes it if the
+   * user wants to disconnect it.
+   */
+  var connectButtonActions = function() {
+    if (monica === null) {
+      // Which server is selected?
+      var selectedOptionIndex = dojo.byId('serverselect').selectedIndex;
+      var currPageConfig = {
+        serverName:
+          dojo.attr(dojo.byId('serverselect').options[selectedOptionIndex],
+                  'innerHTML')
+      };
+    } else {
+      var currPageConfig = {};
+    }
+    
+    dojo.hash(mfUseful.objectToHash(currPageConfig));
+  };
+
+  /**
+   * This routine is called when the "Add Point Table" button is pressed.
+   * It adds enough information to the page hash to get a point table
+   * display to show up.
+   */
+  var addPointTable = function() {
+    // Make a new random ID for the display.
+    var newId = mfUseful.randomString();
+    var nDis = {
+      id: newId,
+      type: 'pointTable'
+    };
+    var ndJ = dojo.toJson(nDis);
+    
+    // Get the current location hash.
+    var dhObj = mfUseful.hashToObject();
+    if (typeof dhObj.displays === 'undefined') {
+      dhObj.displays = [ ndJ ];
+    } else {
+      dhObj.displays.push(ndJ);
+    }
+    
+    dojo.hash(mfUseful.objectToHash(dhObj));
+    
+  };
+
+  /**
+   * This routine is called when the "Add Time Series" button is pressed.
+   * It adds enough information to the page hash to get a time series
+   * display to show up.
+   */
+  var addTimeSeries = function() {
+    var newId = mfUseful.randomString();
+    var nDis = {
+      id: newId,
+      type: 'timeSeries'
+    };
+    var ndJ = dojo.toJson(nDis);
+
+    // Get the current location hash.
+    var dhObj = mfUseful.hashToObject();
+    if (typeof dhObj.displays === 'undefined') {
+      dhObj.displays = [ ndJ ];
+    } else {
+      dhObj.displays.push(ndJ);
+    }
+    
+    dojo.hash(mfUseful.objectToHash(dhObj));
+
+  };
+
+  /**
+   * This routine is called when some points are selected in the tree and
+   * the pointsSelected channel is published to. It adds a list of the
+   * points to the right location in the hash.
+   * @param {array} pointsList The list of points the user selected.
+   */
+  var pointsSelected = function(pointsList) {
+    // Get the active display's ID.
+    var activeId = displays.activeId();
+    var currPageConfig = mfUseful.hashToObject();
+    // Find this in our current config.
+    for (var i = 0; i < currPageConfig.displays.length; i++) {
+      if (currPageConfig.displays[i].id === activeId) {
+        if (typeof currPageConfig.displays[i].points === 'undefined') {
+          currPageConfig.displays[i].points = [];
+        }
+        for (var j = 0; j < pointsList.length; j++) {
+          currPageConfig.displays[i].points.push(pointsList[j]);
+        }
+        break;
+      }
+    }
+    
+    dojo.hash(mfUseful.objectToHash(currPageConfig));
+  };
+
+  /**
+   * This routine is called when the hash has indicated that we need to
+   * connect to a MoniCA server.
+   * @param {string} locationName The name of the location to connect to.
+   */
+  var connectServer = function(locationName) {
+    // Only connect if we need to.
+    if (monica !== null) {
+      return;
+    }
+    
+    // Find the server in our list.
+    var selectOptions = dojo.byId('serverselect').options;
+    for (var i = 0; i < selectOptions.length; i++) {
+      if (dojo.attr(selectOptions[i], 'innerHTML') === locationName) {
+        selectOptions[i].selected = true;
+        setupOptions.serverName = selectOptions[i].value;
+        monica = monicaServer(setupOptions);
+        monica.connect().then(pointsKnown);
+      }
+    }
+    configurePageState();
+  };
+  
+  /**
+   * This routine is called when the hash has indicated that we need to
+   * disconnect from a MoniCA server.
+   */
+  var disconnectServer = function() {
+    if (monica === null) {
+      // We don't have a connection.
+      return;
+    }
+    
+    treeDisplay.removeTree();
+    monica = null;
+    configurePageState();
+  };
+
+  /**
+   * This routine detects whether we are connected to a MoniCA server
+   * or not, and configures elements in the page accordingly.
+   */
+  var configurePageState = function() {
+    if (monica === null) {
+      // The button will make a connection.
+      dojo.attr('serverselectConnect', 'innerHTML', 'Connect');
+      // The user can change the server in the select.
+      dojo.byId('serverselect').disabled = false;
+      // The user can't add elements to the page.
+      dojo.addClass('topadder', 'elHide');
+      dojo.addClass('bottomadder', 'elHide');
+    } else {
+      // The button will end a connection.
+      dojo.attr('serverselectConnect', 'innerHTML', 'Disconnect');
+      // The user can't change the server in the select.
+      dojo.byId('serverselect').disabled = true;
+      // The user can add elements to the page.
+      dojo.removeClass('topadder', 'elHide');
+      dojo.removeClass('bottomadder', 'elHide');
+    }
+  };
+
+  /**
+   * This routine is called when a MoniCA connection has been
+   * successfully established and is responsible for setting up
+   * the points tree.
+   * @param {object} serverInfo Information about the server that has
+   *                            just connected.
+   */
   var pointsKnown = function(serverInfo) {
     // We make a point tree a put it on the page so the user
     // can select which points to put into the view objects.
     var allPoints = monica.pointsList();
-
-    var treeDisplay = pointSelector();
+    
+    // Make a Dojo tree control and attach it to the page.
+    treeDisplay = pointSelector();
     treeDisplay.setPoints(allPoints);
-    treeDisplay.attachTree('right');
-
-    dojo.subscribe('pointsSelected',
-      function (pointsList) {
-				var dType = displays.activeObject().type();
-				if (dType === 'pointTable') {
-					// Add the points to the point table.
-					displays.activeObject().addPoints(pointsList);
-					
-					// Ask MoniCA to update these points.
-					var pointRefs = monica.addPoints(pointsList);
-					for (var i = 0; i < pointsList.length; i++) {
-						// Add a callback for this point.
-						pointRefs[i].addCallback(displays.activeObject().callbackFn());
-					}
-					
-					// Ask MoniCA to get the descriptions and start updating.
-					monica.getDescriptions();
-				} else if (dType === 'timeSeries') {
-					// Add the points to the time series.
-					displays.activeObject().addSeries(pointsList);
-					
-					// Ask MoniCA to update these points.
-					for (var i = 0; i < pointsList.length; i++) {
-						var seriesRef = monica.addTimeSeries({
-								pointName: pointsList[i],
-								timeSeriesOptions: displays.activeObject().getTimeSeriesOptions()
-						});
-
-						// Add a callback for this point.
-						seriesRef.addCallback(displays.activeObject().callbackFn());
-					}
-
-					// Ask MoniCA to get the descriptions and start updating.
-					monica.getDescriptions();
-				}
-      }
-    );
-
+    treeDisplay.attachTree('treearea');
+    // treeDisplay.attachFilter('searcharea');
+    
+    monicaConnected = true;
     monica.startUpdating();
+    pointStart();
   };
 
+  /**
+   * This routine is called when a page element requires a point to
+   * start updating.
+   * @param {object} pName Object describing the point to add to MoniCA.
+   */
+  var pointStart = function(pName) {
+    if (monicaConnected === false) {
+      // MoniCA isn't connected so we add it to a list of points
+      // that will get added when the connection is established.
+      prePoints.push(pName);
+      return;
+    } else if (monicaConnected === true && prePoints.length > 0 &&
+               typeof pName === 'undefined') {
+      // We add all the pre-defined points.
+      for (var i = 0; i < prePoints.length; i++) {
+        pointAdder(prePoints[i]);
+      }
+    } else {
+      // We are being called after MoniCA has connected.
+      pointAdder(pName);
+    }
+    // monica.getDescriptions();
+  };
+  
+  /**
+   * This routine is called when we are ready to add a point to
+   * the MoniCA querier to begin it updating.
+   * @param {object} pDetails Object describing the point to add to MoniCA.
+   */
+  var pointAdder = function(pDetails) {
+    if (typeof pDetails === 'undefined') {
+      return;
+    }
+    
+    if (pDetails.type === 'point') {
+      // A simple point.
+      var pRef = monica.addPoints([pDetails.name]);
+      pRef[0].addCallback(pDetails.callbackFn);
+    } else if (pDetails.type === 'timeSeries') {
+      // A time series.
+      var tRef = monica.addTimeSeries({
+        pointName: pDetails.name,
+        timeSeriesOptions: pDetails.options
+      });
+      tRef.addCallback(pDetails.callbackFn);
+    }
+  };
+  
+  /**
+   * This routine connects subscription channels with our routines to
+   * deal with them.
+   */
+  var setupSubscriptions = function() {
+    dojo.subscribe('/dojo/hashchange', hashChanged);
+    
+    dojo.subscribe('/monica/pointsSelected', pointsSelected);
+    
+    dojo.subscribe('/monica/pointRequired', pointStart);
+  };
+
+  /**
+   * This routine connects the existing HTML buttons to the appropriate
+   * routines.
+   */
   var setupAdders = function() {
-    // Make the buttons required to add new displays.
-    var adderDiv = dojo.create('div',
-      {
-	id: 'adder',
-	'class': 'adder'
-      }
-    );
-    dojo.byId('left').appendChild(adderDiv);
-    var addPointTable = dojo.create('button',
-      {
-	type: 'button',
-	innerHTML: 'Add Point Table',
-	'class': 'addButton'
-      }
-    );
-    adderDiv.appendChild(addPointTable);
-    var addTimeSeries = dojo.create('button',
-      {
-	type: 'button',
-	innerHTML: 'Add Time Series',
-	'class': 'addButton'
-      }
-    );
-    adderDiv.appendChild(addTimeSeries);
-
     // Make the buttons do things.
-    dojo.connect(addPointTable, 'onclick',
-      function() {
-	displays.add();
-	displays.assignActiveObject('',
-	  pointTable({
-	    tableDOM: displays.activeContent()
-	  })
-	);
-      }
-    );
+    dojo.connect(dojo.byId('topadderPointTable'), 'onclick',
+      addPointTable);
+    dojo.connect(dojo.byId('bottomadderPointTable'), 'onclick',
+      addPointTable);
 
-    dojo.connect(addTimeSeries, 'onclick',
-      function() {
-	displays.add();
-	displays.assignActiveObject('',
-	  timeSeries({
-	    plotDOM: displays.activeContent(),
-	    plottingLibrary: 'highcharts'
-	  })
-	);
-	// Add the option elements we use to control the time series.
-	var cOptions = displays.activeObject().getTimeSeriesOptions();
-	var aId = 'timeSeries' + displays.activeIndex() + 'Option';
-	dojo.place(
-	  '<br /><span class="optionsTitle">Options:</span>',
-	  displays.activeOptions(), 'last'
-	);
-	dojo.place(
-	  '<label for="' + aId + 'SpanTime">Time Span (mins):</label>' +
-	  '<input type="text" id="' + aId + 'SpanTime" ' +
-	    'name="' + aId + 'SpanTime" value="' +
-	    cOptions.spanTime + '" size="5" />',
-	  displays.activeOptions(), 'last'
-	);
-	dojo.place(
-	  '<input type="checkbox" name="' + aId + 'StartTimeNow" ' +
-	    'id="' + aId + 'StartTimeNow" checked="yes" />' +
-	    '<label for="' + aId + 'StartTimeNow">ending now' +
-	    '</label>' +
-	    '<label for="' + aId + 'StartTimeDate"> / starting (UTC): ' +
-	    '</label>' +
-	    '<input id="' + aId + 'StartTimeDate" ' +
-	    'name="' + aId + 'StartTimeDate" />' +
-	    '<input id="' + aId + 'StartTimeTime" size="9" />',
-	  displays.activeOptions(), 'last'
-	);
-	// Enable the date picker.
-	var todaysDate = new Date();
-	new ISODateTextBox({
-	  value: dojo.date.locale.format(todaysDate, isoFormatter),
-	  name: aId + 'StartTimeDatePicker'
-	}, aId + 'StartTimeDate');
-	var dHours = (todaysDate.getUTCHours() < 10) ?
-	  '0' + todaysDate.getUTCHours() : todaysDate.getUTCHours();
-	var dMinutes = (todaysDate.getUTCMinutes() < 10) ?
-	  '0' + todaysDate.getUTCMinutes() : todaysDate.getUTCMinutes();
-	dojo.attr(aId + 'StartTimeTime', 'value',
-    dHours + ':' + dMinutes + ':00');
-	if (cOptions.startTime === -1) {
-	  // Disable the
-	}
-      }
-    );
-
+    dojo.connect(dojo.byId('topadderTimeSeries'), 'onclick',
+      addTimeSeries);
+    dojo.connect(dojo.byId('bottomadderTimeSeries'), 'onclick',
+      addTimeSeries);
   };
 
-  // Subscribe to a MoniCA connection.
-  dojo.subscribe('connection', pointsKnown);
-
-  // Initialise the connection.
-  monica.connect();
+  // Setup the addition buttons and topic subscriptions.
+  setupAdders();
+  setupSubscriptions();
 
   // Get a new display handler.
   var displays = displayHandler({
-    referenceNode: 'adder'
+    referenceNode: 'elementsarea'
   });
 
-  // Make a customised Dojo calendar.
-  var isoFormatter = {
-    selector: 'date',
-    datePattern: 'yyyy-MM-dd',
-    locale: 'en-au'
-  };
-  dojo.declare('ISODateTextBox', dijit.form.DateTextBox,
-    {
-      isoFormat: isoFormatter,
-      value: '',
-      postMixInProperties: function() {
-	      this.inherited(arguments);
-	      // Convert our value to the Date object.
-	      this.value = dojo.date.locale.parse(this.value,
-				this.isoFormat);
-      },
-      serialize: function(dateObject, options) {
-	      return dojo.date.locale.format(dateObject, this.isoFormat);
-      }
-    }
-  );
+  // Make the connect button do something.
+  dojo.connect(dojo.byId('serverselectConnect'), 'onclick',
+    connectButtonActions);
+  configurePageState();
 
-  // Setup the addition buttons.
-  setupAdders();
+  hashChanged();
+};
 
-}
+/**
+ * Convert a number into a string with leading zeroes if required.
+ * @param {number} bound The largest number (+1) to pad with leading zeroes.
+ */
+Number.prototype.zeroPad = function(bound) {
+	var b = bound || 1;
+	var o = '';
+	var n = this;
+	
+	var sign = 1;
+	if (n < 0) {
+		sign = -1;
+		n *= sign;
+	}
+	
+	while (n < b && b >= 10) {
+		o += '0';
+		b /= 10;
+	}
+
+	if (sign === -1) {
+		o = '-' + o;
+	}
+	
+	return o + n;
+};
+
 
 dojo.addOnLoad(init);
