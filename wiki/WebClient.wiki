@@ -240,7 +240,7 @@ var seriesReference = server.addTimeSeries(seriesOptions);
 This method makes the server keep track of a number of values for a particular point. The configuration of the time-series is passed through the `seriesOptions` object, that has the properties:
   * `pointName`: the name of the MoniCA point.
   * `timeSeriesOptions`: an object with the properties:
-    * `startTime`: the time to start the series from, in the format `yyyy/mm/dd:HH:MM:SS`, or `-1` to make the series finish at the current time (the default).
+    * `startTime`: the time to start the series from, in the format `yyyy-mm-dd:HH:MM:SS`, or `-1` to make the series finish at the current time (the default).
     * `spanTime`: the time to cover with this series, in minutes (default 60).
     * `maxPoints`: the maximum number of points to keep from the time range (default 500).
 
@@ -375,7 +375,7 @@ The constructor function takes two arguments, both of which are optional.
     * `pointName`: the MoniCA name for this point, as a `String`.
     * `isTimeSeries`: a `Boolean` indicating whether this point represents a time-series.
     * `timeSeriesOptions`: an object that specifies the options used to gather the time-series. Its properties are:
-      * `startTime`: the time to start the series from, in the format `yyyy/mm/dd:HH:MM:SS`, or `-1` to make the series finish at the current time (the default).
+      * `startTime`: the time to start the series from, in the format `yyyy-mm-dd:HH:MM:SS`, or `-1` to make the series finish at the current time (the default).
       * `spanTime`: the time to cover with this series, in minutes (default 60).
       * `maxPoints`: the maximum number of points to keep from the time range (default 500).
   * `my` is any object that you would like the `monicaPoint` to have access to.
@@ -551,7 +551,7 @@ var options = pointReference.timeSeriesOptions(newOptions);
 }}}
 
 This method allows you to set or get the options controlling the time-series. If this method is called without arguments, it returns the current options object, which has the parameters:
-  * `startTime`: the time to start the series from, in the format `yyyy/mm/dd:HH:MM:SS`, or `-1` if the series finishes at the current time.
+  * `startTime`: the time to start the series from, in the format `yyyy-mm-dd:HH:MM:SS`, or `-1` if the series finishes at the current time.
   * `spanTime`: the time covered by this series, in minutes.
   * `maxPoints`: the maximum number of points to keep from the time range.
 
