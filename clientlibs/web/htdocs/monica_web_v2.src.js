@@ -132,6 +132,16 @@ var monicaServer = function(spec, my) {
    * @type {function}
    */
   spec.errorCallback = spec.errorCallback || handleErrors;
+
+  /**
+   * An optional feature to make this handler call getDescriptions
+   * automatically at the beginning of every update. This can be
+   * useful if you are handling point addition on a point-by-point
+   * basis but want to take advantage of the bundling ability of the
+   * handler.
+   * @type {boolean}
+   */
+  spec.autoDescriptions = spec.autoDescriptions || false;
   
   /**
    * The names of all available data points on the MoniCA server.
@@ -438,6 +448,10 @@ var monicaServer = function(spec, my) {
    * Get values for all the points that require updating.
    */
   var updatePoints = function() {
+    // Get the descriptions of any new points if required.
+    if (spec.autoDescriptions === true) {
+      that.getDescriptions();
+    }
     // Make a string to request the point values.
     pollString = '';
     pollAdded = 0;
@@ -1001,14 +1015,26 @@ var monicaPoint = function(spec, my) {
   // Our private methods.
   /**
    * Add ourselves to our server's update list.
+   * @param {boolean} force A flag to force the update request.
    */
-  var requestUpdate = function() {
+  var requestUpdate = function(force) {
     // Check if we should be requesting an update yet.
+    force = force || false;
     if (that.isTimeSeries() === true &&
-        that.timeSeriesInitialised() === false) {
+        that.timeSeriesInitialised() === false &&
+        force === false) {
       // We're not ready for updates yet.
       return;
     }
+    // Check that we don't already have all the data we need;
+    // this happens when we show archival data and the time-series
+    // has already been initialised.
+    if (that.timeSeriesInitialised() === true &&
+        spec.timeSeriesOptions.startTime !== -1) {
+      // No updating for us.
+      return;
+    }
+      
     serverObject.requestUpdate( [that] );
   };
 
@@ -1324,6 +1350,10 @@ var monicaPoint = function(spec, my) {
     // Recalculate the update interval with the new values.
     calcUpdateInterval();
 
+    // We need to get our data again.
+    initTimeSeries = false;
+    requestUpdate(true);
+    
     // We return the altered options object.
     return spec.timeSeriesOptions;
   };
@@ -1563,7 +1593,7 @@ var monicaPointValue = function(spec, my) {
 				getOptions.valueAsDecimalDegrees === true) {
       // Change the value into decimal degrees (only appropriate
       // if the value is an angle)
-      if (isString(alteredValue.value)) {
+      if (dojo.isString(alteredValue.value)) {
 				alteredValue.value = alteredValue.value.sexagesimalToDecimal();
       }
     }
@@ -1671,7 +1701,7 @@ String.prototype.sexagesimalToDecimal = function(options) {
 	// Check that we only get 3 elements.
 	if (hexaSplit.length !== 3) {
 		// The string doesn't look right.
-		return this;
+		return (!isNaN(parseFloat(this))) ? parseFloat(this) : this;
 	}
 	// And that each element consists only of numerals.
 	for (var i = 0; i < hexaSplit.length; i++) {
