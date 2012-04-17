@@ -32,7 +32,7 @@ public class PointDataSerializer implements JsonSerializer<PointData> {
     // How to use the AbsTime serialiser class from here?
     res.addProperty("ts", src.getTimestamp().toString(AbsTime.Format.UTC_STRING));
     if (src.getData() != null) {
-      res.addProperty("value", src.getData().toString());
+      res.add("value", context.serialize(src.getData()));
     }
     if (src.getAlarm()) {
       res.addProperty("alarm", src.getAlarm());
