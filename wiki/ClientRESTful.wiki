@@ -2,15 +2,66 @@
 
 = Introduction =
 
-Add your content here.
+This document describes the RESTlet RESTful interface which allows MoniCA data to be queries via standard HTTP queries.
 
-= POST Interface =
+= Obtaining Metadata =
+
+== Point Names ==
+
+The list of all points which exist on the server can be obtained with a GET query to the */names/* URL, eg:
+
+{{{
+http://localhost:8111/names
+}}}
+
+The response takes the following format:
+
+{{{
+{"status":"ok", "names":["home.weather.wind_speed","home.weather.wind_dir"]}
+}}}
+
+== Point Descriptions ==
+
+Point description metadata can be obtained in a number of ways. To obtain the metadata for all points which are defined on the server you can perform a GET request to the */descriptions/* URL.
+
+{{{
+http://localhost:8111/descriptions
+}}}
+
+To request data for a single point via the GET method you can query the */description/* URL with a single point name argument:
+
+{{{
+http://localhost:8111/description/home.weather.wind_speed
+}}}
+
+To query multiple point definitions via a POST method you need to submit a JSON object to the */descriptions/* URL with the following format:
+
+{{{
+{"points": ["home.weather.wind_speed", "home.weather.wind_dir"]}
+}}}
+
+In all cases the response will take the following format:
+
+{{{
+{"status":"ok", "descriptions": [{"name":"home.weather.wind_speed","desc":"Wind Speed","units":"km/h","period":2.5},{"name":"home.weather.wind_dir","desc":"Wind Direction","units":"deg","period":2.5}]}
+}}}
+
+The _status_ field will be 'ok' unless there was an error in which case it will say 'fail'. The _descriptions_ array contains the actual descriptions, each of which may contain the following fields:
+
+  * *name:* The name of the point this metadata belongs to.
+  * *desc:* If the point has a description defined then this field will exist and contain that description.
+  * *units:* If the point has units defined then this field will exist and contain the units.
+  * *period:* If the point has an update period defined then this field will exist and specify the period in floating point seconds.
+
+= Obtaining Data =
+
+== POST Interface ==
 
 This accepts a POST query in JSON format which can query one or multiple points in a single operation. The result is a JSON object containing the requested data.
 
 The query form action URL must be */points/*. eg `http://bullawa:8111/points`
 
-== Get ==
+=== Get ===
 
 {{{
 {"type": "get", "points": ["home.weather.wind_speed", "home.weather.wind_dir"]}'
@@ -21,7 +72,7 @@ The result will contain the latest data for each point. If any of the point name
 {"status":"ok", "data":[{"name":"home.weather.wind_speed","ts":"2012-04-13 03:49:51.926","value":17.71,"alarm":false}, {"name":"home.weather.wind_dir","ts":"2012-04-13 03:49:51.926","value":163.0,"alarm":false}]}
 }}}
 
-== Between ==
+=== Between ===
 
 This operation returns data from the archive in between the specified start and end time. Although the point names can be specified as an array, only a single point may be specified for this query:
 
@@ -34,7 +85,7 @@ The response should look like the example below. Please note that in the interes
 {"status":"ok", "data":[{"ts":"2012-04-13 03:34:31.044","value":203.0,"alarm":false}, {"ts":"2012-04-13 03:34:33.622","value":186.0,"alarm":false}, {"ts":"2012-04-13 03:34:36.201","value":179.0,"alarm":false}, {"ts":"2012-04-13 03:34:38.777","value":194.0,"alarm":false}, {"ts":"2012-04-13 03:34:41.353","value":130.0,"alarm":false}, {"ts":"2012-04-13 03:34:43.929","value":189.0,"alarm":false}, {"ts":"2012-04-13 03:34:46.506","value":183.0,"alarm":false}, {"ts":"2012-04-13 03:34:49.087","value":175.0,"alarm":false}, {"ts":"2012-04-13 03:34:51.665","value":179.0,"alarm":false}, {"ts":"2012-04-13 03:34:54.242","value":187.0,"alarm":false}, {"ts":"2012-04-13 03:34:56.818","value":206.0,"alarm":false}, {"ts":"2012-04-13 03:34:59.394","value":179.0,"alarm":false}]}
 }}}
 
-== After ==
+=== After ===
 
 Queries the first values available for a set of points which are after or equals the specified time:
 
@@ -47,15 +98,15 @@ Example result:
 {"status":"ok", "data":[{"name":"home.weather.wind_speed","ts":"2012-04-13 03:59:16.265","value":9.66,"alarm":false}, {"name":"home.weather.wind_dir","ts":"2012-04-13 03:59:16.265","value":135.0,"alarm":false}]}
 }}}
 
-== Before ==
+=== Before ===
 
 As with the "after" query above, except the query type must be specified as "before".
 
-= GET interface =
+== GET interface ==
 
 This accepts GET query parameters for a single point.
 
-== Get ==
+=== Get ===
 
 To get the latest value for a single point, you can use a query in the following format:
 
@@ -68,7 +119,7 @@ The server will respond with a JSON result like:
 {"status":"ok", "data":[{"name":"home.weather.wind_dir","ts":"2012-04-13 03:31:39.600","value":200.0,"alarm":false}]}
 }}}
 
-== Between ==
+=== Between ===
 
 To query all of the data for a single point between two nominated times you can use the following:
 
@@ -81,7 +132,7 @@ The response should look like the example below. Please note that in the interes
 {"status":"ok", "data":[{"ts":"2012-04-13 03:34:31.044","value":203.0,"alarm":false}, {"ts":"2012-04-13 03:34:33.622","value":186.0,"alarm":false}, {"ts":"2012-04-13 03:34:36.201","value":179.0,"alarm":false}, {"ts":"2012-04-13 03:34:38.777","value":194.0,"alarm":false}, {"ts":"2012-04-13 03:34:41.353","value":130.0,"alarm":false}, {"ts":"2012-04-13 03:34:43.929","value":189.0,"alarm":false}, {"ts":"2012-04-13 03:34:46.506","value":183.0,"alarm":false}, {"ts":"2012-04-13 03:34:49.087","value":175.0,"alarm":false}, {"ts":"2012-04-13 03:34:51.665","value":179.0,"alarm":false}, {"ts":"2012-04-13 03:34:54.242","value":187.0,"alarm":false}, {"ts":"2012-04-13 03:34:56.818","value":206.0,"alarm":false}, {"ts":"2012-04-13 03:34:59.394","value":179.0,"alarm":false}]}
 }}}
 
-== After ==
+=== After ===
 
 To query the first value in the archive for a particular point which is after or equals a specified time you can use the following syntax:
 
@@ -94,6 +145,6 @@ A single point should be returned:
 {"status":"ok", "data":[{"name":"home.weather.wind_dir","ts":"2012-04-13 03:42:27.279","value":172.0,"alarm":false}]}
 }}}
 
-== Before ==
+=== Before ===
 
 As with the "after" query above, except the query type must be specified as "before".
