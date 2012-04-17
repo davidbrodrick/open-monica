@@ -49,6 +49,7 @@
     <copy file="${jarname}" todir="${libdir}"/>
     <copy todir="${libdir}">
       <fileset dir="../../3rdParty/">
+        <include name="log4j-1.2.15.jar"/>
         <include name="org.restlet.jar"/>
         <include name="gson-2.1.jar"/>
         <include name="Ice.jar"/>
