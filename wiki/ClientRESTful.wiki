@@ -11,7 +11,7 @@ This document describes the RESTlet RESTful interface which allows MoniCA data t
 The list of all points which exist on the server can be obtained with a GET query to the */names/* URL, eg:
 
 {{{
-http://localhost:8111/names
+http://bullawa:8111/names
 }}}
 
 The response takes the following format:
@@ -25,7 +25,7 @@ The response takes the following format:
 Point description metadata can be obtained in a number of ways. To obtain the metadata for all points which are defined on the server you can perform a GET request to the */descriptions/* URL.
 
 {{{
-http://localhost:8111/descriptions
+http://bullawa:8111/descriptions
 }}}
 
 This operation may be expensive on a server which has thousands of points defined, in which case selectively obtaining point descriptions as required may be preferable.
@@ -33,7 +33,7 @@ This operation may be expensive on a server which has thousands of points define
 To request data for a single point via the GET method you can query the */description/* URL with a single point name argument:
 
 {{{
-http://localhost:8111/description/home.weather.wind_speed
+http://bullawa:8111/description/home.weather.wind_speed
 }}}
 
 To query multiple point definitions via a POST method you need to submit a JSON object to the */descriptions/* URL with the following format:
