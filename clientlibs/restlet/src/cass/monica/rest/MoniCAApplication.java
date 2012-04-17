@@ -10,7 +10,7 @@ import com.google.gson.GsonBuilder;
 
 import atnf.atoms.mon.comms.MoniCAClient;
 import atnf.atoms.mon.comms.MoniCAClientIce;
-import atnf.atoms.mon.PointDescription;
+import atnf.atoms.mon.*;
 import atnf.atoms.time.AbsTime;
 
 public class MoniCAApplication extends Application {
@@ -22,6 +22,7 @@ public class MoniCAApplication extends Application {
 		GsonBuilder gsonbuilder = new GsonBuilder();
 		gsonbuilder.registerTypeAdapter(AbsTime.class, new AbsTimeSerializer(AbsTime.Format.UTC_STRING));
 		gsonbuilder.registerTypeAdapter(PointDescription.class, new PointDescriptionSerializer());
+		gsonbuilder.registerTypeAdapter(PointData.class, new PointDataSerializer());
 		theirGson = gsonbuilder.create();
 
 		try {
