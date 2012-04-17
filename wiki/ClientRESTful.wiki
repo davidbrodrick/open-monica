@@ -57,14 +57,15 @@ The _status_ field will be 'ok' unless there was an error in which case it will 
 
 = Obtaining Data =
 
-== POST Interface ==
-
-This accepts a POST query in JSON format which can query one or multiple points in a single operation. The result is a JSON object containing the requested data.
-
 A single datum may contain the following fields:
   * *name:* The name of the point that this datum pertains to.
   * *ts:* The timestamp of the data.
+  * *value:* The data value, if this field is omitted then a data value of _null_ may be assumed.
   * *alarm:* Whether the point was in an alarm state. If this field is omitted then the alarm state can be assumed to be _false_.
+
+== POST Interface ==
+
+This accepts a POST query in JSON format which can query one or multiple points in a single operation. The result is a JSON object containing the requested data.
 
 The query form action URL must be */points/*. eg `http://bullawa:8111/points`
 
