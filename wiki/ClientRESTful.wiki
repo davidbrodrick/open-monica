@@ -28,6 +28,8 @@ Point description metadata can be obtained in a number of ways. To obtain the me
 http://localhost:8111/descriptions
 }}}
 
+This operation may be expensive on a server which has thousands of points defined, in which case selectively obtaining point descriptions as required may be preferable.
+
 To request data for a single point via the GET method you can query the */description/* URL with a single point name argument:
 
 {{{
