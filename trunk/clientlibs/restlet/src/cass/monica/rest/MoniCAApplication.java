@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 
 import atnf.atoms.mon.comms.MoniCAClient;
 import atnf.atoms.mon.comms.MoniCAClientIce;
+import atnf.atoms.mon.PointDescription;
 import atnf.atoms.time.AbsTime;
 
 public class MoniCAApplication extends Application {
@@ -20,6 +21,7 @@ public class MoniCAApplication extends Application {
 	public MoniCAApplication(String monicaserver) {
 		GsonBuilder gsonbuilder = new GsonBuilder();
 		gsonbuilder.registerTypeAdapter(AbsTime.class, new AbsTimeSerializer(AbsTime.Format.UTC_STRING));
+		gsonbuilder.registerTypeAdapter(PointDescription.class, new PointDescriptionSerializer());
 		theirGson = gsonbuilder.create();
 
 		try {
@@ -63,7 +65,9 @@ public class MoniCAApplication extends Application {
 		// redundant - use vector version
 		router.attach("/point/{name}", PointResource.class);
     router.attach("/points", PointResource.class);
-    router.attach("/pointnames", PointNames.class);
+    router.attach("/names", PointNames.class);
+    router.attach("/description/{name}", PointDescriptions.class);
+    router.attach("/descriptions", PointDescriptions.class);    
 		// Return the root router
 		return router;
 	}

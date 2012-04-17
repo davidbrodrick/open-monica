@@ -71,10 +71,7 @@ public class PointResource extends ServerResource {
   @Post
   public Representation acceptJson(String arg) {
     try {
-      System.err.println("Got JSON request: " + arg);
-      JsonParser parser = new JsonParser();
       MoniCARequest req = getGson().fromJson(arg, MoniCARequest.class);
-      System.err.println(req);
       return req.completeRequest(getClient());
     } catch (Exception e) {
       System.err.println("acceptJson: Got exception: " + e);
