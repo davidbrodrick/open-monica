@@ -60,7 +60,7 @@ sub type {
 
 sub success {
   my $self = shift;
-  if (@_) { $self->{'success'} = shift }
+  $self->{'success'} = shift if (@_);
   return $self->{'success'};
 }
 
@@ -444,9 +444,9 @@ EOF
   for (my $i=0;$i<$nset;$i++) {
     my $line=<$mon>;
     if ($line=~/OK$/) {
-      $monsetpoints[$i]->success=1;
+      $monsetpoints[$i]->success(1);
     } else {
-      $monsetpoints[$i]->success=0;
+      $monsetpoints[$i]->success(0);
     }
   }
 

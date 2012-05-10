@@ -49,11 +49,15 @@ die "Could not connect to $obs MoniCA host \"$server\"\n" if (!defined $mon);
 
 my @setpoints;
 
-push @setpoints, MonSetPoint({point => 'site.vlbi.vsic.control.Code',
-			      val => $code,
-			      type => 'int'});
+push @setpoints, new MonSetPoint({point => 'site.vlbi.vsic.control.Code',
+				  val => $code,
+				  type => 'int'});
 
 
 my $ret = monset($mon, 'a', 'b', @setpoints);
 
-print $ret->val, "\n";
+if ($ret->success) {
+  print "Success\n";
+} else {
+  print "Failed\n";
+}
