@@ -55,6 +55,7 @@ Please maintain lists in lexigraphic order.
 || !RelTimeToSeconds || Get the value of a !RelTime object as it's number of elapsed seconds expressed as a Double. || ||
 || !ResettableIntegrator || Integrates the normal input but resets the integral when a specified listened-to point is "True". || *Reset:* The name of the point to listen to which determines when to reset the integral. Integral will be reset when the value of this point is "true". Value must either be a boolean or number, which will be interpreted as a boolean. *!UseArchive:* Optional argument which may be set to "true" in order to load the previous integral value from the archive when the server first starts. ||
 || !ResettablePulse || Outputs a pulse once triggered, but the pulse can be reset to a low state by a listened-to point. || *Mark:* The mark period in seconds. *Reset:* Name of the point to listen to which can reset the pulse. ||
+|| !RetriggerablePulse || Basic pulse extender. Timer can be reset. || *Period:* The pulse period, in seconds. ||
 || !RoundToInt || Round the Number input to the nearest integer value. || ||
 || !SinceHighTimer || Measures the interval since the input was last 'high'. Input must be a Boolean or Number. Output is a !RelTime. || ||
 || !StringToArray || Break the input String into an array of tokens. || *Regexp:* Delimiter for splitting string, as used by the Java String.split method. If no argument is given the space character is used by default. ||
