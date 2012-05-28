@@ -61,13 +61,18 @@ public class PointArchiverASCII extends PointArchiver {
   private HashMap<String, String> itsFileNameCache = new HashMap<String, String>(1000, 1000);
 
   static {
-    theirArchiveDir = MonitorConfig.getProperty("ArchiveDir");
+    theirArchiveDir = System.getProperty("MoniCA.ArchiveDir");
     if (theirArchiveDir == null) {
-      // Support legacy option
-      theirArchiveDir = MonitorConfig.getProperty("LogDir");
-    }
-    if (theirArchiveDir == null) {
-      theirLogger.error("Configuration option \"ArchiveDir\" was not defined");
+      theirArchiveDir = MonitorConfig.getProperty("ArchiveDir");
+      if (theirArchiveDir == null) {
+        // Support legacy option
+        theirArchiveDir = MonitorConfig.getProperty("LogDir");
+        if (theirArchiveDir == null) {
+          theirLogger.error("Configuration option \"ArchiveDir\" was not defined");
+        }
+      }
+    } else {
+      theirLogger.info("ArchiveDir overridden by system property");
     }
 
     String temp = MonitorConfig.getProperty("ArchiveTempDir");
