@@ -125,6 +125,10 @@ public class TranslationThyconAlarm extends Translation {
     theirAlarmMap.put(new Integer(146), "BYPASS Q4");
     theirAlarmMap.put(new Integer(147), "QSR FAILED TO CLOSE");
     theirAlarmMap.put(new Integer(148), "QSR FAILED TO OPEN");
+    theirAlarmMap.put(new Integer(149), "BDL SHUTDOWN REQUEST");
+    theirAlarmMap.put(new Integer(159), "POWER RELAY");
+    theirAlarmMap.put(new Integer(162), "NBPS Q");
+    theirAlarmMap.put(new Integer(169), "ABORTED - RECTIFIER OFF");
     theirAlarmMap.put(new Integer(170), "END BOOST - Q2 OPEN");
     theirAlarmMap.put(new Integer(171), "END BOOST - RECT OFF");
     theirAlarmMap.put(new Integer(172), "BOOST ALREADY ON");
@@ -142,6 +146,7 @@ public class TranslationThyconAlarm extends Translation {
     theirAlarmMap.put(new Integer(184), "STOP RECTIFIER REQUEST");
     theirAlarmMap.put(new Integer(185), "START RECTIFIER REQUEST");
     theirAlarmMap.put(new Integer(186), "AUTO START FAIL");
+    theirAlarmMap.put(new Integer(187), "BATTERY CAPACITY");
     theirAlarmMap.put(new Integer(188), "AUTO START REQUEST");
     theirAlarmMap.put(new Integer(189), "AUTO SHUTDOWN REQUEST");
     theirAlarmMap.put(new Integer(190), "TRANSFER TO INV REQUEST");
@@ -156,12 +161,17 @@ public class TranslationThyconAlarm extends Translation {
     theirAlarmMap.put(new Integer(199), "Q2 FAILED TO OPEN");
     theirAlarmMap.put(new Integer(200), "TRANSFER ABORTED");
     theirAlarmMap.put(new Integer(201), "AUTO TRANSFER REQUEST");
-    theirAlarmMap.put(new Integer(210), "USER STATUS 1");
-    theirAlarmMap.put(new Integer(211), "USER STATUS 2");
-    theirAlarmMap.put(new Integer(212), "USER STATUS 3");
+    theirAlarmMap.put(new Integer(205), "MSB_A SELECTED");
+    theirAlarmMap.put(new Integer(206), "MSB_B SELECTED");
+    theirAlarmMap.put(new Integer(210), "Q7 DC FILTER CB");
+    theirAlarmMap.put(new Integer(211), "DC BUS-TIE CB");
+    theirAlarmMap.put(new Integer(212), "UPF ALARM");
     theirAlarmMap.put(new Integer(213), "USER STATUS 4");
     theirAlarmMap.put(new Integer(214), "USER STATUS 5");
     theirAlarmMap.put(new Integer(215), "USER STATUS 6");
+    theirAlarmMap.put(new Integer(220), "MOS/BYP SYNC");
+    theirAlarmMap.put(new Integer(221), "MOS/BUS SYNC");
+    theirAlarmMap.put(new Integer(222), "BYP/BUS SYNC");
     theirAlarmMap.put(new Integer(255), "NULL ALARM");
   }  
   
