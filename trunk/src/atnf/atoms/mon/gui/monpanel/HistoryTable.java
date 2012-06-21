@@ -501,7 +501,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 
 			// timezone
 			temp = (String) setup.get("timezone");
-			if (temp.equals("local")) {
+			if (temp==null||temp.equals("local")) {
 				// Default timezone
 				itsZone.setSelectedIndex(0);
 			} else {
@@ -824,8 +824,8 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable,
 
 			// Timezone
 			temp = (String) setup.get("timezone");
-			if (temp.equals("local")) {
-				itsTimeZone = temp;
+			if (temp==null||temp.equals("local")) {
+				itsTimeZone = "local";
 				itsTZ = TimeZone.getDefault();
 			} else {
 				itsTimeZone = temp;
