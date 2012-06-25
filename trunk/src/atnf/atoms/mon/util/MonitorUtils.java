@@ -351,9 +351,9 @@ public abstract class MonitorUtils {
   public static int getNextPointData(Vector<PointData> data, AbsTime ts) {
     synchronized (data) {
       System.err.println("Seeking first point after " + ts.toString(AbsTime.Format.UTC_STRING));
-      for (int i=0; i<data.size(); i++ ) {
+      /*for (int i=0; i<data.size(); i++ ) {
         //System.err.println(i + " " + data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING));
-      }
+      }*/
     int fullsize = data.size();
     // Handle special cases
     if (data.get(0).getTimestamp().isAfter(ts)) {
@@ -375,7 +375,7 @@ public abstract class MonitorUtils {
       } else {
         end = mid;
       }
-      System.err.println("Checking span start=" + start + ", end=" + end);
+//      System.err.println("Checking span start=" + start + ", end=" + end);
     }
     if (data.get(start).getTimestamp().isBeforeOrEquals(ts)) {
       // Next element is the final result
@@ -391,9 +391,9 @@ public abstract class MonitorUtils {
   public static int getPrevEqualsPointData(Vector<PointData> data, AbsTime ts) {
     synchronized (data) {
       System.err.println("Seeking first point before or equals " + ts.toString(AbsTime.Format.UTC_STRING));
-      for (int i=0; i<data.size(); i++ ) {
+/*      for (int i=0; i<data.size(); i++ ) {
         //System.err.println(i + " " + data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING));
-      }
+      }*/
     int fullsize = data.size();
     // Handle special cases
     if (data.get(fullsize-1).getTimestamp().isBeforeOrEquals(ts)) {
@@ -415,7 +415,7 @@ public abstract class MonitorUtils {
       } else {
         end = mid - 1;
       }
-      System.err.println("Checking span start=" + start + ", end=" + end);
+//      System.err.println("Checking span start=" + start + ", end=" + end);
     }
     //if (data.get(start).getTimestamp().isBeforeOrEquals(ts)) {
       // Next element is the final result

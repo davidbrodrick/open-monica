@@ -296,7 +296,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
       super.start();
       // Block until service is registered
       while (itsAdapter == null || itsAdapter.find(itsAdapter.getCommunicator().stringToIdentity(theirServiceName)) == null) {
-        try {
+        try {          
           Thread.sleep(100);
         } catch (InterruptedException e) {
         }
