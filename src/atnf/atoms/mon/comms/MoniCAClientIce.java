@@ -35,7 +35,7 @@ public class MoniCAClientIce extends MoniCAClient {
   protected Ice.Communicator itsCommunicator;
 
   /** Ice properties used to create the Communicator. */
-  protected Ice.Properties itsProperties = null;
+  protected Ice.Properties itsProperties;
 
   /**
    * Connect using the specified properties to find the MoniCA server via a locator.
@@ -241,57 +241,65 @@ public class MoniCAClientIce extends MoniCAClient {
     }
     return res;
   }
- 
-  /** Return the last data before the specified timestamp.
-   * @param pointnames Points to obtain data for.
-   * @param t The reference timestamp.
-   * @return Vector of last values in same order as argument. */
-  public Vector<PointData> getBefore(Vector<String> pointnames, AbsTime t) throws Exception
-  {
-      Vector<PointData> res = null;
-      try {
-        if (!isConnected()) {
-          connect();
-        }
-        String[] namesarray = new String[pointnames.size()];
-        for (int i = 0; i < pointnames.size(); i++) {
-          namesarray[i] = pointnames.get(i);
-        }
-        PointDataIce[] icedata = itsIceClient.getBefore(namesarray, t.getValue());
-        res = MoniCAIceUtil.getPointDataFromIce(icedata);
-      } catch (Exception e) {
-        System.err.println("MoniCAClientIce.getBefore:" + e.getClass());
-        disconnect();
-        throw e;
+
+  /**
+   * Return the last data before the specified timestamp.
+   * 
+   * @param pointnames
+   *          Points to obtain data for.
+   * @param t
+   *          The reference timestamp.
+   * @return Vector of last values in same order as argument.
+   */
+  public Vector<PointData> getBefore(Vector<String> pointnames, AbsTime t) throws Exception {
+    Vector<PointData> res = null;
+    try {
+      if (!isConnected()) {
+        connect();
       }
-      return res; 
-  }
- 
-  /** Return the next data after the specified timestamp.
-   * @param pointnames Points to obtain data for.
-   * @param t The reference timestamp.
-   * @return Vector of next values in same order as argument. */
-  public Vector<PointData> getAfter(Vector<String> pointnames, AbsTime t) throws Exception
-  {
-      Vector<PointData> res = null;
-      try {
-        if (!isConnected()) {
-          connect();
-        }
-        String[] namesarray = new String[pointnames.size()];
-        for (int i = 0; i < pointnames.size(); i++) {
-          namesarray[i] = pointnames.get(i);
-        }
-        PointDataIce[] icedata = itsIceClient.getAfter(namesarray, t.getValue());
-        res = MoniCAIceUtil.getPointDataFromIce(icedata);
-      } catch (Exception e) {
-        System.err.println("MoniCAClientIce.getAfter:" + e.getClass());
-        disconnect();
-        throw e;
+      String[] namesarray = new String[pointnames.size()];
+      for (int i = 0; i < pointnames.size(); i++) {
+        namesarray[i] = pointnames.get(i);
       }
-      return res;    
+      PointDataIce[] icedata = itsIceClient.getBefore(namesarray, t.getValue());
+      res = MoniCAIceUtil.getPointDataFromIce(icedata);
+    } catch (Exception e) {
+      System.err.println("MoniCAClientIce.getBefore:" + e.getClass());
+      disconnect();
+      throw e;
+    }
+    return res;
   }
- 
+
+  /**
+   * Return the next data after the specified timestamp.
+   * 
+   * @param pointnames
+   *          Points to obtain data for.
+   * @param t
+   *          The reference timestamp.
+   * @return Vector of next values in same order as argument.
+   */
+  public Vector<PointData> getAfter(Vector<String> pointnames, AbsTime t) throws Exception {
+    Vector<PointData> res = null;
+    try {
+      if (!isConnected()) {
+        connect();
+      }
+      String[] namesarray = new String[pointnames.size()];
+      for (int i = 0; i < pointnames.size(); i++) {
+        namesarray[i] = pointnames.get(i);
+      }
+      PointDataIce[] icedata = itsIceClient.getAfter(namesarray, t.getValue());
+      res = MoniCAIceUtil.getPointDataFromIce(icedata);
+    } catch (Exception e) {
+      System.err.println("MoniCAClientIce.getAfter:" + e.getClass());
+      disconnect();
+      throw e;
+    }
+    return res;
+  }
+
   /**
    * Return archived data for the given points.
    * 
@@ -499,7 +507,12 @@ public class MoniCAClientIce extends MoniCAClient {
       Ice.InitializationData id = new Ice.InitializationData();
       id.properties = itsProperties;
       itsCommunicator = Ice.Util.initialize(id);
-      base = itsCommunicator.stringToProxy("MoniCAService");
+      String adaptername = itsProperties.getProperty("AdapterName");
+      if (adaptername == null) {
+        base = itsCommunicator.stringToProxy("MoniCAService");
+      } else {
+        base = itsCommunicator.stringToProxy("MoniCAService@" + adaptername);
+      }
     }
     itsIceClient = MoniCAIcePrxHelper.checkedCast(base);
     if (itsIceClient == null) {

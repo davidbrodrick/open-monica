@@ -169,7 +169,14 @@ public class MonClientUtil {
       if (host.indexOf("locator://") != -1) {
         // An Ice Locator service has been specified
         locator = true;
+        String adaptername = null;
         host = host.substring(host.lastIndexOf("/") + 1);
+        // Check if the adapter name was specified
+        if (host.indexOf("@") != -1) {
+          adaptername = host.substring(0, host.indexOf("@"));
+          System.out.println("MonClientUtil: Will use Ice adapter name = " + adaptername);
+          host = host.substring(host.indexOf("@") + 1);
+        }
         // A port MUST be specified for the Locator
         if (host.indexOf(":") == -1) {
           throw new Exception("No port number was specified for the locator!");
@@ -178,6 +185,9 @@ public class MonClientUtil {
         host = host.substring(0, host.indexOf(":"));
         Ice.Properties props = Ice.Util.createProperties();
         props.setProperty("Ice.Default.Locator", "IceGrid/Locator:tcp -h " + host + " -p " + port);
+        if (adaptername != null) {
+          props.setProperty("AdapterName", adaptername);
+        }
         System.out.println("MonClientUtil: Connecting to Locator on host \"" + host + "\" on port " + port);
         theirServer = new MoniCAClientIce(props);
       } else {
