@@ -128,7 +128,7 @@ public class DataMaintainer implements Runnable
         needdefs.add(pname);
       }
     }
-
+    
     // Get the new definitions from the server. This is done by calling thread
     // because caller will assume point definitions are available when call
     // returns.
