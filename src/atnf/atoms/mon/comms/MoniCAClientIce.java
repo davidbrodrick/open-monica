@@ -117,6 +117,21 @@ public class MoniCAClientIce extends MoniCAClient {
    */
   public Vector<PointDescription> getPoints(Vector<String> pointnames) throws Exception {
     Vector<PointDescription> res = null;
+    
+    // Avoid Ice message size limitations by splitting large subscriptions
+    final int MAXQUERYPOINTS = 3000;
+    if (pointnames.size()>MAXQUERYPOINTS) {
+      res = new Vector<PointDescription>(pointnames.size());
+      int firstpoint=0;
+      while (firstpoint<pointnames.size()) {
+        Vector<String> thesenames = new Vector<String>(pointnames.subList(firstpoint, Math.min(firstpoint+MAXQUERYPOINTS, pointnames.size())));
+        System.err.println("MoniCAClientIce.getPoints: Retrieving to " + firstpoint + " - " + (firstpoint + thesenames.size()));
+        res.addAll(getPoints(thesenames));
+        firstpoint+=MAXQUERYPOINTS;
+      }
+      return res;
+    }
+    
     try {
       if (!isConnected()) {
         connect();
