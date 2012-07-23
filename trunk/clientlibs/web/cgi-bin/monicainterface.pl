@@ -93,7 +93,7 @@ if ($action eq "points"){
  	    my $start_mjd=$current_mjd-$interval/(60.0*24.0);
 	    
  	    # get the data
- 	    my @point_timevals=monsince_new($mon,$start_mjd,$pointname,$maxnper);
+ 	    my @point_timevals=monsince($mon,$start_mjd,$pointname,$maxnper);
 	    # print back the data as JSON
 	    print "{ name: '".$pointname."', data: [";
 	    for (my $j=0;$j<=$#point_timevals;$j++){
