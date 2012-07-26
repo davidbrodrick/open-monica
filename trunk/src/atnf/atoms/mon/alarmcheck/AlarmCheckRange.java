@@ -48,7 +48,7 @@ public class AlarmCheckRange extends AlarmCheck {
 	/**
 	 * The amount of times an alarm value has appeared in a row
 	 */
-	private int itsBoolCount = 0;
+	private int itsAlarmCount = 0;
 
 	public AlarmCheckRange(PointDescription parent, String[] args)
 			throws IllegalArgumentException {
@@ -130,15 +130,15 @@ public class AlarmCheckRange extends AlarmCheck {
 		// If it's inside the range and it's supposed to be, then all is well
 		if ((!itsInsideNormal && withinRange)
 				|| (itsInsideNormal && !withinRange)) {
-			itsBoolCount++;
+			itsAlarmCount++;
 		} else {
-			itsBoolCount = 0;
+			itsAlarmCount = 0;
 		}
 
 		// If the alarm count is the same as the amount specified in the config
 		// file, set
 		// the alarm to True.
-		if (itsBoolCount >= itsUpdateAmt) {
+		if (itsAlarmCount >= itsUpdateAmt) {
 			data.setAlarm(true);
 		}
 	}
