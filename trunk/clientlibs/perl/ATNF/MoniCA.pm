@@ -33,9 +33,17 @@ package MonSetPoint;
 sub new {
   my $proto = shift;
   my $class = ref($proto) || $proto;
+
+  my $self;
+  my $ref = ref $_[0];
+  #if ($ref eq 'HASH') {
+  #  #$self
+  #}
+  #print "DEBUG: @_\n";
+  #print "DEBUG REF: ", ref $_[0] , "\n";
   
   my $monobject = shift;
-  my $self = $monobject;
+  $self = $monobject;
   
   bless ($self, $class);
 }
