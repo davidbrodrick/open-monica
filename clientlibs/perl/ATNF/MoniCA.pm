@@ -33,17 +33,9 @@ package MonSetPoint;
 sub new {
   my $proto = shift;
   my $class = ref($proto) || $proto;
-
-  my $self;
-  my $ref = ref $_[0];
-  #if ($ref eq 'HASH') {
-  #  #$self
-  #}
-  #print "DEBUG: @_\n";
-  #print "DEBUG REF: ", ref $_[0] , "\n";
   
   my $monobject = shift;
-  $self = $monobject;
+  my $self = $monobject;
   
   bless ($self, $class);
 }
@@ -275,8 +267,8 @@ require Exporter;
 use vars qw(@ISA @EXPORT);
 
 @ISA    = qw( Exporter );
-@EXPORT = qw( bat2time monconnect monpoll monsince parse_tickphase current_bat 
-	      monbetween monpreceeding monfollowing montill monset
+@EXPORT = qw( monconnect monpoll monsince parse_tickphase current_bat 
+	      monbetween monpreceeding monfollowing montill monset dUT
 	      bat2mjd mjd2bat bat2time atca_tied monnames monlist2hash
               mondetails monpoll2 bat2cal bat2unixtime perltime2mjd );
 
@@ -555,10 +547,11 @@ sub monbetween ($$$$;$) {
 	print $mon "between\n";
 	print $mon mjd2bat($maxbat)->as_hex." $bat2 $point\n";
 
-	my $nreceived=<$mon>;
-	chomp($nreceived);
+	$nreceived=<$mon>;
 	return undef if (! defined $nreceived);
+	chomp($nreceived);
 	return undef if (! ($nreceived =~ /^\d+$/));
+
 	my $acceptfraction=ceil($nreceived/$maxnper);
 	my $j=0;
 	for (my $i=0;$i<$nreceived;$i++){
@@ -667,9 +660,10 @@ sub montill($$$$) {
   my @vals;
   while (@vals==0) {
     @vals = monbetween($mon, $mjd0, $mjd, $point);
+    $mjd = $mjd0;
     $mjd0-= $step;
   }
-  return pop @vals; 
+  return pop @vals;
 }
 
 =item B<monpreceeding>
@@ -943,7 +937,7 @@ sub bat2time($;$$) {
  $dUT = 0 if (!defined $dUT);
  my $np = shift;
 
- my $mjd = (Math::BigFloat->new($bat)/1e6-$dUT)/60/60/24;
+ my $mjd = (Math::BigFloat->new($bat)->bstr()/1e6-$dUT)/60/60/24;
 
  return mjd2time($mjd, $np);
 }
@@ -961,7 +955,7 @@ sub bat2mjd($;$) {
  my $bat = Math::BigInt->new(shift);
  my $dUT = shift;
  $dUT = 0 if (!defined $dUT);
- return (Math::BigFloat->new($bat)/1e6-$dUT)/60/60/24;
+ return (Math::BigFloat->new($bat)->bstr()/1e6-$dUT)/60/60/24;
 }
 
 =item B<mjd2bat>
@@ -1153,5 +1147,28 @@ sub monlist2hash(\@%) {
 
 }
 
+=item B<dUT>
+
+  my $dUT = dUT($mon, $mjd, $clock);
+
+ Convert the dUT at a specific mjd
+    $mon           Monitor server
+    $mjd           MJD of query
+    $pointname     clock monitor name (mpclock/caclock/paclock)
+=cut
+
+sub dUT ($$$) {
+  my ($mon, $mjd, $point) = @_;
+
+  if ($mjd<53736) { # 2006
+    return 32;
+  } elsif ($mjd<54832) { # 2009
+    return 33;
+  } elsif ($mjd<552100) { # 2010, archiving started mid 2009
+    return 34;
+  } else {
+    return monpreceeding($mon, $mjd, "$point.misc.clock.dUTC");
+  }
+}
 
 return 1;
