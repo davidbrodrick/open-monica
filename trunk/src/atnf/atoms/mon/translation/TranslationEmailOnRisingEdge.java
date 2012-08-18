@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
  * The definition requires three string arguments:
  * <ul>
  * <li><b>Recipient:</b> The email address to send the email to, eg "fred@email.com".
+ * <li><b>Sender:</b> The email address of the sender "fred@email.com". If no address is specified, a default address of MoniCA@localhost will be supplied. 
  * <li><b>Subject:</b> The subject line of the email, eg "Warning from MoniCA".
  * <li><b>Body:</b> The body text of the email, eg "Warning\nThe new value is $V".
  * </ul>

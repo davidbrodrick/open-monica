@@ -27,6 +27,7 @@ import org.apache.log4j.Logger;
  * The definition requires three string arguments:
  * <ul>
  * <li><b>Recipient:</b> The email address to send the email to, eg "fred@email.com".
+ * <li><b>Sender:</b> The email address of the sender "fred@email.com". If no address is specified, a default address of MoniCA@localhost will be supplied.
  * <li><b>Subject:</b> The subject line of the email, eg "Warning from MoniCA".
  * <li><b>Body:</b> The body text of the email, eg "Warning\nThe new value is $V".
  * </ul>
@@ -42,6 +43,7 @@ import org.apache.log4j.Logger;
  * </ul>
  * 
  * @author David Brodrick
+ * @mod    Balt: 
  */
 public class TranslationEmailOnChange extends Translation {
   /** The previous data value. */
@@ -55,18 +57,29 @@ public class TranslationEmailOnChange extends Translation {
 
   /** The email body template. */
   protected String itsBody;
-
+  
+  /** The email sender. */
+  protected String itsSender;
+  
   /** Logger. */
   protected static Logger theirLogger = Logger.getLogger(TranslationEmailOnChange.class);
 
   public TranslationEmailOnChange(PointDescription parent, String[] init) {
     super(parent, init);
     if (init.length < 3) {
-      throw new IllegalArgumentException("Requires three arguments");
+      throw new IllegalArgumentException("Requires at least three arguments");
     }
-    itsRecipient = init[0];
-    itsSubject = init[1];
-    itsBody = init[2].replaceAll("\\\\n", "\n").replaceAll("\\\\r", "\r");
+    if (init.length == 3) {
+      itsRecipient = init[0];
+      itsSubject = init[1];
+      itsBody = init[2].replaceAll("\\\\n", "\n").replaceAll("\\\\r", "\r");
+      itsSender = "MoniCA@localhost";
+    } else if (init.length == 4) {
+      itsRecipient = init[0];
+      itsSender = init[1];
+      itsSubject = init[2];
+      itsBody = init[3].replaceAll("\\\\n", "\n").replaceAll("\\\\r", "\r");
+    }
   }
 
   /** Detects when the data value has changed. */
@@ -119,7 +132,7 @@ public class TranslationEmailOnChange extends Translation {
     if (detectTrigger(data)) {
       String subject = doSubstitutions(itsSubject, data);
       String body = doSubstitutions(itsBody, data);
-      MailSender.sendMail(itsRecipient, subject, body);
+      MailSender.sendMail(itsRecipient, itsSender, subject, body);
     }
     itsLastValue = data.getData();
     return data;
