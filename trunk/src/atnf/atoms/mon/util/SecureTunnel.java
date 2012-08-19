@@ -34,11 +34,19 @@ public class SecureTunnel{
 
       session.connect();
 
+      String internaladdress=JOptionPane.showInputDialog("Enter internal server address (optional, leave empty if in doubt!)");
+
       //Channel channel=session.openChannel("shell");
       //channel.connect();
-
-      int assinged_port=session.setPortForwardingL(lport, server, rport);
-      System.out.println("localhost:"+assinged_port+" -> "+server+":"+rport);
+      
+      if (internaladdress != "") {
+        int assigned_port=session.setPortForwardingL(lport, internaladdress, rport);
+        System.out.println("localhost:"+assigned_port+" -> "+internaladdress+":"+rport);
+      } else {
+        int assigned_port=session.setPortForwardingL(lport, server, rport);
+        System.out.println("localhost:"+assigned_port+" -> "+server+":"+rport);
+      }
+      
     }
     catch(Exception e){
       System.out.println(e);
