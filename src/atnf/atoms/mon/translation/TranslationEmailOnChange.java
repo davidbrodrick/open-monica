@@ -73,7 +73,7 @@ public class TranslationEmailOnChange extends Translation {
       itsRecipient = init[0];
       itsSubject = init[1];
       itsBody = init[2].replaceAll("\\\\n", "\n").replaceAll("\\\\r", "\r");
-      itsSender = "MoniCA@localhost";
+      itsSender = "MoniCA";
     } else if (init.length == 4) {
       itsRecipient = init[0];
       itsSender = init[1];
