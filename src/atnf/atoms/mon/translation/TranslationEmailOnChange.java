@@ -71,9 +71,9 @@ public class TranslationEmailOnChange extends Translation {
     }
     if (init.length == 3) {
       itsRecipient = init[0];
+      itsSender = "";
       itsSubject = init[1];
       itsBody = init[2].replaceAll("\\\\n", "\n").replaceAll("\\\\r", "\r");
-      itsSender = "MoniCA";
     } else if (init.length == 4) {
       itsRecipient = init[0];
       itsSender = init[1];
@@ -132,7 +132,11 @@ public class TranslationEmailOnChange extends Translation {
     if (detectTrigger(data)) {
       String subject = doSubstitutions(itsSubject, data);
       String body = doSubstitutions(itsBody, data);
-      MailSender.sendMail(itsRecipient, itsSender, subject, body);
+      if (itsSender == "") {
+        MailSender.sendMail(itsRecipient, subject, body);
+      } else {
+        MailSender.sendMail(itsRecipient, itsSender, subject, body);
+      }
     }
     itsLastValue = data.getData();
     return data;
