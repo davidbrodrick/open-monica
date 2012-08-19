@@ -11,7 +11,7 @@ package atnf.atoms.mon.util;
 import java.util.*;
 import javax.mail.*;
 import javax.mail.internet.*;
-
+import javax.mail.internet.InternetAddress.*;
 import org.apache.log4j.Logger;
 
 /**
@@ -26,14 +26,31 @@ public class MailSender {
   /** Logger. */
   private static Logger theirLogger = Logger.getLogger(MailSender.class);
 
-  /** Send an email with the specified recipient, subject and body. */
+  /** if no sender specified, pass an empty sender */
+  public static void sendMail(String to, String subject, String body) {
+    String sender = "";
+    sendMail(to, sender, subject, body);
+  }
+ 
+  /** Send an email with the specified recipient, sender, subject and body. */
   public static void sendMail(String to, String sender, String subject, String body) {
     MimeMessage message = new MimeMessage(theirSession);
+    InternetAddress from = new InternetAddress();
+    try {
+      if (sender == "") {
+        from = InternetAddress.getLocalAddress(theirSession);
+      } else {
+        from = new InternetAddress(sender);
+      }
+    } catch (AddressException ex) {
+      theirLogger.error("AddressException occurred: " + ex);
+    }
+    
     try {
       message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
       message.setSubject(subject);
       message.setText(body);
-      message.setFrom(new InternetAddress(sender));
+      message.setFrom(from);
       Transport.send(message);
     } catch (MessagingException ex) {
       theirLogger.error("Cannot send email: " + ex);
@@ -42,11 +59,16 @@ public class MailSender {
 
   /** Test method. */
   public final static void main(String[] args) {
-    if (args.length < 4) {
-      System.err.println("USAGE: Requires four arguments: recipient_email, sender_email, subject, body");
+    if (args.length < 3) {
+      System.err.println("USAGE: Requires at least 3 arguments: recipient_email, subject, body");
       System.exit(1);
     }
-
-    MailSender.sendMail(args[0], args[1], args[2], args[3]);
+    
+    if (args.length == 3) {
+      MailSender.sendMail(args[0], args[1], args[2]);
+    } else if (args.length == 4) {
+      MailSender.sendMail(args[0], args[1], args[2], args[3]);
+    }
+    
   }
 }
