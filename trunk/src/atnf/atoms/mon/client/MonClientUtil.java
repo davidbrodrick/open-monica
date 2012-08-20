@@ -118,6 +118,13 @@ public class MonClientUtil {
           } else {
             thisserver.add(null);
           }
+
+          if (tokens.length > 3) {
+            thisserver.add(tokens[3].trim());
+          } else {
+            thisserver.add(null);
+          }
+
           // Add the new server to the list
           serverlist.add(thisserver);
         }
@@ -234,7 +241,7 @@ public class MonClientUtil {
             // Choose a random local port
             int localport = 8060 + (new Random()).nextInt() % 2000;
             progressBar.setString("Waiting For SSH Credentials");
-            new SecureTunnel((String) chosenserver.get(1), (String) chosenserver.get(2), localport, port);
+            new SecureTunnel((String) chosenserver.get(1), (String) chosenserver.get(2), (String) chosenserver.get(3), localport, port);
             System.out.println("MonClientUtil: Connecting to \"localhost\"");
             // theirServer = new MoniCAClientCustom("localhost");
             progressBar.setString("Attempting Tunnelled Connection");
