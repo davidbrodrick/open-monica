@@ -19,7 +19,7 @@ import com.jcraft.jsch.UIKeyboardInteractive;
 import com.jcraft.jsch.UserInfo;
 
 public class SecureTunnel{
-  public SecureTunnel(String server, String gateway, int lport, int rport){
+  public SecureTunnel(String server, String gateway, String internaladdress, int lport, int rport){
     try{
       JSch jsch=new JSch();
 
@@ -34,12 +34,10 @@ public class SecureTunnel{
 
       session.connect();
 
-      String internaladdress=JOptionPane.showInputDialog("Enter internal server address (optional, leave empty if in doubt!)");
-
       //Channel channel=session.openChannel("shell");
       //channel.connect();
       
-      if (internaladdress != "") {
+      if (internaladdress != null) {
         int assigned_port=session.setPortForwardingL(lport, internaladdress, rport);
         System.out.println("localhost:"+assigned_port+" -> "+internaladdress+":"+rport);
       } else {
@@ -151,6 +149,6 @@ public class SecureTunnel{
   }
 
   public final static void main(String[] argv) {
-    new SecureTunnel("xbones", "nelle", 8050, 8050);
+    new SecureTunnel("xbones", "nelle", null, 8050, 8050);
   }
 }
