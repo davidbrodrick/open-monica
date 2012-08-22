@@ -43,6 +43,7 @@ Please maintain lists in lexigraphic order.
 || !LinearCombo || Produces a linear combination of the listened-to points. Used together with `TransactionListen`. _deprecated use Calculation_ || Any number of points can be combined, every point requires the following two arguments, *Coefficient:* The coefficient of this point in the linear combination. *Point:* Name of the point which uses that coefficient. ||
 || !LowTimer || Reports the amount of time (as a !RelTime) the (numeric or boolean) input has been in a low/space state. Output will be zero while input is in a high/mark state. || ||
 || Mean || Calculate a moving average of the input value. || *Buffer:* The averaging period, in seconds, eg, to average one minute worth of samples use `60`. *!MinSamples:* An optional argument for the minimum number of samples to have in the buffer before producing output (default 1). ||
+|| !MonthlyPulse || Generates a single "True" pulse at a specified time on the given day of month. || *Day of month:* The first day is 1. *Time:* Time of day to generate the pulse, in "HH:MM" 24-hour format. *!TimeZone:* The time zone that the time should be interpreted in, eg "Australia/Sydney". ||
 || NV || Retrieve one named element from a !HashMap or !NameValueList input object. || *Name:* The key for the value we wish to extract. ||
 || None || Just returns the input argument. || ||
 || !NumberToAngle || Convert a number to an Angle type. || *Format:* Optional argument set to "d" if the input is in degrees or "r" for radians. Default is radians. ||
