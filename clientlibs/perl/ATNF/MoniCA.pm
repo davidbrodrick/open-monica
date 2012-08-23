@@ -5,7 +5,8 @@ sub new {
   my $class = ref($proto) || $proto;
 
   my $monline = shift;
-  my $self = [$monline =~ /^(\S+)\t+(\S+)\t+(\S.*)$/];
+  my $tmp = $monline;
+  my $self = [$monline =~ /^(\S+)\t+\s*(\S+)\t+\s*(\S.*)$/];
 
   bless ($self, $class);
 }
@@ -71,7 +72,7 @@ sub new {
   my $class = ref($proto) || $proto;
 
   my $monline = shift;
-  my $self = [$monline =~ /^(\S+)\t+(\S.*)$/];
+  my $self = [$monline =~ /^(\S+)\t+\s*(\S.*)$/];
 
   bless ($self, $class);
 }
@@ -137,7 +138,7 @@ sub new {
     my $class=ref($proto) || $proto;
 
     my $monline=shift;
-    my $self=[$monline=~/^(\S+)\t+(\S+)\t+\"(.*?)\"\t+\"(.*)\"$/];
+    my $self=[$monline=~/^(\S+)\t+\s*(\S+)\t+\s*\"(.*?)\"\t+\s*\"(.*)\"$/];
 
     bless ($self,$class);
 }
