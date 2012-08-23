@@ -21,6 +21,7 @@
   <target name="compile">
     <mkdir dir="${output}"/>
     <javac destdir="${output}" debug="true" includeantruntime="false" target="1.5">            
+<compilerarg value="-Xlint:unchecked"/>
       <src path="${src}"/>            
       <classpath refid="3rdParty"/>
     </javac>
