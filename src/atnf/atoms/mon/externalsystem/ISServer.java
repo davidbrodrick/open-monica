@@ -5,7 +5,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.monicalocal.externalsystem;
+package atnf.atoms.mon.externalsystem;
 
 import java.util.StringTokenizer;
 import java.util.HashMap;
