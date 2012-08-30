@@ -11,7 +11,6 @@ package atnf.atoms.mon.translation;
 
 import org.apache.log4j.Logger;
 
-import java.util.GregorianCalendar;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Calendar;
@@ -93,18 +92,18 @@ public class TranslationCronPulse extends Translation {
 
       // Check if it is time for the pulse
       Calendar rightNow = Calendar.getInstance(itsTZ);
-      rightNow.set(GregorianCalendar.SECOND, 0);
-      rightNow.set(GregorianCalendar.MILLISECOND, 0);
+      // The blocking time should always be 1 minute, as that's the smallest time interval
+      long blockingtime = 60000;
       
       if (itsCrontab.RunNow(itsTZ)) {
         if (itsLastPulse == null) {
           val = new Boolean(true);
           //theirLogger.debug("RunNow - first run");
-          itsLastPulse = rightNow;
-        } else if ( ! rightNow.equals(itsLastPulse)) {
+          itsLastPulse = Calendar.getInstance(itsTZ);
+        } else if ( rightNow.getTimeInMillis() - itsLastPulse.getTimeInMillis() > blockingtime) {
           val = new Boolean(true);
           //theirLogger.debug("RunNow");
-          itsLastPulse = rightNow;        
+          itsLastPulse = Calendar.getInstance(itsTZ);        
         } else {
           // Not time for the pulse
           val = new Boolean(false);
