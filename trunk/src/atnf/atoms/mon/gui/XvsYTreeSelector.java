@@ -316,7 +316,9 @@ implements ActionListener
         String source = points[i].substring(0, firstdot);
         String point = points[i].substring(firstdot + 1);
         String newname = point + "." + source;
-        itsTreeUtil.addNode(newname, points[i]);
+        if (!newname.startsWith("hidden")) {      
+          itsTreeUtil.addNode(newname, points[i]);
+        }        
       }
     }
   }

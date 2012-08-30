@@ -54,8 +54,10 @@ extends TreeItemSelector
         //We are only interested in the name, not source, component
         int doti = theirPointNames[i].indexOf(".");
         String name = theirPointNames[i].substring(doti+1);
-        if (itsTreeUtil.getNode(name)==null) {
-          itsTreeUtil.addNode(name, name);
+        if (!name.startsWith("hidden")) {
+          if (itsTreeUtil.getNode(name)==null) {
+            itsTreeUtil.addNode(name, name);
+          }
         }
       }
     }

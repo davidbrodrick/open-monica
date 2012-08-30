@@ -81,7 +81,9 @@ extends TreeItemSelector
 
     if (theirPointNames != null) {
       for (int i = 0; i < theirPointNames.length; i++) {
-        itsTreeUtil.addNode(theirNodeNames[i], theirPointNames[i]);
+        if (!theirNodeNames[i].startsWith("hidden")) {
+          itsTreeUtil.addNode(theirNodeNames[i], theirPointNames[i]);
+        }
       }
     }
   }
