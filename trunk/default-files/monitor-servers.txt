@@ -3,7 +3,7 @@
 #
 #Each line may be a comment, blank, specify the default server or define
 #a new server. The format for defining servers is:
-#name\tmonitor.server\tsecure.gateway\tinternal.name
+#name\tmonitor.server\tsecure.gateway\tinternal.name\talways.tunnel
 #
 #Where:
 #name: Symbolic name of the server/site/instrument.
@@ -17,7 +17,9 @@
 #                used to access the server once inside the private network,
 #                then that name can be entered here. Otherwise this field
 #                can be left empty.
-#
+#always.tunnel:  Set this to "yes" if you want to force always starting a tunnel 
+#                and thus avoid having to wait for connection timeouts before a 
+#                tunnel is established
 #Fields must be TAB delimited as spaces in the name field are legal.
 #
 #A default server can be defined using the syntax:
