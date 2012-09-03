@@ -90,12 +90,16 @@ public class TranslationRunCmd extends TranslationListener {
       }
       bre.close();
       p.waitFor();
+      p.getOutputStream().close();
+      p.getInputStream().close();
+      p.getErrorStream().close();
+      p.destroy();    
       //System.out.println("Done.");
     }
     catch (Exception err) {
       theirLogger.error(itsParent.getFullName() + ": Error '" + err + "' caught while attempting to run " + itsCommand);
     }
-    // Check for parse error
+    // Check for error output in the return.
     if (stderr != "") {
       theirLogger.warn(itsParent.getFullName() + ":Error " + stderr + "occurred. Command: " + itsCommand + " Params: " + itsParams);
     }
