@@ -91,10 +91,12 @@ public class MoniCAIceUtil {
   getPointDescriptionFromIce(PointDescriptionIce pd)
   {
     if (pd==null) return null;
+    // New extended alarm field (notification, priority, guidance) currently 
+    // set to empty default values.
     PointDescription res = PointDescription.factory(pd.names, pd.description, 
         pd.shortdescription, pd.units, pd.source, pd.inputtransactions, 
-        pd.outputtransactions, pd.translations, pd.limits, pd.archivepolicies, 
-        ""+pd.period, ""+pd.archivelongevity, pd.enabled);
+        pd.outputtransactions, pd.translations, pd.limits, pd.archivepolicies,
+        null, ""+pd.period, ""+pd.archivelongevity, "", "-", pd.enabled);
     return res;
   }
   

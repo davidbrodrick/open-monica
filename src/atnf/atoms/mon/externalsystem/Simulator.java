@@ -53,7 +53,7 @@ public class Simulator extends ExternalSystem {
 
       int period = minseconds + itsRandom.nextInt(maxseconds - minseconds);
       PointDescription pd = PointDescription.factory(names, "Dummy " + i, "Dummy" + i, "", "sim" + theirPopulation, transaction,
-              empty, translation, empty, arch, "" + period + "000000", "-1", true);
+              empty, translation, empty, arch, empty, "" + period + "000000", "-1", "", "-", true);
       pd.populateServerFields();
     }
 
