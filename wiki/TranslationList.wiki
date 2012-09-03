@@ -61,6 +61,7 @@ Please maintain lists in lexigraphic order.
 || !ResettablePulse || Outputs a pulse once triggered, but the pulse can be reset to a low state by a listened-to point. || *Mark:* The mark period in seconds. *Reset:* Name of the point to listen to which can reset the pulse. ||
 || !RetriggerablePulse || Basic pulse extender. Timer can be reset. || *Period:* The pulse period, in seconds. ||
 || !RoundToInt || Round the Number input to the nearest integer value. || ||
+|| !RunCmd || Runs an external programme and persists the return value in the point. || *NumVal:* The number of values you are passing *Names:* The N subsequent arguments are the point values you are passing. *Command:* The external command you want to run. Make sure you include full path. *Args:* The arguments you're passing on the command line to the external programme. Similar to the Calculation translation, $a substitutes to the first point value you've passed, $b to the second etc. Note the difference though: Dollar ($) sign is required to mark the letter as a variable. ||
 || !SinceHighTimer || Measures the interval since the input was last 'high'. Input must be a Boolean or Number. Output is a !RelTime. || ||
 || !StringToArray || Break the input String into an array of tokens. || *Regexp:* Delimiter for splitting string, as used by the Java String.split method. If no argument is given the space character is used by default. ||
 || !StringMap || Map input strings to corresponding output strings. || *Mappings:* Any number of string mappings in the format `input1:output1`||
