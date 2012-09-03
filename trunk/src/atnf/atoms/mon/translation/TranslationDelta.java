@@ -72,7 +72,7 @@ public class TranslationDelta extends Translation {
       }
     } else {
       // No previous value so can't calculate delta, so return null data
-      return null;
+      res = null;
     }
 
     // Record the current value for use next time
