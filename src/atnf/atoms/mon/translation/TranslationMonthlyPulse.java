@@ -68,7 +68,6 @@ public class TranslationMonthlyPulse extends Translation {
     }
     // First argument is day of month
     try {
-      System.err.println("monthly arg is: " + init[0]);
       itsDOM = Integer.parseInt(init[0]);
     } catch (Exception e) {
       theirLogger.error("(" + parent.getName() + "): Could not parse first argument as day-of-month");
