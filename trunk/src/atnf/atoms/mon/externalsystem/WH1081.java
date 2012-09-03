@@ -140,7 +140,7 @@ public class WH1081 extends ExternalSystem
       // Ensure streams are closed to prevent too many open files
       stdInput.close();
       stdError.close();
-      p.getInputStream().close();
+      p.getOutputStream().close();
       p.destroy();
 
       // Check for invalid values
