@@ -31,7 +31,7 @@ public class MailSender {
     String sender = "";
     sendMail(to, sender, subject, body);
   }
- 
+
   /** Send an email with the specified recipient, sender, subject and body. */
   public static void sendMail(String to, String sender, String subject, String body) {
     MimeMessage message = new MimeMessage(theirSession);
@@ -45,7 +45,7 @@ public class MailSender {
     } catch (AddressException ex) {
       theirLogger.error("AddressException occurred: " + ex);
     }
-    
+
     try {
       message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
       message.setSubject(subject);
@@ -60,15 +60,17 @@ public class MailSender {
   /** Test method. */
   public final static void main(String[] args) {
     if (args.length < 3) {
-      System.err.println("USAGE: Requires at least 3 arguments: recipient_email, subject, body");
+      System.err.println("USAGE: Requires at least 3 arguments:");
+      System.err.println("\trecipient_email, subject, body");
+      System.err.println("OR\trecipient_email, sender_email, subject, body");
       System.exit(1);
     }
-    
+
     if (args.length == 3) {
       MailSender.sendMail(args[0], args[1], args[2]);
     } else if (args.length == 4) {
       MailSender.sendMail(args[0], args[1], args[2], args[3]);
     }
-    
+
   }
 }
