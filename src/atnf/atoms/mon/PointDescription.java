@@ -908,6 +908,11 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
           }
         }
       }
+      
+      // Change registered alarm status if required
+      if (itsPriority>0) {
+        AlarmManager.setAlarm(this, data);
+      }
 
       // Send any required notifications
       if (itsNotifications != null && itsNotifications.length > 0) {
