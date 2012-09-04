@@ -13,7 +13,7 @@ import java.awt.event.*;
 import javax.swing.event.*;
 import atnf.atoms.time.*;
 import atnf.atoms.util.*;
-import atnf.atoms.mon.notifications.Notification;
+import atnf.atoms.mon.notification.Notification;
 import atnf.atoms.mon.translation.*;
 import atnf.atoms.mon.transaction.*;
 import atnf.atoms.mon.externalsystem.*;
