@@ -23,6 +23,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
 import atnf.atoms.time.AbsTime;
 import atnf.atoms.time.RelTime;
 
@@ -424,5 +425,33 @@ public abstract class MonitorUtils {
     System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
     return start;
     }
+  }
+  
+  /** Substitute parameters for macro flags in the string.
+   * 
+   * <P>The supported substitutions are:
+   * <ul>
+   * <li> $V The current value of the data.
+   * <li> $U The units of the data.
+   * <li> $N The name of the point.
+   * <li> $S The source part of the point name.
+   * <li> $D The point's description.
+   * <li> $T The data's timestamp.
+   * </ul>
+   * */
+  public static String doSubstitutions(String arg, PointData data, PointDescription point) {
+    // Substitute value
+    String res = arg.replaceAll("\\$V", data.getData().toString());
+    // Substitute units
+    res = res.replaceAll("\\$U", point.getUnits());
+    // Substitute point name
+    res = res.replaceAll("\\$N", point.getFullName());
+    // Substitute source
+    res = res.replaceAll("\\$S", point.getSource());
+    // Substitute point description
+    res = res.replaceAll("\\$D", point.getLongDesc());
+    // Substitute time stamp
+    res = res.replaceAll("\\$T", data.getTimestamp().toString(AbsTime.Format.UTC_STRING));    
+    return res;
   }
 }

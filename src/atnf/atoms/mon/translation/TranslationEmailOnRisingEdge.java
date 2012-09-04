@@ -19,33 +19,27 @@ import org.apache.log4j.Logger;
 
 /**
  * Sends an email when the numeric/boolean input changes from a low/space state to a high/mark state. The email is sent using the
- * local hosts standard email transport, using the current user as the From field.
+ * local hosts standard email transport.
  * 
  * <P>
- * The definition requires three string arguments:
+ * The definition requires three or four string arguments:
  * <ul>
  * <li><b>Recipient:</b> The email address to send the email to, eg "fred@email.com".
- * <li><b>Sender:</b> The email address of the sender "fred@email.com". If no address is specified, a default address of MoniCA@localhost will be supplied. 
+ * <li><b>Sender:</b> Optional argument. The email address of the sender "mary@email.com". If no address is specified, the current
+ * user's default address from the system will be used.
  * <li><b>Subject:</b> The subject line of the email, eg "Warning from MoniCA".
  * <li><b>Body:</b> The body text of the email, eg "Warning\nThe new value is $V".
  * </ul>
  * 
- * The subject and body templates can include the following macros which will be substituted before the email is sent:
- * <ul>
- * <li><b>$V</b> Will be substituted for the latest value of the point, eg "3.141".
- * <li><b>$U</b> Substituted for the units, eg "Amps".
- * <li><b>$N</b> Substituted for the name of the point , eg "site.power.current".
- * <li><b>$S</b> Substituted for the source name, eg "site".
- * <li><b>$D</b> Substituted for the long description of the point, eg "Site main feeder current consumption".
- * <li><b>$T</b> Substituted for the current UTC time, eg "2011-10-21 08:39:25.234".
- * </ul>
+ * The subject and body templates can macros which will be substituted before the email is sent. These are documented in the
+ * MonitorUtils.doSubstituion method.
  * 
  * @author David Brodrick
  */
 public class TranslationEmailOnRisingEdge extends TranslationEmailOnChange {
   /** The previous data value interpreted as a boolean. */
   protected boolean itsLastBoolValue;
-  
+
   public TranslationEmailOnRisingEdge(PointDescription parent, String[] init) {
     super(parent, init);
   }
