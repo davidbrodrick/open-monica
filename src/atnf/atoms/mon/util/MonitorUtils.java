@@ -437,6 +437,8 @@ public abstract class MonitorUtils {
    * <li> $S The source part of the point name.
    * <li> $D The point's description.
    * <li> $T The data's timestamp.
+   * <li> $A The alarm status of the data (true or false).
+   * <li> $a The alarm status of the data (ALARMING or OK).
    * </ul>
    * */
   public static String doSubstitutions(String arg, PointData data, PointDescription point) {
@@ -449,9 +451,16 @@ public abstract class MonitorUtils {
     // Substitute source
     res = res.replaceAll("\\$S", point.getSource());
     // Substitute point description
-    res = res.replaceAll("\\$D", point.getLongDesc());
+    res = res.replaceAll("\\$D", point.getLongDesc());    
     // Substitute time stamp
-    res = res.replaceAll("\\$T", data.getTimestamp().toString(AbsTime.Format.UTC_STRING));    
+    res = res.replaceAll("\\$T", data.getTimestamp().toString(AbsTime.Format.UTC_STRING));
+    // Alarm status
+    res = res.replaceAll("\\$A", ""+data.getAlarm());
+    if (data.getAlarm()) {
+      res = res.replaceAll("\\$a", "ALARMING");
+    } else {
+      res = res.replaceAll("\\$a", "OK");
+    }
     return res;
   }
 }

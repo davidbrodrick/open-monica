@@ -5,7 +5,7 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.mon.notifications;
+package atnf.atoms.mon.notification;
 
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
