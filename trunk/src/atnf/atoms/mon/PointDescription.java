@@ -129,7 +129,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   protected String itsNotificationString = "";
 
   /** The alarm priority level. */
-  protected int itsPriority = 0;
+  protected int itsPriority = -1;
 
   /** The alarm guidance text message. */
   protected String itsGuidance = "";
@@ -186,16 +186,16 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   /** Set the alarm priority. */
   public void setPriority(String priority) {
     if (priority.equals("-")) {
-      itsPriority = 0;
+      itsPriority = -1;
     } else {
       try {
         itsPriority = Integer.parseInt(priority);
-        if (itsPriority < 0) {
-          itsPriority = 0;
+        if (itsPriority < -1) {
+          itsPriority = -1;
         }
       } catch (Exception e) {
         theirLogger.error("(" + getFullName() + "): setPriority: " + e);
-        itsPriority = 0;
+        itsPriority = -1;
       }
     }
   }
@@ -908,9 +908,9 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
           }
         }
       }
-      
+
       // Change registered alarm status if required
-      if (itsPriority>0) {
+      if (itsPriority > -1) {
         AlarmManager.setAlarm(this, data);
       }
 
@@ -918,9 +918,12 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       if (itsNotifications != null && itsNotifications.length > 0) {
         for (int i = 0; i < itsNotifications.length; i++) {
           try {
-            itsNotifications[i].checkNotify(data);
+            if (itsNotifications[i] != null) {
+              itsNotifications[i].checkNotify(data);
+            }
           } catch (Exception e) {
             theirLogger.error("(" + getFullName() + ") Error on Notification " + (i + 1) + "/" + itsNotifications.length + ": " + e);
+            e.printStackTrace();
           }
         }
       }
