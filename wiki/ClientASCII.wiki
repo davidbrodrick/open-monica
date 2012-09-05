@@ -23,6 +23,9 @@ The following commands are currently recognised by the server:
   * *names:* Request the names of all points in the system.
   * *details:* Request meta-information about some points.
   * *set:* Set new values for control points.
+  * *alarms:* Get current status of priority alarms.
+  * *ack:* Set or clear the acknowledgement for a priority alarm.
+  * *shelve:* Shelve or enable a priority alarm.
 
 Each command is outlined in further detail below.
 
@@ -261,3 +264,70 @@ The server will respond with the name of each point and OK or ERROR depending on
 }}}
 
 If the server doesn't recognise one of the monitor point names you specified or the relevant type/value cannot be parsed, it will respond with a line beginning with a question mark "?" in place of the line for that monitor point.
+
+==alarms==
+This returns the current list of priority points which either have an active alarm status or are shelved.
+
+You just need to send:
+{{{
+alarms
+}}}
+
+The server will respond with a number, being the number of alarm point which follow, and then a tab delimited alarm status report for each of the points.
+
+{{{
+[number_of_alarms]
+[point1]\t[priority1]\t[alarm1]\t[ack1]\t[ackby1]\t[ackat1]\t[shelved1]\t[shelvedby1]\t[shelvedat1]\t[guidance1]
+...
+[pointN]\t[priorityN]\t[alarmN]\t[ackN]\t[ackbyN]\t[ackatN]\t[shelvedN]\t[shelvedbyN]\t[shelvedatN]\t[guidanceN]
+}}}
+
+Here is an example:
+
+{{{
+alarms
+3
+site.test1	0	false	false	null	null	true	david	0x113e43a99a0358	""
+site.test2	0	true	false	null	null	false	null	null	"The current value is 0.747. Please call staff."
+site.test3	3	true	true	david	0x113e43a9890a89	false	null	null	"Control rod failure."
+}}}
+
+The fields are as follows:
+||Point Name || The name of the point with which this priority alarm is associated. ||
+||Priority   || The priority level of this alarm. 0=Information. 1=Minot. 2=Major. 3=Severe. ||
+||Alarm || Indicates if the point is currently in an alarm status. Shelved points are also reported by this call but may not actively be alarming at the time. In the example above test2 and test3 are in an alarm state. ||
+||Acknowledged || Boolean which indicates if the alarm has been acknowledged by a network client. In the examples above the point test3 has been acknowledged by 'david'. ||
+||Acknowledged By || Name of the operator who acknowledged or deacknowleged the alarm. This will read 'null' if the point is still unacknowledged. ||
+||Acknowledged At || BAT timestamp for when the operator acknowledged or deacknowledged the alarm. This will read 'null' if the point is still unacknowledged. ||
+||Shelved || Boolean which indicates if the alarm has been shelved by a network client. In the example above the point test1 has been shelved by the operator named 'david'. ||
+||Shelved By || Name of the operator who shelved or unshelved the alarm. This will read 'null' if the point has never been shelved. ||
+||Shelved At || BAT timestamp for when the operator shelved or unshelved the alarm. This will read 'null' if the point has never been shelved. ||
+||Guidance || Guidance text to be presented to the operator to provide more information and remedial action advice. ||
+
+==ack==
+This is used to acknowledge or deacknowledge an alarm. The alarm will remain acknowledged or deacknowledged until the underlieing alarm condition clears at which time the acknowledgement status is cleared.
+
+To use this command you must authenticate and then specify the number of alarms that are being acknowledged and then specify the acknowledgement state for each (true for acknowledged, false for deacknowledged).
+
+{{{
+ack
+[username]
+[password]
+[num_alarms]
+[pointname1]\t[ack_flag1]
+...
+[pointnameN]\t[ack_flagN]
+}}}
+
+The server will respond with the name of each point and OK.
+
+{{{
+[pointname1]\tOK
+...
+[pointnameN]\tOK
+}}}
+
+If the server doesn't recognise one of the monitor point names you specified, it will respond with a line beginning with a question mark "?" in place of the line for that monitor point.
+
+==shelve==
+The syntax for the shelve command is exactly as per ack, except that the command is called 'shelve'. The difference is that a point will remain shelved until it is later unshelved, even if the underlieing alarm condition clears.
