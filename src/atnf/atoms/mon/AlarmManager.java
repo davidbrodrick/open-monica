@@ -10,11 +10,18 @@
 package atnf.atoms.mon;
 
 import java.util.*;
+
+import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.time.AbsTime;
 
 public class AlarmManager {
+  /**
+   * Class encapsulating the current alarm status and associated data for a particular point. There is some degeneracy in this as
+   * the structure is essentially self contained but also has reference to the parent PointDescription.
+   */
   public static class Alarm {
     public PointDescription point;
+    public PointData data;
     public boolean alarm = false;
     public boolean shelved = false;
     public String shelvedBy = null;
@@ -22,14 +29,53 @@ public class AlarmManager {
     public boolean acknowledged = false;
     public String acknowledgedBy = null;
     public AbsTime acknowledgedAt = null;
+    public int priority = 0;
+    public String guidance = null;
 
     public Alarm(PointDescription p) {
       point = p;
+      priority = point.getPriority();
     }
 
-    public Alarm(PointDescription p, boolean a) {
+    public Alarm(PointDescription p, PointData d) {
       point = p;
-      alarm = a;
+      priority = point.getPriority();
+      data = d;
+      alarm = d.getAlarm();
+    }
+
+    public void updateData(PointData d) {
+      data = d;
+      if (data != null) {
+        alarm = data.getAlarm();
+        guidance = getGuidanceText();
+      }
+    }
+
+    private String getGuidanceText() {
+      String text = point.getGuidance();
+      if (text != null && !text.isEmpty() && data != null) {
+        text = MonitorUtils.doSubstitutions(text, data, point);
+      }
+      return text;
+    }
+
+    public String toString() {
+      String res = point.getFullName() + "\t" + priority + "\t" + alarm;
+      res += "\t" + acknowledged + "\t" + acknowledgedBy;
+      if (acknowledgedAt == null) {
+        res += "\tnull";
+      } else {
+        res += "\t" + acknowledgedAt.toString(AbsTime.Format.HEX_BAT);
+      }
+      res += "\t" + shelved + "\t" + shelvedBy;
+      if (shelvedAt == null) {
+        res += "\tnull";
+      } else {
+        res += "\t" + shelvedAt.toString(AbsTime.Format.HEX_BAT);
+      }
+      res += "\t\"" + guidance + "\"";
+      return res;
     }
   }
 
@@ -42,14 +88,16 @@ public class AlarmManager {
       Alarm thisalarm = theirAlarms.get(point);
       if (thisalarm != null) {
         // Just update the extant data structure
-        thisalarm.alarm = data.getAlarm();
+        thisalarm.updateData(data);
         // Acknowledgement gets cleared if no longer in alarm
         if (!thisalarm.alarm && thisalarm.acknowledged) {
           thisalarm.acknowledged = false;
+          thisalarm.acknowledgedBy = null;
+          thisalarm.acknowledgedAt = null;
         }
       } else {
         // Need to create new data structure
-        thisalarm = new Alarm(point, data.getAlarm());
+        thisalarm = new Alarm(point, data);
         theirAlarms.put(point, thisalarm);
       }
     }
@@ -72,7 +120,7 @@ public class AlarmManager {
   }
 
   /** Acknowledge an alarm. */
-  public void setAcknowledged(PointDescription point, boolean acked, String user, AbsTime time) {
+  public static void setAcknowledged(PointDescription point, boolean acked, String user, AbsTime time) {
     synchronized (theirAlarms) {
       Alarm thisalarm = theirAlarms.get(point);
       if (thisalarm == null) {
@@ -87,7 +135,7 @@ public class AlarmManager {
   }
 
   /** Shelve an alarm. */
-  public void setShelved(PointDescription point, boolean shelved, String user, AbsTime time) {
+  public static void setShelved(PointDescription point, boolean shelved, String user, AbsTime time) {
     synchronized (theirAlarms) {
       Alarm thisalarm = theirAlarms.get(point);
       if (thisalarm == null) {

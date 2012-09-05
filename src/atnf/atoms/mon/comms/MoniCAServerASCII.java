@@ -136,6 +136,12 @@ public class MoniCAServerASCII extends Thread {
             details();
           } else if (line.equalsIgnoreCase("set")) {
             set();
+          } else if (line.equalsIgnoreCase("ack")) {
+            ack();
+          } else if (line.equalsIgnoreCase("shelve")) {
+            shelve();
+          } else if (line.equalsIgnoreCase("alarms")) {
+            alarms();
           } else if (line.equalsIgnoreCase("exit")) {
             itsRunning = false;
           }
@@ -310,8 +316,7 @@ public class MoniCAServerASCII extends Thread {
         if (pm == null) {
           itsWriter.println("?");
         } else {
-          itsWriter.println(pointname + "\t" + pm.getPeriod() / 1000000.0 + "\t\"" + pm.getUnits() + "\"\t\"" + pm.getLongDesc()
-              + "\"");
+          itsWriter.println(pointname + "\t" + pm.getPeriod() / 1000000.0 + "\t\"" + pm.getUnits() + "\"\t\"" + pm.getLongDesc() + "\"");
         }
       }
       itsWriter.flush();
@@ -370,34 +375,14 @@ public class MoniCAServerASCII extends Thread {
           String type = tokens[1];
           String strval = tokens[2];
           try {
-            if (type.equals("dbl")) {
-              newval.setData(new Double(strval));
-            } else if (type.equals("flt")) {
-              newval.setData(new Float(strval));
-            } else if (type.equals("int")) {
-              newval.setData(new Integer(strval));
-            } else if (type.equals("str")) {
-              newval.setData(strval);
-            } else if (type.equals("bool")) {
-              newval.setData(new Boolean(strval));
-            } else if (type.equals("abst")) {
-              long foo = Long.parseLong(strval, 16); // Hex
-              newval.setData(AbsTime.factory(foo));
-            } else if (type.equals("relt")) {
-              long foo = Long.parseLong(strval); // Decimal
-              newval.setData(RelTime.factory(foo));
-            } else {
-              itsWriter.println("? Unknown type code.");
-              continue;
-            }
+            newval.setData(MonitorUtils.parseFixedValue(type, strval));
           } catch (Exception f) {
             // Parse error
             itsWriter.println("? Parse error reading type/value: " + f);
             continue;
           }
 
-          theirLogger.trace("Assigning value " + newval + " to point " + thispoint.getFullName() + " as requested by " + username
-              + " from " + itsClientName);
+          theirLogger.trace("Assigning value " + newval + " to point " + thispoint.getFullName() + " as requested by " + username + " from " + itsClientName);
           thispoint.firePointEvent(new PointEvent(this, newval, true));
           itsWriter.println(thispoint.getFullName() + "\tOK");
         } else {
@@ -407,6 +392,98 @@ public class MoniCAServerASCII extends Thread {
       itsWriter.flush();
     } catch (Exception e) {
       theirLogger.error("Problem in set request from " + itsClientName + ": " + e);
+      itsRunning = false;
+    }
+  }
+
+  /** Return the current priority alarm states. */
+  protected void alarms() {
+    try {
+      Vector<AlarmManager.Alarm> thesealarms = AlarmManager.getAlarms();
+
+      // Tell the client how many alarms we will return
+      itsWriter.println(thesealarms.size());
+
+      // Send each alarm
+      for (int i = 0; i < thesealarms.size(); i++) {
+        itsWriter.println(thesealarms.get(i));
+      }
+
+      itsWriter.flush();
+    } catch (Exception e) {
+      theirLogger.error("Problem in alarms request from " + itsClientName + ": " + e);
+      itsRunning = false;
+    }
+  }
+
+  /** Set the acknowledge state for an alarm. */
+  protected void ack() {
+    try {
+      // Read users credentials. These should be encrypted. TODO: Currently not
+      // used.
+      String username = itsReader.readLine().trim();
+      String password = itsReader.readLine().trim();
+
+      AbsTime now = AbsTime.factory();
+
+      // First line tells us how many alarms are going to be acknowledged
+      String tempstr = itsReader.readLine().trim();
+      int numpoints = Integer.parseInt(tempstr);
+      for (int i = 0; i < numpoints; i++) {
+        String[] tokens = itsReader.readLine().trim().split("\t");
+        if (tokens.length < 2) {
+          itsWriter.println("? Expect name, and acknowledgement value. Tab delimited.");
+          continue;
+        }
+        PointDescription thispoint = PointDescription.getPoint(tokens[0]);
+        if (thispoint != null) {
+          boolean ackval = Boolean.parseBoolean(tokens[1]);
+          AlarmManager.setAcknowledged(thispoint, ackval, username, now);
+          theirLogger.debug("Alarm acknowledgement for " + thispoint.getFullName() + " set to " + ackval + " by " + username + " from " + itsClientName);
+          itsWriter.println(thispoint.getFullName() + "\tOK");
+        } else {
+          itsWriter.println("? Named point doesn't exist");
+        }
+      }
+      itsWriter.flush();
+    } catch (Exception e) {
+      theirLogger.error("Problem in ack request from " + itsClientName + ": " + e);
+      itsRunning = false;
+    }
+  }
+
+  /** Set the shelf state for an alarm. */
+  protected void shelve() {
+    try {
+      // Read users credentials. These should be encrypted. TODO: Currently not
+      // used.
+      String username = itsReader.readLine().trim();
+      String password = itsReader.readLine().trim();
+
+      AbsTime now = AbsTime.factory();
+
+      // First line tells us how many alarms are going to be acknowledged
+      String tempstr = itsReader.readLine().trim();
+      int numpoints = Integer.parseInt(tempstr);
+      for (int i = 0; i < numpoints; i++) {
+        String[] tokens = itsReader.readLine().trim().split("\t");
+        if (tokens.length < 2) {
+          itsWriter.println("? Expect name, and acknowledgement value. Tab delimited.");
+          continue;
+        }
+        PointDescription thispoint = PointDescription.getPoint(tokens[0]);
+        if (thispoint != null) {
+          boolean ackval = Boolean.parseBoolean(tokens[1]);
+          AlarmManager.setShelved(thispoint, ackval, username, now);
+          theirLogger.debug("Alarm shelving for " + thispoint.getFullName() + " set to " + ackval + " by " + username + " from " + itsClientName);
+          itsWriter.println(thispoint.getFullName() + "\tOK");
+        } else {
+          itsWriter.println("? Named point doesn't exist");
+        }
+      }
+      itsWriter.flush();
+    } catch (Exception e) {
+      theirLogger.error("Problem in shelve request from " + itsClientName + ": " + e);
       itsRunning = false;
     }
   }
@@ -504,8 +581,7 @@ public class MoniCAServerASCII extends Thread {
   }
 
   /**
-   * Return latest values, units, and boolean for range check of specified
-   * monitor points.
+   * Return latest values, units, and boolean for range check of specified monitor points.
    */
   protected void poll2() {
     try {
@@ -530,8 +606,8 @@ public class MoniCAServerASCII extends Thread {
               if (units == null || units == "") {
                 units = "?";
               }
-              itsWriter.println(pointname + "\t" + pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t" + pd.getData() + "\t"
-                  + units + "\t" + !pd.getAlarm());
+              itsWriter.println(pointname + "\t" + pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t" + pd.getData() + "\t" + units + "\t"
+                  + !pd.getAlarm());
             }
           }
         } else {
@@ -546,11 +622,9 @@ public class MoniCAServerASCII extends Thread {
   }
 
   /**
-   * Starting point for threads. If this object was created without a specified
-   * socket then we start a server thread which awaits client connections and
-   * spawns new instances to service new clients. If a socket was specified at
-   * construction then we know that we are supposed to service a particular
-   * client and we leap to the <i>processConnection</i> method to do so.
+   * Starting point for threads. If this object was created without a specified socket then we start a server thread which awaits
+   * client connections and spawns new instances to service new clients. If a socket was specified at construction then we know that
+   * we are supposed to service a particular client and we leap to the <i>processConnection</i> method to do so.
    */
   public void run() {
     try {
