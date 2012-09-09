@@ -222,7 +222,7 @@ var monicaServer = function(spec, my) {
    * A Dojo timing class that we use to trigger our alarm polling.
    * @type {Timer}
    */
-  var alarmPollTimer = new dTime.Timer();
+  var alarmPollTimer = new dojox.timing.Timer();
 
   /**
    * A flag to indicate whether we have been asked to commence
