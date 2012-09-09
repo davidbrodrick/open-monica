@@ -17,9 +17,37 @@ On your webserver, you will first need to install the Perl client so that it can
 
 You should then copy the `/clientlibs/web/cgi-bin/monicainterface_json.pl` file to your webserver's `cgi-bin` directory.
 
-Finally, copy the `/clientlibs/web/htdocs/monica_web_v2.src.js` to your desired directory on your webserver.
+You have two options for the Javascript style: a "traditional" option based on the Dojo 1.6 toolkit, or an Asynchronous Module Definition (AMD) option based on Dojo 1.7. The programming style required for each implementation is quite different, so the rest of this document will give examples for each.
 
-Optionally, you can install the Dojo toolkit onto your webserver, from http://dojotoolkit.org/. The open-monica Javascript library is built upon version 1.6 of the Dojo toolkit, and does not use the AMD functionality of version 1.7. Since version 1.7 is backwards compatible, you can still install it.
+==== AMD Javascript ====
+
+To use the AMD library, I recommend the following procedure:
+  * On your webserver, in the top-level HTML directory, create a `jslib` directory.
+  * In this directory, make a `dojo` directory. Into this directory, extract the Dojo 1.7 toolkit (version 1.7.3 can be downloaded [http://download.dojotoolkit.org/release-1.7.3/dojo-release-1.7.3-src.tar.gz here]).
+  * Rename the directory (in this case `dojo-release-1.7.3-src`) to `1.7.3`.
+  * Make a file called `configure.js` in the `jslib/dojo` directory that will be used by your web apps to correctly identify where other libraries are installed. It should look like:
+{{{
+var dojoConfig = {
+  baseUrl: "/jslib/",
+  tlmSiblingOfDojo: false,
+  packages: [
+    { name: "dojo", location: "dojo/1.7.3/dojo" },
+    { name: "dijit", location: "dojo/1.7.3/dijit" },
+    { name: "dojox", location: "dojo/1.7.3/dojox" },
+    { name: "atnf", location: "atnf" }
+  ]
+};
+}}}
+
+Now you will need to download the AMD version of the [http://code.google.com/p/atcacode/source/browse/#svn%2Ftrunk%2FatnfLibrary%2Fclient-side%2Fatnf ATNF Javascript library] and install it into the `jslib` directory.
+
+Once you have done this, copy the `clientlibs/web/htdocs/atnf/monica.js` from this code-base into the `jslib/atnf` directory.
+
+==== Traditional Javascript ====
+
+Copy the `/clientlibs/web/htdocs/monica_web_v2.src.js` to your desired directory on your webserver.
+
+Optionally, you can install the Dojo toolkit onto your webserver, from http://dojotoolkit.org/. The open-monica Javascript library is built upon version 1.6 of the Dojo toolkit, and does not use the AMD functionality of version 1.7. Since version 1.7 is backwards compatible however, you can still install it.
 
 === Standard MoniCA HTML front page ===
 
@@ -27,7 +55,7 @@ The included MoniCA frontpage depends on the following tools in addition to thos
   * the [http://www.highcharts.com/ Highcharts plotting library]
   * the [http://jquery.com/ jQuery toolkit] (required by Highcharts)
 
-You can download the latest Highcharts plotting library from [http://www.highcharts.com their homepage.] Ideally, create a directory `js` in the root HTML directory of your HTTP server, and ensure that it contains a link to, or direct copy of, the `highcharts.js` file, such that the address `http://www.yourserver.com/js/highcharts.js` would find the script.
+You can download the latest Highcharts plotting library from [http://www.highcharts.com their homepage.] Ideally, create a directory `jslib` in the root HTML directory of your HTTP server, and ensure that it contains a link to, or direct copy of, the `highcharts.js` file, such that the address `http://www.yourserver.com/jslib/highcharts.js` would find the script.
 
 Then copy the files `/clientlibs/web/htdocs/monica_front.*` to your desired location on the webserver. You will then need to do some configuration in the `monica_front.js` file.
 
@@ -35,30 +63,92 @@ Then copy the files `/clientlibs/web/htdocs/monica_front.*` to your desired loca
 
 = Programming =
 
+== Web page setup ==
+
+Any webpage that you would like to use this library with will need to include the library files. Assuming you wish to program in HTML5, you might want to use the following templates for your page.
+
+=== AMD Style ===
+
+In this style, you just need to configure Dojo 1.7 correctly to include both the ATNF and MoniCA Javascript libraries. It makes for a very simple template:
+
+{{{
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>MoniCA test page</title>
+    <script src="/jslib/dojo/configure.js"></script>
+    <script data-dojo-config="async: true"
+	    src="/jslib/dojo/1.7.3/dojo/dojo.js"></script>
+  </head>
+  <body>
+
+  </body>
+</html>
+}}}
+
+=== Traditional Style ===
+
+In this style, you will need to explicitly include the MoniCA Javascript library, along with Dojo.
+
+{{{
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>MoniCA test page</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.0/dojo/dojo.xd.js">
+      djConfig={
+      parseOnLoad: true,
+      isDebug: true,
+      baseUrl: "./",
+      };
+    </script>
+    <script src="/jslib/monica_web_v2.src.js"></script>
+  </head>
+  <body>
+
+  </body>
+</html>
+}}}
+
 == API ==
 
-This section describes the MoniCA Javascript API, which is located in the file `monica_web_v2.src.js`.
+This section describes the MoniCA Javascript API, which is located in the file `monica.js` (AMD-style) or `monica_web_v2.src.js` (traditional style).
 
-The API makes available three objects.
+The API makes available four methods or objects.
 
 ----
 
-=== Object `monicaServer` ===
+=== Method/object `monicaServer` ===
 
 ==== Constructor ====
 
+===== AMD Style =====
+
 {{{
-var server = monicaServer(spec, my);
+require(["atnf/monica", "dojo/domReady!"], function(monica) {
+  var server = monica.server(spec);
+});
 }}}
 
-The constructor function takes two arguments, both of which are optional.
-  * `spec` is an object that configures the server. It can have the following properties:
-    * `serverName`: the hostname of the MoniCA server (default `monhost-nar`).
-    * `protocol`: the protocol to use for connections to the webserver (default `http`).
-    * `webserverName`: the hostname of the webserver (default `www.narrabri.atnf.csiro.au`).
-    * `webserverPath`: the location of the JSON MoniCA query script (default `cgi-bin/obstools/web_monica/monicainterface_json.pl`).
-    * `updateInterval`: the minimum time between queries to the MoniCA server, in milliseconds (default `10000`).
-  * `my` is any object that you would like the `monicaServer` object to have access to. In this way, you can extend the server with new methods that can access this object.
+===== Traditional Style =====
+
+{{{
+var server = monicaServer(spec);
+}}}
+
+The constructor function takes one argument, which is optional.
+`spec` is an object that configures the server. It can have the following properties:
+  * `serverName`: the hostname of the MoniCA server (default `monhost-nar`).
+  * `protocol`: the protocol to use for connections to the webserver (default `http`).
+  * `webserverName`: the hostname of the webserver (default `www.narrabri.atnf.csiro.au`).
+  * `webserverPath`: the location of the JSON MoniCA query script (default `cgi-bin/obstools/web_monica/monicainterface_json.pl`).
+  * `updateInterval`: the minimum time between queries to the MoniCA server, in milliseconds (default `10000`).
+  * `errorCallback`: a function to call whenever an error communicating with the server is encountered.
+  * `autoDescriptions`: a boolean value to indicate whether the server should automatically get descriptions for points as they are added (default `false`).
+  * `alarmPollPeriod`: the time between queries to the MoniCA server to poll which alarm states are active, in milliseconds (default `0`, ie. do not poll).
+  * `alarmCallbacks`: an array of function calls to be made whenever an alarm condition is encountered.
+  * `alarmAuthData`: an object, with the properties `user` and `pass` that should be used to provide the authentication parameters to acknowledge or shelve alarms on the MoniCA server (default: `{ user: '', pass: ''}`).
+
 
 ==== Public Methods ====
 
@@ -270,7 +360,7 @@ server.getDescriptions(pointReference);
 
 This method instructs the server to query MoniCA for the description for the point described by the `pointReference` object, which will have been returned from a call to `addPoints`, `getPoints` or `addTimeSeries`. If you want to get the server to get descriptions for all points that have been added but do not yet have descriptions, call this method without an argument.
 
-This method is required and must be called for each added point and time-series, because the points will not update without a description.
+This method is required and must be called for each added point and time-series, because the points will not update without a description. Alternatively, you may wish to set the `autoDescriptions` parameter to `true` in the call that instantiates the MoniCA server object (this will still require you to call this method once however).
 
 Continuing on from our previous `addPoints` example:
 {{{
@@ -358,6 +448,110 @@ var connectionDeferred = server.getLoadingDeferred();
 }}}
 
 This method allows you to get the Dojo `Deferred` object that will get resolved when the server has gotten the list of points from MoniCA. The normal way of getting this `Deferred` is from the `connect` method, but this method returns exactly the same value, if required.
+
+===== setPointValue =====
+
+{{{
+var setPromise = server.setPointValue(setDetails);
+}}}
+
+This method allows you to set a MoniCA point's value on the server, in order to make the server do something. It takes a single object `setDetails` which has the following properties:
+  * `point`: the name of the point to set.
+  * `value`: the value to set the point to.
+  * `type`: the type of the value, which is one of the types that the `set` method on the ASCII interface supports ([http://code.google.com/p/open-monica/wiki/ClientASCII]).
+  * `user`: the username required to set the point.
+  * `pass`: the password required to set the point.
+
+This method returns a Dojo Deferred promise that will resolve when the call to the server has completed.
+
+You should never need to call this method correctly. You should instead use the `setValue` method on the points themselves, and allow the point to call this method internally.
+
+===== acknowledgeAlarm =====
+
+{{{
+var acknowledgePromise = server.acknowledgeAlarm(ackDetails);
+}}}
+
+This method allows you to acknowledge an alarm on the MoniCA server. It takes a single object `ackDetails` which has the following properties:
+  * `point`: the name of the alarm to acknowledge.
+  * `value`: one of `'true'` or `'false'` to acknowledge or unacknowledge the alarm respectively.
+  * `user`: the username required to acknowledge the alarm.
+  * `pass`: the password required to acknowledge the alarm.
+
+This method returns a Dojo Deferred promise that will resolve when the call to the server has completed.
+
+You should never need to call this method correctly. You should instead use one of the `acknowledge`, `unacknowledge` or `autoAcknowledge` methods on the alarms themselves, and allow the alarm to call this method internally.
+
+===== shelveAlarm =====
+
+{{{
+var shelvePromise = server.shelveAlarm(shelveDetails);
+}}}
+
+This method allows you to shelve an alarm on the MoniCA server. It takes a single object `shelveDetails` which has the following properties:
+  * `point`: the name of the alarm to shelve.
+  * `value`: one of `'true'` or `'false'` to shelve or unshelve the alarm respectively.
+  * `user`: the username required to shelve the alarm.
+  * `pass`: the password required to shelve the alarm.
+
+This method returns a Dojo Deferred promise that will resolve when the call to the server has completed.
+
+You should never need to call this method correctly. You should instead use one of the `shelve`, `unshelve` or `autoShelve` methods on the alarms themselves, and allow the alarm to call this method internally.
+
+===== startAlarmPolling =====
+
+{{{
+server.startAlarmPolling(period);
+}}}
+
+This method starts the periodic polling of the MoniCA server for alarms. It takes a single optional argument, that being the polling period in milliseconds.
+
+This method should be called after the server has connected. For example (this is an AMD example):
+
+{{{
+require(["atnf/monica", "dojo/domReady!"], function(monica) {
+  var alarmUpdater = function(alarmRef) {
+    // Do something each time an alarm is updated.
+  };
+
+  var connectionEstablished = function(serverObj) {
+    // We can safely start the server updating now.
+    narMonica.startUpdating();
+    // And start updating the alarm conditions.
+    narMonica.startAlarmPolling();
+    // Do things for a connection to the MoniCA server.
+  };
+
+  var narMonica = monica.server({
+    serverName: 'monhost-nar',
+    alarmPollPeriod: 10000,
+    alarmCallbacks: [ alarmUpdater ],
+    autoDescriptions: true
+  });
+
+  narMonica.connect().then(connectionEstablished);
+});
+}}}
+
+This example shows how you can set the alarm callback routine and period in the initial call to the `server` method. It is highly recommended that you set the `autoDescriptions` parameter to `true` in the `server` instantiation call if you plan on using the alarm polling functions.
+
+===== stopAlarmPolling =====
+
+{{{
+server.stopAlarmPolling();
+}}}
+
+This method stops the server object from polling the MoniCA server for any further alarms.
+
+===== immediateAlarmPoll =====
+
+===== getAlarms =====
+
+===== addAlarmCallback =====
+
+===== updateAlarmAuthData =====
+
+
 
 ----
 
