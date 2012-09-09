@@ -167,6 +167,78 @@ sub description {
     return $self->[3];
 }
 
+package MonAlarm;
+
+sub new {
+    my $proto=shift;
+    my $class=ref($proto) || $proto;
+
+    my $monline=shift;
+    my $self=[$monline=~/^(\S+)\t+\s*(\S+)\t+\s*(\S+)\t+\s*(\S+)\t+\s*(\S+)\t+\s*(\S+)\t+\s*(\S+)\t+\s*(\S+)\t+\s*(\S+)\t+\s*\"(.*?)\"$/];
+
+    bless ($self,$class);
+}
+
+sub point {
+    my $self=shift;
+    if (@_) { $self->[0] = shift }
+    return $self->[0];
+}
+
+sub priority {
+    my $self=shift;
+    if (@_) { $self->[1] = shift }
+    return $self->[1];
+}
+
+sub alarm {
+    my $self=shift;
+    if (@_) { $self->[2] = shift }
+    return $self->[2];
+}
+
+sub acknowledged {
+    my $self=shift;
+    if (@_) { $self->[3] = shift }
+    return $self->[3];
+}
+
+sub acknowledgedby {
+    my $self=shift;
+    if (@_) { $self->[4] = shift }
+    return $self->[4];
+}
+
+sub acknowledgedat {
+    my $self=shift;
+    if (@_) { $self->[5] = shift }
+    return $self->[5];
+}
+
+sub shelved {
+    my $self=shift;
+    if (@_) { $self->[6] = shift }
+    return $self->[6];
+}
+
+sub shelvedby {
+    my $self=shift;
+    if (@_) { $self->[7] = shift }
+    return $self->[7];
+}
+
+sub shelvedat {
+    my $self=shift;
+    if (@_) { $self->[8] = shift }
+    return $self->[8];
+}
+
+sub guidance {
+    my $self=shift;
+    if (@_) { $self->[9] = shift }
+    return $self->[9];
+}
+
 package ATNF::MoniCA;
 use strict;
 
@@ -271,7 +343,8 @@ use vars qw(@ISA @EXPORT);
 @EXPORT = qw( monconnect monpoll monsince parse_tickphase current_bat 
 	      monbetween monpreceeding monfollowing montill monset dUT
 	      bat2mjd mjd2bat bat2time atca_tied monnames monlist2hash
-              mondetails monpoll2 bat2cal bat2unixtime perltime2mjd );
+              mondetails monpoll2 bat2cal bat2unixtime perltime2mjd 
+              monalarms monalarmack monalarmshelve);
 
 =item B<monconnect>
 
@@ -769,6 +842,133 @@ sub monfollowing ($$@) {
   } else {
     return $vals[0];
   }
+}
+
+=item B<monalarms>
+
+    my @alarmstates = monalarms($mon);
+
+ Gets the state of the alarm points on the MoniCA server.
+
+    $mon           Monitor server.
+
+    @alarmstates   List of MonAlarm objects.
+=cut
+
+sub monalarms ($) {
+    my $mon = shift;
+
+    print $mon "alarms\n";
+    
+    my @vals;
+    
+    my $num_alarms=<$mon>; # the number of alarms being returned
+    for (my $i=0;$i<$num_alarms;$i++) {
+        chomp(my $line=<$mon>);
+        push @vals, new MonAlarm($line);
+    }
+
+    return @vals;
+}
+
+=item B<monalarmack>
+
+    my $ackresult = monalarmack($mon, $user, $pass, $alarmname);
+    my @ackresults = monalarmack($mon, $user, $pass, @alarmnames);
+
+ Acknowledges an alarm on the server.
+    
+    $mon            Monitor server.
+    $user           The username required to perform acknowledgement.
+    $pass           The password required to perform acknowledgement.
+    $alarmname      A reference to a hash with { point => the alarm name,
+                                                 value => true to acknowledge,
+                                                          false to unacknowledge }
+    @alarmnames     A list of alarm hash references.
+=cut
+
+sub monalarmack ($$$@) {
+    my $mon = shift;
+    my $user = shift;
+    my $pass = shift;
+    my @alarmnames = @_;
+    my $nset = scalar(@alarmnames);
+
+    if ($nset == 0) {
+        carp "No alarm points to acknowledge!\n";
+        return;
+    }
+
+    print $mon "ack\n";
+    print $mon "$user\n";
+    print $mon "$pass\n";
+    print $mon "$nset\n";
+    foreach (@alarmnames) {
+        print $mon $_->{'point'}."\t".$_->{'value'}."\n";
+    }
+
+    my @vals = ();
+    for (my $i=0;$i<$nset;$i++) {
+        chomp(my $line=<$mon>);
+        my @e = split($line,/\t/);
+        push @vals,$e[1];
+    }
+
+    if (wantarray) {
+        return @vals;
+    } else {
+        return $vals[0];
+    }
+}
+
+=item B<monalarmshelve>
+
+    my $shelveresult = monalarmshelve($mon, $user, $pass, $alarmname);
+    my @shelveresults = monalarmshelve($mon, $user, $pass, @alarmnames);
+
+ Shelves an alarm on the server.
+    
+    $mon            Monitor server.
+    $user           The username required to perform shelving.
+    $pass           The password required to perform shelving.
+    $alarmname      A reference to a hash with { point => the alarm name,
+                                                 value => true to shelve,
+                                                          false to unshelve }
+    @alarmnames     A list of alarm hash references.
+=cut
+
+sub monalarmshelve ($$$@) {
+    my $mon = shift;
+    my $user = shift;
+    my $pass = shift;
+    my @alarmnames = @_;
+    my $nset = scalar(@alarmnames);
+
+    if ($nset == 0) {
+        carp "No alarm points to shelve!\n";
+        return;
+    }
+
+    print $mon "shelve\n";
+    print $mon "$user\n";
+    print $mon "$pass\n";
+    print $mon "$nset\n";
+    foreach (@alarmnames) {
+        print $mon $_->{'point'}."\t".$_->{'value'}."\n";
+    }
+
+    my @vals = ();
+    for (my $i=0;$i<$nset;$i++) {
+        chomp(my $line=<$mon>);
+        my @e = split($line,/\t/);
+        push @vals,$e[1];
+    }
+
+    if (wantarray) {
+        return @vals;
+    } else {
+        return $vals[0];
+    }
 }
 
 # =item B<monset>
