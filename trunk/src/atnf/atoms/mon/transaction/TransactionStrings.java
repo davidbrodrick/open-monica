@@ -12,22 +12,19 @@ import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.util.MonitorUtils;
 
 /**
- * Generic transaction for DataSources which require strings to retrieve the relevant
- * data. The first string argument for the Transaction must be the channel/protocol that
- * corresponds to the appropriate ExternalSystem. Any subsequent arguments are arbitrary
- * strings that are made available for use by the ExternalSystem.
+ * Generic transaction for DataSources which require strings to retrieve the relevant data. The first string argument for the
+ * Transaction must be the channel/protocol that corresponds to the appropriate ExternalSystem. Any subsequent arguments are
+ * arbitrary strings that are made available for use by the ExternalSystem.
  * 
  * @author David Brodrick
  */
-public class TransactionStrings extends Transaction
-{
+public class TransactionStrings extends Transaction {
   /** The strings required to update the monitor point. */
   Vector<String> itsStrings = new Vector<String>();
 
   protected static String itsArgs[] = new String[] { "", "", "", "" };
 
-  public TransactionStrings(PointDescription parent, String[] args)
-  {
+  public TransactionStrings(PointDescription parent, String[] args) {
     super(parent, args);
 
     if (args.length < 1) {
@@ -35,8 +32,10 @@ public class TransactionStrings extends Transaction
     }
 
     // Replace the macro $1 with source name if present
-    if (args[0].indexOf("$1") != -1) {
-      args[0] = MonitorUtils.replaceTok(args[0], parent.getSource());
+    for (int i = 0; i < args.length; i++) {
+      if (args[i].indexOf("$1") != -1) {
+        args[i] = MonitorUtils.replaceTok(args[i], parent.getSource());
+      }
     }
     // Set the channel (used to determine which ExternalSystem to use)
     setChannel(args[0]);
@@ -48,25 +47,21 @@ public class TransactionStrings extends Transaction
   }
 
   /** Return the first string. */
-  public String getString()
-  {
+  public String getString() {
     return (String) itsStrings.get(0);
   }
 
   /** Return the string at the specified index. */
-  public String getString(int i)
-  {
+  public String getString(int i) {
     return (String) itsStrings.get(i);
   }
 
   /** Return the number of strings. */
-  public int getNumStrings()
-  {
+  public int getNumStrings() {
     return itsStrings.size();
   }
 
-  public static String[] getArgs()
-  {
+  public static String[] getArgs() {
     return itsArgs;
   }
 }
