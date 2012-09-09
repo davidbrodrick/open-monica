@@ -43,6 +43,7 @@ var monicaServer = function(spec, my) {
    */
   // some counters for various functions
   var aPi, hPi, gDi, pPDi, rUi, aTULi, uPi, pPVi, iPi, gPi, pPVj, pPDj, aPj;
+  var hAi, gAli;
   // an array of point references to return to the add points caller.
   var pointReferences = [];
   
@@ -59,7 +60,7 @@ var monicaServer = function(spec, my) {
   var pointFound;
 
   // Variables in updatePoints.
-  var pollString, pollAdded, uPhandle, tR;
+  var pollString, pollAdded, uPhandle, tR, uPalarm;
 
   // Variables in parsePointValues.
   var valRef;
@@ -70,9 +71,6 @@ var monicaServer = function(spec, my) {
   // Variables in startTimeSeries.
   var seriesString, optionsObj, sTShandle;
 
-  // Variables in comms.
-  var postDeferred;
-
   // Variables in connect.
   var handle;
 	
@@ -81,6 +79,19 @@ var monicaServer = function(spec, my) {
   
   // Variables in removePoint(s).
   var rPi, rPref;
+
+  // Variables in getAlarms.
+  var gAhandle, gAi, gAj, gAget, gAneedDesc, gAnewAlarm;
+  var gAretnArr;
+
+  // Variables in findAlarm.
+  var fAi;
+
+  // Variables in addAlarmCallback.
+  var aACadded, aACi;
+
+  // Variables in updateAlarmAuthData.
+  var uAADi, uAADa;
 
   /**
    * The object that we will return to our caller.
@@ -144,6 +155,39 @@ var monicaServer = function(spec, my) {
   spec.autoDescriptions = spec.autoDescriptions || false;
   
   /**
+   * The time between calls to the server to determine which states
+   * are producing alarms. Not all MoniCA servers may be configured in
+   * this way, so a value of zero here disables this periodic polling.
+   * @type {number}
+   */
+  spec.alarmPollPeriod = spec.alarmPollPeriod || 0;
+
+  /**
+   * A list of functions to call each time the alarms are polled.
+   * @type {array}
+   */
+  spec.alarmCallbacks = spec.alarmCallbacks || [];
+
+  /**
+   * The authentication information to use when shelving or
+   * acknowledging alarms.
+   * @type {object}
+   */
+  spec.alarmAuthData = spec.alarmAuthData || {};
+  
+  /**
+   * The username to authenticate with.
+   * @type {string}
+   */
+  spec.alarmAuthData.user = spec.alarmAuthData.user || '';
+
+  /**
+   * The password to authenticate with.
+   * @type {string}
+   */
+  spec.alarmAuthData.pass = spec.alarmAuthData.pass || '';
+      
+  /**
    * The names of all available data points on the MoniCA server.
    * @type {array}
    */
@@ -154,6 +198,12 @@ var monicaServer = function(spec, my) {
    * @type {array}
    */
   var points = [];
+
+  /**
+   * The alarm objects we know about.
+   * @type {array}
+   */
+  var alarms = [];
 
   /**
    * A Dojo timing class that we use to trigger our updates.
@@ -167,6 +217,19 @@ var monicaServer = function(spec, my) {
    * @type {boolean}
    */
   var isUpdating = false;
+
+  /**
+   * A Dojo timing class that we use to trigger our alarm polling.
+   * @type {Timer}
+   */
+  var alarmPollTimer = new dTime.Timer();
+
+  /**
+   * A flag to indicate whether we have been asked to commence
+   * periodic polling of the alarms.
+   * @type {boolean}
+   */
+  var isPolling = false;
 
   /**
    * A list of points that have asked to be updated since our last
@@ -215,13 +278,14 @@ var monicaServer = function(spec, my) {
      * xhrPost call.
      * @type {Deferred}
      */
-    postDeferred = dojo.xhrPost({
+    var postDeferred = dojo.xhrPost({
       url: spec.protocol + '://' + spec.webserverName + '/' +
 				spec.webserverPath,
       sync: false,
       content: options.content,
       handleAs: 'json',
-      error: options.errorCall
+      error: options.errorCall,
+      failOK: true
     });
 
     return postDeferred;
@@ -275,12 +339,10 @@ var monicaServer = function(spec, my) {
     for (hPi = 0; hPi < points.length; hPi++) {
       if (dojo.isString(name) === true) {
         if (name === points[hPi].getPointDetails().name) {
-			    // return points[hPi];
           retArr.push(points[hPi]);
         }
       } else {
         if (name === points[hPi]) {
-          // return {
           retArr.push({
             pointRef: points[hPi],
             index: hPi
@@ -293,6 +355,36 @@ var monicaServer = function(spec, my) {
       return retArr;
     }
 
+    return undefined;
+  };
+
+  /**
+   * Check whether we have already made an object for a particular
+   * MoniCA alarm.
+   * @param {variable} name The name of the MoniCA alarm to check for,
+   *                        or an alarm reference.
+   */
+  var hasAlarm = function(name) {
+	  var retArr = [];
+	  for (hAi = 0; hAi < alarms.length; hAi++) {
+	    if (dojo.isString(name) === true) {
+		    if (name === alarms[hAi].getState().pointName) {
+		      retArr.push(alarms[hAi]);
+		    }
+	    } else {
+		    if (name === alarms[hAi]) {
+		      retArr.push({
+			      pointRef: alarms[hAi],
+				    index: hAi
+				  });
+		    }
+	    }
+	  }
+	  
+	  if (retArr.length > 0) {
+	    return retArr;
+	  }
+	  
     return undefined;
   };
 
@@ -427,6 +519,76 @@ var monicaServer = function(spec, my) {
 
     // Tell people new data is available.
     sTShandle = sTShandle.then(publishTimeSeries);
+  };
+
+  /**
+   * Find and return a named alarm point.
+   * @param {String} alarmName The name of the alarm to search for.
+   */
+  var findAlarm = function(alarmName) {
+	  for (fAi = 0; fAi < alarms.length; fAi++) {
+	    if (alarms[fAi].getState().pointName === alarmName) {
+		    return alarms[fAi];
+	    }
+	  }
+	  return null;
+  };
+
+  /**
+   * Get the server's alarm state.
+   */
+  var getAlarms = function() {
+	  /**
+	   * Get a handle to a Dojo Deferred that will retrieve the values for
+	   * the MoniCA alarms.
+	   * @type {Deferred}
+	   */
+	  gAhandle = comms({ content: { action: 'alarms' } });
+
+    // Check we get something back.
+	  if (!gAhandle) {
+      alert('Internal calling error!');
+	    return;
+	  }
+
+    // We need to reset all the alarm states before we get the new states,
+    // because only alarms that are "alarmed" will be returned by this call.
+    for (gAi = 0; gAi < alarms.length; gAi++) {
+      alarms[gAi].alarmOff();
+    }
+        
+    // We will transfer the values to the appropriate alarm point
+	  // when the result comes back.
+    gAhandle = gAhandle.then(function(data, ioargs) {
+		  if (typeof data.alarmStates !== 'undefined') {
+		    gAneedDesc = false;
+		    for (gAi = 0; gAi < data.alarmStates.length; gAi++) {
+			    // Check for an already existing alarm point.
+			    gAget = findAlarm(data.alarmStates[gAi].pointName);
+			    if (gAget === null) {
+			      gAneedDesc = true;
+            gAnewAlarm = monicaAlarm(data.alarmStates[gAi], that);
+			      alarms.push(gAnewAlarm);
+            // Set up the point with any global information.
+            gAnewAlarm.setAuthData(spec.alarmAuthData);
+            for (gAj = 0; gAj < spec.alarmCallbacks.length; gAj++) {
+              gAnewAlarm.addCallback(spec.alarmCallbacks[gAj]);
+            }
+            gAnewAlarm.fireCallbacks();
+			    } else {
+			      gAget.updateState(data.alarmStates[gAi]);
+			    }
+		    }
+		    if (gAneedDesc) {
+			    that.getDescriptions();
+		    }
+		  }
+		  
+      for (gAi = 0; gAi < alarms.length; gAi++) {
+        alarms[gAi].fireCallbacks();
+      }
+	  });
+
   };
 
   /**
@@ -865,6 +1027,169 @@ var monicaServer = function(spec, my) {
 		}
 	};
 
+  /**
+   * Acknowledge or unacknowledge an alarm.
+   * @param {object} ackDetails The object describing the acknowledgement.
+   */
+  that.acknowledgeAlarm = function(ackDetails) {
+    // Check for the required properties here.
+    if (typeof ackDetails !== 'undefined' &&
+        typeof ackDetails.point !== 'undefined' &&
+        typeof ackDetails.value !== 'undefined' &&
+        typeof ackDetails.user !== 'undefined' &&
+        typeof ackDetails.pass !== 'undefined') {
+      var commsObj = {
+        content: {
+          action: 'alarmack',
+          acknowledgements: ackDetails.point + '$' +
+            ackDetails.value + ';' + ackDetails.user + '$' +
+            ackDetails.pass
+        }
+      };
+          
+      return comms(commsObj);
+    } else {
+      return null;
+    }
+  };
+
+  /**
+   * Shelve or unshelve
+   * @param {object} shelveDetails The object describing the shelving.
+   */
+  that.shelveAlarm = function(shelveDetails) {
+    // Check for the required properties here.
+    if (typeof shelveDetails !== 'undefined' &&
+        typeof shelveDetails.point !== 'undefined' &&
+        typeof shelveDetails.value !== 'undefined' &&
+        typeof shelveDetails.user !== 'undefined' &&
+        typeof shelveDetails.pass !== 'undefined') {
+      var commsObj = {
+        content: {
+          action: 'alarmshelve',
+          shelves: shelveDetails.point + '$' +
+            shelveDetails.value + ';' + shelveDetails.user + '$' +
+            shelveDetails.pass
+        }
+      };
+          
+      return comms(commsObj);
+    } else {
+      return null;
+    }
+  };
+      
+  /**
+   * Start polling of the server's alarms.
+   * @param {number} period An optional new period to use for the
+   *                        alarm polling.
+   */
+  that.startAlarmPolling = function(period) {
+    if (typeof period !== 'undefined') {
+      spec.alarmPollPeriod = period;
+    }
+    if (spec.alarmPollPeriod > 0) {
+      // Set the interval.
+      alarmPollTimer.setInterval(spec.alarmPollPeriod);
+          
+      // Call the update routine on each tick.
+      alarmPollTimer.onTick = getAlarms;
+          
+      // Mark us as updating.
+      isPolling = true;
+          
+      // Start the timer.
+      alarmPollTimer.start();
+    }
+  };
+
+  /**
+   * Stop polling of the server's alarms.
+   */
+  that.stopAlarmPolling = function() {
+    alarmPollTimer.stop();
+    isPolling = false;
+  };
+      
+  /**
+   * Demand that the server get the alarm states immediately.
+   */
+  that.immediateAlarmPoll = function() {
+    getAlarms();
+  };
+
+  /**
+   * Get the alarm reference for a named alarm or a set of alarms.
+   * @param {variable} alarmNames A string or an array of strings,
+   *                              representing the alarms to return
+   *                              references for.
+   */
+  that.getAlarms = function(alarmNames) {
+    gAretnArr = [];
+    if (dojo.isArray(alarmNames)) {
+      for (gAli = 0; gAli < alarmsNames.length; gAli++) {
+        gAretnArr[gAli] = reduceArray(hasAlarm(alarmNames[gAli]));
+      }
+      return gAretnArr;
+    } else if (dojo.isString(alarmNames)) {
+      return reduceArray(hasAlarm(alarmNames));
+    } else {
+      return null;
+    }
+  };
+      
+  /**
+   * Add a callback to the global list of alarm point callbacks.
+   * @param {function} nFunc The function to add to the callback list.
+   * @param {boolean} updAll An optional flag to specify that all the
+   *                         current alarm points should be given this
+   *                         callback immediately.
+   */
+  that.addAlarmCallback = function(nFunc, updAll) {
+    aACadded = false;
+    for (aACi = 0; aACi < spec.alarmCallbacks.length; aACi++) {
+      if (nFunc === spec.alarmCallbacks[aACi]) {
+        aACadded = true;
+        break;
+      }
+    }
+        
+    if (aACadded === false) {
+      spec.alarmCallbacks.push(nFunc);
+      if (updAll) {
+        for (aACi = 0; aACi < alarms.length; aACi++) {
+          alarms[aACi].addCallback(nFunc);
+        }
+      }
+    }
+  };
+
+  /**
+   * Update the alarm acknowledge/shelve authentication data.
+   * @param {object} authData The username and password object that
+   *                          should be used for authentication with
+   *                          the server's alarm system.
+   * @param {boolean} updAll An optional flag to specify that all the
+   *                         current alarm points should be updated
+   *                         immediately.
+   */
+  that.updateAlarmAuthData = function(authData, updAll) {
+    uAADa = false;
+    if (typeof authData.user !== 'undefined') {
+      spec.alarmAuthData.user = authData.user;
+      uAADa = true;
+    }
+    if (typeof authData.pass !== 'undefined') {
+      spec.alarmAuthData.pass = authData.pass;
+      uAADa = true;
+    }
+    if (updAll && uAADa) {
+      for (uAADi = 0; uAADi < alarms.length; uAADi++) {
+        alarms[uAADi].setAuthData(spec.alarmAuthData);
+      }
+    }
+  };
+
   // Return our object.
   return that;
 };
@@ -1012,7 +1337,24 @@ var monicaPoint = function(spec, my) {
    */
   var timeReprString = 'string';
 
+  /**
+   * A flag to indicate whether this point has an associated alarm,
+   * so that when this point expires, the server should check for
+   * alarm states.
+   * @type {boolean}
+   */
+  var alarmAssociated = false;
+
   // Our private methods.
+  /**
+   * Checks to see if the passed parameter is a number.
+   * @param {something} cValue The parameter which should be checked for
+   *                           numberonomy.
+   */
+  var isNumeric = function(cValue) {
+    return !isNaN(parseFloat(cValue)) && isFinite(cValue);
+  };
+
   /**
    * Add ourselves to our server's update list.
    * @param {boolean} force A flag to force the update request.
@@ -1077,12 +1419,17 @@ var monicaPoint = function(spec, my) {
    * If we are a time-series, calculate our update interval based on
    * the time span we're covering and the maximum number of points we're
    * able to have.
+   * @param {number} minInterval The minimum value the update interval can be.
    */
-  var calcUpdateInterval = function() {
+  var calcUpdateInterval = function(minInterval) {
+	  minInterval = minInterval || 0;
     // Continue only if we're a time-series.
     if (spec.isTimeSeries === true) {
       pointUpdateTime = spec.timeSeriesOptions.spanTime * 60 /
 				spec.timeSeriesOptions.maxPoints; // in seconds
+	    if (pointUpdateTime < minInterval) {
+		    pointUpdateTime = minInterval;
+	    }
 
       // Immediately change the timer if it is already running.
       if (isUpdating === true) {
@@ -1092,7 +1439,11 @@ var monicaPoint = function(spec, my) {
   };
   // We call this now if we are being initialised as a time-series.
   if (spec.isTimeSeries === true) {
-    calcUpdateInterval();
+	  var minInterval = 0;
+	  if (typeof spec.timeSeriesOptions.minimumUpdateInterval !== 'undefined') {
+	    minInterval = spec.timeSeriesOptions.minimumUpdateInterval;
+	  }
+    calcUpdateInterval(minInterval);
     // We also set our default time representation to Unix time.
     timeReprString = 'unixms';
   }
@@ -1268,7 +1619,27 @@ var monicaPoint = function(spec, my) {
     tSArray = [];
 
     for (l = 0; l < pointValues.length; l++) {
-      tSArray.push(pointValues[l].getValue(gOptions));
+      var tv = pointValues[l].getValue(gOptions);
+      if (typeof gOptions.timeRange !== 'undefined') {
+        // Check that the value is in the requested time range.
+        if (typeof gOptions.timeRange.min !== 'undefined' &&
+            isNumeric(gOptions.timeRange.min) &&
+            (gOptions.arrayHighcharts === true &&
+             tv[0] < gOptions.timeRange.min) ||
+            (gOptions.arrayDojo === true &&
+             tv.x < gOptions.timeRange.min)) {
+          continue;
+        }
+        if (typeof gOptions.timeRange.max !== 'undefined' &&
+            isNumeric(gOptions.timeRange.max) &&
+            (gOptions.arrayHighcharts === true &&
+             tv[0] > gOptions.timeRange.max) ||
+            (gOptions.arrayDojo === true &&
+             tv.x > gOptions.timeRange.max)) {
+          continue;
+        }
+      }
+      tSArray.push(tv);
     }
 
     // Now just return the whole array of our point values.
@@ -1347,8 +1718,12 @@ var monicaPoint = function(spec, my) {
       spec.timeSeriesOptions.maxPoints = tsOptions.maxPoints;
     }
 
+    var minInterval = 0;
+    if (typeof tsOptions.minimumUpdateInterval !== 'undefined') {
+	    minInterval = tsOptions.minimumUpdateInterval;
+	  }
     // Recalculate the update interval with the new values.
-    calcUpdateInterval();
+    calcUpdateInterval(minInterval);
 
     // We need to get our data again.
     initTimeSeries = false;
@@ -1440,6 +1815,26 @@ var monicaPoint = function(spec, my) {
 		return setPromise;
 	};
 
+  /**
+   * Associate or deassociate this point with an alarm, or return the current
+   * state.
+   * @param {boolean} isAlarm Whether this point is associated with an alarm.
+   */
+  that.isAlarm = function(isAlarm) {
+	  if (typeof isAlarm === 'undefined') {
+	    // Return the state.
+	    return alarmAssociated;
+	  }
+	  if (isAlarm) {
+	    alarmAssociated = true;
+	  } else {
+	    alarmAssociated = false;
+	  }
+
+	  // Return the new value.
+	  return alarmAssociated;
+  };
+
   // return our object
   return that;
 };
@@ -1505,7 +1900,7 @@ var monicaPointValue = function(spec, my) {
    * @param {string} bValue The value requiring treatment.
    */
   var stripBadChars = function(bValue) {
-    if (isString(bValue)) {
+    if (dojo.isString(bValue)) {
       return bValue.replace(/[\u00c2><]/g, '');
     }
     return bValue;
@@ -1516,17 +1911,8 @@ var monicaPointValue = function(spec, my) {
    * @param {something} cValue The parameter which should be checked for
    *                           numberonomy.
    */
-  var isNumber = function(cValue) {
-    return typeof cValue === 'number' && isFinite(cValue);
-  };
-
-  /**
-   * Checks to see if the passed parameter is a string.
-   * @param {something} cValue The parameter which should be checked for
-   *                            stringiness.
-   */
-  var isString = function(cValue) {
-    return typeof cValue === 'string';
+  var isNumeric = function(cValue) {
+    return !isNaN(parseFloat(cValue)) && isFinite(cValue);
   };
 
   // Our public methods.
@@ -1598,12 +1984,50 @@ var monicaPointValue = function(spec, my) {
       }
     }
 
+    if ((typeof getOptions.timeAsSeconds !== 'undefined' &&
+	       getOptions.timeAsSeconds === true) ||
+	      (typeof getOptions.timeAsDateObject !== 'undefined' &&
+	       getOptions.timeAsDateObject === true)) {
+	    var tels = /^(....)-(..)-(..)_(..):(..):(..)$/.exec(alteredValue.time);
+	    if (tels[0] !== '') {
+		    // Make the Date object.
+		    var timeObj = new Date();
+		    timeObj.setUTCFullYear(tels[1], tels[2] - 1, tels[3]);
+		    timeObj.setUTCHours(tels[4], tels[5], tels[6], 0);
+		    if (getOptions.timeAsDateObject) {
+		      alteredValue.time = timeObj;
+		    } else if (getOptions.timeAsSeconds) {
+		      alteredValue.time = (timeObj.valueOf())/1000;
+		    }
+	    }
+	  }
+        
+    if (typeof getOptions.referenceValue !== 'undefined' &&
+        isNumeric(getOptions.referenceValue)) {
+      // Compare this value to a reference value, if it is numeric.
+      if (isNumeric(alteredValue.value)) {
+        alteredValue.value = alteredValue.value - getOptions.referenceValue;
+      }
+    }
+
+    if (typeof getOptions.referenceTime !== 'undefined' &&
+        isNumeric(getOptions.referenceTime)) {
+      // Compare this time to a reference time.
+      alteredValue.time = alteredValue.time - getOptions.referenceTime;
+    }
+        
     // We deal with any requests for how the value should be returned
     // from here.
     if (typeof getOptions.arrayHighcharts !== 'undefined' &&
 				getOptions.arrayHighcharts === true) {
       // Return an array with the time as element 0, value as 1
       return ([alteredValue.time, alteredValue.value]);
+    } else if (typeof getOptions.arrayDojo !== 'undefined' &&
+               getOptions.arrayDojo === true) {
+      return {
+        x: alteredValue.time,
+        y: alteredValue.value
+      };
     }
 
     // If we get here, we've failed, so we just return our value.
@@ -1615,51 +2039,290 @@ var monicaPointValue = function(spec, my) {
 };
 
 /**
- * Extend the String object with a method that converts a sexagesimal
- * formatted string into a decimal number.
+ * This function returns an object pertaining to a single MoniCA alarm
+ * point.
+ * @param {object} spec Specifications for the object setup.
+ * @param {object} my An object reference that this object should be able
+ *                    to access.
  */
-// String.prototype.sexagesimalToDecimal = function() {
-//   // Variables in this method
-//   var matchEls, dd, mm, ss, sign, formMatch, decRep;
+var monicaAlarm = function(spec, my) {
 
-//   /**
-//    * An indicator that goes true when the string looks like a
-//    * sexagesimal quantity.
-//    * @type {boolean}
-//    */
-//   formMatch = false;
+	/**
+	 * The object that we will return to our caller.
+	 * @type {object}
+	 */
+  var that = {};
 
-//   // Check that the string looks like a known sexagesimal format.
-//   if (/^[\+\-]*\d+[\?\u00B0]\d+\'\d+\"\.\d*$/.test(this)) {
-//     matchEls = this.match(/^([\+\-]*)(\d+)[\?\u00B0](\d+)\'(\d+)\"\.(\d*)$/);
-//     sign = matchEls[1] !== '' ? matchEls[1] : '+';
-//     dd = parseInt(matchEls[2]);
-//     mm = parseInt(matchEls[3]);
-//     ss = parseInt(matchEls[4]) +
-//     parseInt(matchEls[5]) / Math.pow(10, matchEls[5].length);
-//     formMatch = true;
-//   } else if (/^[\+\-]*\d+\:\d+\:[\d\.]+$/.test(this)) {
-//     matchEls = this.match(/^([\+\-]*)(\d+)\:(\d+)\:([\d\.]+)$/);
-//     sign = matchEls[0] !== '' ? matchEls[0] : '+';
-//     dd = parseInt(matchEls[1]);
-//     mm = parseInt(matchEls[2]);
-//     ss = parseFloat(matchEls[3]);
-//     formMatch = true;
-//   }
+  /**
+	 * The monicaServer object that we are attached to comes in as 'my'.
+	 * @type {object}
+	 */
+  var serverObj = my;
 
-//   if (formMatch === true) {
-//     decRep = dd + mm / 60 + ss / 3600;
-//     if (sign === '-') {
-//       decRep *= -1;
-//     }
+  /**
+	 * A list of callback routines to execute when we get updated.
+	 * @type {array}
+	 */
+  var callbacks = [];
 
-//     return decRep;
-//   } else {
-//     // The string wasn't recognisably sexagesimal, so we just return
-//     // it unchanged.
-//     return this;
-//   }
-// };
+  // Check for necessary values in the spec object.
+  if (typeof spec === 'undefined' ||
+      typeof spec.pointName === 'undefined' ||
+	    typeof spec.priority === 'undefined' ||
+	    typeof spec.isAlarmed === 'undefined' ||
+	    typeof spec.acknowledged === 'undefined' ||
+	    typeof spec.acknowledgedBy === 'undefined' ||
+	    typeof spec.acknowledgedAt === 'undefined' ||
+	    typeof spec.shelved === 'undefined' ||
+	    typeof spec.shelvedBy === 'undefined' ||
+	    typeof spec.shelvedAt === 'undefined' ||
+	    typeof spec.guidance === 'undefined') {
+	  return null;
+	}
+
+  // Our state.
+  var alarmState;
+
+  // Our authentication data.
+  var authenticationData = {
+    user: '',
+	  pass: ''
+	};
+
+  // The point we are associated with.
+  var associatedPoint = null;
+
+  // Do we need to call our callbacks when we turn off the alarm?
+  var callbacksFired;
+      
+  // Some variables required by our routines.
+  var callbackAdded, uSi, aCi, aCfn, fCi, tRet;
+
+  // Our private methods.
+  /**
+	 * Initialise the object upon receipt of the data from the server.
+	 */
+  var init = function() {
+    alarmState = dojo.clone(spec);
+
+	  // Add the point into the server.
+	  tRet = serverObj.addPoints([ alarmState.pointName ]);
+    associatedPoint = tRet[0];
+    associatedPoint.isAlarm(true);
+    callbacksFired = false;
+  };
+  init();
+
+  // Our public methods.
+  /**
+	 * Get the current state.
+	 */
+  that.getState = function() {
+    return dojo.clone(alarmState);
+	};
+
+  /**
+	 * Update the alarm state. This routine will normally be called only
+	 * by the server object.
+	 * @param {object} nState The new state of the alarm.
+	 */
+  that.updateState = function(nState) {
+    if (typeof nState.pointName === 'undefined' ||
+		    nState.pointName !== alarmState.pointName) {
+		  // Don't go any further.
+		  return;
+	  }
+
+	  if (typeof nState.isAlarmed !== 'undefined') {
+		  alarmState.isAlarmed = nState.isAlarmed;
+	  }
+    if (typeof nState.acknowledged !== 'undefined') {
+		  alarmState.acknowledged = nState.acknowledged;
+	  }
+    if (typeof nState.acknowledgedBy !== 'undefined') {
+		  alarmState.acknowledgedBy = nState.acknowledgedBy;
+	  }
+    if (typeof nState.acknowledgedAt !== 'undefined') {
+		  alarmState.acknowledgedAt = nState.acknowledgedAt;
+	  }
+    if (typeof nState.shelved !== 'undefined') {
+		  alarmState.shelved = nState.shelved;
+	  }
+    if (typeof nState.shelvedBy !== 'undefined') {
+		  alarmState.shelvedBy = nState.shelvedBy;
+	  }
+    if (typeof nState.shelvedAt !== 'undefined') {
+		  alarmState.shelvedAt = nState.shelvedAt;
+	  }
+
+    // Trigger the callbacks if there are any.
+    that.fireCallbacks();
+  };
+
+  /**
+   * Fire the callbacks only if required.
+   */
+  that.fireCallbacks = function() {
+    if (callbacksFired === false) {
+      for (fCi = 0; fCi < callbacks.length; fCi++) {
+        if (dojo.isFunction(callbacks[fCi])) {
+            callbacks[fCi](that);
+        }
+      }
+      callbacksFired = true;
+    }
+  };
+      
+  /**
+	 * Acknowledge the alarm.
+	 * @param {object} authData The username and password object that should
+	 *                          be used for this call.
+	 */
+  that.acknowledge = function(authData) {
+    authData = authData || authenticationData;
+    authData.user = authData.user || authenticationData.user;
+	  authData.pass = authData.pass || authenticationData.pass;
+    serverObj.acknowledgeAlarm({
+        point: alarmState.pointName,
+        value: 'true',
+        user: authData.user,
+        pass: authData.pass
+    });
+	};
+
+  /**
+	 * Unacknowledge the alarm.
+	 * @param {object} authData The username and password object that should
+	 *                          be used for this call.
+	 */
+  that.unacknowledge = function(authData) {
+    authData = authData || authenticationData;
+    authData.user = authData.user || authenticationData.user;
+	  authData.pass = authData.pass || authenticationData.pass;
+    serverObj.acknowledgeAlarm({
+      point: alarmState.pointName,
+      value: 'false',
+      user: authData.user,
+      pass: authData.pass
+    });
+	};
+      
+  /**
+	 * Acknowledge or decknowledge the alarm, depending on our internal
+   * current state.
+	 * @param {object} authData The username and password object that should
+	 *                          be used for this call.
+	 */
+  that.autoAcknowledge = function(authData) {
+    if (!alarmState.acknowledged) {
+      that.acknowledge(authData);
+    } else {
+      that.unacknowledge(authData);
+    }
+	};
+
+  /**
+	 * Shelve the alarm.
+	 * @param {object} authData The username and password object that should
+	 *                          be used for this call.
+	 */
+  that.shelve = function(authData) {
+    authData = authData || authenticationData;
+    authData.user = authData.user || authenticationData.user;
+	  authData.pass = authData.pass || authenticationData.pass;
+    serverObj.shelveAlarm({
+      point: alarmState.pointName,
+      value: 'true',
+      user: authData.user,
+      pass: authData.pass
+    });
+	};
+
+  /**
+	 * Unshelve the alarm.
+	 * @param {object} authData The username and password object that should
+	 *                          be used for this call.
+	 */
+  that.unshelve = function(authData) {
+    authData = authData || authenticationData;
+    authData.user = authData.user || authenticationData.user;
+	  authData.pass = authData.pass || authenticationData.pass;
+    serverObj.shelveAlarm({
+      point: alarmState.pointName,
+      value: 'false',
+      user: authData.user,
+      pass: authData.pass
+    });
+	};
+
+  /**
+	 * Shelve or unshelve the alarm, depending on our internal
+   * current state.
+	 * @param {object} authData The username and password object that should
+	 *                          be used for this call.
+	 */
+  that.autoShelve = function(authData) {
+    if (!alarmState.shelved) {
+      that.shelve(authData);
+    } else {
+      that.unshelve(authData);
+    }
+	};
+
+  /**
+	 * Set the username and password for future acknowledge/shelve calls.
+	 * @param {object} authData The username and password object that should
+	 *                          be used for future calls to acknowledge or
+	 *                          shelve this alarm.
+	 */
+  that.setAuthData = function(authData) {
+    if (typeof authData.user !== 'undefined') {
+		  authenticationData.user = authData.user;
+	  }
+	  if (typeof authData.pass !== 'undefined') {
+		  authenticationData.pass = authData.pass;
+	  }
+	  // Return our object for method chaining.
+	  return that;
+	};
+
+  /**
+	 * Add a callback routine to our list.
+	 * @param {function} fn The reference to a callback function we are to
+	 *                      execute each time we are updated.
+	 */
+  that.addCallback = function(fn) {
+    callbackAdded = false;
+	  for (aCi = 0; aCi < callbacks.length; aCi++) {
+		  if (fn === callbacks[aCi]) {
+		    callbackAdded = true;
+		    break;
+		  }
+	  }
+	    
+	  if (callbackAdded === false) {
+		  callbacks.push(fn);
+	  }
+	};
+
+  /**
+	 * Return the reference to the associated point.
+	 */
+  that.getPoint = function() {
+    return associatedPoint;
+	};
+
+  /**
+   * Turn the alarm off in anticipation of a new state being returned.
+   */
+  that.alarmOff = function() {
+    alarmState.isAlarmed = false;
+    callbacksFired = false;
+  };
+      
+  // Return our object to the caller.
+  return that;
+};
 
 String.prototype.sexagesimalToDecimal = function(options) {
 	// Default options.
