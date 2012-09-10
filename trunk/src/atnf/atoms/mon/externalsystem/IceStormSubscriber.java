@@ -108,7 +108,7 @@ public class IceStormSubscriber extends ExternalSystem
       id.properties = props;
       itsCommunicator = Ice.Util.initialize(id);
 
-      Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
+      Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager@IceStorm.TopicManager");
       IceStorm.TopicManagerPrx topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
       Ice.ObjectAdapter adapter = itsCommunicator.createObjectAdapter("MoniCAIceStormAdapter");
       Ice.ObjectPrx proxy = adapter.addWithUUID(itsSubscriber).ice_twoway();
