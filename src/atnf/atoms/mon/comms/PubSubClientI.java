@@ -108,7 +108,7 @@ public class PubSubClientI extends _PubSubClientDisp {
 
             // Obtain the topic or create
             TopicManagerPrx topicManager;
-            Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
+            Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager@IceStorm.TopicManager");
             topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
 
             itsControlTopic = topicManager.retrieve(itsControlTopicName);
@@ -128,7 +128,7 @@ public class PubSubClientI extends _PubSubClientDisp {
     {
         // Obtain the topic or create
         TopicManagerPrx topicManager;
-        Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
+        Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager@IceStorm.TopicManager");
         topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
 
         // Create a unique topic name

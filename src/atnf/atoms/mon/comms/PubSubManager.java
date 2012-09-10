@@ -91,7 +91,7 @@ public class PubSubManager {
 
       // Connect to the topic created by the client
       TopicManagerPrx topicManager;
-      Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
+      Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager@IceStorm.TopicManager");
       topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
       itsTopic = topicManager.retrieve(itsTopicName);
       Ice.ObjectPrx pub = itsTopic.getPublisher().ice_twoway();
@@ -324,7 +324,7 @@ public class PubSubManager {
 
       // Obtain the topic or create
       TopicManagerPrx topicManager;
-      Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
+      Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager@IceStorm.TopicManager");
       topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
       try {
         itsControlTopic = topicManager.retrieve(itsControlTopicName);
