@@ -34,7 +34,7 @@ import atnf.atoms.time.RelTime;
  * @author Le Cuong Nguyen
  */
 public abstract class MonitorUtils {
-  private static Hashtable itsMacros = new Hashtable();
+  private static Hashtable<String,String> theirMacros = new Hashtable<String,String>();
 
   public static String[] toStringArray(Object[] data) {
     String[] res = new String[data.length];
@@ -66,7 +66,7 @@ public abstract class MonitorUtils {
    * Break a line into tokens, uses whitespaces and braces as token markers.
    */
   public static String[] getTokens(String line) {
-    Vector res = new Vector();
+    Vector<String> res = new Vector<String>();
     int startPos = 0;
     int endPos = line.length();
     int start = 0;
@@ -104,7 +104,6 @@ public abstract class MonitorUtils {
           while (startPos < endPos && line.charAt(startPos) != ' ' && line.charAt(startPos) != '\t' && line.charAt(startPos) != ',') {
             if (line.charAt(startPos) == '\"') {
               // String literal attached to a string
-              int temp1 = startPos;
               startPos++;
               while (startPos < endPos && line.charAt(startPos) != '\"') {
                 // Find the end of it
@@ -187,8 +186,8 @@ public abstract class MonitorUtils {
 
   /** Reads and parses a file */
   public static String[] parseFile(Reader reader) {
-    ArrayList result = new ArrayList();
-    itsMacros = new Hashtable();
+    ArrayList<String> result = new ArrayList<String>();
+    theirMacros = new Hashtable<String,String>();
 
     try {
       LineNumberReader lnr = new LineNumberReader(reader);
@@ -231,13 +230,13 @@ public abstract class MonitorUtils {
         if (line.startsWith("!")) {
           parseCommand(line);
         } else {
-          if (itsMacros.size() < 1) {
+          if (theirMacros.size() < 1) {
             result.add(line);
           } else {
-            Enumeration keys = itsMacros.keys();
+            Enumeration<String> keys = theirMacros.keys();
             while (keys.hasMoreElements()) {
               String key = (String) keys.nextElement();
-              line = MonitorUtils.replaceTok(line, (String) itsMacros.get(key), key);
+              line = MonitorUtils.replaceTok(line, (String) theirMacros.get(key), key);
             }
             result.add(line);
           }
@@ -269,7 +268,7 @@ public abstract class MonitorUtils {
       String macro = tok.nextToken().trim();
       if (tok.nextToken().trim().equals("=")) {
         String replacement = line.substring(line.indexOf("=") + 1).trim();
-        itsMacros.put(macro, replacement);
+        theirMacros.put(macro, replacement);
       }
     }
   }
@@ -491,13 +490,13 @@ public abstract class MonitorUtils {
     }
     
     // Substitute units
-    res = res.replaceAll("\\$U", point.getUnits());
+    res = res.replace("$U", point.getUnits());
     // Substitute point name
-    res = res.replaceAll("\\$N", point.getFullName());
+    res = res.replace("$N", point.getFullName());
     // Substitute source
-    res = res.replaceAll("\\$S", point.getSource());
+    res = res.replace("$S", point.getSource());
     // Substitute point description
-    res = res.replaceAll("\\$D", point.getLongDesc());
+    res = res.replace("$D", point.getLongDesc());
 
     return res;
   }
