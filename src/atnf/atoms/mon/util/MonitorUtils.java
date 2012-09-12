@@ -22,6 +22,7 @@ import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import atnf.atoms.mon.PointBuffer;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.time.AbsTime;
@@ -346,104 +347,149 @@ public abstract class MonitorUtils {
     }
     return res;
   }
-  
-  /** Find the index of the first PointData with a timestamp after the one specified. 
-   * @return -1 if no suitable data could be found. */
+
+  /**
+   * Find the index of the first PointData with a timestamp after the one specified.
+   * 
+   * @return -1 if no suitable data could be found.
+   */
   public static int getNextPointData(Vector<PointData> data, AbsTime ts) {
     synchronized (data) {
       System.err.println("Seeking first point after " + ts.toString(AbsTime.Format.UTC_STRING));
-      /*for (int i=0; i<data.size(); i++ ) {
-        //System.err.println(i + " " + data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING));
-      }*/
-    int fullsize = data.size();
-    // Handle special cases
-    if (data.get(0).getTimestamp().isAfter(ts)) {
-      // All data is after the reference time
-      return 0;
-    }
-    if (data.get(fullsize-1).getTimestamp().isBeforeOrEquals(ts)) {
-      // No data is after the reference time
-      return -1;
-    }
-      
-    int start = 0;
-    int end = fullsize - 1;
-    
-    while ((end-start)>1) {
-      int mid = start + (end - start)/2;      
-      if (data.get(mid).getTimestamp().isBeforeOrEquals(ts)) {
-        start = mid + 1;
-      } else {
-        end = mid;
+      /*
+       * for (int i=0; i<data.size(); i++ ) { //System.err.println(i + " " +
+       * data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING)); }
+       */
+      int fullsize = data.size();
+      // Handle special cases
+      if (data.get(0).getTimestamp().isAfter(ts)) {
+        // All data is after the reference time
+        return 0;
       }
-//      System.err.println("Checking span start=" + start + ", end=" + end);
-    }
-    if (data.get(start).getTimestamp().isBeforeOrEquals(ts)) {
-      // Next element is the final result
-      start++;
-    }
-    System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
-    return start;
+      if (data.get(fullsize - 1).getTimestamp().isBeforeOrEquals(ts)) {
+        // No data is after the reference time
+        return -1;
+      }
+
+      int start = 0;
+      int end = fullsize - 1;
+
+      while ((end - start) > 1) {
+        int mid = start + (end - start) / 2;
+        if (data.get(mid).getTimestamp().isBeforeOrEquals(ts)) {
+          start = mid + 1;
+        } else {
+          end = mid;
+        }
+        // System.err.println("Checking span start=" + start + ", end=" + end);
+      }
+      if (data.get(start).getTimestamp().isBeforeOrEquals(ts)) {
+        // Next element is the final result
+        start++;
+      }
+      System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
+      return start;
     }
   }
 
-  /** Find the index of the first PointData with a timestamp before or equal to the one specified. 
-   * @return -1 if no suitable data could be found. */
+  /**
+   * Find the index of the first PointData with a timestamp before or equal to the one specified.
+   * 
+   * @return -1 if no suitable data could be found.
+   */
   public static int getPrevEqualsPointData(Vector<PointData> data, AbsTime ts) {
     synchronized (data) {
       System.err.println("Seeking first point before or equals " + ts.toString(AbsTime.Format.UTC_STRING));
-/*      for (int i=0; i<data.size(); i++ ) {
-        //System.err.println(i + " " + data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING));
-      }*/
-    int fullsize = data.size();
-    // Handle special cases
-    if (data.get(fullsize-1).getTimestamp().isBeforeOrEquals(ts)) {
-      // All data is before the reference time
-      return fullsize-1;
-    }
-    if (data.get(0).getTimestamp().isAfter(ts)) {
-      // No data is before the reference time
-      return -1;
-    }
-      
-    int start = 0;
-    int end = fullsize - 1;
-    
-    while ((end-start)>1) {
-      int mid = start + (end - start)/2;      
-      if (data.get(mid).getTimestamp().isBeforeOrEquals(ts)) {
-        start = mid;
-      } else {
-        end = mid - 1;
+      /*
+       * for (int i=0; i<data.size(); i++ ) { //System.err.println(i + " " +
+       * data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING)); }
+       */
+      int fullsize = data.size();
+      // Handle special cases
+      if (data.get(fullsize - 1).getTimestamp().isBeforeOrEquals(ts)) {
+        // All data is before the reference time
+        return fullsize - 1;
       }
-//      System.err.println("Checking span start=" + start + ", end=" + end);
-    }
-    //if (data.get(start).getTimestamp().isBeforeOrEquals(ts)) {
+      if (data.get(0).getTimestamp().isAfter(ts)) {
+        // No data is before the reference time
+        return -1;
+      }
+
+      int start = 0;
+      int end = fullsize - 1;
+
+      while ((end - start) > 1) {
+        int mid = start + (end - start) / 2;
+        if (data.get(mid).getTimestamp().isBeforeOrEquals(ts)) {
+          start = mid;
+        } else {
+          end = mid - 1;
+        }
+        // System.err.println("Checking span start=" + start + ", end=" + end);
+      }
+      // if (data.get(start).getTimestamp().isBeforeOrEquals(ts)) {
       // Next element is the final result
-    //  start++;
-    //}
-    System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
-    return start;
+      // start++;
+      // }
+      System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
+      return start;
     }
   }
-  
-  /** Substitute parameters for macro flags in the string.
+
+  /**
+   * Substitute parameters for macro flags in the string.
    * 
-   * <P>The supported substitutions are:
+   * <P>
+   * The supported substitutions are:
    * <ul>
-   * <li> $V The current value of the data.
-   * <li> $U The units of the data.
-   * <li> $N The name of the point.
-   * <li> $S The source part of the point name.
-   * <li> $D The point's description.
-   * <li> $T The data's timestamp.
-   * <li> $A The alarm status of the data (true or false).
-   * <li> $a The alarm status of the data (ALARMING or OK).
+   * <li>$V The current value of the data.
+   * <li>$V[point.name] The current value of the specified point.
+   * <li>$U The units of the data.
+   * <li>$N The name of the point.
+   * <li>$S The source part of the point name.
+   * <li>$D The point's description.
+   * <li>$T The data's timestamp.
+   * <li>$A The alarm status of the data (true or false).
+   * <li>$a The alarm status of the data (ALARMING or OK).
    * </ul>
    * */
-  public static String doSubstitutions(String arg, PointData data, PointDescription point) {
-    // Substitute value
-    String res = arg.replaceAll("\\$V", data.getData().toString());
+  public static String doSubstitutions(String template, PointData data, PointDescription point) {
+    String res = template;
+    while (res.indexOf("$V[") != -1) {
+      int start = res.indexOf("$V[");
+      int end = res.indexOf(']', start);
+      if (end==-1) {
+        // Cannot parse this template
+        break;
+      }
+      String pointname = res.substring(start+3, end);
+      PointDescription pointref = PointDescription.getPoint(pointname);
+      if (pointref==null) {
+        res = res.replace(res.substring(start, end+1), "[point not found]");
+      } else {
+        PointData pointdata = PointBuffer.getPointData(pointref);
+        if (pointdata==null) {
+          res = res.replace(res.substring(start, end+1), "null");
+        } else {
+          res = res.replace(res.substring(start, end+1), ""+pointdata.getData());
+        }
+      }
+    }
+
+    if (data != null) {
+      // Substitute our value
+      res = res.replace("\\$V", data.getData().toString());
+      // Substitute time stamp
+      res = res.replace("$T", data.getTimestamp().toString(AbsTime.Format.UTC_STRING));
+      // Alarm status
+      res = res.replace("$A", "" + data.getAlarm());
+      if (data.getAlarm()) {
+        res = res.replace("$a", "ALARMING");
+      } else {
+        res = res.replace("$a", "OK");
+      }
+    }
+    
     // Substitute units
     res = res.replaceAll("\\$U", point.getUnits());
     // Substitute point name
@@ -451,16 +497,8 @@ public abstract class MonitorUtils {
     // Substitute source
     res = res.replaceAll("\\$S", point.getSource());
     // Substitute point description
-    res = res.replaceAll("\\$D", point.getLongDesc());    
-    // Substitute time stamp
-    res = res.replaceAll("\\$T", data.getTimestamp().toString(AbsTime.Format.UTC_STRING));
-    // Alarm status
-    res = res.replaceAll("\\$A", ""+data.getAlarm());
-    if (data.getAlarm()) {
-      res = res.replaceAll("\\$a", "ALARMING");
-    } else {
-      res = res.replaceAll("\\$a", "OK");
-    }
+    res = res.replaceAll("\\$D", point.getLongDesc());
+
     return res;
   }
 }
