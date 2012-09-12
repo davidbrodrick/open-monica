@@ -2,7 +2,7 @@
 
 = Introduction =
 
-Several classes use a standard method MonitorUtils.doSubstitutions which can replace special values in a template string with runtime variables such as the values of monitor points. This page serves to document the valid macro strings.
+Several classes such as email alerts and alarm guidance text use a standard method !MonitorUtils.doSubstitutions which can replace special values in a template string with runtime variables such as the values of monitor points. This page serves to document the valid macro strings.
 
 
 = Details =
