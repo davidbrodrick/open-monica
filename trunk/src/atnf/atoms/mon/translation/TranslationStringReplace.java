@@ -47,7 +47,7 @@ public class TranslationStringReplace extends Translation {
     // Get value as a string
     String str = val.toString();
 
-    // Do the repalcement
+    // Do the replacement
     str = str.replace(itsTarget, itsReplacement);
 
     // Create return structure with right details
