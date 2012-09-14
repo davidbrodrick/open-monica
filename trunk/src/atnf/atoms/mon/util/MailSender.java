@@ -47,7 +47,12 @@ public class MailSender {
     }
 
     try {
-      message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+    	String[] strAddresses = to.split("\\s+");
+    	InternetAddress[] iaAddresses = new InternetAddress[strAddresses.length];
+    	for (int i=0; i<strAddresses.length; i++) {
+    		iaAddresses[i] = new InternetAddress(strAddresses[i]);
+    	}
+      message.addRecipients(Message.RecipientType.TO, iaAddresses);
       message.setSubject(subject);
       message.setText(body);
       message.setFrom(from);
