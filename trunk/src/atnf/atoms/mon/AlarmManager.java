@@ -118,7 +118,21 @@ public class AlarmManager {
     }
     return res;
   }
-
+  
+  /** Get the list of all alarms currently defined in the system. */
+  public static Vector<Alarm> getAllAlarms() {
+    Vector<Alarm> res;
+    synchronized (theirAlarms) {
+      res = new Vector<Alarm>(theirAlarms.size());
+      Iterator<Alarm> i = theirAlarms.values().iterator();
+      while (i.hasNext()) {
+        Alarm thisalarm = i.next();
+        res.add(thisalarm);
+      }
+    }
+    return res;
+  }
+  
   /** Acknowledge an alarm. */
   public static void setAcknowledged(PointDescription point, boolean acked, String user, AbsTime time) {
     synchronized (theirAlarms) {

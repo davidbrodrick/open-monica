@@ -344,7 +344,7 @@ use vars qw(@ISA @EXPORT);
 	      monbetween monpreceeding monfollowing montill monset dUT
 	      bat2mjd mjd2bat bat2time atca_tied monnames monlist2hash
               mondetails monpoll2 bat2cal bat2unixtime perltime2mjd 
-              monalarms monalarmack monalarmshelve);
+              monalarms monallalarms monalarmack monalarmshelve);
 
 =item B<monconnect>
 
@@ -871,6 +871,32 @@ sub monalarms ($) {
     return @vals;
 }
 
+=item B<monallalarms>
+
+    my @alarmstates = monallalarms($mon);
+
+ Gets the state of all alarm points on the MoniCA server.
+
+    $mon           Monitor server.
+
+    @alarmstates   List of MonAlarm objects.
+=cut
+
+sub monallalarms ($) {
+    my $mon = shift;
+
+    print $mon "allalarms\n";
+    
+    my @vals;
+    
+    my $num_alarms=<$mon>; # the number of alarms being returned
+    for (my $i=0;$i<$num_alarms;$i++) {
+        chomp(my $line=<$mon>);
+        push @vals, new MonAlarm($line);
+    }
+
+    return @vals;
+}
 =item B<monalarmack>
 
     my $ackresult = monalarmack($mon, $user, $pass, $alarmname);
