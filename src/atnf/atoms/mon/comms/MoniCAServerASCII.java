@@ -142,6 +142,8 @@ public class MoniCAServerASCII extends Thread {
             shelve();
           } else if (line.equalsIgnoreCase("alarms")) {
             alarms();
+          } else if (line.equalsIgnoreCase("allalarms")) {
+            allalarms();
           } else if (line.equalsIgnoreCase("exit")) {
             itsRunning = false;
           }
@@ -416,6 +418,26 @@ public class MoniCAServerASCII extends Thread {
     }
   }
 
+  /** Return a list of all alarms. */
+  protected void allalarms() {
+    try {
+      Vector<AlarmManager.Alarm> thesealarms = AlarmManager.getAllAlarms();
+
+      // Tell the client how many alarms we will return
+      itsWriter.println(thesealarms.size());
+
+      // Send each alarm
+      for (int i = 0; i < thesealarms.size(); i++) {
+        itsWriter.println(thesealarms.get(i));
+      }
+
+      itsWriter.flush();
+    } catch (Exception e) {
+      theirLogger.error("Problem in allalarms request from " + itsClientName + ": " + e);
+      itsRunning = false;
+    }
+  }
+  
   /** Set the acknowledge state for an alarm. */
   protected void ack() {
     try {
