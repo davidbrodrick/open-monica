@@ -304,6 +304,9 @@ The fields are as follows:
 ||Shelved At || BAT timestamp for when the operator shelved or unshelved the alarm. This will read 'null' if the point has never been shelved. ||
 ||Guidance || Guidance text to be presented to the operator to provide more information and remedial action advice. ||
 
+==allalarms==
+This returns the complete list of alarms regardless of their state. The returned data is identical to the alarms call above.
+
 ==ack==
 This is used to acknowledge or deacknowledge an alarm. The alarm will remain acknowledged or deacknowledged until the underlieing alarm condition clears at which time the acknowledgement status is cleared.
 
