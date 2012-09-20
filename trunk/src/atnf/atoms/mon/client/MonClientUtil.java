@@ -210,13 +210,14 @@ public class MonClientUtil {
           host = host.substring(0, host.indexOf(":"));
         }
         // Check if direct SSH tunnelling is requested for this connection
-        System.out.println("MonClientUtil: Connecting to host \"" + host + "\" on port " + port);
-        String sshdirect = (String)chosenserver.get(4);
-        if (sshdirect != null && sshdirect.indexOf("yes") != -1) {
-          System.out.println("MonClientUtil: Direct SSH tunnel requested.");
-          throw new Exception("Direct SSH Tunnel requested. Don't wait for connection timeout.");
+        System.err.println("MonClientUtil: Connecting to host \"" + host + "\" on port " + port);
+        if (chosenserver!=null) {
+          String sshdirect = (String)chosenserver.get(4);
+          if (sshdirect != null && sshdirect.indexOf("yes") != -1) {
+            System.err.println("MonClientUtil: Direct SSH tunnel requested.");
+            throw new Exception("Direct SSH Tunnel requested. Don't wait for connection timeout.");
+          }
         }
-        System.out.println("MonClientUtil: Proceed normal.");
         if (headless.equals("false")) {
           if (chosenserver != null && chosenserver.get(2) != null) {
             progressBar.setString("Attempting Direct Connection to Server");
