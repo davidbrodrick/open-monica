@@ -82,7 +82,7 @@ A class which demonstrates both an archival data query and also subscribes to re
 
 {{{
 ant
-java -DMoniCA.server=narrabri.ozforecast.com.au -cp open-monica.jar atnf.atoms.mon.apps.TestApp home.weather.wind_avg_speed
+java -DMoniCA.server=narrabri.ozforecast.com.au -cp open-monica.jar atnf.atoms.mon.apps.TestApp home.weather.wind_speed
 }}}
 
 This will produce output along the lines of:
