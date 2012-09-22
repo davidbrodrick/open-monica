@@ -635,6 +635,14 @@ var alarmCheck = function() {
 }
 }}}
 
+===== getAllAlarms =====
+
+{{{
+var alarmRefs = server.getAllAlarms();
+}}}
+
+This method returns an array of all the `monicaAlarm` references that it knows about. If a poll of all alarms has been made prior to this call, then this will be a list of all the available MoniCA alarms, otherwise there is no guarantee this list is complete.
+
 ===== addAlarmCallback =====
 
 {{{
@@ -642,6 +650,14 @@ server.addAlarmCallback(callbackFn, updateAll);
 }}}
 
 This method adds a callback function to the list of functions that each alarm should call when it gets updated. It takes two arguments, the first of which is the function to call, and the second is either `true` or `false`; if `true`, then all alarms that are known about will have this function added to their list, otherwise only alarms that we find out about later will have this function added to their list.
+
+===== addAllAlarmCallback =====
+
+{{{
+server.addAllAlarmCallback(callbackFn);
+}}}
+
+This method adds a callback function to the list of functions that the server will call each time it polls the server for its alarm states. It takes one argument, being the function to call. This function should accept a single argument, which will be an array of all the `monicaAlarm` references.
 
 ===== updateAlarmAuthData =====
 
