@@ -140,6 +140,13 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
        * @type {array}
        */
       constructor.alarmCallbacks = constructor.alarmCallbacks || [];
+      
+      /**
+       * A list of functions to call each time the alarms are polled,
+       * but the callbacks accept a list of all the known alarms.
+       * @type {array}
+       */
+      constructor.allAlarmCallbacks = constructor.allAlarmCallbacks || [];
 
       /**
        * The authentication information to use when shelving or
@@ -224,6 +231,12 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
        */
       var loadingDeferred = new Deferred();
 
+      /**
+       * A flag to indicate that we need to get all the alarms this call.
+       * @type {Boolean}
+       */
+      var needAllAlarms = false;
+      
       // Our methods follow.
 
       // Our private methods.
@@ -510,26 +523,34 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       };
 
       /**
-       * Get the server's alarm state.
+       * Handle the calling of the MoniCA alarm functionality.
+       * @param {String} command The command to use when polling the server.
        */
-      var getAlarms = function() {
+      var getAlarmCall = function(command) {
+        if (!lang.isString(command) ||
+            (command !== 'alarms' && command !== 'allalarms')) {
+          return null;
+        }
+
 	      /**
 	       * Get a handle to a Dojo Deferred that will retrieve the values for
 	       * the MoniCA alarms.
 	       * @type {Deferred}
 	       */
-	      gAhandle = comms({ content: { action: 'alarms' } });
+	      gAhandle = comms({ content: { action: command } });
 
 	      // Check we get something back.
 	      if (!gAhandle) {
           alert('Internal calling error!');
-	        return;
+	        return null;
 	      }
 
         // We need to reset all the alarm states before we get the new states,
         // because only alarms that are "alarmed" will be returned by this call.
-        for (gAi = 0; gAi < alarms.length; gAi++) {
-          alarms[gAi].alarmOff();
+        if (command === 'alarms') {
+          for (gAi = 0; gAi < alarms.length; gAi++) {
+            alarms[gAi].alarmOff();
+          }
         }
         
 	      // We will transfer the values to the appropriate alarm point
@@ -559,13 +580,54 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
 		        }
 		      }
 		  
+          // Call each alarm's callbacks.
           for (gAi = 0; gAi < alarms.length; gAi++) {
             alarms[gAi].fireCallbacks();
           }
+          
+          // Call any callbacks that want all the alarms at once.
+          for (gAi = 0; gAi < constructor.allAlarmCallbacks.length; gAi++) {
+            if (lang.isFunction(constructor.allAlarmCallbacks[gAi])) {
+              constructor.allAlarmCallbacks[gAi](alarms);
+            }
+          }
+
+          // Any functions called after us will get a list of all the alarms
+          // that we know about.
+          return alarms;
 	      });
+
+        return gAhandle;
 
       };
 
+      /**
+       * Get the server's alarm state.
+       */
+      var getAlarms = function() {
+        getAlarmCall('alarms');
+      };
+      
+      /**
+       * Get the state of all the server's alarms.
+       */
+      var getAllAlarms = function() {
+        return getAlarmCall('allalarms');
+      };
+      
+      /**
+       * Check which routine we need to use for this periodic alarm
+       * check.
+       */
+      var checkAlarms = function() {
+        if (needAllAlarms) {
+          getAllAlarms();
+          needAllAlarms = false;
+        } else {
+          getAlarms();
+        }
+      };
+      
       /**
        * Convert a length 1 array into a single value.
        * @param {array} tArr The array that may have a length of one.
@@ -1050,6 +1112,9 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
                 shelveDetails.pass
             }
           };
+
+          // Now we want to get the value of all alarms.
+          needAllAlarms = true;
           
           return comms(commsObj);
         } else {
@@ -1071,7 +1136,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
           alarmPollTimer.setInterval(constructor.alarmPollPeriod);
           
           // Call the update routine on each tick.
-          alarmPollTimer.onTick = getAlarms;
+          alarmPollTimer.onTick = checkAlarms;
           
           // Mark us as updating.
           isPolling = true;
@@ -1093,7 +1158,14 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
        * Demand that the server get the alarm states immediately.
        */
       that.immediateAlarmPoll = function() {
-        getAlarms();
+        checkAlarms();
+      };
+      
+      /**
+       * Poll all the alarms immediately.
+       */
+      that.pollAllAlarms = function() {
+        return getAllAlarms();
       };
 
       /**
@@ -1114,6 +1186,13 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
         } else {
           return null;
         }
+      };
+
+      /**
+       * Return all the known alarm references.
+       */
+      that.getAllAlarms = function() {
+        return alarms;
       };
       
       /**
@@ -1139,6 +1218,25 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
               alarms[aACi].addCallback(nFunc);
             }
           }
+        }
+      };
+
+      /**
+       * Add a callback to the global list of alarm point callbacks that
+       * require the list of all alarms at each call.
+       * @param {function} nFunc The function to add to the callback list.
+       */
+      that.addAllAlarmCallback = function(nFunc) {
+        aACadded = false;
+        for (aACi = 0; aACi < constructor.allAlarmCallbacks.length; aACi++) {
+          if (nFunc === constructor.allAlarmCallbacks[aACi]) {
+            aACadded = true;
+            break;
+          }
+        }
+        
+        if (aACadded === false) {
+          constructor.allAlarmCallbacks.push(nFunc);
         }
       };
 
