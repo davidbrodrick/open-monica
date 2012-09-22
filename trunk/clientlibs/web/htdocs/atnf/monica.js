@@ -542,7 +542,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
 			        gAget = findAlarm(data.alarmStates[gAi].pointName);
 			        if (gAget === null) {
 			          gAneedDesc = true;
-                gAnewAlarm = rObj.monicaAlarm(data.alarmStates[gAi], that);
+                gAnewAlarm = rObj.alarm(data.alarmStates[gAi], that);
 			          alarms.push(gAnewAlarm);
                 // Set up the point with any global information.
                 gAnewAlarm.setAuthData(constructor.alarmAuthData);
@@ -794,7 +794,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
 		        }
 	        }
 	        if (canAdd === true) {
-		        pointReferences[aPi] = rObj.monicaPoint({
+		        pointReferences[aPi] = rObj.point({
 			          pointName: newPoints[aPi]
 		        }, that);
 		        addPoint(pointReferences[aPi]);
@@ -854,7 +854,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
         // We don't check for an existing time-series using the same
         // point, since we support having multiple time-series ranges
         // for the same point.
-        timeSeriesReference = rObj.monicaPoint(tsPoint, that);
+        timeSeriesReference = rObj.point(tsPoint, that);
 
         // Add this point to our list.
         addPoint(timeSeriesReference);
@@ -1181,7 +1181,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      * @param {object} my   An object reference that this object should be able
      *                      to access.
      */
-    rObj.monicaPoint = function(constructor, my) {
+    rObj.point = function(constructor, my) {
       // Some variables required in various functions.
 
       // Variables in addCallback.
@@ -1268,7 +1268,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       /**
        * By default we allocate one monicaPointValue in this array.
        */
-      pointValues[0] = rObj.monicaPointValue({}, that);
+      pointValues[0] = rObj.pointValue({}, that);
       
       /**
        * A status flag to indicate whether we have already got our time
@@ -1508,7 +1508,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
 		        // the current last point.
 		        if (newValues.time !==
 		            pointValues[pointValues.length - 1].getValue().time) {
-		          pointValues.push(rObj.monicaPointValue({ initialValue: newValues },
+		          pointValues.push(rObj.pointValue({ initialValue: newValues },
 						  that));
 		      
 		          // Check we haven't got more than the maximum number of points
@@ -1541,7 +1541,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
 	      if (typeof tValues.data !== 'undefined') {
 	        for (k = 0; k < tValues.data.length; k++) {
 		        if (k >= pointValues.length) {
-		          pointValues.push(rObj.monicaPointValue({ initialValue: tValues.data[k] },
+		          pointValues.push(rObj.pointValue({ initialValue: tValues.data[k] },
 						    that));
 		        } else {
 		          pointValues[k].setValue(tValues.data[k]);
@@ -1818,7 +1818,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      * @param {object} my An object reference that this object should be able
      *                    to access.
      */
-    rObj.monicaPointValue = function(constructor, my) {
+    rObj.pointValue = function(constructor, my) {
       // Some variables required in our functions.
       
       // Variables in getValue.
@@ -2008,7 +2008,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      * @param {object} my An object reference that this object should be able
      *                    to access.
      */
-    rObj.monicaAlarm = function(constructor, my) {
+    rObj.alarm = function(constructor, my) {
 
 	    /**
 	     * The object that we will return to our caller.
