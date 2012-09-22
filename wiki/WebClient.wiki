@@ -617,9 +617,19 @@ The second argument is either `true` or `false`. If `true`, then all alarms that
 
 ----
 
-=== Object `monicaPoint` ===
+=== Method/object `monicaPoint` ===
 
 ==== Constructor ====
+
+===== AMD Style =====
+
+{{{
+require(["atnf/monica", "dojo/domReady!"], function(monica) {
+  var pointReference = monica.point(spec, my);
+});
+}}}
+
+===== Traditional Style =====
 
 {{{
 var pointReference = monicaPoint(spec, my);
@@ -880,6 +890,47 @@ This method instructs the point to start requesting updates from its `monicaServ
 var setPromise = pointReference.setValue(details);
 }}}
 
+This method is used to set the value of a MoniCA control point. It takes an object as its argument, that must have the following properties:
+  * `value`: The value to set the control point to.
+  * `user`: The username required to control the point.
+  * `pass`: The password required to control the point.
+Depending on the type of value that the point has, you may also have to set another property:
+  * `type`: The type of the value, which is one of the types that the `set` method on the ASCII interface supports ([http://code.google.com/p/open-monica/wiki/ClientASCII]). If the point value is a `String` (str) or `Boolean` (bool) this method will automatically be able to identify the `type`.
+
+Note that to even get access to this method, you will need to have added the point to the server.
+
+For example (AMD style):
+{{{
+require(["atnf/monica", "dojo/on", "dojo/domReady!"], function(monica, on) {
+  var setPointRef = null;
+
+  // Change the control point's value when a button is pushed.
+  on('set_button', 'click', function(evtObj) {
+    setPointRef.setValue({
+      'user': 'theUserName',
+      'pass': 'myPassword',
+      'value': 1,
+      'type': 'int'
+    });
+  });
+
+  var connectionEstablished = function(serverObj) {
+    // We can safely start the server updating now.
+    narMonica.startUpdating();
+    // Add the point that we can set.
+    var pointRefs = narMonica.addPoints['site.temp.setter'];
+    setPointRef = pointRefs[0];
+    narMonica.getDescriptions();
+  };
+
+  var narMonica = monica.server({
+    serverName: 'monhost-nar'
+  });
+
+  narMonica.connect().then(connectionEstablished);
+});
+}}}
+
 ===== isAlarm =====
 
 {{{
@@ -894,9 +945,19 @@ Users should not usually call this method with an argument, as the alarm points 
 
 ----
 
-=== Object `monicaPointValue` ===
+=== Method/object `monicaPointValue` ===
 
 ==== Constructor ====
+
+===== AMD Style =====
+
+{{{
+require(["atnf/monica", "dojo/domReady!"], function(monica) {
+  var pointValue = monica.pointValue(spec, my);
+});
+}}}
+
+===== Traditional Style =====
 
 {{{
 var pointValue = monicaPointValue(spec, my);
@@ -931,6 +992,8 @@ Each of these parameters is optional.
 
 A `newValue` `Array` has the elements `[time, value, errorState]`. The `errorState` element is optional.
 
+Since the `monicaPointValue` objects are not usually made available to user functions, you won't normally need to call this method. To set the value of a control point, use the `setValue` method on a `monicaPoint` object.
+
 ===== getValue =====
 
 {{{
@@ -939,16 +1002,228 @@ var value = pointValue.getValue(options);
 
 This method returns the value for this `monicaPointValue`. The format of the returned `value` depends on the `options` object that can be passed to this method, and has the parameters:
   * `arrayHighcharts`: A `Boolean` indicating whether `value` should be returned as an `Array` in the format expected by the Highcharts Javascript plotting library. In this format, `value` is a two-element `Array` with the first element being the `time` and the second being the `value`.
+  * `arrayDojo`: A `Boolean` indicating whether `seriesValues` should be returned as an `Array` of objects in the format expected by the Dojox charting library. In this format, each element of the `seriesValues` `Array` is an object with two properties:
+    * `x`: the `time`.
+    * `y`: the `value`.
+  By default, if this method is called without specifying this property in the `options` object (or if `options` is not passed), this value is set to `false`. If you want to set this value to `true`, you must also set `arrayHighcharts` to `false`.
   * `valueAsDecimalDegrees`: Many of the MoniCA points that have units of 'degrees' have their value expressed as a `String` with elements for degrees, minutes and seconds. If this property is specified as `true`, any such value is converted into a decimal number in degrees.
+  * `timeAsSeconds`: A `Boolean` indicating whether any `time` returned by this method should be as Unix time in seconds. By default, this is `false`.
+  * `timeAsDateObject`: A `Boolean` indicating whether any `time` returned by this method should be as a Javascript `Date`. By default, this is `false`.
+  * `referenceValue`: This property can be set to a numeric value that will be subtracted from any `value` being returned by this method. By default, this is 0.
+  * `referenceTime`: This property can be set to a numeric value that will be subtracted from any `time` being returned by this method. By default this is 0. Be careful that you set this property in milliseconds by default, or in seconds if you have set `timeAsSeconds` as `true`.
 
 If the `arrayHighcharts` parameter is not explicitly set to `true` in the `options` object, the returned `value` will be an object with the parameters:
   * `value`: The new value for this point.
   * `time`: The time for this value.
   * `errorState`: A `Boolean` indication of whether the state is in error.
 
+Since the `monicaPointValue` objects are not usually made available to user functions, you won't normally need to call this method. To get the value of a point, use one of the `latestValue` or `getTimeSeries` methods on a `monicaPoint` object.
+
+
 ----
 
-This API also extends the `String` type with a method `sexagesimalToDecimal`. If the `String` it acts on has the regular expression format `/^[\+\-]*\d+\?\d+\'\d+\"\.\d*$/` (the format MoniCA returns for an angle), or `/^[\+\-]*\d+\:\d+\:\d+$/` (sexagesimal format), this method will return a number that is the decimal equivalent of the `String`, otherwise it will return the `String` unchanged.
+=== Object `monicaAlarm` ===
+
+==== Constructor ====
+
+===== AMD Style =====
+
+{{{
+require(["atnf/monica", "dojo/domReady!"], function(monica) {
+  var alarmPoint = monica.alarm(spec, my);
+});
+}}}
+
+===== Traditional Style =====
+
+{{{
+var alarmPoint = monicaAlarm(spec, my);
+}}}
+
+The constructor function takes two mandatory arguments.
+
+  * `spec` is an object that configures the alarm and its initial state. It must have the following properties (as described on [http://code.google.com/p/open-monica/wiki/ClientASCII the ASCII interface page]):
+    * `pointName`: The name of the MoniCA point that the alarm is represented by.
+    * `priority`: The priority assigned to the alarm.
+    * `isAlarmed`: A `Boolean` indicating the current state of the alarm.
+    * `acknowledged`: A `Boolean` indicating whether this alarm is currently acknowledged.
+    * `acknowledgedBy`: If the alarm is currently acknowledged, the username used to acknowledge it.
+    * `acknowledgedAt`: If the alarm is currently acknowledged, the time that it was acknowledged at.
+    * `shelved`: A `Boolean` indicating whether this alarm is currently shelved.
+    * `shelvedBy`: The username that was used to last shelve or unshelve this alarm.
+    * `shelvedAt`: The time that this alarm was last shelved or unshelved.
+    * `guidance`: A `String` that may contain information about how to deal with this alarm.
+  * `my` has to be a reference to the `monicaServer` object it can use to communicate with MoniCA.
+
+The user can make a new `monicaAlarm` if they desire, but the constructor is usually only called by the `monicaServer` object when sees a new alarm on MoniCA. The `monicaAlarm` will not work correctly unless the `my` argument is specified as the `monicaServer` object that will be responsible for communicating with MoniCA.
+
+==== Public Methods ====
+
+===== getState =====
+
+{{{
+var currentState = alarmPoint.getState();
+}}}
+
+This method gets the current state of this alarm. It returns an object with the properties:
+  * `pointName`: The name of the MoniCA point that the alarm is represented by.
+  * `priority`: The priority assigned to the alarm.
+  * `isAlarmed`: A `Boolean` indicating the current state of the alarm.
+  * `acknowledged`: A `Boolean` indicating whether this alarm is currently acknowledged.
+  * `acknowledgedBy`: If the alarm is currently acknowledged, the username used to acknowledge it.
+  * `acknowledgedAt`: If the alarm is currently acknowledged, the time that it was acknowledged at.
+  * `shelved`: A `Boolean` indicating whether this alarm is currently shelved.
+  * `shelvedBy`: The username that was used to last shelve or unshelve this alarm.
+  * `shelvedAt`: The time that this alarm was last shelved or unshelved.
+  * `guidance`: A `String` that may contain information about how to deal with this alarm.
+
+===== updateState =====
+
+{{{
+alarmPoint.updateState(newState);
+}}}
+
+This method updates the internal state of this alarm, based on the mandatory argument, an object with the properties:
+  * `pointName`: The name of the MoniCA point that the alarm is represented by.
+  * `priority`: The priority assigned to the alarm.
+  * `isAlarmed`: A `Boolean` indicating the current state of the alarm.
+  * `acknowledged`: A `Boolean` indicating whether this alarm is currently acknowledged.
+  * `acknowledgedBy`: If the alarm is currently acknowledged, the username used to acknowledge it.
+  * `acknowledgedAt`: If the alarm is currently acknowledged, the time that it was acknowledged at.
+  * `shelved`: A `Boolean` indicating whether this alarm is currently shelved.
+  * `shelvedBy`: The username that was used to last shelve or unshelve this alarm.
+  * `shelvedAt`: The time that this alarm was last shelved or unshelved.
+
+Each of these properties is optional, except for `pointName` which must be present and set to the same name as this alarm represents. Any other properties in the `newState` object will be copied to the internal state. This method also fires any callbacks once it update the value.
+
+The user will not normally call this method, as the `monicaServer` will call it when the MoniCA alarms are queried.
+
+===== fireCallbacks =====
+
+{{{
+alarmPoint.fireCallbacks();
+}}}
+
+This method causes the `monicaAlarm` object to fire all its callbacks.
+
+===== acknowledge =====
+
+{{{
+alarmPoint.acknowledge(authData);
+}}}
+
+This method acknowledges the alarm on MoniCA. It takes one optional argument, which is an object that has the information required to authenticate with MoniCA; it has the properties:
+  * `user`: The username required to acknowledge the alarm.
+  * `pass`: The password required to acknowledge the alarm.
+If this argument is not provided, the user name and password set during the `monicaServer` instantiation, or a later call to its `updateAlarmAuthData` method, or a call to this object's `setAuthData` method. If this argument is provided, it will not overwrite this previously-set authentication information.
+
+There is no feedback from this method. You will need to wait until the server polls again for the alarm states before seeing the acknowledgement.
+
+===== unacknowledge =====
+
+{{{
+alarmPoint.unacknowledge(authData);
+}}}
+
+This method unacknowledges the alarm on MoniCA. It takes one optional argument, which is an object that has the information required to authenticate with MoniCA; it has the properties:
+  * `user`: The username required to unacknowledge the alarm.
+  * `pass`: The password required to unacknowledge the alarm.
+If this argument is not provided, the user name and password set during the `monicaServer` instantiation, or a later call to its `updateAlarmAuthData` method, or a call to this object's `setAuthData` method. If this argument is provided, it will not overwrite this previously-set authentication information.
+
+There is no feedback from this method. You will need to wait until the server polls again for the alarm states before seeing the unacknowledgement.
+
+===== autoAcknowledge =====
+
+{{{
+alarmPoint.autoAcknowledge(authData);
+}}}
+
+Depending on this point's current acknowledgement state, this method either acknowledges or unacknowledges the alarm on MoniCA. It takes one optional argument, which is an object that has the information required to authenticate with MoniCA; it has the properties:
+  * `user`: The username required to (un)acknowledge the alarm.
+  * `pass`: The password required to (un)acknowledge the alarm.
+If this argument is not provided, the user name and password set during the `monicaServer` instantiation, or a later call to its `updateAlarmAuthData` method, or a call to this object's `setAuthData` method. If this argument is provided, it will not overwrite this previously-set authentication information.
+
+There is no feedback from this method. You will need to wait until the server polls again for the alarm states before seeing the (un)acknowledgement.
+
+===== shelve =====
+
+{{{
+alarmPoint.shelve(authData);
+}}}
+
+This method shelves the alarm on MoniCA. It takes one optional argument, which is an object that has the information required to authenticate with MoniCA; it has the properties:
+  * `user`: The username required to shelve the alarm.
+  * `pass`: The password required to shelve the alarm.
+If this argument is not provided, the user name and password set during the `monicaServer` instantiation, or a later call to its `updateAlarmAuthData` method, or a call to this object's `setAuthData` method. If this argument is provided, it will not overwrite this previously-set authentication information.
+
+There is no feedback from this method. You will need to wait until the server polls again for the alarm states before seeing the shelve.
+
+===== unshelve =====
+
+{{{
+alarmPoint.unshelve(authData);
+}}}
+
+This method unshelves the alarm on MoniCA. It takes one optional argument, which is an object that has the information required to authenticate with MoniCA; it has the properties:
+  * `user`: The username required to unshelve the alarm.
+  * `pass`: The password required to unshelve the alarm.
+If this argument is not provided, the user name and password set during the `monicaServer` instantiation, or a later call to its `updateAlarmAuthData` method, or a call to this object's `setAuthData` method. If this argument is provided, it will not overwrite this previously-set authentication information.
+
+There is no feedback from this method. You will need to wait until the server polls again for the alarm states before seeing the unshelve.
+
+===== autoShelve =====
+
+{{{
+alarmPoint.autoShelve(authData);
+}}}
+
+Depending on this point's current shelve state, this method either shelves or unshelves the alarm on MoniCA. It takes one optional argument, which is an object that has the information required to authenticate with MoniCA; it has the properties:
+  * `user`: The username required to (un)shelve the alarm.
+  * `pass`: The password required to (un)shelve the alarm.
+If this argument is not provided, the user name and password set during the `monicaServer` instantiation, or a later call to its `updateAlarmAuthData` method, or a call to this object's `setAuthData` method. If this argument is provided, it will not overwrite this previously-set authentication information.
+
+There is no feedback from this method. You will need to wait until the server polls again for the alarm states before seeing the (un)shelve.
+
+===== setAuthData =====
+
+{{{
+var alarmRef = alarmPoint.setAuthData(authData);
+}}}
+
+This method sets the authentication data that this alarm requires to acknowledge or shelve itself. It takes one argument, an object with the properties:
+  * `user`: The username required.
+  * `pass`: The password required.
+
+It returns the alarm point reference so that you can method chain after this call.
+
+===== addCallback =====
+
+{{{
+alarmPoint.addCallback(callbackFn);
+}}}
+
+This method can be used to add a new function to the list of callbacks that this alarm object will make when its state is updated. The single mandatory argument should be the function that should be added to the callback list.
+
+===== getPoint =====
+
+{{{
+var pointRef = alarmPoint.getPoint();
+}}}
+
+This method returns the `monicaPoint` associated with this alarm point.
+
+===== alarmOff =====
+
+{{{
+alarmPoint.alarmOff();
+}}}
+
+This method resets the alarm state to `false`. This is not usually called by the user; the `monicaServer` object will call it just before it polls MoniCA for all the active alarms. Because such a poll will only return alarms that have a `true` alarm state, it is not actually possible to transition an alarm to `false` without this call.
+
+
+----
+
+The traditional Javascript API also extends the `String` type with a method `sexagesimalToDecimal`. If the `String` it acts on has the regular expression format `/^[\+\-]*\d+\?\d+\'\d+\"\.\d*$/` (the format MoniCA returns for an angle), or `/^[\+\-]*\d+\:\d+\:\d+$/` (sexagesimal format), this method will return a number that is the decimal equivalent of the `String`, otherwise it will return the `String` unchanged.
 
 Example 1:
 {{{
@@ -961,3 +1236,5 @@ Example 2:
 var noChange = 'Hello'.sexagesimalToDecimal();
 console.log(noChange); // This will still be 'Hello'.
 }}}
+
+The AMD Javascript API does not have this extension, but rather uses the methods found in the ATNF Javascript Library.
