@@ -5,6 +5,26 @@
 
 Many users will find it more convenient to view data from your MoniCA server on a web page. The open-monica distribution comes with a set of Javascript libraries to make it easy to build web pages that can display real-time MoniCA data. Alternatively, you can use the pre-built MoniCA frontpage.
 
+The normal operation of a web page using this library would be as follows:
+  * Setup the `monicaServer` object, and have it return the list of all points available on the server.
+  * Give the server a list of points and time-series that you are interested in, and direct it to call one or more functions when each point's value is updated, or when the time-series has a new point added.
+  * Each point will request an update after the amount of time its description states that it will get a new value. The server itself will only query MoniCA after its internal timer expires (thereby setting a minimum time between updates), and if one or more points has requested an update.
+  * In each of the callback functions that the server calls, you will get a reference to the point or time-series that has been updated, and you can query its state.
+
+The server also allows you to query the alarm points on the server, but this works in a slightly different way:
+  * You tell the `monicaServer` how often to check for alarms. To begin with, the server will not know about any alarm points, since MoniCA usually only reports about the alarms that are currently active.
+  * Each time the server queries for the active alarms and finds an alarm it has not previously seen before, it adds it to the list of known alarms, and automatically propagates information about the callbacks set for all the alarms to it.
+  * Since the server will only hear about alarms that are currently active at each query, before each query it sets all known alarms to inactive internally.
+  * After each query returns, all points that have changed state will fire its callbacks, passing its reference. Each alarm can have its own set of callbacks.
+  * In each of the callback functions that the server calls, you will get a reference to the alarm that has been updated, and you can query its state.
+
+If you prefer though, you can make the server obtain a list of all alarms that MoniCA knows about at the start and return a full list of their references. This will allow you to more easily set different callbacks for each alarm, and more predictably design a page using all the alarms. You can then leave the server to query alarms as stated above, or make it query for all alarms at each update. If you choose the latter, you can also make the server call a single function after MoniCA returns with a list of all the alarm references.
+
+Each point, time-series and alarm is itself a Javascript object with some public methods.
+  * For points, you can query the current state and set the value (for settable points).
+  * For time-series, you can query the entire series, or just the latest state.
+  * For alarms, you can query the current state or acknowledge or shelve it.
+
 ----
 
 = Installation =
@@ -545,13 +565,55 @@ This method stops the server object from polling the MoniCA server for any furth
 
 ===== immediateAlarmPoll =====
 
+{{{
+sever.immediateAlarmPoll();
+}}}
+
+This method makes the server immediately query MoniCA for all points that are alarmed, regardless of how long it has been since the previous alarm check.
+
 ===== getAlarms =====
+
+{{{
+var alarmRef = server.getAlarms(alarmNames);
+}}}
+
+This method allows the user to get a set of zero or more `monicaAlarm` objects. The `alarmNames` variable that you pass to this method can be a `String` if you want only a single alarm, or an `Array` of `String`s if you want more alarms. What is returned is either a single `monicaAlarm` object if you passed a `String`, or an `Array` with the same number of elements as `alarmNames`. For any alarm name that the server does not recognise, `null` will be returned.
+
+For example:
+{{{
+var alarmCheck = function() {
+  // This routine gets called periodically without knowing what the
+  // state of the server is.
+  // We want to check the state of a number of alarms.
+  var reqAlarms = [ 'weather.alarm1', 'weather.alarm2' ];
+  var alarmRefs = server.getAlarms(reqAlarms);
+  for (var i = 0; i < alarmRefs.length; i++) {
+    if (alarmRefs[i] !== null &&
+        alarmRefs[i].getState().isAlarmed) {
+      // Do something if we have an active alarm.
+    }
+  }
+}
+}}}
 
 ===== addAlarmCallback =====
 
+{{{
+server.addAlarmCallback(callbackFn, updateAll);
+}}}
+
+This method adds a callback function to the list of functions that each alarm should call when it gets updated. It takes two arguments, the first of which is the function to call, and the second is either `true` or `false`; if `true`, then all alarms that are known about will have this function added to their list, otherwise only alarms that we find out about later will have this function added to their list.
+
 ===== updateAlarmAuthData =====
 
+{{{
+server.updateAlarmAuthData(authData, updateAll);
+}}}
 
+This method allows the user to change the authentication username and password that will allow for acknowledgement or shelving of MoniCA alarms. It takes two arguments. The first argument is an object with the properties:
+  * `user`: the username, as a `String`.
+  * `pass`: the password, as a `String`.
+The second argument is either `true` or `false`. If `true`, then all alarms that are known about will have their authentication information updated with this new username and password, otherwise only alarms that we find out about later will have this authentication information set.
 
 ----
 
@@ -686,7 +748,18 @@ If the MoniCA server is solely responsible for keeping the time-series up-to-dat
 
 The `options` object can be used to alter the values coming back from this method. It currently supports the following properties:
   * `arrayHighcharts`: A `Boolean` indicating whether `seriesValues` should be returned as an `Array` of `Array`s in the format expected by the Highcharts Javascript plotting library. In this format, each element of the `seriesValues` `Array` is a two-element `Array` with the first element being the `time` and the second being the `value`. By default, if this method is called without specifying this property in the `options` object (or if `options` is not passed), this value is set to `true`.
+  * `arrayDojo`: A `Boolean` indicating whether `seriesValues` should be returned as an `Array` of objects in the format expected by the Dojox charting library. In this format, each element of the `seriesValues` `Array` is an object with two properties:
+    * `x`: the `time`.
+    * `y`: the `value`.
+  By default, if this method is called without specifying this property in the `options` object (or if `options` is not passed), this value is set to `false`. If you want to set this value to `true`, you must also set `arrayHighcharts` to `false`.
   * `valueAsDecimalDegrees`: Many of the MoniCA points that have units of 'degrees' have their value expressed as a `String` with elements for degrees, minutes and seconds. If this property is specified as `true`, any such value is converted into a decimal number in degrees.
+  * `timeAsSeconds`: A `Boolean` indicating whether any `time` returned by this method should be as Unix time in seconds. By default, this is `false`.
+  * `timeAsDateObject`: A `Boolean` indicating whether any `time` returned by this method should be as a Javascript `Date`. By default, this is `false`.
+  * `referenceValue`: This property can be set to a numeric value that will be subtracted from any `value` being returned by this method. By default, this is 0.
+  * `referenceTime`: This property can be set to a numeric value that will be subtracted from any `time` being returned by this method. By default this is 0. Be careful that you set this property in milliseconds by default, or in seconds if you have set `timeAsSeconds` as `true`.
+  * `timeRange`: This object can be passed to limit the range of times that will be returned by this method. It has two optional properties:
+    * `min`: The minimum time that will be returned. This should be a number, as milliseconds by default, or in seconds if you have set `timeAsSeconds` as `true`.
+    * `max`: The maximum time that will be returned. This should be a number, as milliseconds by default, or in seconds if you have set `timeAsSeconds` as `true`.
 
 ===== latestValue =====
 
@@ -701,7 +774,15 @@ This method returns the only value from a normal point, or the latest value from
 
 The `options` object can be used to alter the values coming back from this method. It currently supports the following properties:
   * `arrayHighcharts`: A `Boolean` indicating whether `value` should be returned as an `Array` in the format expected by the Highcharts Javascript plotting library. In this format, `value` is a two-element `Array` with the first element being the `time` and the second being the `value`. By default, if this method is called without specifying this property in the `options` object (or if `options` is not passed), and the point is designated as time-series, this value is set to `true`.
+  * `arrayDojo`: A `Boolean` indicating whether `seriesValues` should be returned as an `Array` of objects in the format expected by the Dojox charting library. In this format, each element of the `seriesValues` `Array` is an object with two properties:
+    * `x`: the `time`.
+    * `y`: the `value`.
+  By default, if this method is called without specifying this property in the `options` object (or if `options` is not passed), this value is set to `false`. If you want to set this value to `true`, you must also set `arrayHighcharts` to `false`.
   * `valueAsDecimalDegrees`: Many of the MoniCA points that have units of 'degrees' have their value expressed as a `String` with elements for degrees, minutes and seconds. If this property is specified as `true`, any such value is converted into a decimal number in degrees.
+  * `timeAsSeconds`: A `Boolean` indicating whether any `time` returned by this method should be as Unix time in seconds. By default, this is `false`.
+  * `timeAsDateObject`: A `Boolean` indicating whether any `time` returned by this method should be as a Javascript `Date`. By default, this is `false`.
+  * `referenceValue`: This property can be set to a numeric value that will be subtracted from any `value` being returned by this method. By default, this is 0.
+  * `referenceTime`: This property can be set to a numeric value that will be subtracted from any `time` being returned by this method. By default this is 0. Be careful that you set this property in milliseconds by default, or in seconds if you have set `timeAsSeconds` as `true`.
 
 ===== addCallback =====
 
@@ -792,6 +873,24 @@ pointReference.startUpdating();
 }}}
 
 This method instructs the point to start requesting updates from its `monicaServer`. The frequency of updates is controlled via the `setPointDetails` method.
+
+===== setValue =====
+
+{{{
+var setPromise = pointReference.setValue(details);
+}}}
+
+===== isAlarm =====
+
+{{{
+var pointIsAlarm = pointReference.isAlarm(isAlarm);
+}}}
+
+This method can be called in two different ways.
+  * If no argument is passed to this method, it will return a `Boolean` indicating whether this point is associated with an MoniCA alarm.
+  * If a `Boolean` argument is passed to this method, the point will either think it is associated with a MoniCA alarm (if `true` is passed), or not. It will then return this same value.
+
+Users should not usually call this method with an argument, as the alarm points will automatically set this flag as they are discovered.
 
 ----
 
