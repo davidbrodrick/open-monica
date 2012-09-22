@@ -235,9 +235,15 @@ if ($action eq "points"){
     my $duration=$input{"duration"};
 
     # the points we get straight up
-} elsif ($action eq "alarms") {
+} elsif (($action eq "alarms") ||
+         ($action eq "allalarms")) {
     # Get the alarm states from the MoniCA server.
-    my @alarms = monalarms($mon);
+    my @alarms;
+    if ($action eq "alarms") {
+        @alarms = monalarms($mon);
+    } elsif ($action eq "allalarms") {
+        @alarms = monallalarms($mon);
+    }
 
     # Output some JSON.
     print "{ alarmStates: [";
