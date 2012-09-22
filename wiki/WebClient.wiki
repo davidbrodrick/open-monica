@@ -167,6 +167,7 @@ The constructor function takes one argument, which is optional.
   * `autoDescriptions`: a boolean value to indicate whether the server should automatically get descriptions for points as they are added (default `false`).
   * `alarmPollPeriod`: the time between queries to the MoniCA server to poll which alarm states are active, in milliseconds (default `0`, ie. do not poll).
   * `alarmCallbacks`: an array of function calls to be made whenever an alarm condition is encountered.
+  * `allAlarmCallbacks`: an array of function calls to be made at each poll of the alarms; these functions should accept as an argument an array of all the alarms known to the server.
   * `alarmAuthData`: an object, with the properties `user` and `pass` that should be used to provide the authentication parameters to acknowledge or shelve alarms on the MoniCA server (default: `{ user: '', pass: ''}`).
 
 
@@ -570,6 +571,44 @@ sever.immediateAlarmPoll();
 }}}
 
 This method makes the server immediately query MoniCA for all points that are alarmed, regardless of how long it has been since the previous alarm check.
+
+===== pollAllAlarms =====
+
+{{{
+var alarmsPromise = server.pollAllAlarms();
+}}}
+
+This method can be used to both get a list of all the alarms that MoniCA knows about, even if they are currently not active, or simply to check the state of all the alarms immediately. It returns a Dojo `Deferred` that will resolve when the list of all alarms returns, and after all the alarm callbacks are made. The function given to the `Deferred` should accept an array of `monicaAlarm` objects as its only argument.
+
+For example (AMD style):
+{{{
+require(["atnf/monica", "dojo/domReady!"], function(monica) {
+  var printAllAlarmNames = function(alarmList) {
+    for (var i = 0; i < alarmList.length; i++) {
+      console.log(alarmList[i].getState().pointName);
+    }
+  };
+
+  var connectionEstablished = function(serverObj) {
+    // We can safely start the server updating now.
+    narMonica.startUpdating();
+    // Get a list of all the alarms that may become active.
+    narMonica.pollAllAlarms().then(printAllAlarmNames);
+    // And start updating the alarm conditions.
+    narMonica.startAlarmPolling();
+    // Do things for a connection to the MoniCA server.
+  };
+
+  var narMonica = monica.server({
+    serverName: 'monhost-nar',
+    alarmPollPeriod: 10000,
+    alarmCallbacks: [ alarmUpdater ],
+    autoDescriptions: true
+  });
+
+  narMonica.connect().then(connectionEstablished);
+});
+}}}
 
 ===== getAlarms =====
 
