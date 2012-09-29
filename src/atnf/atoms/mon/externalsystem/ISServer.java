@@ -23,7 +23,7 @@ public class ISServer extends ASCIISocket {
 
   public ISServer(String[] args) {
     super(args);
-    System.err.println("ISServer: Constructing");    
+    //System.err.println("ISServer: Constructing");    
   }
 
   /** Query all of the latest values and return a HashMap containing them. */
