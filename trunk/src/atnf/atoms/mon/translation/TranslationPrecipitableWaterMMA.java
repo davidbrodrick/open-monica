@@ -25,7 +25,7 @@ import atnf.atoms.mon.PointDescription;
  * @author Balt Indermuehle (adapted from David Brodrick's original version)
  */
 public class
-TranslationPrecipitableWater
+TranslationPrecipitableWaterMMA
 extends TranslationDualListen
 {
 
@@ -35,7 +35,7 @@ extends TranslationDualListen
     "Relative Humidity (%)", "java.lang.String"};
 
   public
-  TranslationPrecipitableWater(PointDescription parent, String[] init)
+  TranslationPrecipitableWaterMMA(PointDescription parent, String[] init)
   {
     super(parent, init);
   }
@@ -59,7 +59,7 @@ extends TranslationDualListen
     double temp = ((Number)val1).doubleValue() + 273.15;
     double rh = ((Number)val2).doubleValue();
 
-    double res = 2.409e12*rh*(300.0/temp)^4*Math.exp(-22.64*(300.0/temp)) / ( 3*temp);
+    double res = 2.409e12 * rh * Math.pow(300.0/temp, 4) * Math.exp(-22.64 * (300.0 / temp)) / (3 * temp);
 
     //Round off insignificant digits
     res = res - Math.IEEEremainder(res, 0.01);
