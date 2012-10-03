@@ -163,7 +163,15 @@ public abstract class TranslationListener extends Translation implements PointLi
     if (matchData()) {
       // Recalculate output and fire update event
       Object resval = doCalculations();
-      PointData res = new PointData(itsParent.getFullName(), new AbsTime(), resval);
+      AbsTime ts;
+      if (itsNumPoints==1) {
+    	  // Only listening to a single point so preserve the timestamp
+    	  ts = pd.getTimestamp();
+      } else {
+    	  // Mutliple points, therefore original timestamp is not clearly defined
+    	  ts = new AbsTime();
+      }
+      PointData res = new PointData(itsParent.getFullName(), ts, resval);
       itsParent.firePointEvent(new PointEvent(this, res, true));
     }
   }
