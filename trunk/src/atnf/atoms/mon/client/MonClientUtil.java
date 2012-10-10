@@ -211,8 +211,8 @@ public class MonClientUtil {
         }
         // Check if direct SSH tunnelling is requested for this connection
         System.err.println("MonClientUtil: Connecting to host \"" + host + "\" on port " + port);
-        if (chosenserver!=null) {
-          String sshdirect = (String)chosenserver.get(4);
+        if (chosenserver != null) {
+          String sshdirect = (String) chosenserver.get(4);
           if (sshdirect != null && sshdirect.indexOf("yes") != -1) {
             System.err.println("MonClientUtil: Direct SSH tunnel requested.");
             throw new Exception("Direct SSH Tunnel requested. Don't wait for connection timeout.");
@@ -657,7 +657,9 @@ public class MonClientUtil {
           } else {
             realthis.setSize(new Dimension(240, 46 + 28 * itsServers.size()));
           }
-          realthis.validateTree();
+          synchronized (getTreeLock()) {
+            realthis.validateTree();
+          }
           realthis.setVisible(true);
           if (itsDefault != null) {
             itsTimer = new Timer(1000, realthis);
