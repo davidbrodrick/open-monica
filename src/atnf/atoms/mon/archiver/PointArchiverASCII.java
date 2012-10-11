@@ -837,7 +837,7 @@ public class PointArchiverASCII extends PointArchiver {
         if (start != null && ts.isBefore(start)) {
           continue; // Data's too early
         }
-        if (res.size() >= MAXNUMRECORDS || (end != null && ts.isAfter(end))) {
+        if (end != null && ts.isAfter(end)) {
           break; // No more useful data in this file
         }
         res.add(pd);
