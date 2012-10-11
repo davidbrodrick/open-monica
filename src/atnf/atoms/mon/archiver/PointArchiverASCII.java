@@ -394,18 +394,9 @@ public class PointArchiverASCII extends PointArchiver {
 
     // Try to find the update which precedes the argument timestamp
     PointData res = null;
-    for (int i = 1; i < tempbuf.size(); i++) {
-      PointData p1 = (PointData) (tempbuf.get(i - 1));
-      PointData p2 = (PointData) (tempbuf.get(i));
-      if (p1.getTimestamp().isBeforeOrEquals(ts) && p2.getTimestamp().isAfter(ts)) {
-        // This is the datum we were searching for
-        res = p1;
-        break;
-      }
-    }
-    if (res == null && tempbuf.size() > 0) {
-      // Request must be for most recent data in the archive
-      res = tempbuf.get(tempbuf.size() - 1);
+    int resi = MonitorUtils.getPrevEqualsPointData(tempbuf, ts);
+    if (resi != -1) {
+      res = tempbuf.get(resi);
     }
     return res;
   }
@@ -441,14 +432,17 @@ public class PointArchiverASCII extends PointArchiver {
 
     // Try to find the update which follows the argument timestamp
     PointData res = null;
-    for (int i = 1; i < tempbuf.size(); i++) {
-      PointData p1 = (PointData) (tempbuf.get(i - 1));
-      PointData p2 = (PointData) (tempbuf.get(i));
-      if (p1.getTimestamp().isBefore(ts) && p2.getTimestamp().isAfterOrEquals(ts)) {
-        // This is the datum we were searching for
-        res = p2;
-        break;
+    int resi = MonitorUtils.getNextPointData(tempbuf, ts);
+    if (resi != -1) {
+      // We found first point after but check if index before is equal
+      if (resi != 0) {
+        PointData prev = tempbuf.get(resi - 1);
+        if (prev.getTimestamp().equiv(ts)) {
+          // Prev is equal to request time, so it is the correct result
+          resi = resi - 1;
+        }
       }
+      res = tempbuf.get(resi);
     }
     return res;
   }
@@ -822,7 +816,6 @@ public class PointArchiverASCII extends PointArchiver {
         fname = decompress(fname);
         hadtodecompress = true;
       }
-      int num = 0;
       BufferedReader reader = new BufferedReader(new FileReader(fname));
 
       while (reader.ready()) {
@@ -840,9 +833,9 @@ public class PointArchiverASCII extends PointArchiver {
         if (end != null && ts.isAfter(end)) {
           break; // No more useful data in this file
         }
+
         res.add(pd);
 
-        num++;
         if (truncate && res.size() >= MAXNUMRECORDS) {
           break;
         }
