@@ -9,10 +9,9 @@
 package atnf.atoms.mon.archiver;
 
 import java.util.*;
-import atnf.atoms.time.RelTime;
+import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
-import atnf.atoms.time.AbsTime;
 import org.apache.log4j.Logger;
 
 /**
@@ -33,6 +32,12 @@ public abstract class PointArchiver extends Thread {
    * there is a very large request. Obtained from the property <tt>ArchiveMaxRecords</tt>
    */
   protected static final int MAXNUMRECORDS = Integer.parseInt(MonitorConfig.getProperty("ArchiveMaxRecords", "5000"));
+
+  /** The minimum number of records for the data to be flushed out. */
+  protected static final int MINWRITERECORDS = 50;
+
+  /** The maximum amount of time since an update for the point. */
+  protected static final RelTime MAXWRITETIME = RelTime.factory(-120000000);
 
   /** Specify the archiver to be used for archiving all data. */
   public static synchronized void setPointArchiver(PointArchiver archiver) {
@@ -113,23 +118,32 @@ public abstract class PointArchiver extends Thread {
    */
   public abstract PointData getFollowing(PointDescription pm, AbsTime ts);
 
-  /** Main loop for the archiving thread. */
+  /**
+   * Main loop for the archiving thread. Points will be archived if there are MINWRITERECORDS waiting to be archived or if the last
+   * update for the point is older than MAXWRITETIME.
+   */
   public void run() {
     setName("Point Archiver");
 
     RelTime sleeptime1 = RelTime.factory(50000);
     RelTime sleeptime2 = RelTime.factory(1000);
     while (true) {
+      AbsTime cutoff = (new AbsTime()).add(MAXWRITETIME);
       int counter = 0;
       Enumeration<PointDescription> keys = itsBuffer.keys();
       while (keys.hasMoreElements()) {
-        Vector<PointData> thisdata = null;        
+        Vector<PointData> thisdata = null;
         PointDescription pm = keys.nextElement();
         if (pm == null) {
           continue;
         }
         thisdata = itsBuffer.get(pm);
         if (thisdata == null || thisdata.isEmpty()) {
+          // No data to be archived
+          continue;
+        }
+        if (thisdata.size() < MINWRITERECORDS && thisdata.lastElement().getTimestamp().isAfter(cutoff)) {
+          // Point does not meet any criteria for writing to the archive at this time
           continue;
         }
         if (itsBeingArchived.contains(pm.getFullName())) {
@@ -137,18 +151,17 @@ public abstract class PointArchiver extends Thread {
           itsLogger.debug(pm.getFullName() + " is already being archived");
           continue;
         }
-        //itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
+        // itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
         saveNow(pm, thisdata);
         try {
-          // TODO: Don't really want this, need to be more clever
           sleeptime2.sleep();
         } catch (Exception e) {
         }
         counter++;
       }
-      //if (counter > 0) {
-      //  itsLogger.debug("Archived/flagged " + counter + " points");
-      //}
+      // if (counter > 0) {
+      // itsLogger.debug("Archived/flagged " + counter + " points");
+      // }
       try {
         sleeptime1.sleep();
       } catch (Exception e) {
