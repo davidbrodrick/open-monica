@@ -233,7 +233,7 @@ public class DavisVantagePro extends DataSocket {
             wokeup = true;
             break;
           } catch (SocketTimeoutException f) {
-            theirLogger.debug("Timeout waiting for response to wakeup command. " + retries + " attempts remain.");
+            //theirLogger.debug("Timeout waiting for response to wakeup command. " + retries + " attempts remain.");
             continue;       
           }   
         }
