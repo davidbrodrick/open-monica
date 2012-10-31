@@ -298,7 +298,7 @@ public class PointArchiverASCII extends PointArchiver {
       // Delete all files except most current (as it may contain still-valid data)
       for (int i = 0; i < files.size() - 1; i++) {
         try {
-          (new File(files.get(i))).delete();
+          (new File(dir + FSEP + files.get(i))).delete();
         } catch (Exception e) {
           // There was a problem deleting the file. Should we log a message about it?
         }
