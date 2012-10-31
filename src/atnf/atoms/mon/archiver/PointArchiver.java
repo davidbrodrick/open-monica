@@ -33,11 +33,17 @@ public abstract class PointArchiver extends Thread {
    */
   protected static final int MAXNUMRECORDS = Integer.parseInt(MonitorConfig.getProperty("ArchiveMaxRecords", "5000"));
 
-  /** The minimum number of records for the data to be flushed out. */
-  protected static final int MINWRITERECORDS = 50;
+  /** The base number of records for the data to be flushed out/max to be buffered. */
+  protected static final int theirMaxRecordCount = 50;
+  
+  /** Maximum offset to be added to above based on hash of specific point name. */
+  protected static final int theirRecordCountOffset = 15;
 
-  /** The maximum amount of time since an update for the point. */
-  protected static final RelTime MAXWRITETIME = RelTime.factory(-120000000);
+  /** The maximum amount of time since an update for the point before buffer should be flushed. */
+  protected static final RelTime theirMaxAge = RelTime.factory(-180000000);
+  
+  /** Maximum offset to be added to above based on hash of specific point name. */
+  protected static final long theirMaxAgeOffset = 60000000;
 
   /** Specify the archiver to be used for archiving all data. */
   public static synchronized void setPointArchiver(PointArchiver archiver) {
@@ -128,7 +134,7 @@ public abstract class PointArchiver extends Thread {
     RelTime sleeptime1 = RelTime.factory(50000);
     RelTime sleeptime2 = RelTime.factory(1000);
     while (true) {
-      AbsTime cutoff = (new AbsTime()).add(MAXWRITETIME);
+      AbsTime cutoff = (new AbsTime()).add(theirMaxAge);
       int counter = 0;
       Enumeration<PointDescription> keys = itsBuffer.keys();
       while (keys.hasMoreElements()) {
@@ -142,7 +148,14 @@ public abstract class PointArchiver extends Thread {
           // No data to be archived
           continue;
         }
-        if (thisdata.size() < MINWRITERECORDS && thisdata.lastElement().getTimestamp().isAfter(cutoff)) {
+        
+        // Add small offsets based on hash of point name.
+        // This prevents bulk points all being flushed in lock step each time.
+        int namehash = pm.getFullName().hashCode();
+        int minnumrecs = theirMaxRecordCount + (namehash%theirRecordCountOffset);
+        AbsTime cutoff2 = cutoff.add(namehash%theirMaxAgeOffset);
+        
+        if (thisdata.size() < minnumrecs && thisdata.lastElement().getTimestamp().isAfter(cutoff2)) {
           // Point does not meet any criteria for writing to the archive at this time
           continue;
         }
@@ -151,7 +164,7 @@ public abstract class PointArchiver extends Thread {
           itsLogger.debug(pm.getFullName() + " is already being archived");
           continue;
         }
-        // itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
+        //itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
         saveNow(pm, thisdata);
         try {
           sleeptime2.sleep();
@@ -159,9 +172,9 @@ public abstract class PointArchiver extends Thread {
         }
         counter++;
       }
-      // if (counter > 0) {
-      // itsLogger.debug("Archived/flagged " + counter + " points");
-      // }
+       //if (counter > 0) {
+       //itsLogger.debug("###### Archived/flagged " + counter + " points");
+       //}
       try {
         sleeptime1.sleep();
       } catch (Exception e) {
