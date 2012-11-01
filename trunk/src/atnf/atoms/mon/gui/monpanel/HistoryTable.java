@@ -599,7 +599,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
   protected boolean itsReverse = false;
   /** Each entry is a Vector containing the data for an individual row. */
   protected Vector itsRows = new Vector();
-  /** Contains all the data. */
+  /** Contains all the raw data for the monitor points. */
   protected Vector<Vector<PointData>> itsData = new Vector<Vector<PointData>>();
   /** Indicates that the worker thread should continue to run. */
   protected boolean itsKeepRunning = true;
@@ -1111,7 +1111,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
         if (previ == -1) {
           res.add(null);
         } else {
-          res.add(v.get(previ).getData());
+          res.add(v.get(previ));
           founddata = true;
         }
       }
@@ -1351,23 +1351,17 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
     if (value instanceof Component) {
       res = (Component) value;
     } else {
-      res = new JLabel(value.toString());
+      PointData pd = (PointData) value;
+      res = new JLabel(pd.getData().toString());
+      if (pd.getAlarm()) {
+        // Highlight this cell as the value was out of range
+        res.setForeground(Color.red);
+        if (res instanceof JComponent) {
+          ((JComponent) res).setOpaque(true);
+        }
+        res.setBackground(Color.yellow);
+      }
     }
-
-    // Check if this monitor point defines it's limits
-    /*
-     * PointDescription pm = getPoint(row, column); if (pm!=null) { //Limits are defined, get the raw data and check it PointData pd
-     * = DataMaintainer.getBuffer(pm.getSource() + "." + pm.getName()); if (pd!=null) { long age = (new AbsTime()).getValue() -
-     * pd.getTimestamp().getValue(); long period = pm.getPeriod(); if (period!=0 && age>2*period && age<5*period) { //The point is
-     * old, so alter the foreground color res.setForeground(Color.lightGray); }
-     * 
-     * PointLimit limits = pm.getLimits(); if (limits!=null) { if (pd.isValid() && (period==0 || age<5*period) &&
-     * !limits.checkLimits(pd)) { //Don't highlight the point if it has expired //Point is outside of limits, so highlight this cell
-     * if (age<3*period) res.setForeground(Color.red); else res.setForeground(Color.orange); if (res instanceof JComponent)
-     * ((JComponent)res).setOpaque(true); res.setBackground(Color.yellow); } } } }
-     */
-
-    // res.setForeground(Color.red);
 
     return res;
   }
