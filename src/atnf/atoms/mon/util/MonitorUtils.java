@@ -34,7 +34,7 @@ import atnf.atoms.time.RelTime;
  * @author Le Cuong Nguyen
  */
 public abstract class MonitorUtils {
-  private static Hashtable<String,String> theirMacros = new Hashtable<String,String>();
+  private static Hashtable<String, String> theirMacros = new Hashtable<String, String>();
 
   public static String[] toStringArray(Object[] data) {
     String[] res = new String[data.length];
@@ -187,7 +187,7 @@ public abstract class MonitorUtils {
   /** Reads and parses a file */
   public static String[] parseFile(Reader reader) {
     ArrayList<String> result = new ArrayList<String>();
-    theirMacros = new Hashtable<String,String>();
+    theirMacros = new Hashtable<String, String>();
 
     try {
       LineNumberReader lnr = new LineNumberReader(reader);
@@ -354,8 +354,7 @@ public abstract class MonitorUtils {
    */
   public static int getNextPointData(Vector<PointData> data, AbsTime ts) {
     synchronized (data) {
-      System.err.println("Seeking first point after " + ts.toString(AbsTime.Format.UTC_STRING));
-      /*
+      /*System.err.println("Seeking first point after " + ts.toString(AbsTime.Format.UTC_STRING));      
        * for (int i=0; i<data.size(); i++ ) { //System.err.println(i + " " +
        * data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING)); }
        */
@@ -386,7 +385,7 @@ public abstract class MonitorUtils {
         // Next element is the final result
         start++;
       }
-      System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
+      //System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
       return start;
     }
   }
@@ -398,8 +397,7 @@ public abstract class MonitorUtils {
    */
   public static int getPrevEqualsPointData(Vector<PointData> data, AbsTime ts) {
     synchronized (data) {
-      System.err.println("Seeking first point before or equals " + ts.toString(AbsTime.Format.UTC_STRING));
-      /*
+      /*System.err.println("Seeking first point before or equals " + ts.toString(AbsTime.Format.UTC_STRING));
        * for (int i=0; i<data.size(); i++ ) { //System.err.println(i + " " +
        * data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING)); }
        */
@@ -426,11 +424,11 @@ public abstract class MonitorUtils {
         }
         // System.err.println("Checking span start=" + start + ", end=" + end);
       }
-      // if (data.get(start).getTimestamp().isBeforeOrEquals(ts)) {
-      // Next element is the final result
-      // start++;
-      // }
-      System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
+      if (data.size() > start + 1 && data.get(start + 1).getTimestamp().isBeforeOrEquals(ts)) {
+        // Next element is the final result
+        start++;
+      }
+      //System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
       return start;
     }
   }
@@ -457,20 +455,20 @@ public abstract class MonitorUtils {
     while (res.indexOf("$V[") != -1) {
       int start = res.indexOf("$V[");
       int end = res.indexOf(']', start);
-      if (end==-1) {
+      if (end == -1) {
         // Cannot parse this template
         break;
       }
-      String pointname = res.substring(start+3, end);
+      String pointname = res.substring(start + 3, end);
       PointDescription pointref = PointDescription.getPoint(pointname);
-      if (pointref==null) {
-        res = res.replace(res.substring(start, end+1), "[point not found]");
+      if (pointref == null) {
+        res = res.replace(res.substring(start, end + 1), "[point not found]");
       } else {
         PointData pointdata = PointBuffer.getPointData(pointref);
-        if (pointdata==null) {
-          res = res.replace(res.substring(start, end+1), "null");
+        if (pointdata == null) {
+          res = res.replace(res.substring(start, end + 1), "null");
         } else {
-          res = res.replace(res.substring(start, end+1), ""+pointdata.getData());
+          res = res.replace(res.substring(start, end + 1), "" + pointdata.getData());
         }
       }
     }
@@ -488,7 +486,7 @@ public abstract class MonitorUtils {
         res = res.replace("$a", "OK");
       }
     }
-    
+
     // Substitute units
     res = res.replace("$U", point.getUnits());
     // Substitute point name
