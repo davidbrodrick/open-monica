@@ -35,13 +35,13 @@ public abstract class PointArchiver extends Thread {
 
   /** The base number of records for the data to be flushed out/max to be buffered. */
   protected static final int theirMaxRecordCount = 50;
-  
+
   /** Maximum offset to be added to above based on hash of specific point name. */
   protected static final int theirRecordCountOffset = 15;
 
   /** The maximum amount of time since an update for the point before buffer should be flushed. */
   protected static final RelTime theirMaxAge = RelTime.factory(-180000000);
-  
+
   /** Maximum offset to be added to above based on hash of specific point name. */
   protected static final long theirMaxAgeOffset = 60000000;
 
@@ -137,44 +137,56 @@ public abstract class PointArchiver extends Thread {
       AbsTime cutoff = (new AbsTime()).add(theirMaxAge);
       int counter = 0;
       Enumeration<PointDescription> keys = itsBuffer.keys();
-      while (keys.hasMoreElements()) {
-        Vector<PointData> thisdata = null;
-        PointDescription pm = keys.nextElement();
-        if (pm == null) {
-          continue;
+      try {
+        while (keys.hasMoreElements()) {
+          Vector<PointData> thisdata = null;
+          PointDescription pm = keys.nextElement();
+          if (pm == null) {
+            continue;
+          }
+          thisdata = itsBuffer.get(pm);
+          if (thisdata == null || thisdata.isEmpty()) {
+            // No data to be archived
+            continue;
+          }
+
+          // Add small offsets based on hash of point name.
+          // This prevents bulk points all being flushed together each time.
+          int namehash = pm.getFullName().hashCode();
+          int minnumrecs = theirMaxRecordCount + (namehash % theirRecordCountOffset);
+          AbsTime cutoff2 = cutoff.add(namehash % theirMaxAgeOffset);
+
+          if (thisdata.size() < minnumrecs && thisdata.lastElement().getTimestamp().isAfter(cutoff2)) {
+            // Point does not meet any criteria for writing to the archive at this time
+            continue;
+          }
+
+          synchronized (itsBeingArchived) {
+            if (itsBeingArchived.contains(pm.getFullName())) {
+              // Point is already being archived
+              itsLogger.warn(pm.getFullName() + " is already being archived");
+              continue;
+            } else {
+              // Flag that the point is now being archived
+              itsBeingArchived.add(pm.getFullName());
+            }
+          }
+
+          // itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
+          saveNow(pm, thisdata);
+          try {
+            sleeptime2.sleep();
+          } catch (Exception e) {
+          }
+          counter++;
         }
-        thisdata = itsBuffer.get(pm);
-        if (thisdata == null || thisdata.isEmpty()) {
-          // No data to be archived
-          continue;
-        }
-        
-        // Add small offsets based on hash of point name.
-        // This prevents bulk points all being flushed in lock step each time.
-        int namehash = pm.getFullName().hashCode();
-        int minnumrecs = theirMaxRecordCount + (namehash%theirRecordCountOffset);
-        AbsTime cutoff2 = cutoff.add(namehash%theirMaxAgeOffset);
-        
-        if (thisdata.size() < minnumrecs && thisdata.lastElement().getTimestamp().isAfter(cutoff2)) {
-          // Point does not meet any criteria for writing to the archive at this time
-          continue;
-        }
-        if (itsBeingArchived.contains(pm.getFullName())) {
-          // Point is already being archived
-          itsLogger.debug(pm.getFullName() + " is already being archived");
-          continue;
-        }
-        //itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
-        saveNow(pm, thisdata);
-        try {
-          sleeptime2.sleep();
-        } catch (Exception e) {
-        }
-        counter++;
+      } catch (Exception e) {
+        itsLogger.error("While archiving: " + e);
+        e.printStackTrace();
       }
-       //if (counter > 0) {
-       //itsLogger.debug("###### Archived/flagged " + counter + " points");
-       //}
+      // if (counter > 0) {
+      // itsLogger.debug("###### Archived/flagged " + counter + " points");
+      // }
       try {
         sleeptime1.sleep();
       } catch (Exception e) {

@@ -262,7 +262,9 @@ public class PointArchiverASCII extends PointArchiver {
         outfile.close();
         f.close();
         // Files flushed, can now flag that archive is no longer in progress
-        itsBeingArchived.remove(itsPoint.getFullName());
+        synchronized (itsBeingArchived) {
+          itsBeingArchived.remove(itsPoint.getFullName());
+        }
       } catch (Exception e) {
         itsLogger.error("While archiving: " + itsPoint.getFullName() + ": " + e);
       }
