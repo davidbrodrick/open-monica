@@ -123,6 +123,13 @@ public class MoniCAMain {
                 return false;
             }
         }
+        
+        // Add shutdown listener to flush archive
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+          public void run() {
+            PointArchiver.getPointArchiver().flushArchive();            
+          }
+        });
 
         // Start the data collection
         theirLogger.debug("Starting ExternalSystems");
