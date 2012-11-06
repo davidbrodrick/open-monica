@@ -45,6 +45,12 @@ public abstract class PointArchiver extends Thread {
   /** Maximum offset to be added to above based on hash of specific point name. */
   protected static final long theirMaxAgeOffset = 60000000;
 
+  /** Flag set when MoniCA has been requested to shut down. */
+  protected boolean itsShuttingDown = false;
+
+  /** Flag to indicate the the archive flush on shutdown is now complete. */
+  protected boolean itsFlushComplete = false;
+
   /** Specify the archiver to be used for archiving all data. */
   public static synchronized void setPointArchiver(PointArchiver archiver) {
     theirArchiver = archiver;
@@ -125,6 +131,19 @@ public abstract class PointArchiver extends Thread {
   public abstract PointData getFollowing(PointDescription pm, AbsTime ts);
 
   /**
+   * Tell the archiver that MoniCA needs to shut down so that unflushed data can be written out.
+   */
+  public void flushArchive() {
+    itsShuttingDown = true;
+    while (!itsFlushComplete) {
+      try {
+        RelTime.factory(100000).sleep();
+      } catch (Exception e) {
+      }
+    }
+  }
+
+  /**
    * Main loop for the archiving thread. Points will be archived if there are MINWRITERECORDS waiting to be archived or if the last
    * update for the point is older than MAXWRITETIME.
    */
@@ -134,6 +153,11 @@ public abstract class PointArchiver extends Thread {
     RelTime sleeptime1 = RelTime.factory(50000);
     RelTime sleeptime2 = RelTime.factory(1000);
     while (true) {
+      boolean flushing = false;
+      if (itsShuttingDown) {
+        flushing = true;
+      }
+
       AbsTime cutoff = (new AbsTime()).add(theirMaxAge);
       int counter = 0;
       Enumeration<PointDescription> keys = itsBuffer.keys();
@@ -150,15 +174,19 @@ public abstract class PointArchiver extends Thread {
             continue;
           }
 
-          // Add small offsets based on hash of point name.
-          // This prevents bulk points all being flushed together each time.
-          int namehash = pm.getFullName().hashCode();
-          int minnumrecs = theirMaxRecordCount + (namehash % theirRecordCountOffset);
-          AbsTime cutoff2 = cutoff.add(namehash % theirMaxAgeOffset);
+          if (!itsShuttingDown) {
+            // Add small offsets based on hash of point name.
+            // This prevents bulk points all being flushed together each time.
+            int namehash = pm.getFullName().hashCode();
+            int minnumrecs = theirMaxRecordCount + (namehash % theirRecordCountOffset);
+            AbsTime cutoff2 = cutoff.add(namehash % theirMaxAgeOffset);
 
-          if (thisdata.size() < minnumrecs && thisdata.lastElement().getTimestamp().isAfter(cutoff2)) {
-            // Point does not meet any criteria for writing to the archive at this time
-            continue;
+            if (thisdata.size() < minnumrecs && thisdata.lastElement().getTimestamp().isAfter(cutoff2)) {
+              // Point does not meet any criteria for writing to the archive at this time
+              continue;
+            }
+          } else {
+            //itsLogger.debug("Flushing " + thisdata.size() + " records for " + pm.getFullName() + " because shutdown requested");
           }
 
           synchronized (itsBeingArchived) {
@@ -187,6 +215,11 @@ public abstract class PointArchiver extends Thread {
       // if (counter > 0) {
       // itsLogger.debug("###### Archived/flagged " + counter + " points");
       // }
+      if (itsShuttingDown && flushing) {
+        // We've just flushed the full archive
+        itsFlushComplete = true;
+        break;
+      }
       try {
         sleeptime1.sleep();
       } catch (Exception e) {
