@@ -40,7 +40,7 @@ public abstract class PointArchiver extends Thread {
   protected static final int theirRecordCountOffset = 15;
 
   /** The maximum amount of time since an update for the point before buffer should be flushed. */
-  protected static final RelTime theirMaxAge = RelTime.factory(-180000000);
+  protected static final RelTime theirMaxAge = RelTime.factory(-240000000);
 
   /** Maximum offset to be added to above based on hash of specific point name. */
   protected static final long theirMaxAgeOffset = 60000000;
@@ -181,7 +181,7 @@ public abstract class PointArchiver extends Thread {
             int minnumrecs = theirMaxRecordCount + (namehash % theirRecordCountOffset);
             AbsTime cutoff2 = cutoff.add(namehash % theirMaxAgeOffset);
 
-            if (thisdata.size() < minnumrecs && thisdata.lastElement().getTimestamp().isAfter(cutoff2)) {
+            if (thisdata.size() < minnumrecs && thisdata.firstElement().getTimestamp().isAfter(cutoff2)) {
               // Point does not meet any criteria for writing to the archive at this time
               continue;
             }
