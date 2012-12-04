@@ -23,7 +23,8 @@ The following commands are currently recognised by the server:
   * *names:* Request the names of all points in the system.
   * *details:* Request meta-information about some points.
   * *set:* Set new values for control points.
-  * *alarms:* Get current status of priority alarms.
+  * *alarms:* Get current status of active/shelved priority alarms.
+  * *allalarms:* Get current status of all priority alarms.
   * *ack:* Set or clear the acknowledgement for a priority alarm.
   * *shelve:* Shelve or enable a priority alarm.
 
