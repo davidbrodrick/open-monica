@@ -78,7 +78,7 @@ public class MonFrame extends JFrame implements ActionListener {
             }
           } catch (Exception f) {
             // No Joy..
-            f.printStackTrace();
+            //f.printStackTrace();
             JOptionPane.showMessageDialog((MonFrame) itsWindows.get(0), "There was an error:\n" + f.getMessage() + "\n",
                 "Error Saving File", JOptionPane.WARNING_MESSAGE);
           }
@@ -871,7 +871,7 @@ public class MonFrame extends JFrame implements ActionListener {
       for (int i = 0; i < numpanels; i++) {
         addPanel((MonPanel) newpanels.get(i));
       }
-      setTitle("MoniCA: " + title);
+      setTitle(title);
 
       // LayoutPanel: Get saved panel layout information
       itsLayoutPanel.loadSetup(setup);
@@ -1050,6 +1050,18 @@ public class MonFrame extends JFrame implements ActionListener {
       PrintWriter p = new PrintWriter(fw);
       for (int i = 0; i < WindowManager.itsWindows.size(); i++) {
         MonFrame frame = (MonFrame) WindowManager.itsWindows.get(i);
+        String thissetup = frame.getSetup().getName();
+        if (thissetup.equals("temp")) {
+          JOptionPane
+              .showMessageDialog(
+                  frame,
+                  "The current window arrangement could not\nbe saved as one of the window setups\nmay have been altered from what was\nloaded from the Navigator menu.",
+                  "Cannot Save Arrangement", JOptionPane.WARNING_MESSAGE);
+          fw.flush();
+          fw.close();
+          new File(filename).delete();
+          return false;
+        }
         p.print(frame.getSetup().getName() + "\t");
         Rectangle r = frame.getBounds();
         p.println(r.width + " " + r.height + " " + r.x + " " + r.y);
@@ -1057,7 +1069,6 @@ public class MonFrame extends JFrame implements ActionListener {
       fw.flush();
       fw.close();
     } catch (Exception e) {
-      e.printStackTrace();
       return false;
     }
     return true;
