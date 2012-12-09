@@ -83,12 +83,9 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener,
 		// Returns value for the selected cell
 		public Object getValueAt(int row, int col) {
 			getCurrentPanels();
-			int val = 0;
-
-			
 			// Return panel type
 			if (col == 0) {
-				Class c = itsCurrentPanels.get(row).getClass();
+				Class<? extends MonPanel> c = itsCurrentPanels.get(row).getClass();
 				return MonPanel.getName(c);
 			}
 
@@ -248,7 +245,7 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener,
 
 					for (int i=0; i<numPanels; i++) {
 						MonPanel thisPan = (MonPanel) itsTableModel.itsCurrentPanels.get(i);
-						Class c = thisPan.getClass();
+						Class<? extends MonPanel> c = thisPan.getClass();
 						String panelname = MonPanel.getName(c);
 						
 						double pX = (double)itsTableModel.itsXPos.get(i) / ten;
@@ -568,14 +565,14 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener,
 						.toString());
 				setup.put("panelheight" + i, itsTableModel.itsHeight.get(i)
 						.toString());
-			}
+			}    
+			// Save preferred window dimensions
+	    setup.put("windowwidth", itsWindowWidth.getText());
+	    setup.put("windowheight", itsWindowHeight.getText());
 		} else if (itsAutoControl.isSelected()) {
-			setup.put("control", "auto");
+		  //Commented as auto is implied if 'manual' not specified
+			//setup.put("control", "auto");
 		}
-
-		// Save preferred window dimensions
-		setup.put("windowwidth", itsWindowWidth.getText());
-		setup.put("windowheight", itsWindowHeight.getText());
 
 		return;
 	}
@@ -585,8 +582,6 @@ public class LayoutPanel extends JPanel implements ActionListener, ItemListener,
 	 * saved setup.
 	 */
 	public void loadSetup(SavedSetup setup) {
-		int preferredWidth = 600; // Default values for window size
-		int preferredHeight = 700;
 		int numpanels = Integer.parseInt((String) setup.get("numpanels"));
 
 		if (setup.containsKey("control")) {
