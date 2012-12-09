@@ -374,7 +374,8 @@ public class SavedSetup extends HashMap<String, String> implements NamedObject, 
         return false;
       }
       if (!get(thiskey).equals(other.get(thiskey))) {
-        System.err.println("SavedSetup.compareKeys: Key \"" + thiskey + "\" was different");
+        System.err.println("SavedSetup.compareKeys: Key \"" + thiskey + "\" was different (\"" + get(thiskey) + "\" vs \""
+            + other.get(thiskey) + "\")");
         return false;
       }
     }
