@@ -31,6 +31,11 @@ public class AlarmManager {
     public AbsTime acknowledgedAt = null;
     public int priority = 0;
     public String guidance = null;
+    
+    public static final int NOT_ALARMED = 0;
+    public static final int ACKNOWLEDGED = 1;
+    public static final int SHELVED = 2;
+    public static final int ALARMING = 3;
 
     public Alarm(PointDescription p) {
       point = p;
@@ -77,6 +82,19 @@ public class AlarmManager {
       res += "\t\"" + guidance + "\"";
       return res;
     }
+    
+	public int getAlarmStatus(){
+		int status = Alarm.NOT_ALARMED;
+		if (this.acknowledged){
+			status = Alarm.ACKNOWLEDGED;
+		} else if (this.shelved){
+			status = Alarm.SHELVED;
+		} else if (this.alarm){ // will only get here if it is not shelved OR acknowledged, but still alarming
+			status = Alarm.ALARMING;
+		}
+		return status;
+	}
+    
   }
 
   /** Record of points which are currently in a priority alarm state. */
