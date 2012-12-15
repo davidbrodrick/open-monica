@@ -1,4 +1,4 @@
-#The ISServer system has grown too large for just a README... here's how to get any external data into open-monica.
+The ISServer system has grown too large for just a README. Here's how to use it.
 
 = Introduction =
 
@@ -7,8 +7,20 @@ ISServer is an external system class in open-monica which allows easy importing 
 = Details =
 Here's how to use it:
 
-* in `monitor-sources.txt` enter this line for your system: `ISServer 127.0.0.1:7111:5000:ticklestring` where 
-* 127.0.0.1 is the IP address the machine running ISServer.pl, 
-* 7111 is the port on which it's configured to run, 
-* 1000 is the time interval to poll it at (in milliseconds, so 5000 = 5s) and finally, 
-* the optional tickle string is the string sent to the server's TCP port to elicit the data you need. If not specified, all is sent which causes the default configuration of ISServer.pl to just send all the data in its data directory.
+ * in `monitor-sources.txt` enter this line for your system: `ISServer 127.0.0.1:7111:5000:ticklestring` where 
+ * 127.0.0.1 is the IP address the machine running ISServer.pl, 
+ * 7111 is the port on which it's configured to run, 
+ * 1000 is the time interval to poll it at (in milliseconds, so 5000 = 5s) and finally, 
+ * the optional tickle string is the string sent to the server's TCP port to elicit the data you need. If not specified, the string "all" is sent which causes the default configuration of ISServer.pl to just send all the data in its data directory.
+
+= Installation =
+Simply look at the ISServer example scripts in the clientlibs directory: Gather_Sample_Data.pl runs and collects data which it stores to a directory. ISServer.pl is the server script. Both should probably be run from a cron job. They both have mechanisms built in to ascertain they are not started more than once. In the Gather_Sample_Data.pl script you need to
+ * customise the data directory
+ * modify which data you want gathered (which can be the output of any script you can think of running)
+
+In ISServer.pl all you need to customise is 
+ * the port number (if you want that customised) as well as 
+ * the data directory so it points to the same location as the data gathering script.
+
+Note that you can also modify the behaviour of the ISServer script so it sends different data based on the aptly named "tickle string" in the open-monica setup.
+
