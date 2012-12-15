@@ -20,16 +20,21 @@ import atnf.atoms.mon.externalsystem.*;
 public class ISServer extends ASCIISocket {
   /** Timestamp of the last message. */
   private String itsTstamp = null;
-
+  private String TickleString = "all";
+  
   public ISServer(String[] args) {
     super(args);
-    //System.err.println("ISServer: Constructing");    
+    //System.err.println("ISServer: Constructing with args:\n" + args[0] +"\n" + args[1] + "\n" + args[2]);
+    if ( args.length > 3 ) {
+      // assume we were given Address, port, interval, ticklestring
+      TickleString = args[3];
+    }
   }
 
   /** Query all of the latest values and return a HashMap containing them. */
   public Object parseData(PointDescription requestor) throws Exception {
     HashMap<String,Object> res = new HashMap<String,Object>();
-    itsWriter.write("all\r\n");
+    itsWriter.write(TickleString + "\r\n");
     itsWriter.flush();
     //System.err.println("ISServer: sent request");
 
