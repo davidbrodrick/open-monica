@@ -1,4 +1,4 @@
-#The ISServer system has grown too large for just a README. Here's how to use it.
+#summary How to use the ISServer external data system
 
 = Introduction =
 
