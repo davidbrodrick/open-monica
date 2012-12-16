@@ -418,7 +418,7 @@ public class MonFrame extends JFrame implements ActionListener {
       }
     });
 
-    setSize(new Dimension(850, 700));
+    setSize(new Dimension(900, 700));
     setVisible(true);
   }
 
