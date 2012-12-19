@@ -40,6 +40,7 @@ public class AlarmPanel extends JPanel {
 	Vector<Alarm> alarms;
 	Alarm itsAlarm;
 	HashMap<Integer, String> rankLookup = new HashMap<Integer, String>();
+	int itsAlarmStatus;
 
 	//Empty alarm panel when no alarms are selected
 	public AlarmPanel(){
@@ -50,53 +51,43 @@ public class AlarmPanel extends JPanel {
 
 	}
 
-	public AlarmPanel(String name, String user) {
-		// TODO Auto-generated constructor stub
+	public AlarmPanel(String name) {
 
 		// Setup on new AlarmPanel instance
 		this.rankSetup();
 
 		boolean hasPointDesc = false;
-		boolean hasAlarm = false;
 
 		itsName = name;
-		itsUser = user;
 		itsPointDesc = PointDescription.getPoint(itsName);
+		System.out.println("DEBUG: Full Name: " + itsPointDesc.getFullName());
+		System.out.println("DEBUG: Long Description: " + itsPointDesc.getLongDesc());
+		System.out.println("DEBUG: Period: " + itsPointDesc.getPeriod());
+		System.out.println("DEBUG: Enabled: " + itsPointDesc.getEnabled());
+		System.out.println("DEBUG: Archive Policy: " + itsPointDesc.getArchivePolicyString());
+		System.out.println("DEBUG: Guidance: " + itsPointDesc.getGuidance());
+		System.out.println("DEBUG: Alarm Conditions: " + itsPointDesc.getAlarmCheckString());
+		System.out.println("DEBUG: Notifications: " + itsPointDesc.getNotificationString());
+		System.out.println("DEBUG: String Equivalent: " + itsPointDesc.getStringEquiv());
+		System.out.println("DEBUG: Priority: " + itsPointDesc.getPriority());
 		alarms = AlarmManager.getAllAlarms(); //update current alarms
-
-		// Get the current user to input a name if there isn't one associated yet
-		if (itsUser == null){
-			itsUser = JOptionPane.showInputDialog("Please input your username: ");
-		}
 
 		if (itsPointDesc != null) hasPointDesc = true;
 
 
 		if (hasPointDesc){
-			for (Alarm a : alarms){
-				if (a.point.equals(itsPointDesc)){
-					itsAlarm = a;
-					hasAlarm = true;
-					break;
-				}
-			}
+			
+			itsAlarm = AlarmManager.getAlarm(itsPointDesc);
+			if (itsAlarm == null) System.err.println("No corresponding alarm for this PointDescription");
 
-			// Create an alarm instance for this point
-			if (!hasAlarm){
-				AlarmManager.setAcknowledged(itsPointDesc, false, itsUser, AbsTime.factory());
-				AlarmManager.setShelved(itsPointDesc, false, itsUser, AbsTime.factory());
-				alarms = AlarmManager.getAllAlarms();
+			/*for (Alarm a : AlarmManager.getAllAlarms()){
+				System.out.println(a.point.getFullName());
+			}*/
 
-				for (Alarm a : alarms){
-					if (a.point.equals(itsPointDesc)){
-						itsAlarm = a;
-						hasAlarm = true;
-						break;
-					}
-				}
-			}
-
-			this.setLayout(new GridLayout(5,1));
+			itsAlarmStatus = itsAlarm.getAlarmStatus();
+			//System.out.println(itsAlarmStatus);
+			
+			this.setLayout(new GridLayout(6,1));
 
 			JLabel alarmPriority = new JLabel(rankLookup.get(itsAlarm.priority) + " Alarm".toUpperCase());
 			alarmPriority.setForeground(Color.BLACK);
@@ -105,13 +96,13 @@ public class AlarmPanel extends JPanel {
 			if (itsAlarm.priority == -1){
 				alarmPriority.setBackground(Color.GRAY);
 			} else if (itsAlarm.priority == 0){
-				alarmPriority.setBackground(Color.BLUE);
+				alarmPriority.setBackground(new Color(0x63B8FF));
 			} else if (itsAlarm.priority == 1){
 				alarmPriority.setBackground(Color.YELLOW);
 			} else if (itsAlarm.priority == 2){
-				alarmPriority.setBackground(Color.ORANGE);			
+				alarmPriority.setBackground(new Color(0xFF7F24));			
 			} else if (itsAlarm.priority == 3){
-				alarmPriority.setBackground(Color.RED);
+				alarmPriority.setBackground(new Color(0xEE0000));
 			} else {
 				alarmPriority.setBackground(Color.DARK_GRAY);
 			}
@@ -119,7 +110,7 @@ public class AlarmPanel extends JPanel {
 			
 			alarmPriority.setHorizontalAlignment(JLabel.CENTER);
 			JLabel pointString = new JLabel("Point: " + itsName);
-
+			JLabel pointDesc = new JLabel("Description: " + itsPointDesc.getLongDesc());
 			JPanel alarmStatus = new JPanel();
 			JLabel statusString = new JLabel("Status: ");
 			JLabel status = new JLabel();
@@ -144,6 +135,7 @@ public class AlarmPanel extends JPanel {
 			JLabel shelvedAt = new JLabel("Shelved at " + itsAlarm.shelvedAt);
 
 			pointString.setFont(new Font("Sans Serif", Font.PLAIN, 24));
+			pointDesc.setFont(new Font("Sans Serif", Font.ITALIC, 24));
 			statusString.setFont(new Font("Sans Serif", Font.ITALIC, 24));
 			status.setFont(new Font("Sans Serif", Font.ITALIC, 24));
 			ackedBy.setFont(new Font("Sans Serif", Font.ITALIC, 24));
@@ -163,6 +155,7 @@ public class AlarmPanel extends JPanel {
 			guidance.setLineWrap(true);
 			
 			pointString.setBackground(Color.WHITE);
+			pointDesc.setBackground(Color.WHITE);
 			alarmStatus.setBackground(Color.WHITE);
 			ackedBy.setBackground(Color.WHITE);
 			ackedAt.setBackground(Color.WHITE);
@@ -172,6 +165,7 @@ public class AlarmPanel extends JPanel {
 			
 			alarmPriority.setOpaque(true);
 			pointString.setOpaque(true);
+			pointDesc.setOpaque(true);
 			alarmStatus.setOpaque(true);
 			ackedBy.setOpaque(true);
 			ackedAt.setOpaque(true);
@@ -183,12 +177,13 @@ public class AlarmPanel extends JPanel {
 
 			this.add(alarmPriority);
 			this.add(pointString);
+			this.add(pointDesc);
 			this.add(alarmStatus);
-			if (itsAlarm.getAlarmStatus() == Alarm.ACKNOWLEDGED){
+			if (itsAlarmStatus == Alarm.ACKNOWLEDGED){
 				this.add(ackedBy);
 				this.add(ackedAt);
 			}
-			if (itsAlarm.getAlarmStatus() == Alarm.SHELVED){
+			if (itsAlarmStatus == Alarm.SHELVED){
 				this.add(shelvedBy);
 				this.add(shelvedAt);
 			}
