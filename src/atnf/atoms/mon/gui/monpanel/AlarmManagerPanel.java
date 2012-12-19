@@ -456,6 +456,8 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 
 		boolean tempAck = false;
 		boolean tempShlv = false;
+		boolean ackChanged = false;
+		boolean shlvChanged = false;
 
 		Vector<Alarm> selectedAlarms = new Vector<Alarm>();
 		Vector<String> localPoints = new Vector<String>();
@@ -632,12 +634,26 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 
 			} else if (command.equals("ok")){
 				//send the commands along to the server
-
-				// Pseudocode
-				//for (Alarm a : this.getSelected()){
-				//	a.setAcknowledged(tempAck);
-				// a.setShelved(tempShlv);
-				// }
+				int res = 0;
+				if (ackChanged && ack.isSelected()){
+					res = JOptionPane.showConfirmDialog(this, "This will set all selected points to Acknowledged. Is this OK?", "Confirmation" , JOptionPane.YES_NO_OPTION);
+				} else if (shlvChanged && shelve.isSelected()){
+					res = JOptionPane.showConfirmDialog(this, "This will set all selected points to Shelved. Is this OK?", "Confirmation", JOptionPane.YES_NO_OPTION);
+				} else if (ackChanged && !ack.isSelected()){
+					res = JOptionPane.showConfirmDialog(this, "This will de-Acknowledge all selected points. Is this OK?", "Confirmation" , JOptionPane.YES_NO_OPTION);
+				} else if (shlvChanged && !shelve.isSelected()){
+					res = JOptionPane.showConfirmDialog(this, "This will un-Shelve all selected points. Is this OK?", "Confirmation" , JOptionPane.YES_NO_OPTION);
+				}
+				if (res == JOptionPane.YES_OPTION){
+					ackChanged = false;
+					shlvChanged = false;
+					for (Object s : plist.getSelectedValues()){
+						AlarmManager.setAcknowledged(PointDescription.getPoint(s.toString()), tempAck, itsUser, AbsTime.factory());
+						AlarmManager.setShelved(PointDescription.getPoint(s.toString()), tempShlv, itsUser, AbsTime.factory());
+					}
+					updateListModels();
+					this.updateAlarmPanels();
+				}
 			} 
 
 
@@ -650,52 +666,79 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 
 		}
 
+		private void updateAlarmPanels(){
+			JPanel newPanel = new JPanel();
+			newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
+
+			Object[] pointNames = plist.getSelectedValues();
+			for (Object o : pointNames){
+				AlarmPanel a = new AlarmPanel(o.toString());
+				a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
+				newPanel.add(a);
+			}
+
+			alarmDetailsScroller.add(newPanel);
+			alarmDetailsScroller.setViewportView(newPanel);
+			alarmDetailsScroller.revalidate();
+			alarmDetailsScroller.repaint();
+
+		}
+
+
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
 			if (e.getValueIsAdjusting() == false){
-				JPanel newPanel = new JPanel();
-				newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
-
-				Object[] pointNames = plist.getSelectedValues();
-				for (Object o : pointNames){
-					AlarmPanel a = new AlarmPanel(o.toString());
-					a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
-					newPanel.add(a);
+				try {
+				if (AlarmManager.getAlarm(localListModel.get(plist.getSelectedIndex()).toString()).getAlarmStatus() == Alarm.ACKNOWLEDGED){
+					tempAck = true;
+					ack.setSelected(true);
+					tempShlv = false;
+					shelve.setSelected(false);
+				} else if (AlarmManager.getAlarm(localListModel.get(plist.getSelectedIndex()).toString()).getAlarmStatus() == Alarm.SHELVED){
+					tempShlv = true;
+					shelve.setSelected(true);
+					tempAck = false;
+					ack.setSelected(false);
+				} else {
+					tempShlv = false;
+					shelve.setSelected(false);
+					tempAck = false;
+					ack.setSelected(false);
 				}
-
-
-
-				alarmDetailsScroller.add(newPanel);
-				alarmDetailsScroller.setViewportView(newPanel);
-				alarmDetailsScroller.revalidate();
-				alarmDetailsScroller.repaint();
-
+				} catch (ArrayIndexOutOfBoundsException aioobe){
+					// Not sure why this keeps triggering, doesn't seem to have any negative effect... yet.
+					// Probably something to do with removing the element of the list in the JButton thread
+				}
+				this.updateAlarmPanels();
 			}
 		}
 
 		@Override
 		public void itemStateChanged(ItemEvent e) {
 			if (e.getSource().equals(ack)){
+				ackChanged = true;
 				if (e.getStateChange() == ItemEvent.SELECTED){
 					tempAck = true;
+					tempShlv = false;
+					shelve.setSelected(false);
 				} else if (e.getStateChange() == ItemEvent.DESELECTED){
 					tempAck = false;
 				}
 
 			} else if (e.getSource().equals(shelve)){
+				shlvChanged = true;
 				if (e.getStateChange() == ItemEvent.SELECTED){
 					tempShlv = true;
-					shelve.setText("UNSHELVE");
+					tempAck = false;
+					ack.setSelected(false);
 				} else if (e.getStateChange() == ItemEvent.DESELECTED){
 					tempShlv = false;
-					shelve.setText("SHELVE");
 				}
 			}
-			System.out.println(tempAck);
-			System.out.println(tempShlv);
 		}
 
 		public void updateListModel() {
+			this.setListModel(itsListModel);
 			Vector<String> newList = new Vector<String>();
 			for (int i = 0; i < localListModel.getSize(); i ++){
 				String s = (String) localListModel.get(i);
@@ -704,13 +747,20 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 				}
 			}
 
-			plist.setListData(newList);
+			localListModel = new DefaultListModel();
+			localListModel.setSize(newList.size());
+			for (int i = 0; i < newList.size(); i++){
+				localListModel.set(i, newList.get(i));
+			}
+
+			//plist.setListData(newList);
+			plist.setModel(localListModel);
 			plist.revalidate();
 			plist.repaint();
 
 		}
 
-		public void setListModel(DefaultListModel lm){
+		private void setListModel(DefaultListModel lm){
 			localListModel = lm;
 		}
 	}
@@ -719,7 +769,8 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 
 	private Vector<String> itsPoints = new Vector<String>();
 	private DefaultListModel itsListModel = new DefaultListModel();
-
+	private String itsUser = "";
+	//private String password; // TBC later
 	private JTabbedPane stateTabs;
 	private AlarmDisplayPanel all;
 	private AlarmDisplayPanel nonAlarmed;
@@ -756,6 +807,13 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 		// Will definitely need to change these to less eye-gougingly bad colours - Java has terrible colour options.
 
 		this.add(stateTabs);
+	}
+
+	public void updateListModels(){
+		nonAlarmed.updateListModel();
+		acknowledged.updateListModel();
+		shelved.updateListModel();
+		alarming.updateListModel();
 	}
 
 	/** 
@@ -873,17 +931,9 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 				AlarmManager.setAlarm(PointDescription.getPoint(pd));
 			}
 
-			for (int i = 0; i< itsListModel.size(); i++){
-				System.out.println(itsListModel.get(i));
-			}
-
-			nonAlarmed.setListModel(itsListModel);
 			nonAlarmed.updateListModel();
-			acknowledged.setListModel(itsListModel);
 			acknowledged.updateListModel();
-			shelved.setListModel(itsListModel);
 			shelved.updateListModel();
-			alarming.setListModel(itsListModel);
 			alarming.updateListModel();
 
 			// Get which categories of alarms to monitor

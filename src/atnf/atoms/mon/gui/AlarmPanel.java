@@ -60,7 +60,7 @@ public class AlarmPanel extends JPanel {
 
 		itsName = name;
 		itsPointDesc = PointDescription.getPoint(itsName);
-		System.out.println("DEBUG: Full Name: " + itsPointDesc.getFullName());
+		/*		System.out.println("DEBUG: Full Name: " + itsPointDesc.getFullName());
 		System.out.println("DEBUG: Long Description: " + itsPointDesc.getLongDesc());
 		System.out.println("DEBUG: Period: " + itsPointDesc.getPeriod());
 		System.out.println("DEBUG: Enabled: " + itsPointDesc.getEnabled());
@@ -69,25 +69,24 @@ public class AlarmPanel extends JPanel {
 		System.out.println("DEBUG: Alarm Conditions: " + itsPointDesc.getAlarmCheckString());
 		System.out.println("DEBUG: Notifications: " + itsPointDesc.getNotificationString());
 		System.out.println("DEBUG: String Equivalent: " + itsPointDesc.getStringEquiv());
-		System.out.println("DEBUG: Priority: " + itsPointDesc.getPriority());
+		System.out.println("DEBUG: Priority: " + itsPointDesc.getPriority());*/
 		alarms = AlarmManager.getAllAlarms(); //update current alarms
 
 		if (itsPointDesc != null) hasPointDesc = true;
 
 
 		if (hasPointDesc){
-			
+
 			itsAlarm = AlarmManager.getAlarm(itsPointDesc);
 			if (itsAlarm == null) System.err.println("No corresponding alarm for this PointDescription");
 
-			/*for (Alarm a : AlarmManager.getAllAlarms()){
-				System.out.println(a.point.getFullName());
-			}*/
-
 			itsAlarmStatus = itsAlarm.getAlarmStatus();
-			//System.out.println(itsAlarmStatus);
-			
-			this.setLayout(new GridLayout(6,1));
+
+			if (itsAlarmStatus == Alarm.NOT_ALARMED || itsAlarmStatus == Alarm.ALARMING){
+				this.setLayout(new GridLayout(6,1));
+			} else {
+				this.setLayout(new GridLayout(8,1));
+			}
 
 			JLabel alarmPriority = new JLabel(rankLookup.get(itsAlarm.priority) + " Alarm".toUpperCase());
 			alarmPriority.setForeground(Color.BLACK);
@@ -107,7 +106,7 @@ public class AlarmPanel extends JPanel {
 				alarmPriority.setBackground(Color.DARK_GRAY);
 			}
 
-			
+
 			alarmPriority.setHorizontalAlignment(JLabel.CENTER);
 			JLabel pointString = new JLabel("Point: " + itsName);
 			JLabel pointDesc = new JLabel("Description: " + itsPointDesc.getLongDesc());
@@ -153,7 +152,7 @@ public class AlarmPanel extends JPanel {
 			guidance.setEditable(false);
 			guidance.setWrapStyleWord(true);
 			guidance.setLineWrap(true);
-			
+
 			pointString.setBackground(Color.WHITE);
 			pointDesc.setBackground(Color.WHITE);
 			alarmStatus.setBackground(Color.WHITE);
@@ -162,7 +161,7 @@ public class AlarmPanel extends JPanel {
 			shelvedBy.setBackground(Color.WHITE);
 			shelvedAt.setBackground(Color.WHITE);
 			guidanceString.setBackground(Color.WHITE);
-			
+
 			alarmPriority.setOpaque(true);
 			pointString.setOpaque(true);
 			pointDesc.setOpaque(true);
