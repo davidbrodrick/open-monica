@@ -40,6 +40,10 @@ public class AlarmManager {
     public Alarm(PointDescription p) {
       point = p;
       priority = point.getPriority();
+      data = null;
+      alarm = false;
+      acknowledged = false;
+      shelved = false;
     }
 
     public Alarm(PointDescription p, PointData d) {
@@ -120,6 +124,63 @@ public class AlarmManager {
       }
     }
   }
+  /**
+   * Returns the corresponding alarm for this point
+   * @param point The String-formatted name of the point
+   * @return The Alarm that corresponds to this point name
+   */
+  public static Alarm getAlarm(String point){
+	  Alarm res = null;
+	  synchronized (theirAlarms){
+		  Iterator<Alarm> i = theirAlarms.values().iterator();
+		  while (i.hasNext()){
+			  Alarm thisAlarm = i.next();
+			  if (thisAlarm.point.getFullName().equals(point)){
+				  res = thisAlarm;
+				  break;
+			  }
+		  }
+	  }
+	  return res;
+  }
+  
+  /**
+   * Returns the corresponding alarm for this point
+   * @param point The PointDescription for the point
+   * @return The Alarm that corresponds to this PointDescription
+   */
+  public static Alarm getAlarm(PointDescription point){
+	  Alarm res = null;
+	  synchronized (theirAlarms){
+		  Iterator<Alarm> i = theirAlarms.values().iterator();
+		  while (i.hasNext()){
+			  Alarm thisAlarm = i.next();
+			  if (thisAlarm.point.equals(point)){
+				  res = thisAlarm;
+				  break;
+			  }
+		  }
+	  }
+	  return res;
+  }
+  
+  public static void setAlarm(PointDescription point) {
+	    synchronized (theirAlarms) {
+	      Alarm thisalarm = theirAlarms.get(point);
+	      if (thisalarm != null) {
+	        // Acknowledgement gets cleared if no longer in alarm
+	        if (!thisalarm.alarm && thisalarm.acknowledged) {
+	          thisalarm.acknowledged = false;
+	          thisalarm.acknowledgedBy = null;
+	          thisalarm.acknowledgedAt = null;
+	        }
+	      } else {
+	        // Need to create new data structure
+	        thisalarm = new Alarm(point);
+	        theirAlarms.put(point, thisalarm);
+	      }
+	    }
+	  }
 
   /** Get the list of priority alarms currently in an alarm state (acknowledged or not) or not in an alarm but shelved. */
   public static Vector<Alarm> getAlarms() {
