@@ -17,11 +17,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.security.InvalidParameterException;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -49,6 +54,7 @@ import atnf.atoms.mon.PointEvent;
 import atnf.atoms.mon.PointListener;
 import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.mon.AlarmManager.Alarm;
+import atnf.atoms.mon.AlarmManager.AlarmEvent;
 import atnf.atoms.mon.client.DataMaintainer;
 import atnf.atoms.mon.gui.AlarmPanel;
 import atnf.atoms.mon.gui.MonPanel;
@@ -56,6 +62,8 @@ import atnf.atoms.mon.gui.MonPanelSetupPanel;
 import atnf.atoms.mon.gui.PointSourceSelector;
 import atnf.atoms.mon.util.MailSender;
 import atnf.atoms.time.AbsTime;
+import atnf.atoms.time.RelTime;
+import atnf.atoms.util.AlarmEventListener;
 
 /**
  * MonPanel class intended to highlight an alarm should the point 
@@ -66,7 +74,7 @@ import atnf.atoms.time.AbsTime;
  * @see MonPanel
  */
 @SuppressWarnings("serial")
-public class AlarmManagerPanel extends MonPanel implements PointListener{
+public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmEventListener{
 
 	//temporary registration to ensure that the panel appears manually, 
 	//and looks correct at least
@@ -443,8 +451,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 
 	// /////////////////////// NESTED CLASS ///////////////////////////////
 
-	protected class AlarmDisplayPanel extends JPanel implements PointListener,
-	ActionListener, ListSelectionListener, ItemListener{
+	protected class AlarmDisplayPanel extends JPanel implements	ActionListener, ListSelectionListener, ItemListener{
 
 		int type = -1;
 
@@ -552,6 +559,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 			this.add(plistScroller);
 			this.add(alarmDetailsScroller);
 			this.add(buttons);
+			
 		}
 
 		private int getType(String type) {
@@ -631,6 +639,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 				tempAck = false;
 				ack.setSelected(false);
 				shelve.setSelected(false);
+				plist.clearSelection();
 
 			} else if (command.equals("ok")){
 				//send the commands along to the server
@@ -660,12 +669,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 
 		}
 
-		@Override
-		public void onPointEvent(Object source, PointEvent evt) {
-			// TODO Auto-generated method stub
-
-		}
-
 		private void updateAlarmPanels(){
 			JPanel newPanel = new JPanel();
 			newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
@@ -689,22 +692,22 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 		public void valueChanged(ListSelectionEvent e) {
 			if (e.getValueIsAdjusting() == false){
 				try {
-				if (AlarmManager.getAlarm(localListModel.get(plist.getSelectedIndex()).toString()).getAlarmStatus() == Alarm.ACKNOWLEDGED){
-					tempAck = true;
-					ack.setSelected(true);
-					tempShlv = false;
-					shelve.setSelected(false);
-				} else if (AlarmManager.getAlarm(localListModel.get(plist.getSelectedIndex()).toString()).getAlarmStatus() == Alarm.SHELVED){
-					tempShlv = true;
-					shelve.setSelected(true);
-					tempAck = false;
-					ack.setSelected(false);
-				} else {
-					tempShlv = false;
-					shelve.setSelected(false);
-					tempAck = false;
-					ack.setSelected(false);
-				}
+					if (AlarmManager.getAlarm(localListModel.get(plist.getSelectedIndex()).toString()).getAlarmStatus() == Alarm.ACKNOWLEDGED){
+						tempAck = true;
+						ack.setSelected(true);
+						tempShlv = false;
+						shelve.setSelected(false);
+					} else if (AlarmManager.getAlarm(localListModel.get(plist.getSelectedIndex()).toString()).getAlarmStatus() == Alarm.SHELVED){
+						tempShlv = true;
+						shelve.setSelected(true);
+						tempAck = false;
+						ack.setSelected(false);
+					} else {
+						tempShlv = false;
+						shelve.setSelected(false);
+						tempAck = false;
+						ack.setSelected(false);
+					}
 				} catch (ArrayIndexOutOfBoundsException aioobe){
 					// Not sure why this keeps triggering, doesn't seem to have any negative effect... yet.
 					// Probably something to do with removing the element of the list in the JButton thread
@@ -715,6 +718,8 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 
 		@Override
 		public void itemStateChanged(ItemEvent e) {
+			ackChanged = false;
+			shlvChanged = false;
 			if (e.getSource().equals(ack)){
 				ackChanged = true;
 				if (e.getStateChange() == ItemEvent.SELECTED){
@@ -763,6 +768,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 		private void setListModel(DefaultListModel lm){
 			localListModel = lm;
 		}
+
 	}
 
 	// ///////////////////// END NESTED CLASS /////////////////////////////
@@ -777,6 +783,8 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 	private AlarmDisplayPanel acknowledged;
 	private AlarmDisplayPanel shelved;
 	private AlarmDisplayPanel alarming;
+	
+	private AudioWarning  klaxon = new AudioWarning();
 
 	/**
 	 * C'tor
@@ -822,9 +830,9 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 	@Override
 	public void export(PrintStream p) {
 		final String rcsid = "$Id: $";
-		p.println("#Dump from WatchDog " + rcsid);
+		p.println("#Dump from AlarmManagerPanel " + rcsid);
 		p.println("#Data dumped at " + (new AbsTime().toString(AbsTime.Format.UTC_STRING)));
-		// itsModel.export(p);
+		// itsListModel.export(p);
 		p.println();
 		p.println();
 	}
@@ -978,6 +986,8 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 					severeAlarms = false;
 				}
 			}
+			
+			AlarmManager.addListener(this);
 
 		} catch (final Exception e) {
 			e.printStackTrace();
@@ -998,6 +1008,9 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 		for (String s : itsPoints){
 			DataMaintainer.unsubscribe(s, this);
 		}
+		
+		AlarmManager.removeListener(this);
+		
 		itsPoints = new Vector<String>();
 		itsListModel = new DefaultListModel();
 		noPriorityAlarms = false;
@@ -1022,32 +1035,58 @@ public class AlarmManagerPanel extends MonPanel implements PointListener{
 		// TODO Auto-generated method stub
 	}
 
-	/** Basic test application. */
-	public static void main(String[] argv) {
-		JFrame frame = new JFrame("Alarm Test App");
-		// frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
-
-		/*
-		 * SavedSetup seemon = new SavedSetup("temp", "atnf.atoms.mon.gui.monpanel.ATPointTable",
-		 * "true:3:site.seemon.Lock1:site.seemon.Lock2:site.seemon.Lock3:1:seemon");
-		 */
-		AlarmManagerPanel ap = new AlarmManagerPanel();
-		MonPanelSetupPanel asp = ap.getControls();
-		// wd.loadSetup(seemon);
-		// frame.getContentPane().add(pt);
-		frame.setContentPane(asp);
-
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.pack();
-		frame.setVisible(true);
-
-		/*
-		 * try { RelTime sleepy = RelTime.factory(15000000l); sleepy.sleep(); } catch (Exception e) { e.printStackTrace(); }
-		 * 
-		 * SavedSetup ss = pt.getSetup(); pt.loadSetup(ss);
-		 */
+	/** Play an audio sample on the sound card. */
+	private boolean playAudio(String resname) {
+		RelTime sleep = RelTime.factory(1000000);
+		try {
+			InputStream in = Watchdog.class.getClassLoader().getResourceAsStream(resname);
+			AudioInputStream soundIn = AudioSystem.getAudioInputStream(in);
+			DataLine.Info info = new DataLine.Info(Clip.class, soundIn.getFormat());
+			Clip clip = (Clip) AudioSystem.getLine(info);
+			clip.open(soundIn);
+			sleep.sleep(); // Clips start of clip without this
+			clip.start();
+			// Wait until clip is finished then release the sound card
+			while (clip.isActive()) {
+				Thread.yield();
+			}
+			clip.drain();
+			sleep.sleep(); // Clips end of clip without this
+			clip.close();
+		} catch (Exception e) {
+			System.err.println("AlarmManagerPanel.playAudio: " + e.getClass());
+			return false;
+		}
+		return true;
 	}
 
+	@Override
+	public void onAlarmEvent(AlarmEvent event) {
+		// TODO Auto-generated method stub
+		this.updateListModels();
+		Alarm thisAlarm = event.getAlarm();
+		if (thisAlarm.isAlarming()){
+			stateTabs.setSelectedIndex(4); //if alarming, automatically switch over to the "Alarming" tab
+			if (!klaxon.isAlive()){
+				klaxon.run();
+			}
+		}
+	}
 
-
+	// /////////////////////// NESTED CLASS ///////////////////////////////
+	public class AudioWarning extends Thread {
+		public void run() {
+			RelTime sleep = RelTime.factory(10000000);
+			while (!alarming.localListModel.isEmpty()) {
+				playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
+			}
+			try {
+				sleep.sleep();
+			} catch (Exception e) {
+			}
+		}
+	}
 }
+
+// ///////////////////// END NESTED CLASS /////////////////////////////
+
