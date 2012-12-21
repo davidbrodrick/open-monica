@@ -9,7 +9,6 @@ import java.util.Vector;
 
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
@@ -17,7 +16,6 @@ import atnf.atoms.mon.AlarmManager;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.AlarmManager.Alarm;
 import atnf.atoms.mon.gui.monpanel.AlarmManagerPanel;
-import atnf.atoms.time.AbsTime;
 
 /**
  * AlarmPanel class for use by the AlarmManagerPanel class and the automated
@@ -88,19 +86,19 @@ public class AlarmPanel extends JPanel {
 				this.setLayout(new GridLayout(8,1));
 			}
 
-			JLabel alarmPriority = new JLabel(rankLookup.get(itsAlarm.priority) + " Alarm".toUpperCase());
+			JLabel alarmPriority = new JLabel(rankLookup.get(itsAlarm.getPriority()) + " Alarm".toUpperCase());
 			alarmPriority.setForeground(Color.BLACK);
 			alarmPriority.setFont(new Font("Serif", Font.BOLD, 32));
 
-			if (itsAlarm.priority == -1){
+			if (itsAlarm.getPriority() == -1){
 				alarmPriority.setBackground(Color.GRAY);
-			} else if (itsAlarm.priority == 0){
+			} else if (itsAlarm.getPriority() == 0){
 				alarmPriority.setBackground(new Color(0x63B8FF));
-			} else if (itsAlarm.priority == 1){
+			} else if (itsAlarm.getPriority() == 1){
 				alarmPriority.setBackground(Color.YELLOW);
-			} else if (itsAlarm.priority == 2){
+			} else if (itsAlarm.getPriority() == 2){
 				alarmPriority.setBackground(new Color(0xFF7F24));			
-			} else if (itsAlarm.priority == 3){
+			} else if (itsAlarm.getPriority() == 3){
 				alarmPriority.setBackground(new Color(0xEE0000));
 			} else {
 				alarmPriority.setBackground(Color.DARK_GRAY);
@@ -128,10 +126,10 @@ public class AlarmPanel extends JPanel {
 				status.setForeground(AlarmManagerPanel.SHELVED_COLOUR);
 			}
 
-			JLabel ackedBy = new JLabel("Acknowledged by: " + itsAlarm.acknowledgedBy);
-			JLabel ackedAt = new JLabel("Acknowledged at: " + itsAlarm.acknowledgedAt);
-			JLabel shelvedBy = new JLabel("Shelved by: " + itsAlarm.shelvedBy);
-			JLabel shelvedAt = new JLabel("Shelved at " + itsAlarm.shelvedAt);
+			JLabel ackedBy = new JLabel("Acknowledged by: " + itsAlarm.getAckedBy());
+			JLabel ackedAt = new JLabel("Acknowledged at: " + itsAlarm.getAckedTime());
+			JLabel shelvedBy = new JLabel("Shelved by: " + itsAlarm.getShelvedBy());
+			JLabel shelvedAt = new JLabel("Shelved at " + itsAlarm.getShelvedAt());
 
 			pointString.setFont(new Font("Sans Serif", Font.PLAIN, 24));
 			pointDesc.setFont(new Font("Sans Serif", Font.ITALIC, 24));
@@ -147,7 +145,7 @@ public class AlarmPanel extends JPanel {
 			alarmStatus.add(status);
 
 			JLabel guidanceString = new JLabel("Guidance:");
-			JTextArea guidance = new JTextArea(itsAlarm.guidance, 5, 20);
+			JTextArea guidance = new JTextArea(itsAlarm.getGuidance(), 5, 20);
 			guidanceString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 			guidance.setEditable(false);
 			guidance.setWrapStyleWord(true);
