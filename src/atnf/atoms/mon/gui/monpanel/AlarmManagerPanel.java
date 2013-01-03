@@ -48,6 +48,7 @@ import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import atnf.atoms.mon.AlarmEventListener;
 import atnf.atoms.mon.AlarmManager;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.PointEvent;
@@ -63,7 +64,6 @@ import atnf.atoms.mon.gui.PointSourceSelector;
 import atnf.atoms.mon.util.MailSender;
 import atnf.atoms.time.AbsTime;
 import atnf.atoms.time.RelTime;
-import atnf.atoms.util.AlarmEventListener;
 
 /**
  * MonPanel class intended to highlight an alarm should the point 
@@ -812,7 +812,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 		stateTabs.setForegroundAt(2, AlarmManagerPanel.ACKNOWLEDGED_COLOUR);
 		stateTabs.setForegroundAt(3, AlarmManagerPanel.SHELVED_COLOUR);
 		stateTabs.setForegroundAt(4, AlarmManagerPanel.ALARMING_COLOUR);
-		// Will definitely need to change these to less eye-gougingly bad colours - Java has terrible colour options.
 
 		this.add(stateTabs);
 	}
@@ -850,7 +849,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	 */
 	@Override
 	public String getLabel() {
-		return "Alarm Manager Setup Panel";
+		return "Alarm Manager Panel";
 	}
 
 	/** 

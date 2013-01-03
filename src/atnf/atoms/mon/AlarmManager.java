@@ -17,7 +17,6 @@ import java.util.Vector;
 
 import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.time.AbsTime;
-import atnf.atoms.util.AlarmEventListener;
 
 /**
  * Class that encapsulates most data about alarms, and facilitates the retrieval and modification

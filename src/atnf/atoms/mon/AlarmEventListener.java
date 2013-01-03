@@ -1,6 +1,7 @@
-package atnf.atoms.util;
+package atnf.atoms.mon;
 
 import atnf.atoms.mon.AlarmManager.AlarmEvent;
+
 
 
 public interface AlarmEventListener {
