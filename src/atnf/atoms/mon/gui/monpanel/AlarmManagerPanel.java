@@ -38,6 +38,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
@@ -62,6 +63,7 @@ import atnf.atoms.mon.gui.MonPanel;
 import atnf.atoms.mon.gui.MonPanelSetupPanel;
 import atnf.atoms.mon.gui.PointSourceSelector;
 import atnf.atoms.mon.util.MailSender;
+import atnf.atoms.mon.util.RSA;
 import atnf.atoms.time.AbsTime;
 import atnf.atoms.time.RelTime;
 
@@ -100,11 +102,13 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	private String dangAlmStr = "dangerous";
 	private String sevAlmStr = "severe";
 
-
+	private String username = "";
+	private RSA passwordEncryptor = new RSA(1024);
+	private String encryptedPassword = "";
 
 	// /////////////////////// NESTED CLASS ///////////////////////////////
 	/** Nested class to provide GUI controls for configuring the AlarmManagerPanel */
-	private class AlarmManagerSetupPanel extends MonPanelSetupPanel implements ItemListener{
+	private class AlarmManagerSetupPanel extends MonPanelSetupPanel implements ItemListener, ActionListener{
 
 		private JCheckBox noPriorityCb = new JCheckBox("\"No Priority\" Alarms");
 		private JCheckBox informationCb = new JCheckBox("Information Alarms");
@@ -113,6 +117,9 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 		private JCheckBox severeCb = new JCheckBox("Severe Alarms");
 		private JCheckBox allCb = new JCheckBox("All");
 
+		private JButton loginBtn = new JButton("Login");
+		private JLabel loginState = new JLabel("Not Logged in");
+		
 		/** Main panel for our setup components. */
 		private JPanel itsMainPanel = new JPanel();
 		private PointSourceSelector itsPointSelector = new PointSourceSelector();
@@ -122,9 +129,17 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			super(panel, frame);
 
 			itsMainPanel.setLayout(new BorderLayout());
+			JPanel login = new JPanel();
+			login.setLayout(new BoxLayout(login, BoxLayout.Y_AXIS));
 			JPanel selectCategory = new JPanel();
+			JPanel topPanel = new JPanel();
+			topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
 			selectCategory.setLayout(new BoxLayout(selectCategory, BoxLayout.X_AXIS));
 
+			loginState.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+			loginBtn.setAlignmentX(JButton.CENTER_ALIGNMENT);
+			loginBtn.addActionListener(this);
+			
 			noPriorityCb.addItemListener(this);
 			informationCb.addItemListener(this);
 			warningCb.addItemListener(this);
@@ -148,7 +163,13 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			selectCategory.add(Box.createHorizontalGlue());
 
 			itsPointSelector.setPreferredSize(new Dimension(340, 150));
-			itsMainPanel.add(selectCategory, BorderLayout.NORTH);
+			
+			login.add(loginBtn);
+			login.add(loginState);
+			
+			topPanel.add(login);
+			topPanel.add(selectCategory);
+			itsMainPanel.add(topPanel, BorderLayout.NORTH);
 			itsMainPanel.add(itsPointSelector, BorderLayout.CENTER);
 
 
@@ -300,6 +321,57 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 		}
 
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String cmd = e.getActionCommand();
+			if (cmd == null) {
+				return;
+			}
+			// If the command was one of ours, deal with it.
+			if (cmd.equals("Peek")) {
+				peekClicked();
+			} else if (cmd.equals("Apply")) {
+				applyClicked();
+			} else if (cmd.equals("Cancel")) {
+				cancelClicked();
+			} else if (cmd.equals("OK")) {
+				okClicked();
+			}	
+			
+			Object source = e.getSource();
+			if (source.equals(loginBtn)){
+				JPanel inputs = new JPanel();
+				inputs.setLayout(new BoxLayout(inputs, BoxLayout.Y_AXIS));
+				JPanel usernameLine = new JPanel();
+				JLabel usernameLabel = new JLabel("Username: ");
+				JTextField usernameField = new JTextField(20);
+				usernameLine.setLayout(new BoxLayout(usernameLine, BoxLayout.X_AXIS));
+				usernameLine.add(usernameLabel);
+				usernameLine.add(usernameField);
+				JPanel passwordLine = new JPanel();
+				JLabel passwordLabel = new JLabel("Password: ");
+				JPasswordField passwordField = new JPasswordField(20);
+				passwordLine.setLayout(new BoxLayout(passwordLine, BoxLayout.X_AXIS));
+				passwordLine.add(passwordLabel);
+				passwordLine.add(passwordField);
+				inputs.add(usernameLine);
+				inputs.add(passwordLine);
+
+				int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
+
+				if (result == JOptionPane.OK_OPTION){
+					username = usernameField.getText();
+					encryptedPassword = passwordEncryptor.encrypt(new String(passwordField.getPassword()));
+				}
+
+				if (username.equals("")){
+					loginState.setText("Not Logged In");
+				} else {
+					loginState.setText("Logged in OK as " + username);
+					loginState.setForeground(new Color(0x6E8B3D));
+				}
+			}
+		}
 
 		@Override
 		public void itemStateChanged(ItemEvent e) {

@@ -9,8 +9,9 @@ package atnf.atoms.mon.gui.monpanel;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintStream;
@@ -20,7 +21,6 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -83,11 +83,11 @@ public class ControlPanel extends MonPanel {
 			login.addActionListener(this);
 			JPanel authenticate = new JPanel();
 			authenticate.setLayout(new BoxLayout(authenticate, BoxLayout.Y_AXIS));
-			login.setAlignmentX(Component.CENTER_ALIGNMENT);
+			login.setAlignmentX(JButton.CENTER_ALIGNMENT);
 
 			authenticate.add(login);
 			loginState = new JLabel();
-			loginState.setAlignmentX(Component.CENTER_ALIGNMENT);
+			loginState.setAlignmentX(JLabel.CENTER_ALIGNMENT);
 			if (username.equals("")){
 				loginState.setText("Not Logged In");
 			} else {
@@ -231,37 +231,76 @@ public class ControlPanel extends MonPanel {
 		public HashMap<JLabel, JLabel> components = new HashMap<JLabel, JLabel>();
 		public ControlDisplayPanel(){
 			super();
-			this.setLayout(new FlowLayout());
+			this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 			JPanel contents = new JPanel();
 			contents.setLayout(new BoxLayout(contents, BoxLayout.Y_AXIS));
 			contents.setSize(Integer.MAX_VALUE, Integer.MAX_VALUE);
+			
+			JPanel panel = new JPanel();
+			panel.setLayout(new GridBagLayout());
+
+			//Initial Settings
+			GridBagConstraints gbc = new GridBagConstraints();
+			
+			Insets big = new Insets(0,0,0,30);
+			Insets regular = new Insets(0,0,0,5);
+			
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.weightx = 0.5;
+			
+			int y = 0;
+			
 			for (String str : itsPoints){
-				JPanel panel = new JPanel();
-				panel.setLayout(new FlowLayout());
+				
 				JLabel pointLabel = new JLabel("Point: ");
 				JLabel point = new JLabel(str);
 				JLabel pointvalLabel = new JLabel("Value: ");
 				JLabel currValue = new JLabel("#NODATA");
 				JLabel valueLabel = new JLabel("Update Value: ");
-				JTextField value = new JTextField(20);
+				JTextField value = new JTextField(10);
 				JButton confirm = new JButton("Confirm");
 				confirm.setActionCommand(str);
 				confirm.addActionListener(this);
 
-				panel.add(pointLabel);
-				panel.add(point);
-				panel.add(Box.createHorizontalStrut(20));
-				panel.add(pointvalLabel);
-				panel.add(currValue);
-				panel.add(valueLabel);
-				panel.add(value);
-				panel.add(Box.createHorizontalStrut(20));
-				panel.add(confirm);
+				gbc.gridx = 0;
+				gbc.gridy = y;
+				
+				gbc.insets = regular;
+				panel.add(pointLabel, gbc);
+				
+				gbc.insets = big;
+				gbc.gridx = 1;
+				gbc.gridwidth = 2;
+				panel.add(point, gbc);
+				
+				gbc.insets = regular;
+				gbc.gridx = 3;
+				gbc.gridwidth = 1;
+				panel.add(pointvalLabel, gbc);
+				
+				gbc.insets = big;
+				gbc.gridx = 4;
+				panel.add(currValue, gbc);
+				
+				gbc.insets = regular;
+				gbc.gridx = 5;
+				gbc.gridwidth = 2;
+				panel.add(valueLabel, gbc);
+				
+				gbc.insets = big;
+				gbc.gridx = 7;
+				gbc.gridwidth = 1;
+				panel.add(value, gbc);
+				
+				gbc.insets = regular;
+				gbc.gridx = 8;
+				panel.add(confirm, gbc);
 
 				components.put(point, currValue);
 
-				contents.add(panel);
+				y++;
 			}
+			contents.add(panel);
 			this.add(contents);
 
 		}
@@ -276,7 +315,7 @@ public class ControlPanel extends MonPanel {
 			Pattern pattern = Pattern.compile("[[a-zA-Z0-9]+\\.]+[a-zA-Z0-9]+", Pattern.CASE_INSENSITIVE);
 			Matcher matcher = pattern.matcher(cmd);
 			if (matcher.find()){
-				// Valid pointname found
+				// Valid pointname format
 				System.out.println("Match Found! for " + cmd);
 				// Send data off however that's done
 			}
