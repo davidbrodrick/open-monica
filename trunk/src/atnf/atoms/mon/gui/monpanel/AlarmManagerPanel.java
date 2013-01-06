@@ -130,7 +130,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 			itsMainPanel.setLayout(new BorderLayout());
 			JPanel login = new JPanel();
-			login.setLayout(new BoxLayout(login, BoxLayout.Y_AXIS));
+			login.setLayout(new BoxLayout(login, BoxLayout.X_AXIS));
 			JPanel selectCategory = new JPanel();
 			JPanel topPanel = new JPanel();
 			topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
@@ -165,6 +165,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			itsPointSelector.setPreferredSize(new Dimension(340, 150));
 			
 			login.add(loginBtn);
+			login.add(Box.createHorizontalStrut(20));
 			login.add(loginState);
 			
 			topPanel.add(login);
@@ -998,22 +999,8 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			while (stp.hasMoreTokens()) {
 				itsPoints.add(stp.nextToken());
 			}
-
-			itsListModel.setSize(itsPoints.size());
-			for (int i = 0; i < itsPoints.size(); i++){
-				itsListModel.setElementAt(itsPoints.get(i), i);
-			}
-
+			
 			DataMaintainer.subscribe(itsPoints, this);
-
-			for (String pd : itsPoints){
-				AlarmManager.setAlarm(PointDescription.getPoint(pd));
-			}
-
-			nonAlarmed.updateListModel();
-			acknowledged.updateListModel();
-			shelved.updateListModel();
-			alarming.updateListModel();
 
 			// Get which categories of alarms to monitor
 			String str;
@@ -1057,6 +1044,50 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					severeAlarms = false;
 				}
 			}
+			
+			Vector<String> badPoints = new Vector<String>();
+			for (String s : itsPoints){
+			
+				if (PointDescription.getPoint(s).getPriority() == -1 && !noPriorityAlarms){
+					badPoints.add(s);
+					DataMaintainer.unsubscribe(s, this);
+				}
+				if (PointDescription.getPoint(s).getPriority() == 0 && !informationAlarms){
+					badPoints.remove(s);
+					DataMaintainer.unsubscribe(s, this);
+				}
+				if (PointDescription.getPoint(s).getPriority() == 1 && !warningAlarms){
+					badPoints.remove(s);
+					DataMaintainer.unsubscribe(s, this);
+				}
+				if (PointDescription.getPoint(s).getPriority() == 2 && !dangerAlarms){
+					badPoints.remove(s);
+					DataMaintainer.unsubscribe(s, this);
+				}
+				if (PointDescription.getPoint(s).getPriority() == 3 && !severeAlarms){
+					badPoints.remove(s);
+					DataMaintainer.unsubscribe(s, this);
+				}
+				
+			}
+			
+			for (String bStr : badPoints){
+				itsPoints.remove(bStr);
+			}
+			
+			itsListModel.setSize(itsPoints.size());
+			for (int i = 0; i < itsPoints.size(); i++){
+				itsListModel.setElementAt(itsPoints.get(i), i);
+			}
+			
+			for (String pd : itsPoints){
+				AlarmManager.setAlarm(PointDescription.getPoint(pd));
+			}
+			
+			nonAlarmed.updateListModel();
+			acknowledged.updateListModel();
+			shelved.updateListModel();
+			alarming.updateListModel();
 			
 			AlarmManager.addListener(this);
 
