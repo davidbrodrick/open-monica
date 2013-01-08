@@ -14,6 +14,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.StringTokenizer;
@@ -30,8 +32,13 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 
 import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.PointEvent;
 import atnf.atoms.mon.PointListener;
 import atnf.atoms.mon.SavedSetup;
@@ -151,45 +158,45 @@ public class ControlPanel extends MonPanel {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			String cmd = e.getActionCommand();
-			if (cmd == null) {
-				return;
-			}
-			// If the command was one of ours, deal with it.
-			if (cmd.equals("Peek")) {
-				peekClicked();
-			} else if (cmd.equals("Apply")) {
-				applyClicked();
-			} else if (cmd.equals("Cancel")) {
-				cancelClicked();
-			} else if (cmd.equals("OK")) {
-				okClicked();
-			}
+			super.actionPerformed(e);
 
 			Object source = e.getSource();
 			if (source.equals(login)){
+				
 				JPanel inputs = new JPanel();
-				inputs.setLayout(new BoxLayout(inputs, BoxLayout.Y_AXIS));
-				JPanel usernameLine = new JPanel();
+				inputs.setLayout(new GridBagLayout());
+				GridBagConstraints gbc = new GridBagConstraints();
+				gbc.fill = GridBagConstraints.HORIZONTAL;
+				gbc.weightx = 0.5;
+				gbc.gridx = 0;
+				gbc.gridy = 0;
 				JLabel usernameLabel = new JLabel("Username: ");
 				JTextField usernameField = new JTextField(20);
-				usernameLine.setLayout(new BoxLayout(usernameLine, BoxLayout.X_AXIS));
-				usernameLine.add(usernameLabel);
-				usernameLine.add(usernameField);
-				JPanel passwordLine = new JPanel();
+				inputs.add(usernameLabel, gbc);
+				gbc.gridx = 1;
+				gbc.gridwidth = 3;
+				inputs.add(usernameField, gbc);
 				JLabel passwordLabel = new JLabel("Password: ");
 				JPasswordField passwordField = new JPasswordField(20);
-				passwordLine.setLayout(new BoxLayout(passwordLine, BoxLayout.X_AXIS));
-				passwordLine.add(passwordLabel);
-				passwordLine.add(passwordField);
-				inputs.add(usernameLine);
-				inputs.add(passwordLine);
+				gbc.gridx = 0;
+				gbc.gridy = 1;
+				gbc.gridwidth = 1;
+				inputs.add(passwordLabel, gbc);
+				gbc.gridwidth = 3;
+				gbc.gridx = 1;
+				inputs.add(passwordField, gbc);
 
 				int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
 
 				if (result == JOptionPane.OK_OPTION){
+					try {
 					username = usernameField.getText();
 					encryptedPassword = passwordEncryptor.encrypt(new String(passwordField.getPassword()));
+					} catch (NumberFormatException nfe){
+						username = "";
+						encryptedPassword = "";
+						JOptionPane.showMessageDialog(this, "Incorrect Username or Password", "ERROR LOGGING IN", JOptionPane.ERROR_MESSAGE);
+					}
 				}
 
 				if (username.equals("")){
@@ -228,30 +235,30 @@ public class ControlPanel extends MonPanel {
 		 */
 		private static final long serialVersionUID = 5755259256750234800L;
 
-		public HashMap<JLabel, JLabel> components = new HashMap<JLabel, JLabel>();
+		public HashMap<JLabel, CPComponents> components = new HashMap<JLabel, CPComponents>();
 		public ControlDisplayPanel(){
 			super();
 			this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 			JPanel contents = new JPanel();
 			contents.setLayout(new BoxLayout(contents, BoxLayout.Y_AXIS));
 			contents.setSize(Integer.MAX_VALUE, Integer.MAX_VALUE);
-			
+
 			JPanel panel = new JPanel();
 			panel.setLayout(new GridBagLayout());
 
 			//Initial Settings
 			GridBagConstraints gbc = new GridBagConstraints();
-			
+
 			Insets big = new Insets(0,0,0,30);
 			Insets regular = new Insets(0,0,0,5);
-			
+
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.weightx = 0.5;
-			
+
 			int y = 0;
-			
+
 			for (String str : itsPoints){
-				
+
 				JLabel pointLabel = new JLabel("Point: ");
 				JLabel point = new JLabel(str);
 				JLabel pointvalLabel = new JLabel("Value: ");
@@ -264,42 +271,44 @@ public class ControlPanel extends MonPanel {
 
 				gbc.gridx = 0;
 				gbc.gridy = y;
-				
+
 				gbc.insets = regular;
 				panel.add(pointLabel, gbc);
-				
+
 				gbc.insets = big;
 				gbc.gridx = 1;
 				gbc.gridwidth = 2;
 				panel.add(point, gbc);
-				
+
 				gbc.insets = regular;
 				gbc.gridx = 3;
 				gbc.gridwidth = 1;
 				panel.add(pointvalLabel, gbc);
-				
+
 				gbc.insets = big;
 				gbc.gridx = 4;
 				panel.add(currValue, gbc);
-				
+
 				gbc.insets = regular;
 				gbc.gridx = 5;
 				gbc.gridwidth = 2;
 				panel.add(valueLabel, gbc);
-				
+
 				gbc.insets = big;
 				gbc.gridx = 7;
 				gbc.gridwidth = 1;
 				panel.add(value, gbc);
-				
+
 				gbc.insets = regular;
 				gbc.gridx = 8;
 				panel.add(confirm, gbc);
 
-				components.put(point, currValue);
+				CPComponents cpc = new CPComponents(currValue, value);
+				components.put(point, cpc);
 
 				y++;
 			}
+
 			contents.add(panel);
 			this.add(contents);
 
@@ -314,10 +323,31 @@ public class ControlPanel extends MonPanel {
 			String cmd = arg0.getActionCommand();
 			Pattern pattern = Pattern.compile("[[a-zA-Z0-9]+\\.]+[a-zA-Z0-9]+", Pattern.CASE_INSENSITIVE);
 			Matcher matcher = pattern.matcher(cmd);
-			if (matcher.find()){
+			if (matcher.matches()){
 				// Valid pointname format
-				System.out.println("Match Found! for " + cmd);
-				// Send data off however that's done
+				for (JLabel j : components.keySet()){
+					if (j.getText().equals(cmd)){
+						String data = components.get(j).getValue();
+						System.out.println(data);
+						if (!PointDescription.getPoint(cmd).getUnits().equals("")){
+							//check if it is a valid floating point number
+							Pattern patt = Pattern.compile("[0-9]+|[0-9]*\\.[0-9]+");
+							Matcher mat = patt.matcher(data);
+							if (mat.matches()){
+								//valid float, send off data
+								//JOptionPane.showMessageDialog(this, "Data is being sent. Wait a moment to ensure that it has had an effect.", "SENDING DATA", JOptionPane.INFORMATION_MESSAGE);
+							} else {
+								// Badly formatted, possibly multiple floating points
+								JOptionPane.showMessageDialog(this, "Incorrectly Formatted Input. Please check and try again", "BAD DATA ERROR", JOptionPane.ERROR_MESSAGE);
+							}
+						} else {
+							//send off data since it's not a number anyway
+							//JOptionPane.showMessageDialog(this, "Data is being sent. Wait a moment to ensure that it has had an effect.", "SENDING DATA", JOptionPane.INFORMATION_MESSAGE);
+						}						
+						break;
+					}
+				}
+
 			}
 		}
 
@@ -326,7 +356,14 @@ public class ControlPanel extends MonPanel {
 			PointData data = evt.getPointData();
 			for (JLabel j : components.keySet()){
 				if (j.getText().equals(data.getName())){
-					components.get(j).setText(data.getData().toString());
+					components.get(j).getLabel().setText(data.getData().toString());
+					AbstractDocument doc = (AbstractDocument) components.get(j).getValueField().getDocument();
+					if (doc.getDocumentFilter() == null && !PointDescription.getPoint(j.getText()).getUnits().equals("")){
+						System.out.println("Units for point " + j.getText() + " are <" + PointDescription.getPoint(j.getText()).getUnits() + ">");
+						CPDocumentFilter cpdf = new CPDocumentFilter();
+						doc.setDocumentFilter(cpdf);
+					}
+					break;
 				}
 			}
 		}
@@ -360,6 +397,7 @@ public class ControlPanel extends MonPanel {
 			while (stp.hasMoreTokens()) {
 				itsPoints.add(stp.nextToken());
 			}
+
 
 			this.updateContents();
 			contents.register();
@@ -398,4 +436,60 @@ public class ControlPanel extends MonPanel {
 		return "Control Panel";
 	}
 
+	public class CPDocumentFilter extends DocumentFilter{
+		private boolean filter = true;
+
+		public boolean getFilterState(){
+			return filter;
+		}
+
+		public void setFilterState(boolean state){
+			this.filter = state;
+		}
+
+		@Override
+		public void insertString(FilterBypass fb, int offset, String text, AttributeSet attr) throws BadLocationException {
+			System.out.println(text);
+			if (filter) {
+				Pattern pattern = Pattern.compile("[0-9]*|\\.|[0-9]*\\.[0-9]*");
+				Matcher matcher = pattern.matcher(text);
+				if (matcher.matches()){
+					super.insertString(fb, offset, text, attr);
+				} 
+			}
+		}
+
+		@Override
+		public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+			if (filter) {
+				Pattern pattern = Pattern.compile("[0-9]*|\\.|[0-9]*\\.[0-9]*");
+				Matcher matcher = pattern.matcher(text);
+				if (matcher.matches()){
+					super.replace(fb, offset, length, text, attrs);
+				}
+			}
+		}
+	}
+
+	public class CPComponents{
+		private JLabel valueLabel;
+		private JTextField newValueField;
+
+		public CPComponents(JLabel v, JTextField nv){
+			this.valueLabel = v;
+			this.newValueField = nv;
+		}
+
+		public JLabel getLabel(){
+			return valueLabel;
+		}
+
+		public String getValue(){
+			return newValueField.getText();
+		}
+
+		public JTextField getValueField(){
+			return newValueField;
+		}
+	}
 }
