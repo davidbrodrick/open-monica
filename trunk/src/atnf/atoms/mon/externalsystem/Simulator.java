@@ -52,7 +52,7 @@ public class Simulator extends ExternalSystem {
       String[] arch = { "-" }; // {"COUNTER-1"};
 
       int period = minseconds + itsRandom.nextInt(maxseconds - minseconds);
-      PointDescription pd = PointDescription.factory(names, "Dummy " + i, "Dummy" + i, "", "sim" + theirPopulation, transaction,
+      PointDescription pd = PointDescription.factory(names, "Dummy " + i, "Dummy" + i, "simUnits", "sim" + theirPopulation, transaction,
               empty, translation, empty, arch, empty, "" + period + "000000", "-1", "", "-", true);
       pd.populateServerFields();
     }

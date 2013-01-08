@@ -12,6 +12,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -119,7 +121,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 		private JButton loginBtn = new JButton("Login");
 		private JLabel loginState = new JLabel("Not Logged in");
-		
+
 		/** Main panel for our setup components. */
 		private JPanel itsMainPanel = new JPanel();
 		private PointSourceSelector itsPointSelector = new PointSourceSelector();
@@ -139,7 +141,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			loginState.setAlignmentX(JLabel.CENTER_ALIGNMENT);
 			loginBtn.setAlignmentX(JButton.CENTER_ALIGNMENT);
 			loginBtn.addActionListener(this);
-			
+
 			noPriorityCb.addItemListener(this);
 			informationCb.addItemListener(this);
 			warningCb.addItemListener(this);
@@ -163,11 +165,11 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			selectCategory.add(Box.createHorizontalGlue());
 
 			itsPointSelector.setPreferredSize(new Dimension(340, 150));
-			
+
 			login.add(loginBtn);
 			login.add(Box.createHorizontalStrut(20));
 			login.add(loginState);
-			
+
 			topPanel.add(login);
 			topPanel.add(selectCategory);
 			itsMainPanel.add(topPanel, BorderLayout.NORTH);
@@ -324,45 +326,46 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			String cmd = e.getActionCommand();
-			if (cmd == null) {
-				return;
-			}
-			// If the command was one of ours, deal with it.
-			if (cmd.equals("Peek")) {
-				peekClicked();
-			} else if (cmd.equals("Apply")) {
-				applyClicked();
-			} else if (cmd.equals("Cancel")) {
-				cancelClicked();
-			} else if (cmd.equals("OK")) {
-				okClicked();
-			}	
-			
+
+			super.actionPerformed(e);	
+
 			Object source = e.getSource();
 			if (source.equals(loginBtn)){
+
 				JPanel inputs = new JPanel();
-				inputs.setLayout(new BoxLayout(inputs, BoxLayout.Y_AXIS));
-				JPanel usernameLine = new JPanel();
+				inputs.setLayout(new GridBagLayout());
+				GridBagConstraints gbc = new GridBagConstraints();
+				gbc.fill = GridBagConstraints.HORIZONTAL;
+				gbc.weightx = 0.5;
+				gbc.gridx = 0;
+				gbc.gridy = 0;
 				JLabel usernameLabel = new JLabel("Username: ");
 				JTextField usernameField = new JTextField(20);
-				usernameLine.setLayout(new BoxLayout(usernameLine, BoxLayout.X_AXIS));
-				usernameLine.add(usernameLabel);
-				usernameLine.add(usernameField);
-				JPanel passwordLine = new JPanel();
+				inputs.add(usernameLabel, gbc);
+				gbc.gridx = 1;
+				gbc.gridwidth = 3;
+				inputs.add(usernameField, gbc);
 				JLabel passwordLabel = new JLabel("Password: ");
 				JPasswordField passwordField = new JPasswordField(20);
-				passwordLine.setLayout(new BoxLayout(passwordLine, BoxLayout.X_AXIS));
-				passwordLine.add(passwordLabel);
-				passwordLine.add(passwordField);
-				inputs.add(usernameLine);
-				inputs.add(passwordLine);
+				gbc.gridx = 0;
+				gbc.gridy = 1;
+				gbc.gridwidth = 1;
+				inputs.add(passwordLabel, gbc);
+				gbc.gridwidth = 3;
+				gbc.gridx = 1;
+				inputs.add(passwordField, gbc);
 
 				int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
 
 				if (result == JOptionPane.OK_OPTION){
-					username = usernameField.getText();
-					encryptedPassword = passwordEncryptor.encrypt(new String(passwordField.getPassword()));
+					try {
+						username = usernameField.getText();
+						encryptedPassword = passwordEncryptor.encrypt(new String(passwordField.getPassword()));
+					} catch (NumberFormatException nfe){
+						username = "";
+						encryptedPassword = "";
+						JOptionPane.showMessageDialog(this, "Incorrect Username or Password", "ERROR LOGGING IN", JOptionPane.ERROR_MESSAGE);
+					}
 				}
 
 				if (username.equals("")){
@@ -632,7 +635,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			this.add(plistScroller);
 			this.add(alarmDetailsScroller);
 			this.add(buttons);
-			
+
 		}
 
 		private int getType(String type) {
@@ -856,7 +859,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	private AlarmDisplayPanel acknowledged;
 	private AlarmDisplayPanel shelved;
 	private AlarmDisplayPanel alarming;
-	
+
 	private AudioWarning  klaxon = new AudioWarning();
 
 	/**
@@ -999,7 +1002,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			while (stp.hasMoreTokens()) {
 				itsPoints.add(stp.nextToken());
 			}
-			
+
 			DataMaintainer.subscribe(itsPoints, this);
 
 			// Get which categories of alarms to monitor
@@ -1044,10 +1047,10 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					severeAlarms = false;
 				}
 			}
-			
+
 			Vector<String> badPoints = new Vector<String>();
 			for (String s : itsPoints){
-			
+
 				if (PointDescription.getPoint(s).getPriority() == -1 && !noPriorityAlarms){
 					badPoints.add(s);
 					DataMaintainer.unsubscribe(s, this);
@@ -1068,27 +1071,27 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					badPoints.remove(s);
 					DataMaintainer.unsubscribe(s, this);
 				}
-				
+
 			}
-			
+
 			for (String bStr : badPoints){
 				itsPoints.remove(bStr);
 			}
-			
+
 			itsListModel.setSize(itsPoints.size());
 			for (int i = 0; i < itsPoints.size(); i++){
 				itsListModel.setElementAt(itsPoints.get(i), i);
 			}
-			
+
 			for (String pd : itsPoints){
 				AlarmManager.setAlarm(PointDescription.getPoint(pd));
 			}
-			
+
 			nonAlarmed.updateListModel();
 			acknowledged.updateListModel();
 			shelved.updateListModel();
 			alarming.updateListModel();
-			
+
 			AlarmManager.addListener(this);
 
 		} catch (final Exception e) {
@@ -1110,9 +1113,9 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 		for (String s : itsPoints){
 			DataMaintainer.unsubscribe(s, this);
 		}
-		
+
 		AlarmManager.removeListener(this);
-		
+
 		itsPoints = new Vector<String>();
 		itsListModel = new DefaultListModel();
 		noPriorityAlarms = false;
