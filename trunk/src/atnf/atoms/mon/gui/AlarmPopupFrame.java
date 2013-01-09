@@ -26,10 +26,10 @@ import javax.swing.JToggleButton;
 import javax.swing.border.Border;
 
 import atnf.atoms.mon.Alarm;
+import atnf.atoms.mon.AlarmEvent;
 import atnf.atoms.mon.AlarmEventListener;
-import atnf.atoms.mon.AlarmManager;
 import atnf.atoms.mon.PointDescription;
-import atnf.atoms.mon.AlarmManager.AlarmEvent;
+import atnf.atoms.mon.client.AlarmMaintainer;
 import atnf.atoms.mon.util.MailSender;
 import atnf.atoms.time.AbsTime;
 
@@ -59,7 +59,7 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, ItemListe
 
 		itsName = s;
 		itsPointDesc = PointDescription.getPoint(itsName);
-		itsAlarm = AlarmManager.getAlarm(itsPointDesc);
+		itsAlarm = AlarmMaintainer.getAlarm(itsPointDesc);
 		this.setLayout(new BorderLayout());
 		this.setMinimumSize(new Dimension(500, 800));
 		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -173,8 +173,8 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, ItemListe
 				ackChanged = false;
 				shlvChanged = false;
 				try {
-					AlarmManager.setAcknowledged(itsPointDesc, tempAck, itsUser, AbsTime.factory());
-					AlarmManager.setShelved(itsPointDesc, tempShlv, itsUser, AbsTime.factory());
+					AlarmMaintainer.setAcknowledged(itsPointDesc, tempAck, itsUser, AbsTime.factory());
+					AlarmMaintainer.setShelved(itsPointDesc, tempShlv, itsUser, AbsTime.factory());
 					this.setVisible(false);
 				} catch (NullPointerException e){
 					// No point available if this is the case

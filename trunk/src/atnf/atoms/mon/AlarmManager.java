@@ -9,14 +9,11 @@
 
 package atnf.atoms.mon;
 
-import java.util.ArrayList;
-import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
 import atnf.atoms.time.AbsTime;
-import atnf.atoms.mon.Alarm;
 
 /**
  * Class that encapsulates most data about alarms, and facilitates the retrieval and modification
@@ -31,23 +28,6 @@ public class AlarmManager {
 	/** Record of points which are currently in a priority alarm state. */
 	private static HashMap<PointDescription, Alarm> theirAlarms = new HashMap<PointDescription, Alarm>(500, 1000);
 
-	/** List of AlarmEventListeners currently registered to this source **/
-	private static ArrayList<AlarmEventListener> listeners = new ArrayList<AlarmEventListener>();
-
-	/**
-	 * Registers the specified listener with the AlarmEvent source
-	 * @param listener - the listener to be registered
-	 */
-	public static void addListener(AlarmEventListener listener){
-		listeners.add(listener);
-	}
-	/**
-	 * Removes the specified listener from the list of currently registered listeners
-	 * @param listener - the listener to be deregistered
-	 */
-	public static void removeListener(AlarmEventListener listener){
-		listeners.remove(listener);
-	}
 	/** Set the current alarm status for the given point. */
 	public static void setAlarm(PointDescription point, PointData data) {
 		synchronized (theirAlarms) {
@@ -64,7 +44,6 @@ public class AlarmManager {
 				thisalarm = new Alarm(point, data);
 				theirAlarms.put(point, thisalarm);
 			}
-			fireAlarmEvent(thisalarm);
 		}
 	}
 	/**
@@ -124,7 +103,6 @@ public class AlarmManager {
 				thisalarm = new Alarm(point);
 				theirAlarms.put(point, thisalarm);
 			}
-			fireAlarmEvent(thisalarm);
 		}
 	}
 
@@ -168,7 +146,6 @@ public class AlarmManager {
 				theirAlarms.put(point, thisalarm);
 			}
 			thisalarm.setAcknowledged(acked, user, time);
-			fireAlarmEvent(thisalarm);
 		}
 	}
 
@@ -182,56 +159,7 @@ public class AlarmManager {
 				theirAlarms.put(point, thisalarm);
 			}
 			thisalarm.setShelved(shelved, user, time);
-			fireAlarmEvent(thisalarm);
 		}
-	}
-
-	private synchronized static void fireAlarmEvent(Alarm a){
-		AlarmEvent ae = new AlarmEvent(a.getPointDesc(), a);
-		for (AlarmEventListener ael : listeners){
-			ael.onAlarmEvent(ae);
-		}
-	}
-
-	/**
-	 * Class created for utilisation with alarm notifications to Listeners
-	 * @author Kalinga Hulugalle
-	 *
-	 */
-	public static class AlarmEvent extends EventObject{
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 6237646518729914716L;
-		private Alarm alarm;
-		private Object source;
-		/**
-		 * C'tor for a new AlarmEvent
-		 * @param source - the source of the Alarm, typically the String-formatted name of the point
-		 * @param a - the Alarm that is associated with this event
-		 */
-		public AlarmEvent(Object source, Alarm a){
-			super(source);
-			this.source = source;
-			this.alarm = a;
-		}
-
-		/**
-		 * Method to return the alarm associated with this event
-		 * @return The Alarm
-		 */
-		public Alarm getAlarm(){
-			return this.alarm;
-		}
-
-		/**
-		 * Method to return the source of this event
-		 * @return The source Object
-		 */
-		public Object getSource(){
-			return this.source;
-		}
-
 	}
 
 }
