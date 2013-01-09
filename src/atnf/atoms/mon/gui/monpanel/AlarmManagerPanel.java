@@ -52,13 +52,13 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import atnf.atoms.mon.Alarm;
+import atnf.atoms.mon.AlarmEvent;
 import atnf.atoms.mon.AlarmEventListener;
-import atnf.atoms.mon.AlarmManager;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.PointEvent;
 import atnf.atoms.mon.PointListener;
 import atnf.atoms.mon.SavedSetup;
-import atnf.atoms.mon.AlarmManager.AlarmEvent;
+import atnf.atoms.mon.client.AlarmMaintainer;
 import atnf.atoms.mon.client.DataMaintainer;
 import atnf.atoms.mon.gui.AlarmPanel;
 import atnf.atoms.mon.gui.MonPanel;
@@ -733,8 +733,8 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					ackChanged = false;
 					shlvChanged = false;
 					for (Object s : plist.getSelectedValues()){
-						AlarmManager.setAcknowledged(PointDescription.getPoint(s.toString()), tempAck, itsUser, AbsTime.factory());
-						AlarmManager.setShelved(PointDescription.getPoint(s.toString()), tempShlv, itsUser, AbsTime.factory());
+						AlarmMaintainer.setAcknowledged(PointDescription.getPoint(s.toString()), tempAck, itsUser, AbsTime.factory());
+						AlarmMaintainer.setShelved(PointDescription.getPoint(s.toString()), tempShlv, itsUser, AbsTime.factory());
 					}
 					updateListModels();
 					this.updateAlarmPanels();
@@ -768,12 +768,12 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 		public void valueChanged(ListSelectionEvent e) {
 			if (e.getValueIsAdjusting() == false){
 				try {
-					if (AlarmManager.getAlarm(localListModel.get(plist.getSelectedIndex()).toString()).getAlarmStatus() == Alarm.ACKNOWLEDGED){
+					if (AlarmMaintainer.getAlarm(localListModel.get(plist.getSelectedIndex()).toString()).getAlarmStatus() == Alarm.ACKNOWLEDGED){
 						tempAck = true;
 						ack.setSelected(true);
 						tempShlv = false;
 						shelve.setSelected(false);
-					} else if (AlarmManager.getAlarm(localListModel.get(plist.getSelectedIndex()).toString()).getAlarmStatus() == Alarm.SHELVED){
+					} else if (AlarmMaintainer.getAlarm(localListModel.get(plist.getSelectedIndex()).toString()).getAlarmStatus() == Alarm.SHELVED){
 						tempShlv = true;
 						shelve.setSelected(true);
 						tempAck = false;
@@ -823,7 +823,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			Vector<String> newList = new Vector<String>();
 			for (int i = 0; i < localListModel.getSize(); i ++){
 				String s = (String) localListModel.get(i);
-				if (AlarmManager.getAlarm(s).getAlarmStatus() == this.type){
+				if (AlarmMaintainer.getAlarm(s).getAlarmStatus() == this.type){
 					newList.add(s);
 				}
 			}
@@ -1084,7 +1084,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			}
 
 			for (String pd : itsPoints){
-				AlarmManager.setAlarm(PointDescription.getPoint(pd));
+				AlarmMaintainer.setAlarm(PointDescription.getPoint(pd));
 			}
 
 			nonAlarmed.updateListModel();
@@ -1092,7 +1092,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			shelved.updateListModel();
 			alarming.updateListModel();
 
-			AlarmManager.addListener(this);
+			AlarmMaintainer.addListener(this);
 
 		} catch (final Exception e) {
 			e.printStackTrace();
@@ -1114,7 +1114,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			DataMaintainer.unsubscribe(s, this);
 		}
 
-		AlarmManager.removeListener(this);
+		AlarmMaintainer.removeListener(this);
 
 		itsPoints = new Vector<String>();
 		itsListModel = new DefaultListModel();

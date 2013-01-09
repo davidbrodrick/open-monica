@@ -55,7 +55,7 @@ public class ControlPanel extends MonPanel {
 			//TODO
 			super(panel, frame);
 
-			itsSimpleTreeSelector.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+			itsSimpleTreeSelector.setSelectionMode(SimpleTreeSelector.SINGLE_TREE_SELECTION);
 			itsMainPanel.add(itsSimpleTreeSelector);
 			this.add(new JScrollPane(itsMainPanel), BorderLayout.CENTER);
 		}

@@ -36,6 +36,11 @@ import atnf.atoms.mon.util.TreeUtil;
  * @see TreeUtil
  */
 public class SimpleTreeSelector extends JPanel{
+	
+	public final static int SINGLE_TREE_SELECTION = TreeSelectionModel.SINGLE_TREE_SELECTION;
+	public final static int CONTIGUOUS_TREE_SELECTION = TreeSelectionModel.CONTIGUOUS_TREE_SELECTION;
+	public final static int DISCONTIGUOUS_TREE_SELECTION = TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
+	
 	/**
 	 * 
 	 */
