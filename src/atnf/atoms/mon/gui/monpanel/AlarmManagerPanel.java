@@ -51,13 +51,13 @@ import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import atnf.atoms.mon.Alarm;
 import atnf.atoms.mon.AlarmEventListener;
 import atnf.atoms.mon.AlarmManager;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.PointEvent;
 import atnf.atoms.mon.PointListener;
 import atnf.atoms.mon.SavedSetup;
-import atnf.atoms.mon.AlarmManager.Alarm;
 import atnf.atoms.mon.AlarmManager.AlarmEvent;
 import atnf.atoms.mon.client.DataMaintainer;
 import atnf.atoms.mon.gui.AlarmPanel;

@@ -263,6 +263,17 @@ public abstract class TreeItemSelector extends JPanel implements ActionListener 
   protected abstract void buildTree();
 
   /**
+   * Change the selection mode of this TreeItemSelector. As in TreeSelectionModel, 
+   * the different types of selection modes are SINGLE_TREE_SELECTION, 
+   * CONTIGUOUS_TREE_SELECTION and DISCONTIGUOUS_TREE_SELECTION. 
+   * @param mode the int mask for the mode to change it to
+   * @see TreeSelectionModel
+   */
+  public void setSelectionMode(int mode){
+	  itsTree.getSelectionModel().setSelectionMode(mode);
+  }
+  
+  /**
    * Add a listener to be notified whenever our selection changes.
    * @param The ChangeListener to add to our list.
    */

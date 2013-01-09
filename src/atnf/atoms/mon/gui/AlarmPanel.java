@@ -12,9 +12,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
+import atnf.atoms.mon.Alarm;
 import atnf.atoms.mon.AlarmManager;
 import atnf.atoms.mon.PointDescription;
-import atnf.atoms.mon.AlarmManager.Alarm;
 import atnf.atoms.mon.gui.monpanel.AlarmManagerPanel;
 
 /**

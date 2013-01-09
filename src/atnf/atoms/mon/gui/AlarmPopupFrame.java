@@ -25,10 +25,10 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.border.Border;
 
+import atnf.atoms.mon.Alarm;
 import atnf.atoms.mon.AlarmEventListener;
 import atnf.atoms.mon.AlarmManager;
 import atnf.atoms.mon.PointDescription;
-import atnf.atoms.mon.AlarmManager.Alarm;
 import atnf.atoms.mon.AlarmManager.AlarmEvent;
 import atnf.atoms.mon.util.MailSender;
 import atnf.atoms.time.AbsTime;
