@@ -8,13 +8,27 @@
 
 package atnf.atoms.mon.comms;
 
-import atnf.atoms.time.*;
-import atnf.atoms.mon.*;
-import atnf.atoms.mon.util.*;
-import java.io.*;
-import java.util.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Iterator;
+import java.util.StringTokenizer;
+import java.util.Vector;
+
 import org.apache.log4j.Logger;
+
+import atnf.atoms.mon.Alarm;
+import atnf.atoms.mon.AlarmManager;
+import atnf.atoms.mon.PointBuffer;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.mon.PointEvent;
+import atnf.atoms.mon.util.MonitorConfig;
+import atnf.atoms.mon.util.MonitorUtils;
+import atnf.atoms.time.AbsTime;
 
 /**
  * Provides a simple ASCII interface for clients to obtain monitor data.
@@ -401,7 +415,7 @@ public class MoniCAServerASCII extends Thread {
   /** Return the current priority alarm states. */
   protected void alarms() {
     try {
-      Vector<AlarmManager.Alarm> thesealarms = AlarmManager.getAlarms();
+      Vector<Alarm> thesealarms = AlarmManager.getAlarms();
 
       // Tell the client how many alarms we will return
       itsWriter.println(thesealarms.size());
@@ -421,7 +435,7 @@ public class MoniCAServerASCII extends Thread {
   /** Return a list of all alarms. */
   protected void allalarms() {
     try {
-      Vector<AlarmManager.Alarm> thesealarms = AlarmManager.getAllAlarms();
+      Vector<Alarm> thesealarms = AlarmManager.getAllAlarms();
 
       // Tell the client how many alarms we will return
       itsWriter.println(thesealarms.size());
