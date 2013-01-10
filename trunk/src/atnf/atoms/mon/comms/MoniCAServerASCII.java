@@ -174,7 +174,9 @@ public class MoniCAServerASCII extends Thread {
       itsWriter.close();
       itsSocket.shutdownInput();
       itsSocket.shutdownOutput();
-      itsSocket.close();
+      if (!itsSocket.isClosed()) {
+        itsSocket.close();
+      }
     } catch (Exception e) {
       theirLogger.warn("When closing socket: " + e);
     }
@@ -451,7 +453,7 @@ public class MoniCAServerASCII extends Thread {
       itsRunning = false;
     }
   }
-  
+
   /** Set the acknowledge state for an alarm. */
   protected void ack() {
     try {
