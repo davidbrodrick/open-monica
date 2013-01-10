@@ -214,6 +214,87 @@ public class MoniCAIceUtil {
     return new PointData(name, ts, value, alarm);
   }
   
+  /** Convert alarms from Ice representation. */
+  public static
+  Vector<Alarm>
+  getAlarmsFromIce(AlarmIce[] alarms)
+  {
+    if (alarms==null || alarms.length==0) {
+      return null;
+    }
+    Vector<Alarm> res = new Vector<Alarm>(alarms.length);
+    for (int i=0; i<alarms.length; i++) {
+      res.add(getAlarmFromIce(alarms[i]));
+    }
+    return res;    
+  }
+  
+  /** Convert alarm from Ice representation. */
+  public static
+  Alarm
+  getAlarmFromIce(AlarmIce icedata)
+  {
+    Alarm res = new Alarm();
+    res.setPointDesc(PointDescription.getPoint(icedata.pointname));
+    res.setAlarming(icedata.alarm);
+    res.setData(getPointDataFromIce(icedata.data));
+    res.setAcknowledged(icedata.acknowledged);
+    if (icedata.acknowledgedBy!="null") { 
+      res.setAcknowledgedBy(icedata.acknowledgedBy);
+      res.setAcknowledgedAt(AbsTime.factory(icedata.acknowledgedAt));
+    }
+    res.setShelved(icedata.shelved);
+    if (icedata.shelvedBy!="null") {       
+      res.setShelvedBy(icedata.shelvedBy);
+      res.setShelvedAt(AbsTime.factory(icedata.shelvedAt));
+    }
+    if (icedata.guidance!="null") {
+      res.setGuidance(icedata.guidance);
+    }
+    res.setPriority(icedata.priority);
+    return res;
+  }
+  
+  /** Convert alarms to their Ice representation. */
+  public static
+  AlarmIce[]
+  getAlarmsAsIce(Vector<Alarm> alarms)
+  {
+    AlarmIce[] res = new AlarmIce[alarms.size()];
+    for (int i=0; i<alarms.size(); i++) {
+      res[i] = getAlarmAsIce(alarms.get(i));
+    }
+    return res;
+  }
+  
+  /** Convert alarm to an Ice representation. */
+  public static
+  AlarmIce
+  getAlarmAsIce(Alarm a)
+  {
+    AlarmIce res = new AlarmIce();
+    res.pointname = a.getPointDesc().getFullName();
+    res.alarm = a.isAlarming();
+    res.priority = a.getPriority();
+    res.data = getPointDataAsIce(a.getData());
+    res.acknowledged = a.isAcknowledged();
+    if (a.getAckedBy()!=null) {
+      res.acknowledgedBy = a.getAckedBy();
+      res.acknowledgedAt = a.getAckedAt().getValue();
+    } else {
+      res.acknowledgedBy = "null";
+      res.acknowledgedAt = 0;
+    }
+    if (a.getShelvedBy()!=null) {
+      res.shelvedBy = a.getShelvedBy();
+      res.shelvedAt = a.getShelvedAt().getValue();
+    } else {
+      res.shelvedBy = "null";
+      res.shelvedAt = 0;
+    }
+    return res;
+  }
+  
   /** Default port. */
   protected static final int theirDefaultPort = 8052;
   

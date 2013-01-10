@@ -233,7 +233,31 @@ public abstract class MoniCAClient {
    * @param passwd Password to authenticate the user.
    * @return True if the setup was added, False if it couldn't be added. */
   public abstract boolean addSetup(SavedSetup setup, String username, String passwd) throws Exception;
+  
+  /** Get all alarm points with priority >=0, whether they are alarming or not.
+   * @return List of alarms or null if none are defined. */
+  public abstract Vector<Alarm> getAllAlarms() throws Exception;
 
+  /** Get all points which are currently alarming (including acknowledged) or shelved.
+   * @return List of alarms or null if none meet the criteria. */
+  public abstract Vector<Alarm> getCurrentAlarms() throws Exception;
+
+  /** Acknowledge/deacknowledge the specified alarm points.
+   * @param pointnames The points to be acknowledged or deacknowledged.
+   * @param ack True to acknowledge an alarm or false to deacknowledge.
+   * @param username Name of the user performing the operation.
+   * @param password Password hash for the user performing the operation.
+   * @return False if permission was denied for one or more points. */
+  public abstract boolean acknowledgeAlarms(Vector<String> pointnames, boolean ack, String username, String password) throws Exception;
+
+  /** Shelve/deshelved the specified alarm points.
+   * @param pointnames The points to be shelved or deshelved.
+   * @param shelve True to shelve an alarm or false to deshelve.
+   * @param username Name of the user performing the operation.
+   * @param password Password hash for the user performing the operation.
+   * @return False if permission was denied for one or more points. */
+  public abstract boolean shelveAlarms(Vector<String> pointnames, boolean shelve, String username, String password) throws Exception;
+  
   /** Return an RSA encryptor that uses the servers public key and modulus.
    * This will allow us to encrypt information that can only be encrypted by
    * the server. */

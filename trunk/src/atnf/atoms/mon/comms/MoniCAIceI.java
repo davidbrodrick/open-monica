@@ -9,6 +9,8 @@
 package atnf.atoms.mon.comms;
 
 import java.util.Vector;
+
+import Ice.Current;
 import atnf.atoms.mon.*;
 import atnf.atoms.time.*;
 import org.apache.log4j.Logger;
@@ -18,20 +20,17 @@ import org.apache.log4j.Logger;
  * 
  * @author David Brodrick
  */
-public final class MoniCAIceI extends _MoniCAIceDisp
-{
+public final class MoniCAIceI extends _MoniCAIceDisp {
   /** The currently running server. */
   protected static MoniCAIceServerThread theirServer = null;
 
   protected static Logger theirLogger = Logger.getLogger(MoniCAIceI.class.getName());
 
-  public MoniCAIceI()
-  {
+  public MoniCAIceI() {
   }
 
   /** Add the new points to the system. */
-  public boolean addPoints(PointDescriptionIce[] newpoints, String encname, String encpass, Ice.Current __current)
-  {
+  public boolean addPoints(PointDescriptionIce[] newpoints, String encname, String encpass, Ice.Current __current) {
     // Decrypt the user's credentials
     String username = KeyKeeper.decrypt(encname);
     String password = KeyKeeper.decrypt(encpass);
@@ -41,22 +40,19 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   }
 
   /** Get the names of all points on the system (including aliases). */
-  public String[] getAllPointNames(Ice.Current __current)
-  {
+  public String[] getAllPointNames(Ice.Current __current) {
     return PointDescription.getAllPointNames();
   }
 
   /** Get all unique points on the system. */
-  public PointDescriptionIce[] getAllPoints(Ice.Current __current)
-  {
+  public PointDescriptionIce[] getAllPoints(Ice.Current __current) {
     // Get all unique points
     PointDescription[] points = PointDescription.getAllUniquePoints();
     return MoniCAIceUtil.getPointDescriptionsAsIce(points);
   }
 
   /** Return the definitions for the specified points. */
-  public PointDescriptionIce[] getPoints(String[] names, Ice.Current __current)
-  {
+  public PointDescriptionIce[] getPoints(String[] names, Ice.Current __current) {
     PointDescriptionIce[] temp = new PointDescriptionIce[names.length];
     int numfound = 0;
     for (int i = 0; i < names.length; i++) {
@@ -83,8 +79,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   }
 
   /** Add the new setup to the system. */
-  public boolean addSetup(String setup, String encname, String encpass, Ice.Current __current)
-  {
+  public boolean addSetup(String setup, String encname, String encpass, Ice.Current __current) {
     // Decrypt the user's credentials
     String username = KeyKeeper.decrypt(encname);
     String password = KeyKeeper.decrypt(encpass);
@@ -94,11 +89,10 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   }
 
   /** Return the string representation of all saved setups stored on the server. */
-  public String[] getAllSetups(Ice.Current __current)
-  {
+  public String[] getAllSetups(Ice.Current __current) {
     SavedSetup[] allsetups = SavedSetup.getAllSetups();
-    if (allsetups==null) {
-    	allsetups = new SavedSetup[0];
+    if (allsetups == null) {
+      allsetups = new SavedSetup[0];
     }
     String[] stringsetups = new String[allsetups.length];
     for (int i = 0; i < allsetups.length; i++) {
@@ -108,8 +102,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   }
 
   /** Return historical data for the specified points. */
-  public PointDataIce[][] getArchiveData(String[] names, long start, long end, long maxsamples, Ice.Current __current)
-  {
+  public PointDataIce[][] getArchiveData(String[] names, long start, long end, long maxsamples, Ice.Current __current) {
     AbsTime absstart = AbsTime.factory(start);
     AbsTime absend = AbsTime.factory(end);
     PointDataIce[][] res = new PointDataIce[names.length][];
@@ -132,8 +125,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   }
 
   /** Return the latest values for the given points. */
-  public PointDataIce[] getData(String[] names, Ice.Current __current)
-  {
+  public PointDataIce[] getData(String[] names, Ice.Current __current) {
     PointDataIce[] temp = new PointDataIce[names.length];
     for (int i = 0; i < names.length; i++) {
       PointData pd = PointBuffer.getPointData(names[i]);
@@ -148,10 +140,9 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     }
     return temp;
   }
-  
+
   /** Return the last values before the given time for the given points. */
-  public PointDataIce[] getBefore(String[] names, long t, Ice.Current __current)
-  {
+  public PointDataIce[] getBefore(String[] names, long t, Ice.Current __current) {
     PointDataIce[] temp = new PointDataIce[names.length];
     for (int i = 0; i < names.length; i++) {
       PointData pd = PointBuffer.getPreceding(names[i], AbsTime.factory(t));
@@ -166,10 +157,9 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     }
     return temp;
   }
-  
+
   /** Return the next values after the given time for the given points. */
-  public PointDataIce[] getAfter(String[] names, long t, Ice.Current __current)
-  {
+  public PointDataIce[] getAfter(String[] names, long t, Ice.Current __current) {
     PointDataIce[] temp = new PointDataIce[names.length];
     for (int i = 0; i < names.length; i++) {
       PointData pd = PointBuffer.getFollowing(names[i], AbsTime.factory(t));
@@ -184,10 +174,9 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     }
     return temp;
   }
-  
+
   /** Set new values for the specified points. */
-  public boolean setData(String[] names, PointDataIce[] rawvalues, String encname, String encpass, Ice.Current __current)
-  {
+  public boolean setData(String[] names, PointDataIce[] rawvalues, String encname, String encpass, Ice.Current __current) {
     if (names.length != rawvalues.length) {
       return false;
     }
@@ -213,9 +202,9 @@ public final class MoniCAIceI extends _MoniCAIceDisp
         // Act on the new data value
         PointData newval = values.get(i);
         theirLogger.trace("Assigning value " + newval + " to point " + thispoint.getFullName() + " as requested by " + username);
-        //AbsTime start = AbsTime.factory();
+        // AbsTime start = AbsTime.factory();
         thispoint.firePointEvent(new PointEvent(this, newval, true));
-        //theirLogger.debug("Call took " + Time.diff(AbsTime.factory(), start).toString(RelTime.Format.SECS_BAT));
+        // theirLogger.debug("Call took " + Time.diff(AbsTime.factory(), start).toString(RelTime.Format.SECS_BAT));
       } catch (Exception e) {
         theirLogger.warn("In setData method, while processing " + names[i] + ": " + e);
         result = false;
@@ -225,9 +214,54 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     return result;
   }
 
+  /** Get all priority alarms defined on the system irrespective of current state. */
+  public AlarmIce[] getAllAlarms(Current __current) {
+    Vector<Alarm> allalarms = AlarmManager.getAllAlarms();
+    AlarmIce[] res = MoniCAIceUtil.getAlarmsAsIce(allalarms);
+    return res;
+  }
+
+  /** Get all active (or acknowledged) and shelved alarms on the system. */
+  public AlarmIce[] getCurrentAlarms(Current __current) {
+    Vector<Alarm> allalarms = AlarmManager.getAlarms();
+    AlarmIce[] res = MoniCAIceUtil.getAlarmsAsIce(allalarms);
+    return res;
+  }
+
+  /** Acknowledge (ack=true) or deacknowledge (ack=false) the specified alarms. */
+  public boolean acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, Current __current) {
+    // TODO: Authentication/authorisation not currently checked
+    boolean res = true;
+    for (int i = 0; i < pointnames.length; i++) {
+      PointDescription thispoint = PointDescription.getPoint(pointnames[i]);
+      if (thispoint != null) {
+        AlarmManager.setAcknowledged(thispoint, ack, username);
+      } else {
+        theirLogger.warn("In acknowledgeAlarms method, point " + pointnames[i] + " is not defined");
+        res = false;
+      }
+    }
+    return res;
+  }
+
+  /** Shelve (shelve=true) or deshelve (shelve=false) the specified alarms. */
+  public boolean shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, Current __current) {
+    // TODO: Authentication/authorisation not currently checked
+    boolean res = true;
+    for (int i = 0; i < pointnames.length; i++) {
+      PointDescription thispoint = PointDescription.getPoint(pointnames[i]);
+      if (thispoint != null) {
+        AlarmManager.setShelved(thispoint, shelve, username);
+      } else {
+        theirLogger.warn("In shelveAlarms method, point " + pointnames[i] + " is not defined");
+        res = false;
+      }
+    }
+    return res;
+  };
+
   /** Return the key and modulus required to send encrypted data to the server. */
-  public String[] getEncryptionInfo(Ice.Current __current)
-  {
+  public String[] getEncryptionInfo(Ice.Current __current) {
     String[] a = new String[2];
     a[0] = KeyKeeper.getPublicKey();
     a[1] = KeyKeeper.getModulus();
@@ -235,20 +269,17 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   }
 
   /** Return the current time on the server. */
-  public long getCurrentTime(Ice.Current __current)
-  {
+  public long getCurrentTime(Ice.Current __current) {
     return (new AbsTime()).getValue();
   }
 
   /** Start the server on the default port. */
-  public static void startIceServer()
-  {
+  public static void startIceServer() {
     startIceServer(MoniCAIceUtil.getDefaultPort());
   }
 
   /** Start the server using the specified adapter. */
-  public static void startIceServer(Ice.ObjectAdapter a)
-  {
+  public static void startIceServer(Ice.ObjectAdapter a) {
     if (theirServer != null) {
       theirServer.shutdown();
     }
@@ -257,8 +288,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   }
 
   /** Start the server using the specified port number. */
-  public static void startIceServer(int port)
-  {
+  public static void startIceServer(int port) {
     if (theirServer != null) {
       theirServer.shutdown();
     }
@@ -267,36 +297,32 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   }
 
   /** Shutdown the currently running Ice server. */
-  public static void stopIceServer()
-  {
+  public static void stopIceServer() {
     theirServer.shutdown();
     theirServer = null;
   }
 
   /** Start a new thread to run the server using an existing adapter. */
-  public abstract static class MoniCAIceServerThread extends Thread
-  {
+  public abstract static class MoniCAIceServerThread extends Thread {
     /** The name of the service which is registered with Ice. */
     protected static String theirServiceName = "MoniCAService";
 
     /** The adapter to start the server with. */
     protected Ice.ObjectAdapter itsAdapter = null;
-    
+
     /** Logger. */
     protected Logger itsLogger = Logger.getLogger(this.getClass().getName());
 
-    public MoniCAIceServerThread()
-    {
+    public MoniCAIceServerThread() {
       super("MoniCAIceServer");
     }
 
     /** Start the server and block until it is registered. */
-    public void start()
-    {
+    public void start() {
       super.start();
       // Block until service is registered
       while (itsAdapter == null || itsAdapter.find(itsAdapter.getCommunicator().stringToIdentity(theirServiceName)) == null) {
-        try {          
+        try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
         }
@@ -304,8 +330,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
     }
 
     /** Stop the server and block until it is deregistered. */
-    public void shutdown()
-    {
+    public void shutdown() {
       itsAdapter.remove(itsAdapter.getCommunicator().stringToIdentity(theirServiceName));
       // Block until service is unregistered
       while (itsAdapter.find(itsAdapter.getCommunicator().stringToIdentity(theirServiceName)) != null) {
@@ -318,16 +343,13 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   };
 
   /** Start a new thread to run the server using an existing adapter. */
-  public static class MoniCAIceServerThreadAdapter extends MoniCAIceServerThread
-  {
-    public MoniCAIceServerThreadAdapter(Ice.ObjectAdapter a)
-    {
+  public static class MoniCAIceServerThreadAdapter extends MoniCAIceServerThread {
+    public MoniCAIceServerThreadAdapter(Ice.ObjectAdapter a) {
       super();
       itsAdapter = a;
     }
 
-    public void run()
-    {
+    public void run() {
       Ice.Communicator ic = null;
       try {
         ic = itsAdapter.getCommunicator();
@@ -348,32 +370,27 @@ public final class MoniCAIceI extends _MoniCAIceDisp
   };
 
   /** Start a new thread to run the server using a new adapter on specified port. */
-  public static class MoniCAIceServerThreadPort extends MoniCAIceServerThread
-  {
+  public static class MoniCAIceServerThreadPort extends MoniCAIceServerThread {
     /**
-     * The port to start the server on. Not used if a adapter has been
-     * explicitly specified.
+     * The port to start the server on. Not used if a adapter has been explicitly specified.
      */
     protected int itsPort;
 
-    public MoniCAIceServerThreadPort(int port)
-    {
+    public MoniCAIceServerThreadPort(int port) {
       super();
       itsPort = port;
     }
 
     /** Stop the server and block until it is deregistered. */
-    public void shutdown()
-    {
+    public void shutdown() {
       super.shutdown();
       itsAdapter.deactivate();
     }
 
-    public void run()
-    {
+    public void run() {
       Ice.Communicator ic = null;
       try {
-        // Need to create a new adapter      
+        // Need to create a new adapter
         ic = Ice.Util.initialize();
         itsAdapter = ic.createObjectAdapterWithEndpoints("MoniCAIceAdapter", "tcp -p " + itsPort);
         Ice.Object object = new MoniCAIceI();
@@ -381,7 +398,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp
         itsAdapter.activate();
         ic.waitForShutdown();
       } catch (Exception e) {
-        itsLogger.error("In run method: " + e);        
+        itsLogger.error("In run method: " + e);
       }
       if (ic != null) {
         try {
@@ -391,6 +408,5 @@ public final class MoniCAIceI extends _MoniCAIceDisp
         }
       }
     }
-  };
-
+  }
 }

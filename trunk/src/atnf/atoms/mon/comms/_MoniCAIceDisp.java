@@ -78,6 +78,12 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
     }
 
     public final boolean
+    acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd)
+    {
+        return acknowledgeAlarms(pointnames, ack, username, passwd, null);
+    }
+
+    public final boolean
     addPoints(PointDescriptionIce[] newpoints, String username, String passwd)
     {
         return addPoints(newpoints, username, passwd, null);
@@ -93,6 +99,12 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
     getAfter(String[] names, long t)
     {
         return getAfter(names, t, null);
+    }
+
+    public final AlarmIce[]
+    getAllAlarms()
+    {
+        return getAllAlarms(null);
     }
 
     public final String[]
@@ -125,6 +137,12 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
         return getBefore(names, t, null);
     }
 
+    public final AlarmIce[]
+    getCurrentAlarms()
+    {
+        return getCurrentAlarms(null);
+    }
+
     public final long
     getCurrentTime()
     {
@@ -153,6 +171,12 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
     setData(String[] names, PointDataIce[] values, String username, String passwd)
     {
         return setData(names, values, username, passwd, null);
+    }
+
+    public final boolean
+    shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd)
+    {
+        return shelveAlarms(pointnames, shelve, username, passwd, null);
     }
 
     public static Ice.DispatchStatus
@@ -338,6 +362,72 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
     }
 
     public static Ice.DispatchStatus
+    ___getAllAlarms(MoniCAIce __obj, IceInternal.Incoming __inS, Ice.Current __current)
+    {
+        __checkMode(Ice.OperationMode.Normal, __current.mode);
+        __inS.is().skipEmptyEncaps();
+        IceInternal.BasicStream __os = __inS.os();
+        AlarmIce[] __ret = __obj.getAllAlarms(__current);
+        alarmarrayHelper.write(__os, __ret);
+        __os.writePendingObjects();
+        return Ice.DispatchStatus.DispatchOK;
+    }
+
+    public static Ice.DispatchStatus
+    ___getCurrentAlarms(MoniCAIce __obj, IceInternal.Incoming __inS, Ice.Current __current)
+    {
+        __checkMode(Ice.OperationMode.Normal, __current.mode);
+        __inS.is().skipEmptyEncaps();
+        IceInternal.BasicStream __os = __inS.os();
+        AlarmIce[] __ret = __obj.getCurrentAlarms(__current);
+        alarmarrayHelper.write(__os, __ret);
+        __os.writePendingObjects();
+        return Ice.DispatchStatus.DispatchOK;
+    }
+
+    public static Ice.DispatchStatus
+    ___acknowledgeAlarms(MoniCAIce __obj, IceInternal.Incoming __inS, Ice.Current __current)
+    {
+        __checkMode(Ice.OperationMode.Normal, __current.mode);
+        IceInternal.BasicStream __is = __inS.is();
+        __is.startReadEncaps();
+        String[] pointnames;
+        pointnames = stringarrayHelper.read(__is);
+        boolean ack;
+        ack = __is.readBool();
+        String username;
+        username = __is.readString();
+        String passwd;
+        passwd = __is.readString();
+        __is.endReadEncaps();
+        IceInternal.BasicStream __os = __inS.os();
+        boolean __ret = __obj.acknowledgeAlarms(pointnames, ack, username, passwd, __current);
+        __os.writeBool(__ret);
+        return Ice.DispatchStatus.DispatchOK;
+    }
+
+    public static Ice.DispatchStatus
+    ___shelveAlarms(MoniCAIce __obj, IceInternal.Incoming __inS, Ice.Current __current)
+    {
+        __checkMode(Ice.OperationMode.Normal, __current.mode);
+        IceInternal.BasicStream __is = __inS.is();
+        __is.startReadEncaps();
+        String[] pointnames;
+        pointnames = stringarrayHelper.read(__is);
+        boolean shelve;
+        shelve = __is.readBool();
+        String username;
+        username = __is.readString();
+        String passwd;
+        passwd = __is.readString();
+        __is.endReadEncaps();
+        IceInternal.BasicStream __os = __inS.os();
+        boolean __ret = __obj.shelveAlarms(pointnames, shelve, username, passwd, __current);
+        __os.writeBool(__ret);
+        return Ice.DispatchStatus.DispatchOK;
+    }
+
+    public static Ice.DispatchStatus
     ___getEncryptionInfo(MoniCAIce __obj, IceInternal.Incoming __inS, Ice.Current __current)
     {
         __checkMode(Ice.OperationMode.Idempotent, __current.mode);
@@ -361,14 +451,17 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
 
     private final static String[] __all =
     {
+        "acknowledgeAlarms",
         "addPoints",
         "addSetup",
         "getAfter",
+        "getAllAlarms",
         "getAllPointNames",
         "getAllPoints",
         "getAllSetups",
         "getArchiveData",
         "getBefore",
+        "getCurrentAlarms",
         "getCurrentTime",
         "getData",
         "getEncryptionInfo",
@@ -377,7 +470,8 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
         "ice_ids",
         "ice_isA",
         "ice_ping",
-        "setData"
+        "setData",
+        "shelveAlarms"
     };
 
     public Ice.DispatchStatus
@@ -393,71 +487,87 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
         {
             case 0:
             {
-                return ___addPoints(this, in, __current);
+                return ___acknowledgeAlarms(this, in, __current);
             }
             case 1:
             {
-                return ___addSetup(this, in, __current);
+                return ___addPoints(this, in, __current);
             }
             case 2:
             {
-                return ___getAfter(this, in, __current);
+                return ___addSetup(this, in, __current);
             }
             case 3:
             {
-                return ___getAllPointNames(this, in, __current);
+                return ___getAfter(this, in, __current);
             }
             case 4:
             {
-                return ___getAllPoints(this, in, __current);
+                return ___getAllAlarms(this, in, __current);
             }
             case 5:
             {
-                return ___getAllSetups(this, in, __current);
+                return ___getAllPointNames(this, in, __current);
             }
             case 6:
             {
-                return ___getArchiveData(this, in, __current);
+                return ___getAllPoints(this, in, __current);
             }
             case 7:
             {
-                return ___getBefore(this, in, __current);
+                return ___getAllSetups(this, in, __current);
             }
             case 8:
             {
-                return ___getCurrentTime(this, in, __current);
+                return ___getArchiveData(this, in, __current);
             }
             case 9:
             {
-                return ___getData(this, in, __current);
+                return ___getBefore(this, in, __current);
             }
             case 10:
             {
-                return ___getEncryptionInfo(this, in, __current);
+                return ___getCurrentAlarms(this, in, __current);
             }
             case 11:
             {
-                return ___getPoints(this, in, __current);
+                return ___getCurrentTime(this, in, __current);
             }
             case 12:
             {
-                return ___ice_id(this, in, __current);
+                return ___getData(this, in, __current);
             }
             case 13:
             {
-                return ___ice_ids(this, in, __current);
+                return ___getEncryptionInfo(this, in, __current);
             }
             case 14:
             {
-                return ___ice_isA(this, in, __current);
+                return ___getPoints(this, in, __current);
             }
             case 15:
             {
-                return ___ice_ping(this, in, __current);
+                return ___ice_id(this, in, __current);
             }
             case 16:
             {
+                return ___ice_ids(this, in, __current);
+            }
+            case 17:
+            {
+                return ___ice_isA(this, in, __current);
+            }
+            case 18:
+            {
+                return ___ice_ping(this, in, __current);
+            }
+            case 19:
+            {
                 return ___setData(this, in, __current);
+            }
+            case 20:
+            {
+                return ___shelveAlarms(this, in, __current);
             }
         }
 

@@ -23,6 +23,123 @@ package atnf.atoms.mon.comms;
 public final class MoniCAIcePrxHelper extends Ice.ObjectPrxHelperBase implements MoniCAIcePrx
 {
     public boolean
+    acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd)
+    {
+        return acknowledgeAlarms(pointnames, ack, username, passwd, null, false);
+    }
+
+    public boolean
+    acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, java.util.Map<String, String> __ctx)
+    {
+        return acknowledgeAlarms(pointnames, ack, username, passwd, __ctx, true);
+    }
+
+    private boolean
+    acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, java.util.Map<String, String> __ctx, boolean __explicitCtx)
+    {
+        if(__explicitCtx && __ctx == null)
+        {
+            __ctx = _emptyContext;
+        }
+        int __cnt = 0;
+        while(true)
+        {
+            Ice._ObjectDel __delBase = null;
+            try
+            {
+                __checkTwowayOnly("acknowledgeAlarms");
+                __delBase = __getDelegate(false);
+                _MoniCAIceDel __del = (_MoniCAIceDel)__delBase;
+                return __del.acknowledgeAlarms(pointnames, ack, username, passwd, __ctx);
+            }
+            catch(IceInternal.LocalExceptionWrapper __ex)
+            {
+                __handleExceptionWrapper(__delBase, __ex);
+            }
+            catch(Ice.LocalException __ex)
+            {
+                __cnt = __handleException(__delBase, __ex, null, __cnt);
+            }
+        }
+    }
+
+    private static final String __acknowledgeAlarms_name = "acknowledgeAlarms";
+
+    public Ice.AsyncResult begin_acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd)
+    {
+        return begin_acknowledgeAlarms(pointnames, ack, username, passwd, null, false, null);
+    }
+
+    public Ice.AsyncResult begin_acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, java.util.Map<String, String> __ctx)
+    {
+        return begin_acknowledgeAlarms(pointnames, ack, username, passwd, __ctx, true, null);
+    }
+
+    public Ice.AsyncResult begin_acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, Ice.Callback __cb)
+    {
+        return begin_acknowledgeAlarms(pointnames, ack, username, passwd, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, java.util.Map<String, String> __ctx, Ice.Callback __cb)
+    {
+        return begin_acknowledgeAlarms(pointnames, ack, username, passwd, __ctx, true, __cb);
+    }
+
+    public Ice.AsyncResult begin_acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, Callback_MoniCAIce_acknowledgeAlarms __cb)
+    {
+        return begin_acknowledgeAlarms(pointnames, ack, username, passwd, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, java.util.Map<String, String> __ctx, Callback_MoniCAIce_acknowledgeAlarms __cb)
+    {
+        return begin_acknowledgeAlarms(pointnames, ack, username, passwd, __ctx, true, __cb);
+    }
+
+    private Ice.AsyncResult begin_acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, java.util.Map<String, String> __ctx, boolean __explicitCtx, IceInternal.CallbackBase __cb)
+    {
+        __checkAsyncTwowayOnly(__acknowledgeAlarms_name);
+        IceInternal.OutgoingAsync __result = new IceInternal.OutgoingAsync(this, __acknowledgeAlarms_name, __cb);
+        try
+        {
+            __result.__prepare(__acknowledgeAlarms_name, Ice.OperationMode.Normal, __ctx, __explicitCtx);
+            IceInternal.BasicStream __os = __result.__os();
+            stringarrayHelper.write(__os, pointnames);
+            __os.writeBool(ack);
+            __os.writeString(username);
+            __os.writeString(passwd);
+            __os.endWriteEncaps();
+            __result.__send(true);
+        }
+        catch(Ice.LocalException __ex)
+        {
+            __result.__exceptionAsync(__ex);
+        }
+        return __result;
+    }
+
+    public boolean end_acknowledgeAlarms(Ice.AsyncResult __result)
+    {
+        Ice.AsyncResult.__check(__result, this, __acknowledgeAlarms_name);
+        if(!__result.__wait())
+        {
+            try
+            {
+                __result.__throwUserException();
+            }
+            catch(Ice.UserException __ex)
+            {
+                throw new Ice.UnknownUserException(__ex.ice_name());
+            }
+        }
+        boolean __ret;
+        IceInternal.BasicStream __is = __result.__is();
+        __is.startReadEncaps();
+        __ret = __is.readBool();
+        __is.endReadEncaps();
+        return __ret;
+    }
+
+    public boolean
     addPoints(PointDescriptionIce[] newpoints, String username, String passwd)
     {
         return addPoints(newpoints, username, passwd, null, false);
@@ -365,6 +482,120 @@ public final class MoniCAIcePrxHelper extends Ice.ObjectPrxHelperBase implements
         IceInternal.BasicStream __is = __result.__is();
         __is.startReadEncaps();
         __ret = pointdatasetHelper.read(__is);
+        __is.readPendingObjects();
+        __is.endReadEncaps();
+        return __ret;
+    }
+
+    public AlarmIce[]
+    getAllAlarms()
+    {
+        return getAllAlarms(null, false);
+    }
+
+    public AlarmIce[]
+    getAllAlarms(java.util.Map<String, String> __ctx)
+    {
+        return getAllAlarms(__ctx, true);
+    }
+
+    private AlarmIce[]
+    getAllAlarms(java.util.Map<String, String> __ctx, boolean __explicitCtx)
+    {
+        if(__explicitCtx && __ctx == null)
+        {
+            __ctx = _emptyContext;
+        }
+        int __cnt = 0;
+        while(true)
+        {
+            Ice._ObjectDel __delBase = null;
+            try
+            {
+                __checkTwowayOnly("getAllAlarms");
+                __delBase = __getDelegate(false);
+                _MoniCAIceDel __del = (_MoniCAIceDel)__delBase;
+                return __del.getAllAlarms(__ctx);
+            }
+            catch(IceInternal.LocalExceptionWrapper __ex)
+            {
+                __handleExceptionWrapper(__delBase, __ex);
+            }
+            catch(Ice.LocalException __ex)
+            {
+                __cnt = __handleException(__delBase, __ex, null, __cnt);
+            }
+        }
+    }
+
+    private static final String __getAllAlarms_name = "getAllAlarms";
+
+    public Ice.AsyncResult begin_getAllAlarms()
+    {
+        return begin_getAllAlarms(null, false, null);
+    }
+
+    public Ice.AsyncResult begin_getAllAlarms(java.util.Map<String, String> __ctx)
+    {
+        return begin_getAllAlarms(__ctx, true, null);
+    }
+
+    public Ice.AsyncResult begin_getAllAlarms(Ice.Callback __cb)
+    {
+        return begin_getAllAlarms(null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getAllAlarms(java.util.Map<String, String> __ctx, Ice.Callback __cb)
+    {
+        return begin_getAllAlarms(__ctx, true, __cb);
+    }
+
+    public Ice.AsyncResult begin_getAllAlarms(Callback_MoniCAIce_getAllAlarms __cb)
+    {
+        return begin_getAllAlarms(null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getAllAlarms(java.util.Map<String, String> __ctx, Callback_MoniCAIce_getAllAlarms __cb)
+    {
+        return begin_getAllAlarms(__ctx, true, __cb);
+    }
+
+    private Ice.AsyncResult begin_getAllAlarms(java.util.Map<String, String> __ctx, boolean __explicitCtx, IceInternal.CallbackBase __cb)
+    {
+        __checkAsyncTwowayOnly(__getAllAlarms_name);
+        IceInternal.OutgoingAsync __result = new IceInternal.OutgoingAsync(this, __getAllAlarms_name, __cb);
+        try
+        {
+            __result.__prepare(__getAllAlarms_name, Ice.OperationMode.Normal, __ctx, __explicitCtx);
+            IceInternal.BasicStream __os = __result.__os();
+            __os.endWriteEncaps();
+            __result.__send(true);
+        }
+        catch(Ice.LocalException __ex)
+        {
+            __result.__exceptionAsync(__ex);
+        }
+        return __result;
+    }
+
+    public AlarmIce[] end_getAllAlarms(Ice.AsyncResult __result)
+    {
+        Ice.AsyncResult.__check(__result, this, __getAllAlarms_name);
+        if(!__result.__wait())
+        {
+            try
+            {
+                __result.__throwUserException();
+            }
+            catch(Ice.UserException __ex)
+            {
+                throw new Ice.UnknownUserException(__ex.ice_name());
+            }
+        }
+        AlarmIce[] __ret;
+        IceInternal.BasicStream __is = __result.__is();
+        __is.startReadEncaps();
+        __ret = alarmarrayHelper.read(__is);
         __is.readPendingObjects();
         __is.endReadEncaps();
         return __ret;
@@ -943,6 +1174,120 @@ public final class MoniCAIcePrxHelper extends Ice.ObjectPrxHelperBase implements
         return __ret;
     }
 
+    public AlarmIce[]
+    getCurrentAlarms()
+    {
+        return getCurrentAlarms(null, false);
+    }
+
+    public AlarmIce[]
+    getCurrentAlarms(java.util.Map<String, String> __ctx)
+    {
+        return getCurrentAlarms(__ctx, true);
+    }
+
+    private AlarmIce[]
+    getCurrentAlarms(java.util.Map<String, String> __ctx, boolean __explicitCtx)
+    {
+        if(__explicitCtx && __ctx == null)
+        {
+            __ctx = _emptyContext;
+        }
+        int __cnt = 0;
+        while(true)
+        {
+            Ice._ObjectDel __delBase = null;
+            try
+            {
+                __checkTwowayOnly("getCurrentAlarms");
+                __delBase = __getDelegate(false);
+                _MoniCAIceDel __del = (_MoniCAIceDel)__delBase;
+                return __del.getCurrentAlarms(__ctx);
+            }
+            catch(IceInternal.LocalExceptionWrapper __ex)
+            {
+                __handleExceptionWrapper(__delBase, __ex);
+            }
+            catch(Ice.LocalException __ex)
+            {
+                __cnt = __handleException(__delBase, __ex, null, __cnt);
+            }
+        }
+    }
+
+    private static final String __getCurrentAlarms_name = "getCurrentAlarms";
+
+    public Ice.AsyncResult begin_getCurrentAlarms()
+    {
+        return begin_getCurrentAlarms(null, false, null);
+    }
+
+    public Ice.AsyncResult begin_getCurrentAlarms(java.util.Map<String, String> __ctx)
+    {
+        return begin_getCurrentAlarms(__ctx, true, null);
+    }
+
+    public Ice.AsyncResult begin_getCurrentAlarms(Ice.Callback __cb)
+    {
+        return begin_getCurrentAlarms(null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getCurrentAlarms(java.util.Map<String, String> __ctx, Ice.Callback __cb)
+    {
+        return begin_getCurrentAlarms(__ctx, true, __cb);
+    }
+
+    public Ice.AsyncResult begin_getCurrentAlarms(Callback_MoniCAIce_getCurrentAlarms __cb)
+    {
+        return begin_getCurrentAlarms(null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getCurrentAlarms(java.util.Map<String, String> __ctx, Callback_MoniCAIce_getCurrentAlarms __cb)
+    {
+        return begin_getCurrentAlarms(__ctx, true, __cb);
+    }
+
+    private Ice.AsyncResult begin_getCurrentAlarms(java.util.Map<String, String> __ctx, boolean __explicitCtx, IceInternal.CallbackBase __cb)
+    {
+        __checkAsyncTwowayOnly(__getCurrentAlarms_name);
+        IceInternal.OutgoingAsync __result = new IceInternal.OutgoingAsync(this, __getCurrentAlarms_name, __cb);
+        try
+        {
+            __result.__prepare(__getCurrentAlarms_name, Ice.OperationMode.Normal, __ctx, __explicitCtx);
+            IceInternal.BasicStream __os = __result.__os();
+            __os.endWriteEncaps();
+            __result.__send(true);
+        }
+        catch(Ice.LocalException __ex)
+        {
+            __result.__exceptionAsync(__ex);
+        }
+        return __result;
+    }
+
+    public AlarmIce[] end_getCurrentAlarms(Ice.AsyncResult __result)
+    {
+        Ice.AsyncResult.__check(__result, this, __getCurrentAlarms_name);
+        if(!__result.__wait())
+        {
+            try
+            {
+                __result.__throwUserException();
+            }
+            catch(Ice.UserException __ex)
+            {
+                throw new Ice.UnknownUserException(__ex.ice_name());
+            }
+        }
+        AlarmIce[] __ret;
+        IceInternal.BasicStream __is = __result.__is();
+        __is.startReadEncaps();
+        __ret = alarmarrayHelper.read(__is);
+        __is.readPendingObjects();
+        __is.endReadEncaps();
+        return __ret;
+    }
+
     public long
     getCurrentTime()
     {
@@ -1497,6 +1842,123 @@ public final class MoniCAIcePrxHelper extends Ice.ObjectPrxHelperBase implements
     public boolean end_setData(Ice.AsyncResult __result)
     {
         Ice.AsyncResult.__check(__result, this, __setData_name);
+        if(!__result.__wait())
+        {
+            try
+            {
+                __result.__throwUserException();
+            }
+            catch(Ice.UserException __ex)
+            {
+                throw new Ice.UnknownUserException(__ex.ice_name());
+            }
+        }
+        boolean __ret;
+        IceInternal.BasicStream __is = __result.__is();
+        __is.startReadEncaps();
+        __ret = __is.readBool();
+        __is.endReadEncaps();
+        return __ret;
+    }
+
+    public boolean
+    shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd)
+    {
+        return shelveAlarms(pointnames, shelve, username, passwd, null, false);
+    }
+
+    public boolean
+    shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, java.util.Map<String, String> __ctx)
+    {
+        return shelveAlarms(pointnames, shelve, username, passwd, __ctx, true);
+    }
+
+    private boolean
+    shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, java.util.Map<String, String> __ctx, boolean __explicitCtx)
+    {
+        if(__explicitCtx && __ctx == null)
+        {
+            __ctx = _emptyContext;
+        }
+        int __cnt = 0;
+        while(true)
+        {
+            Ice._ObjectDel __delBase = null;
+            try
+            {
+                __checkTwowayOnly("shelveAlarms");
+                __delBase = __getDelegate(false);
+                _MoniCAIceDel __del = (_MoniCAIceDel)__delBase;
+                return __del.shelveAlarms(pointnames, shelve, username, passwd, __ctx);
+            }
+            catch(IceInternal.LocalExceptionWrapper __ex)
+            {
+                __handleExceptionWrapper(__delBase, __ex);
+            }
+            catch(Ice.LocalException __ex)
+            {
+                __cnt = __handleException(__delBase, __ex, null, __cnt);
+            }
+        }
+    }
+
+    private static final String __shelveAlarms_name = "shelveAlarms";
+
+    public Ice.AsyncResult begin_shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd)
+    {
+        return begin_shelveAlarms(pointnames, shelve, username, passwd, null, false, null);
+    }
+
+    public Ice.AsyncResult begin_shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, java.util.Map<String, String> __ctx)
+    {
+        return begin_shelveAlarms(pointnames, shelve, username, passwd, __ctx, true, null);
+    }
+
+    public Ice.AsyncResult begin_shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, Ice.Callback __cb)
+    {
+        return begin_shelveAlarms(pointnames, shelve, username, passwd, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, java.util.Map<String, String> __ctx, Ice.Callback __cb)
+    {
+        return begin_shelveAlarms(pointnames, shelve, username, passwd, __ctx, true, __cb);
+    }
+
+    public Ice.AsyncResult begin_shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, Callback_MoniCAIce_shelveAlarms __cb)
+    {
+        return begin_shelveAlarms(pointnames, shelve, username, passwd, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, java.util.Map<String, String> __ctx, Callback_MoniCAIce_shelveAlarms __cb)
+    {
+        return begin_shelveAlarms(pointnames, shelve, username, passwd, __ctx, true, __cb);
+    }
+
+    private Ice.AsyncResult begin_shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, java.util.Map<String, String> __ctx, boolean __explicitCtx, IceInternal.CallbackBase __cb)
+    {
+        __checkAsyncTwowayOnly(__shelveAlarms_name);
+        IceInternal.OutgoingAsync __result = new IceInternal.OutgoingAsync(this, __shelveAlarms_name, __cb);
+        try
+        {
+            __result.__prepare(__shelveAlarms_name, Ice.OperationMode.Normal, __ctx, __explicitCtx);
+            IceInternal.BasicStream __os = __result.__os();
+            stringarrayHelper.write(__os, pointnames);
+            __os.writeBool(shelve);
+            __os.writeString(username);
+            __os.writeString(passwd);
+            __os.endWriteEncaps();
+            __result.__send(true);
+        }
+        catch(Ice.LocalException __ex)
+        {
+            __result.__exceptionAsync(__ex);
+        }
+        return __result;
+    }
+
+    public boolean end_shelveAlarms(Ice.AsyncResult __result)
+    {
+        Ice.AsyncResult.__check(__result, this, __shelveAlarms_name);
         if(!__result.__wait())
         {
             try

@@ -44,6 +44,14 @@ public interface _MoniCAIceOperationsNC
 
     boolean addSetup(String setup, String username, String passwd);
 
+    AlarmIce[] getAllAlarms();
+
+    AlarmIce[] getCurrentAlarms();
+
+    boolean acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd);
+
+    boolean shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd);
+
     String[] getEncryptionInfo();
 
     long getCurrentTime();

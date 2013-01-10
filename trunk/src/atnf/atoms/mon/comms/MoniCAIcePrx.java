@@ -220,6 +220,78 @@ public interface MoniCAIcePrx extends Ice.ObjectPrx
 
     public boolean end_addSetup(Ice.AsyncResult __result);
 
+    public AlarmIce[] getAllAlarms();
+
+    public AlarmIce[] getAllAlarms(java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_getAllAlarms();
+
+    public Ice.AsyncResult begin_getAllAlarms(java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_getAllAlarms(Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_getAllAlarms(java.util.Map<String, String> __ctx, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_getAllAlarms(Callback_MoniCAIce_getAllAlarms __cb);
+
+    public Ice.AsyncResult begin_getAllAlarms(java.util.Map<String, String> __ctx, Callback_MoniCAIce_getAllAlarms __cb);
+
+    public AlarmIce[] end_getAllAlarms(Ice.AsyncResult __result);
+
+    public AlarmIce[] getCurrentAlarms();
+
+    public AlarmIce[] getCurrentAlarms(java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_getCurrentAlarms();
+
+    public Ice.AsyncResult begin_getCurrentAlarms(java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_getCurrentAlarms(Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_getCurrentAlarms(java.util.Map<String, String> __ctx, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_getCurrentAlarms(Callback_MoniCAIce_getCurrentAlarms __cb);
+
+    public Ice.AsyncResult begin_getCurrentAlarms(java.util.Map<String, String> __ctx, Callback_MoniCAIce_getCurrentAlarms __cb);
+
+    public AlarmIce[] end_getCurrentAlarms(Ice.AsyncResult __result);
+
+    public boolean acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd);
+
+    public boolean acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd);
+
+    public Ice.AsyncResult begin_acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, java.util.Map<String, String> __ctx, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, Callback_MoniCAIce_acknowledgeAlarms __cb);
+
+    public Ice.AsyncResult begin_acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, java.util.Map<String, String> __ctx, Callback_MoniCAIce_acknowledgeAlarms __cb);
+
+    public boolean end_acknowledgeAlarms(Ice.AsyncResult __result);
+
+    public boolean shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd);
+
+    public boolean shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd);
+
+    public Ice.AsyncResult begin_shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, java.util.Map<String, String> __ctx, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, Callback_MoniCAIce_shelveAlarms __cb);
+
+    public Ice.AsyncResult begin_shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, java.util.Map<String, String> __ctx, Callback_MoniCAIce_shelveAlarms __cb);
+
+    public boolean end_shelveAlarms(Ice.AsyncResult __result);
+
     public String[] getEncryptionInfo();
 
     public String[] getEncryptionInfo(java.util.Map<String, String> __ctx);
