@@ -149,6 +149,11 @@ public class AlarmManager {
 		}
 	}
 
+	/** Acknowledge an alarm. */
+  public static void setAcknowledged(PointDescription point, boolean acked, String user) {
+    setAcknowledged(point, acked, user, new AbsTime());
+  }
+  
 	/** Shelve an alarm. */
 	public static void setShelved(PointDescription point, boolean shelved, String user, AbsTime time) {
 		synchronized (theirAlarms) {
@@ -161,5 +166,9 @@ public class AlarmManager {
 			thisalarm.setShelved(shelved, user, time);
 		}
 	}
-
+	
+  /** Shelve an alarm. */
+  public static void setShelved(PointDescription point, boolean shelved, String user) {
+    setShelved(point, shelved, user, new AbsTime());
+  }
 }

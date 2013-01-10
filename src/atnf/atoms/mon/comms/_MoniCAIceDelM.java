@@ -23,6 +23,57 @@ package atnf.atoms.mon.comms;
 public final class _MoniCAIceDelM extends Ice._ObjectDelM implements _MoniCAIceDel
 {
     public boolean
+    acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper
+    {
+        IceInternal.Outgoing __og = __handler.getOutgoing("acknowledgeAlarms", Ice.OperationMode.Normal, __ctx);
+        try
+        {
+            try
+            {
+                IceInternal.BasicStream __os = __og.os();
+                stringarrayHelper.write(__os, pointnames);
+                __os.writeBool(ack);
+                __os.writeString(username);
+                __os.writeString(passwd);
+            }
+            catch(Ice.LocalException __ex)
+            {
+                __og.abort(__ex);
+            }
+            boolean __ok = __og.invoke();
+            try
+            {
+                if(!__ok)
+                {
+                    try
+                    {
+                        __og.throwUserException();
+                    }
+                    catch(Ice.UserException __ex)
+                    {
+                        throw new Ice.UnknownUserException(__ex.ice_name());
+                    }
+                }
+                IceInternal.BasicStream __is = __og.is();
+                __is.startReadEncaps();
+                boolean __ret;
+                __ret = __is.readBool();
+                __is.endReadEncaps();
+                return __ret;
+            }
+            catch(Ice.LocalException __ex)
+            {
+                throw new IceInternal.LocalExceptionWrapper(__ex, false);
+            }
+        }
+        finally
+        {
+            __handler.reclaimOutgoing(__og);
+        }
+    }
+
+    public boolean
     addPoints(PointDescriptionIce[] newpoints, String username, String passwd, java.util.Map<String, String> __ctx)
         throws IceInternal.LocalExceptionWrapper
     {
@@ -157,6 +208,46 @@ public final class _MoniCAIceDelM extends Ice._ObjectDelM implements _MoniCAIceD
                 __is.startReadEncaps();
                 PointDataIce[] __ret;
                 __ret = pointdatasetHelper.read(__is);
+                __is.readPendingObjects();
+                __is.endReadEncaps();
+                return __ret;
+            }
+            catch(Ice.LocalException __ex)
+            {
+                throw new IceInternal.LocalExceptionWrapper(__ex, false);
+            }
+        }
+        finally
+        {
+            __handler.reclaimOutgoing(__og);
+        }
+    }
+
+    public AlarmIce[]
+    getAllAlarms(java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper
+    {
+        IceInternal.Outgoing __og = __handler.getOutgoing("getAllAlarms", Ice.OperationMode.Normal, __ctx);
+        try
+        {
+            boolean __ok = __og.invoke();
+            try
+            {
+                if(!__ok)
+                {
+                    try
+                    {
+                        __og.throwUserException();
+                    }
+                    catch(Ice.UserException __ex)
+                    {
+                        throw new Ice.UnknownUserException(__ex.ice_name());
+                    }
+                }
+                IceInternal.BasicStream __is = __og.is();
+                __is.startReadEncaps();
+                AlarmIce[] __ret;
+                __ret = alarmarrayHelper.read(__is);
                 __is.readPendingObjects();
                 __is.endReadEncaps();
                 return __ret;
@@ -391,6 +482,46 @@ public final class _MoniCAIceDelM extends Ice._ObjectDelM implements _MoniCAIceD
         }
     }
 
+    public AlarmIce[]
+    getCurrentAlarms(java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper
+    {
+        IceInternal.Outgoing __og = __handler.getOutgoing("getCurrentAlarms", Ice.OperationMode.Normal, __ctx);
+        try
+        {
+            boolean __ok = __og.invoke();
+            try
+            {
+                if(!__ok)
+                {
+                    try
+                    {
+                        __og.throwUserException();
+                    }
+                    catch(Ice.UserException __ex)
+                    {
+                        throw new Ice.UnknownUserException(__ex.ice_name());
+                    }
+                }
+                IceInternal.BasicStream __is = __og.is();
+                __is.startReadEncaps();
+                AlarmIce[] __ret;
+                __ret = alarmarrayHelper.read(__is);
+                __is.readPendingObjects();
+                __is.endReadEncaps();
+                return __ret;
+            }
+            catch(Ice.LocalException __ex)
+            {
+                throw new IceInternal.LocalExceptionWrapper(__ex, false);
+            }
+        }
+        finally
+        {
+            __handler.reclaimOutgoing(__og);
+        }
+    }
+
     public long
     getCurrentTime(java.util.Map<String, String> __ctx)
         throws IceInternal.LocalExceptionWrapper
@@ -581,6 +712,57 @@ public final class _MoniCAIceDelM extends Ice._ObjectDelM implements _MoniCAIceD
                 __os.writeString(username);
                 __os.writeString(passwd);
                 __os.writePendingObjects();
+            }
+            catch(Ice.LocalException __ex)
+            {
+                __og.abort(__ex);
+            }
+            boolean __ok = __og.invoke();
+            try
+            {
+                if(!__ok)
+                {
+                    try
+                    {
+                        __og.throwUserException();
+                    }
+                    catch(Ice.UserException __ex)
+                    {
+                        throw new Ice.UnknownUserException(__ex.ice_name());
+                    }
+                }
+                IceInternal.BasicStream __is = __og.is();
+                __is.startReadEncaps();
+                boolean __ret;
+                __ret = __is.readBool();
+                __is.endReadEncaps();
+                return __ret;
+            }
+            catch(Ice.LocalException __ex)
+            {
+                throw new IceInternal.LocalExceptionWrapper(__ex, false);
+            }
+        }
+        finally
+        {
+            __handler.reclaimOutgoing(__og);
+        }
+    }
+
+    public boolean
+    shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper
+    {
+        IceInternal.Outgoing __og = __handler.getOutgoing("shelveAlarms", Ice.OperationMode.Normal, __ctx);
+        try
+        {
+            try
+            {
+                IceInternal.BasicStream __os = __og.os();
+                stringarrayHelper.write(__os, pointnames);
+                __os.writeBool(shelve);
+                __os.writeString(username);
+                __os.writeString(passwd);
             }
             catch(Ice.LocalException __ex)
             {

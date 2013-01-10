@@ -9,6 +9,7 @@
 package atnf.atoms.mon.comms;
 
 import java.math.BigInteger;
+import java.util.Iterator;
 import java.util.Vector;
 
 import atnf.atoms.mon.*;
@@ -117,21 +118,21 @@ public class MoniCAClientIce extends MoniCAClient {
    */
   public Vector<PointDescription> getPoints(Vector<String> pointnames) throws Exception {
     Vector<PointDescription> res = null;
-    
+
     // Avoid Ice message size limitations by splitting large subscriptions
     final int MAXQUERYPOINTS = 3000;
-    if (pointnames.size()>MAXQUERYPOINTS) {
+    if (pointnames.size() > MAXQUERYPOINTS) {
       res = new Vector<PointDescription>(pointnames.size());
-      int firstpoint=0;
-      while (firstpoint<pointnames.size()) {
-        Vector<String> thesenames = new Vector<String>(pointnames.subList(firstpoint, Math.min(firstpoint+MAXQUERYPOINTS, pointnames.size())));
+      int firstpoint = 0;
+      while (firstpoint < pointnames.size()) {
+        Vector<String> thesenames = new Vector<String>(pointnames.subList(firstpoint, Math.min(firstpoint + MAXQUERYPOINTS, pointnames.size())));
         System.err.println("MoniCAClientIce.getPoints: Retrieving to " + firstpoint + " - " + (firstpoint + thesenames.size()));
         res.addAll(getPoints(thesenames));
-        firstpoint+=MAXQUERYPOINTS;
+        firstpoint += MAXQUERYPOINTS;
       }
       return res;
     }
-    
+
     try {
       if (!isConnected()) {
         connect();
@@ -464,6 +465,136 @@ public class MoniCAClientIce extends MoniCAClient {
       res = itsIceClient.addSetup(stringsetup, encname, encpass);
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.addSetup:" + e.getClass());
+      disconnect();
+      throw e;
+    }
+    return res;
+  }
+
+  /**
+   * Get all alarm points with priority >=0, whether they are alarming or not.
+   * 
+   * @return List of alarms or null if none are defined.
+   */
+  public Vector<Alarm> getAllAlarms() throws Exception {
+    Vector<Alarm> res = null;
+    try {
+      if (!isConnected()) {
+        connect();
+      }
+      // Get the alarms from the server and construct local representations from them
+      AlarmIce[] icealarms = itsIceClient.getAllAlarms();
+      if (icealarms != null && icealarms.length > 0) {
+        res = new Vector<Alarm>(icealarms.length);
+        for (int i = 0; i < icealarms.length; i++) {
+          String pointname = icealarms[i].pointname;
+          if (PointDescription.getPoint(pointname) == null) {
+            // We need to fetch the point definition for this point
+            System.err.println("MoniCAClientIce.getAllAlarms: Fetching PointDescription for " + pointname);
+            getPoint(pointname);
+          }
+          Alarm thisalarm = MoniCAIceUtil.getAlarmFromIce(icealarms[i]);
+          if (thisalarm != null) {
+            res.add(thisalarm);
+          }
+        }
+      }
+    } catch (Exception e) {
+      System.err.println("MoniCAClientIce.getAllAlarms:" + e.getClass());
+      disconnect();
+      throw e;
+    }
+    return res;
+  }
+
+  /**
+   * Get all points which are currently alarming (including acknowledged) or shelved.
+   * 
+   * @return List of alarms or null if none meet the criteria.
+   */
+  public Vector<Alarm> getCurrentAlarms() throws Exception {
+    Vector<Alarm> res = null;
+    try {
+      if (!isConnected()) {
+        connect();
+      }
+      // Get the alarms from the server and construct local representations from them
+      AlarmIce[] icealarms = itsIceClient.getCurrentAlarms();
+      if (icealarms != null && icealarms.length > 0) {
+        res = new Vector<Alarm>(icealarms.length);
+        for (int i = 0; i < icealarms.length; i++) {
+          String pointname = icealarms[i].pointname;
+          if (PointDescription.getPoint(pointname) == null) {
+            // We need to fetch the point definition for this point
+            System.err.println("MoniCAClientIce.getCurrentAlarms: Fetching PointDescription for " + pointname);
+            getPoint(pointname);
+          }
+          Alarm thisalarm = MoniCAIceUtil.getAlarmFromIce(icealarms[i]);
+          if (thisalarm != null) {
+            res.add(thisalarm);
+          }
+        }
+      }
+    } catch (Exception e) {
+      System.err.println("MoniCAClientIce.getCurrentAlarms:" + e.getClass());
+      disconnect();
+      throw e;
+    }
+    return res;
+  }
+
+  /**
+   * Acknowledge/deacknowledge the specified alarm points.
+   * 
+   * @param pointnames
+   *          The points to be acknowledged or deacknowledged.
+   * @param ack
+   *          True to acknowledge an alarm or false to deacknowledge.
+   * @param username
+   *          Name of the user performing the operation.
+   * @param password
+   *          Password hash for the user performing the operation.
+   * @return False if permission was denied for one or more points.
+   */
+  public boolean acknowledgeAlarms(Vector<String> pointnames, boolean ack, String username, String password) throws Exception {
+    boolean res = false;
+    try {
+      String[] namesarray = new String[pointnames.size()];
+      for (int i=0; i<pointnames.size(); i++) {
+        namesarray[i] = pointnames.get(i);
+      }
+      res = itsIceClient.acknowledgeAlarms(namesarray, ack, username, password);
+    } catch (Exception e) {
+      System.err.println("MoniCAClientIce.acknowledgeAlarms:" + e.getClass());
+      disconnect();
+      throw e;
+    }
+    return res;
+  }
+
+  /**
+   * Shelve/deshelved the specified alarm points.
+   * 
+   * @param pointnames
+   *          The points to be shelved or deshelved.
+   * @param shelve
+   *          True to shelve an alarm or false to deshelve.
+   * @param username
+   *          Name of the user performing the operation.
+   * @param password
+   *          Password hash for the user performing the operation.
+   * @return False if permission was denied for one or more points.
+   */
+  public boolean shelveAlarms(Vector<String> pointnames, boolean shelve, String username, String password) throws Exception {
+    boolean res = false;
+    try {
+      String[] namesarray = new String[pointnames.size()];
+      for (int i=0; i<pointnames.size(); i++) {
+        namesarray[i] = pointnames.get(i);
+      }
+      res = itsIceClient.shelveAlarms(namesarray, shelve, username, password);
+    } catch (Exception e) {
+      System.err.println("MoniCAClientIce.shelveAlarms:" + e.getClass());
       disconnect();
       throw e;
     }

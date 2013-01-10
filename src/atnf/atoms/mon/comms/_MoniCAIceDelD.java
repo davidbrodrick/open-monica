@@ -23,6 +23,59 @@ package atnf.atoms.mon.comms;
 public final class _MoniCAIceDelD extends Ice._ObjectDelD implements _MoniCAIceDel
 {
     public boolean
+    acknowledgeAlarms(final String[] pointnames, final boolean ack, final String username, final String passwd, java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper
+    {
+        final Ice.Current __current = new Ice.Current();
+        __initCurrent(__current, "acknowledgeAlarms", Ice.OperationMode.Normal, __ctx);
+        final Ice.BooleanHolder __result = new Ice.BooleanHolder();
+        IceInternal.Direct __direct = null;
+        try
+        {
+            __direct = new IceInternal.Direct(__current)
+            {
+                public Ice.DispatchStatus run(Ice.Object __obj)
+                {
+                    MoniCAIce __servant = null;
+                    try
+                    {
+                        __servant = (MoniCAIce)__obj;
+                    }
+                    catch(ClassCastException __ex)
+                    {
+                        throw new Ice.OperationNotExistException(__current.id, __current.facet, __current.operation);
+                    }
+                    __result.value = __servant.acknowledgeAlarms(pointnames, ack, username, passwd, __current);
+                    return Ice.DispatchStatus.DispatchOK;
+                }
+            };
+            try
+            {
+                Ice.DispatchStatus __status = __direct.servant().__collocDispatch(__direct);
+                if(__status == Ice.DispatchStatus.DispatchUserException)
+                {
+                    __direct.throwUserException();
+                }
+                assert __status == Ice.DispatchStatus.DispatchOK;
+                return __result.value;
+            }
+            finally
+            {
+                __direct.destroy();
+            }
+        }
+        catch(Ice.SystemException __ex)
+        {
+            throw __ex;
+        }
+        catch(java.lang.Throwable __ex)
+        {
+            IceInternal.LocalExceptionWrapper.throwWrapper(__ex);
+        }
+        return __result.value;
+    }
+
+    public boolean
     addPoints(final PointDescriptionIce[] newpoints, final String username, final String passwd, java.util.Map<String, String> __ctx)
         throws IceInternal.LocalExceptionWrapper
     {
@@ -152,6 +205,59 @@ public final class _MoniCAIceDelD extends Ice._ObjectDelD implements _MoniCAIceD
                         throw new Ice.OperationNotExistException(__current.id, __current.facet, __current.operation);
                     }
                     __result.value = __servant.getAfter(names, t, __current);
+                    return Ice.DispatchStatus.DispatchOK;
+                }
+            };
+            try
+            {
+                Ice.DispatchStatus __status = __direct.servant().__collocDispatch(__direct);
+                if(__status == Ice.DispatchStatus.DispatchUserException)
+                {
+                    __direct.throwUserException();
+                }
+                assert __status == Ice.DispatchStatus.DispatchOK;
+                return __result.value;
+            }
+            finally
+            {
+                __direct.destroy();
+            }
+        }
+        catch(Ice.SystemException __ex)
+        {
+            throw __ex;
+        }
+        catch(java.lang.Throwable __ex)
+        {
+            IceInternal.LocalExceptionWrapper.throwWrapper(__ex);
+        }
+        return __result.value;
+    }
+
+    public AlarmIce[]
+    getAllAlarms(java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper
+    {
+        final Ice.Current __current = new Ice.Current();
+        __initCurrent(__current, "getAllAlarms", Ice.OperationMode.Normal, __ctx);
+        final alarmarrayHolder __result = new alarmarrayHolder();
+        IceInternal.Direct __direct = null;
+        try
+        {
+            __direct = new IceInternal.Direct(__current)
+            {
+                public Ice.DispatchStatus run(Ice.Object __obj)
+                {
+                    MoniCAIce __servant = null;
+                    try
+                    {
+                        __servant = (MoniCAIce)__obj;
+                    }
+                    catch(ClassCastException __ex)
+                    {
+                        throw new Ice.OperationNotExistException(__current.id, __current.facet, __current.operation);
+                    }
+                    __result.value = __servant.getAllAlarms(__current);
                     return Ice.DispatchStatus.DispatchOK;
                 }
             };
@@ -446,6 +552,59 @@ public final class _MoniCAIceDelD extends Ice._ObjectDelD implements _MoniCAIceD
         return __result.value;
     }
 
+    public AlarmIce[]
+    getCurrentAlarms(java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper
+    {
+        final Ice.Current __current = new Ice.Current();
+        __initCurrent(__current, "getCurrentAlarms", Ice.OperationMode.Normal, __ctx);
+        final alarmarrayHolder __result = new alarmarrayHolder();
+        IceInternal.Direct __direct = null;
+        try
+        {
+            __direct = new IceInternal.Direct(__current)
+            {
+                public Ice.DispatchStatus run(Ice.Object __obj)
+                {
+                    MoniCAIce __servant = null;
+                    try
+                    {
+                        __servant = (MoniCAIce)__obj;
+                    }
+                    catch(ClassCastException __ex)
+                    {
+                        throw new Ice.OperationNotExistException(__current.id, __current.facet, __current.operation);
+                    }
+                    __result.value = __servant.getCurrentAlarms(__current);
+                    return Ice.DispatchStatus.DispatchOK;
+                }
+            };
+            try
+            {
+                Ice.DispatchStatus __status = __direct.servant().__collocDispatch(__direct);
+                if(__status == Ice.DispatchStatus.DispatchUserException)
+                {
+                    __direct.throwUserException();
+                }
+                assert __status == Ice.DispatchStatus.DispatchOK;
+                return __result.value;
+            }
+            finally
+            {
+                __direct.destroy();
+            }
+        }
+        catch(Ice.SystemException __ex)
+        {
+            throw __ex;
+        }
+        catch(java.lang.Throwable __ex)
+        {
+            IceInternal.LocalExceptionWrapper.throwWrapper(__ex);
+        }
+        return __result.value;
+    }
+
     public long
     getCurrentTime(java.util.Map<String, String> __ctx)
         throws IceInternal.LocalExceptionWrapper
@@ -682,6 +841,59 @@ public final class _MoniCAIceDelD extends Ice._ObjectDelD implements _MoniCAIceD
                         throw new Ice.OperationNotExistException(__current.id, __current.facet, __current.operation);
                     }
                     __result.value = __servant.setData(names, values, username, passwd, __current);
+                    return Ice.DispatchStatus.DispatchOK;
+                }
+            };
+            try
+            {
+                Ice.DispatchStatus __status = __direct.servant().__collocDispatch(__direct);
+                if(__status == Ice.DispatchStatus.DispatchUserException)
+                {
+                    __direct.throwUserException();
+                }
+                assert __status == Ice.DispatchStatus.DispatchOK;
+                return __result.value;
+            }
+            finally
+            {
+                __direct.destroy();
+            }
+        }
+        catch(Ice.SystemException __ex)
+        {
+            throw __ex;
+        }
+        catch(java.lang.Throwable __ex)
+        {
+            IceInternal.LocalExceptionWrapper.throwWrapper(__ex);
+        }
+        return __result.value;
+    }
+
+    public boolean
+    shelveAlarms(final String[] pointnames, final boolean shelve, final String username, final String passwd, java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper
+    {
+        final Ice.Current __current = new Ice.Current();
+        __initCurrent(__current, "shelveAlarms", Ice.OperationMode.Normal, __ctx);
+        final Ice.BooleanHolder __result = new Ice.BooleanHolder();
+        IceInternal.Direct __direct = null;
+        try
+        {
+            __direct = new IceInternal.Direct(__current)
+            {
+                public Ice.DispatchStatus run(Ice.Object __obj)
+                {
+                    MoniCAIce __servant = null;
+                    try
+                    {
+                        __servant = (MoniCAIce)__obj;
+                    }
+                    catch(ClassCastException __ex)
+                    {
+                        throw new Ice.OperationNotExistException(__current.id, __current.facet, __current.operation);
+                    }
+                    __result.value = __servant.shelveAlarms(pointnames, shelve, username, passwd, __current);
                     return Ice.DispatchStatus.DispatchOK;
                 }
             };

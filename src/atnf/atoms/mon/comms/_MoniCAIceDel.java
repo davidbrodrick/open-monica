@@ -55,6 +55,18 @@ public interface _MoniCAIceDel extends Ice._ObjectDel
     boolean addSetup(String setup, String username, String passwd, java.util.Map<String, String> __ctx)
         throws IceInternal.LocalExceptionWrapper;
 
+    AlarmIce[] getAllAlarms(java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper;
+
+    AlarmIce[] getCurrentAlarms(java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper;
+
+    boolean acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper;
+
+    boolean shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, java.util.Map<String, String> __ctx)
+        throws IceInternal.LocalExceptionWrapper;
+
     String[] getEncryptionInfo(java.util.Map<String, String> __ctx)
         throws IceInternal.LocalExceptionWrapper;
 
