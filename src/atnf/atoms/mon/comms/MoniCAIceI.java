@@ -229,8 +229,12 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   }
 
   /** Acknowledge (ack=true) or deacknowledge (ack=false) the specified alarms. */
-  public boolean acknowledgeAlarms(String[] pointnames, boolean ack, String username, String passwd, Current __current) {
+  public boolean acknowledgeAlarms(String[] pointnames, boolean ack, String encname, String encpass, Current __current) {
     // TODO: Authentication/authorisation not currently checked
+    // Decrypt the user's credentials
+    String username = KeyKeeper.decrypt(encname);
+    String password = KeyKeeper.decrypt(encpass);
+
     boolean res = true;
     for (int i = 0; i < pointnames.length; i++) {
       PointDescription thispoint = PointDescription.getPoint(pointnames[i]);
@@ -245,8 +249,12 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   }
 
   /** Shelve (shelve=true) or deshelve (shelve=false) the specified alarms. */
-  public boolean shelveAlarms(String[] pointnames, boolean shelve, String username, String passwd, Current __current) {
+  public boolean shelveAlarms(String[] pointnames, boolean shelve, String encname, String encpass, Current __current) {
     // TODO: Authentication/authorisation not currently checked
+    // Decrypt the user's credentials
+    String username = KeyKeeper.decrypt(encname);
+    String password = KeyKeeper.decrypt(encpass);
+
     boolean res = true;
     for (int i = 0; i < pointnames.length; i++) {
       PointDescription thispoint = PointDescription.getPoint(pointnames[i]);
