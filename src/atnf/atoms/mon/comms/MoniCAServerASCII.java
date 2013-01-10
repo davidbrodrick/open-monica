@@ -168,12 +168,10 @@ public class MoniCAServerASCII extends Thread {
         itsRunning = false;
       }
     }
-    System.out.println("MonitorServerASCII: Lost Connection to " + itsSocket.getInetAddress().getHostAddress());
+    // System.out.println("MonitorServerASCII: Lost Connection to " + itsSocket.getInetAddress().getHostAddress());
     try {
       itsReader.close();
       itsWriter.close();
-      itsSocket.shutdownInput();
-      itsSocket.shutdownOutput();
       if (!itsSocket.isClosed()) {
         itsSocket.close();
       }
