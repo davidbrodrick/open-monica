@@ -559,11 +559,19 @@ public class MoniCAClientIce extends MoniCAClient {
   public boolean acknowledgeAlarms(Vector<String> pointnames, boolean ack, String username, String password) throws Exception {
     boolean res = false;
     try {
+      // Format request into array
       String[] namesarray = new String[pointnames.size()];
-      for (int i=0; i<pointnames.size(); i++) {
+      for (int i = 0; i < pointnames.size(); i++) {
         namesarray[i] = pointnames.get(i);
       }
-      res = itsIceClient.acknowledgeAlarms(namesarray, ack, username, password);
+
+      // Encrypt the username/password
+      RSA encryptor = getEncryptor();
+      String encname = encryptor.encrypt(username);
+      String encpass = encryptor.encrypt(password);
+
+      // Send the request to the server
+      res = itsIceClient.acknowledgeAlarms(namesarray, ack, encname, encpass);
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.acknowledgeAlarms:" + e.getClass());
       disconnect();
@@ -588,11 +596,19 @@ public class MoniCAClientIce extends MoniCAClient {
   public boolean shelveAlarms(Vector<String> pointnames, boolean shelve, String username, String password) throws Exception {
     boolean res = false;
     try {
+      // Format request into array
       String[] namesarray = new String[pointnames.size()];
-      for (int i=0; i<pointnames.size(); i++) {
+      for (int i = 0; i < pointnames.size(); i++) {
         namesarray[i] = pointnames.get(i);
       }
-      res = itsIceClient.shelveAlarms(namesarray, shelve, username, password);
+
+      // Encrypt the username/password
+      RSA encryptor = getEncryptor();
+      String encname = encryptor.encrypt(username);
+      String encpass = encryptor.encrypt(password);
+
+      // Send the request to the server
+      res = itsIceClient.shelveAlarms(namesarray, shelve, encname, encpass);
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.shelveAlarms:" + e.getClass());
       disconnect();
