@@ -127,7 +127,7 @@ public class AlarmPanel extends JPanel {
 			}
 
 			JLabel ackedBy = new JLabel("Acknowledged by: " + itsAlarm.getAckedBy());
-			JLabel ackedAt = new JLabel("Acknowledged at: " + itsAlarm.getAckedTime());
+			JLabel ackedAt = new JLabel("Acknowledged at: " + itsAlarm.getAckedAt());
 			JLabel shelvedBy = new JLabel("Shelved by: " + itsAlarm.getShelvedBy());
 			JLabel shelvedAt = new JLabel("Shelved at " + itsAlarm.getShelvedAt());
 
