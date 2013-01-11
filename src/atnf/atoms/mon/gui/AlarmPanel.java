@@ -15,6 +15,7 @@ import javax.swing.JTextArea;
 import atnf.atoms.mon.Alarm;
 import atnf.atoms.mon.AlarmManager;
 import atnf.atoms.mon.PointDescription;
+import atnf.atoms.mon.client.AlarmMaintainer;
 import atnf.atoms.mon.gui.monpanel.AlarmManagerPanel;
 
 /**
@@ -68,15 +69,19 @@ public class AlarmPanel extends JPanel {
 		System.out.println("DEBUG: Notifications: " + itsPointDesc.getNotificationString());
 		System.out.println("DEBUG: String Equivalent: " + itsPointDesc.getStringEquiv());
 		System.out.println("DEBUG: Priority: " + itsPointDesc.getPriority());*/
-		alarms = AlarmManager.getAllAlarms(); //update current alarms
+		alarms = AlarmMaintainer.getAllAlarms(); //update current alarms
 
 		if (itsPointDesc != null) hasPointDesc = true;
 
 
 		if (hasPointDesc){
 
-			itsAlarm = AlarmManager.getAlarm(itsPointDesc);
-			if (itsAlarm == null) System.err.println("No corresponding alarm for this PointDescription");
+			itsAlarm = AlarmMaintainer.getAlarm(itsPointDesc);
+			if (itsAlarm == null) {
+				System.err.println("No corresponding alarm for this PointDescription");
+				AlarmMaintainer.setAlarm(itsPointDesc);
+				itsAlarm = AlarmMaintainer.getAlarm(itsPointDesc);
+			}
 
 			itsAlarmStatus = itsAlarm.getAlarmStatus();
 

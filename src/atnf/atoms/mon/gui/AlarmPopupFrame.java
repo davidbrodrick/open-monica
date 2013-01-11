@@ -10,7 +10,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.security.InvalidParameterException;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -31,11 +30,11 @@ import atnf.atoms.mon.AlarmEventListener;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.client.AlarmMaintainer;
 import atnf.atoms.mon.util.MailSender;
-import atnf.atoms.time.AbsTime;
 
 public class AlarmPopupFrame extends JFrame implements ActionListener, ItemListener, AlarmEventListener{
 
 	String itsUser = "";
+	String password = "";
 	String itsName;
 	PointDescription itsPointDesc;
 	Alarm itsAlarm;
@@ -139,12 +138,12 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, ItemListe
 				args[2] = body.getText();
 				args[2] += "\n\n\n\t -- Sent via MoniCA Java Client";
 				try {		
-					if (!args[0].contains("@")) throw (new InvalidParameterException());
-					//if (!args[0].endsWith("@csiro.au")) throw new InvalidParameterException("Non-CSIRO Email");//Checks for correct email address
+					if (!args[0].contains("@")) throw (new IllegalArgumentException());
+					//if (!args[0].endsWith("@csiro.au")) throw new IllegalArgumentException("Non-CSIRO Email");//Checks for correct email address
 					MailSender.sendMail(args[0], args[1], args[2]);
 					JOptionPane.showMessageDialog(this, "Email successfully sent!", "Email Notification", JOptionPane.INFORMATION_MESSAGE);
 					this.setVisible(false);
-				} catch (InvalidParameterException e0){
+				} catch (IllegalArgumentException e0){
 					JOptionPane.showMessageDialog(this, "Email sending failed!\n" +
 							"You need to send this to a valid email address!", "Email Notification", JOptionPane.ERROR_MESSAGE);
 				} catch (Exception e1){
@@ -173,8 +172,8 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, ItemListe
 				ackChanged = false;
 				shlvChanged = false;
 				try {
-					AlarmMaintainer.setAcknowledged(itsPointDesc, tempAck, itsUser, AbsTime.factory());
-					AlarmMaintainer.setShelved(itsPointDesc, tempShlv, itsUser, AbsTime.factory());
+					AlarmMaintainer.setAcknowledged(itsPointDesc.getFullName(), tempAck, itsUser, password);
+					AlarmMaintainer.setShelved(itsPointDesc.getFullName(), tempShlv, itsUser, password);
 					this.setVisible(false);
 				} catch (NullPointerException e){
 					// No point available if this is the case
