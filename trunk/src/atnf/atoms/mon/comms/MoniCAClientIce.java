@@ -9,10 +9,12 @@
 package atnf.atoms.mon.comms;
 
 import java.math.BigInteger;
-import java.util.Iterator;
 import java.util.Vector;
 
-import atnf.atoms.mon.*;
+import atnf.atoms.mon.Alarm;
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.mon.util.RSA;
 import atnf.atoms.time.AbsTime;
 import atnf.atoms.time.RelTime;
@@ -564,12 +566,10 @@ public class MoniCAClientIce extends MoniCAClient {
       for (int i = 0; i < pointnames.size(); i++) {
         namesarray[i] = pointnames.get(i);
       }
-
       // Encrypt the username/password
       RSA encryptor = getEncryptor();
       String encname = encryptor.encrypt(username);
       String encpass = encryptor.encrypt(password);
-
       // Send the request to the server
       res = itsIceClient.acknowledgeAlarms(namesarray, ack, encname, encpass);
     } catch (Exception e) {

@@ -11,6 +11,7 @@ package atnf.atoms.mon.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.util.Enumeration;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -22,6 +23,10 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import atnf.atoms.mon.client.MonClientUtil;
@@ -50,7 +55,7 @@ public class SimpleTreeSelector extends JPanel{
 	protected JTree itsTree = null;
 
 	/** TreeUtil containing the items to display in the tree. */
-	protected TreeUtil itsTreeUtil = null;
+	protected SimpleTreeUtil itsTreeUtil = null;
 
 	/** Cache of the full point/source names for each point. */
 	private static String[] theirPointNames = null;
@@ -58,7 +63,7 @@ public class SimpleTreeSelector extends JPanel{
 	private static String[] theirNodeNames = null;
 
 	/** Keeps track of which points have currently been selected. */
-	protected Vector<Object> itsSelected = new Vector<Object>();
+	protected Vector<String> itsSelected = new Vector<String>();
 
 	/** Listeners for when our selection changes. */
 	protected EventListenerList itsListeners = new EventListenerList();
@@ -77,6 +82,7 @@ public class SimpleTreeSelector extends JPanel{
 		// Build the data tree
 		buildTree();
 		itsTree = itsTreeUtil.getTree();
+		itsTree.addTreeSelectionListener(itsTreeUtil);
 		this.setSelectionMode(
 				TreeSelectionModel.SINGLE_TREE_SELECTION);
 		JScrollPane sp = new JScrollPane(itsTree);
@@ -132,7 +138,7 @@ public class SimpleTreeSelector extends JPanel{
 			}
 		}
 
-		itsTreeUtil = new TreeUtil("Points");
+		itsTreeUtil = new SimpleTreeUtil("Points");
 
 		if (theirPointNames != null) {
 			for (int i = 0; i < theirPointNames.length; i++) {
@@ -154,7 +160,7 @@ public class SimpleTreeSelector extends JPanel{
 		itsTree.getSelectionModel().setSelectionMode(mode);
 	}
 	
-	public Object getSelection(){
+	public TreePath getSelection(){
 		//TODO still, not too sure if this will work
 		return itsTree.getSelectionModel().getSelectionPath();
 	}
@@ -193,8 +199,8 @@ public class SimpleTreeSelector extends JPanel{
 	 * @return Vector containing String names of all selected items.
 	 */
 	@SuppressWarnings("unchecked")
-	public synchronized Vector<Object> getSelections() {
-		return (Vector<Object>) itsSelected.clone();
+	public synchronized Vector<String> getSelections() {
+		return (Vector<String>) itsSelected.clone();
 	}
 
 	/**
@@ -202,12 +208,69 @@ public class SimpleTreeSelector extends JPanel{
 	 * @param v Vector containing String names of items to be selected.
 	 */
 	@SuppressWarnings("unchecked")
-	public synchronized void setSelections(Vector<Object> v) {
+	public synchronized void setSelections(Vector<String> v) {
 		if (v == null || v.size() == 0) {
 			itsSelected.clear();
 		} else {
-			itsSelected = (Vector<Object>) v.clone();
+			itsSelected = (Vector<String>) v.clone();
 		}
 		fireChangeEvent(new ChangeEvent(this));
+	}
+	
+	public class SimpleTreeUtil extends TreeUtil implements TreeSelectionListener{
+
+		public SimpleTreeUtil(String name) {
+			super(name);
+			// TODO Auto-generated constructor stub
+		}
+		
+		public SimpleTreeUtil(String name, Object root){
+			super(name, root);
+		}
+		
+		@SuppressWarnings("unchecked")
+		@Override
+		public void valueChanged(TreeSelectionEvent e){
+			TreePath[] selection = itsTree.getSelectionPaths();
+		      if (selection == null || selection.length == 0) {
+		        return;
+		      }
+		      for (int i = 0; i < selection.length; i++) {
+		        Object[] path = selection[i].getPath();
+
+		        if (path == null || path.length < 2) {
+		          continue;
+		        }
+		        
+		        Vector<Object> nodepaths = new Vector<Object>();
+		        if (((DefaultMutableTreeNode) (selection[i].getLastPathComponent())).isLeaf()) {
+		          //A single leaf node has been selected
+		          nodepaths.add(path);
+		        } else {
+		          //A full branch of the tree has been selected, so get all leaf nodes.
+		          Enumeration branch = ((DefaultMutableTreeNode) (selection[i].getLastPathComponent())).depthFirstEnumeration();
+		          while (branch.hasMoreElements()) {
+		            DefaultMutableTreeNode thisnode = (DefaultMutableTreeNode)branch.nextElement();
+		            if (thisnode.isLeaf()) {
+		              nodepaths.add(thisnode.getPath());
+		            }
+		          }
+		        }
+		                
+		        for (int j=0; j<nodepaths.size(); j++) {
+		          Object[] temppath = (Object[])nodepaths.get(j);
+		          String thispath = "";
+		          for (int k = 1; k < temppath.length; k++) {
+		            thispath += temppath[k];
+		            if (k != temppath.length - 1) {
+		              thispath += ".";
+		            }
+		          }
+		          String username = (String) itsTreeUtil.getNodeObject(thispath);
+		          itsSelected.add(username);
+		        }
+		      }
+		}
+		
 	}
 }

@@ -65,7 +65,6 @@ import atnf.atoms.mon.gui.MonPanel;
 import atnf.atoms.mon.gui.MonPanelSetupPanel;
 import atnf.atoms.mon.gui.PointSourceSelector;
 import atnf.atoms.mon.util.MailSender;
-import atnf.atoms.mon.util.RSA;
 import atnf.atoms.time.AbsTime;
 import atnf.atoms.time.RelTime;
 
@@ -105,8 +104,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	private String sevAlmStr = "severe";
 
 	private String username = "";
-	private RSA passwordEncryptor = new RSA(1024);
-	private String encryptedPassword = "";
+	private String password = "";
 
 	// /////////////////////// NESTED CLASS ///////////////////////////////
 	/** Nested class to provide GUI controls for configuring the AlarmManagerPanel */
@@ -326,9 +324,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-
-			super.actionPerformed(e);	
-
 			Object source = e.getSource();
 			if (source.equals(loginBtn)){
 
@@ -360,10 +355,13 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				if (result == JOptionPane.OK_OPTION){
 					try {
 						username = usernameField.getText();
-						encryptedPassword = passwordEncryptor.encrypt(new String(passwordField.getPassword()));
-					} catch (NumberFormatException nfe){
+						password = new String(passwordField.getPassword());
+						if (username.equals("") || password.equals("")){
+							throw new IllegalArgumentException(); 
+						}
+					} catch (IllegalArgumentException dfe){
 						username = "";
-						encryptedPassword = "";
+						password = "";
 						JOptionPane.showMessageDialog(this, "Incorrect Username or Password", "ERROR LOGGING IN", JOptionPane.ERROR_MESSAGE);
 					}
 				}
@@ -371,9 +369,15 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				if (username.equals("")){
 					loginState.setText("Not Logged In");
 				} else {
-					loginState.setText("Logged in OK as " + username);
+					loginState.setText("Username set as " + username);
 					loginState.setForeground(new Color(0x6E8B3D));
 				}
+			}
+
+			if (username.equals("") || password.equals("")){
+				JOptionPane.showMessageDialog(this, "You are required to log in with a valid username and password", "AUTHENTICATION ERROR", JOptionPane.ERROR_MESSAGE);
+			}else{
+				super.actionPerformed(e);	
 			}
 		}
 
@@ -696,10 +700,10 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					args[2] += "\n\n\n\t -- Sent via MoniCA Java Client";
 					try {		
 
-						//if (!args[0].endsWith("@csiro.au")) throw new InvalidParameterException("Non-CSIRO Email");//Checks for correct email address
+						//if (!args[0].endsWith("@csiro.au")) throw new IllegalArgumentException("Non-CSIRO Email");//Checks for correct email address
 						MailSender.sendMail(args[0], args[1], args[2]);
 						JOptionPane.showMessageDialog(this, "Email successfully sent!", "Email Notification", JOptionPane.INFORMATION_MESSAGE);
-					} catch (InvalidParameterException e0){
+					} catch (IllegalArgumentException e0){
 						JOptionPane.showMessageDialog(this, "Email sending failed!\n" +
 								"You need to send this to a CSIRO email address!", "Email Notification", JOptionPane.ERROR_MESSAGE);
 					} catch (Exception e1){
@@ -733,8 +737,9 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					ackChanged = false;
 					shlvChanged = false;
 					for (Object s : plist.getSelectedValues()){
-						AlarmMaintainer.setAcknowledged(PointDescription.getPoint(s.toString()), tempAck, itsUser, AbsTime.factory());
-						AlarmMaintainer.setShelved(PointDescription.getPoint(s.toString()), tempShlv, itsUser, AbsTime.factory());
+						//System.out.println("Username: " + username + "\nPassword: " + password);
+						AlarmMaintainer.setAcknowledged(s.toString(), tempAck, username, password);
+						AlarmMaintainer.setShelved(s.toString(), tempShlv, username, password);
 					}
 					updateListModels();
 					this.updateAlarmPanels();
@@ -851,8 +856,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 	private Vector<String> itsPoints = new Vector<String>();
 	private DefaultListModel itsListModel = new DefaultListModel();
-	private String itsUser = "";
-	//private String password; // TBC later
+	
 	private JTabbedPane stateTabs;
 	private AlarmDisplayPanel all;
 	private AlarmDisplayPanel nonAlarmed;
