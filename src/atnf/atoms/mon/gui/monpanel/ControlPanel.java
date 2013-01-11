@@ -9,6 +9,8 @@ package atnf.atoms.mon.gui.monpanel;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -140,57 +142,68 @@ public class ControlPanel extends MonPanel {
 
 		public void addControlSetup(){
 			
-			JPanel bigPanel = new JPanel(new GridLayout(3, 1));
-			SimpleTreeSelector itsSimpleTreeSelector;
+			JPanel bigPanel = new JPanel(new GridBagLayout());
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.weightx = 0.5;
+			gbc.weighty = 0.5;
+			gbc.gridx = 0;
+			gbc.gridy = 0;
+			gbc.gridheight = 1;
+			gbc.gridwidth = 1;
+			
+			SimpleTreeSelector itsSimpleTreeSelector = new SimpleTreeSelector();
 			JLabel selectedPointLabel = new JLabel("Selected Point: ");
+			selectedPointLabel.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 			JLabel selectedPoint = new JLabel("No Point Selected");
+			selectedPoint.setFont(new Font("Sans Serif", Font.ITALIC, 24));
 			JLabel controlTypeLabel = new JLabel("Control Type: ");
-			JComboBox controlType;
+			JComboBox controlType = new JComboBox(controlOptions);
+			controlType.setEditable(false);
 			JLabel dataTypeLabel = new JLabel("Data Type: ");
-			JComboBox dataType;
+			JComboBox dataType = new JComboBox(dataOptions);
+			dataType.setEditable(false);
 			JLabel displayLabel = new JLabel("Label: ");
 			JTextField displayField = new JTextField(10);
 			
-			JPanel selectorPanel = new JPanel(new GridBagLayout());
-			GridBagConstraints spc = new GridBagConstraints();
-			itsSimpleTreeSelector = new SimpleTreeSelector();
-			spc.weightx = 0.5;
-			spc.weighty = 0.5;
-			spc.gridx = 0;
-			spc.gridy = 0;
-			spc.gridheight = 4;
-			spc.gridwidth = 1;
-			selectorPanel.add(itsSimpleTreeSelector, spc);
-			spc.gridx = 1;
-			spc.gridy = 1;
-			spc.gridheight = 1;
-			spc.gridwidth = 2;
-			selectorPanel.add(selectedPointLabel, spc);
-			spc.gridy = 2;
-			selectorPanel.add(selectedPoint, spc);
-
-
-			JPanel typePanel = new JPanel(new GridLayout(1, 4));
-			controlType = new JComboBox(controlOptions);
-			controlType.setEditable(false);		
-			dataType = new JComboBox(dataOptions);
-			dataType.setEditable(false);
-			typePanel.add(controlTypeLabel);
-			typePanel.add(controlType);
-			typePanel.add(dataTypeLabel);
-			typePanel.add(dataType);
-
-			JPanel labelPanel = new JPanel();
-			labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.X_AXIS));
-			labelPanel.add(Box.createHorizontalGlue());
-			labelPanel.add(displayLabel);
-			labelPanel.add(displayField);
-			labelPanel.add(Box.createHorizontalGlue());
-
-			bigPanel.add(selectorPanel);
-			bigPanel.add(typePanel);
-			bigPanel.add(labelPanel);
-
+			gbc.gridheight = 4;
+			gbc.gridwidth = 3;
+			bigPanel.add(itsSimpleTreeSelector, gbc);
+			
+			gbc.gridheight = 1;
+			gbc.gridwidth = 2;
+			gbc.gridx = 3;
+			gbc.gridy = 1;
+			bigPanel.add(selectedPointLabel, gbc);
+			
+			gbc.gridy = 2;
+			bigPanel.add(selectedPoint, gbc);
+			
+			gbc.gridwidth = 1;
+			gbc.gridx = 1;
+			gbc.gridy = 4;
+			gbc.anchor = GridBagConstraints.EAST;
+			bigPanel.add(controlTypeLabel, gbc);
+			
+			gbc.anchor = GridBagConstraints.CENTER;
+			gbc.gridx = 2;
+			bigPanel.add(controlType, gbc);
+			
+			gbc.gridx = 3;
+			bigPanel.add(dataTypeLabel, gbc);
+			
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.gridx = 4;
+			bigPanel.add(dataType, gbc);
+			
+			gbc.gridx = 2;
+			gbc.gridy = 5;
+			gbc.anchor = GridBagConstraints.EAST;
+			bigPanel.add(displayLabel, gbc);
+			
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.gridx = 3;
+			bigPanel.add(displayField, gbc);
+			
 			itsMainPanel.add(bigPanel);
 			panelList.add(bigPanel);
 		}
