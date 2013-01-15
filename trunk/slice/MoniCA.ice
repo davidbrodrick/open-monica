@@ -77,6 +77,21 @@ module atnf {
         sequence<PointDataIce> pointdataset;
         sequence<pointdataset> pointdatasetarray;
         
+        //Alarm
+        struct AlarmIce {
+          string       pointname;
+          PointDataIce data;
+          bool         alarm;
+          bool         shelved;
+          string       shelvedBy;
+          long         shelvedAt;
+          bool         acknowledged;
+          string       acknowledgedBy;
+          long         acknowledgedAt;
+          int          priority;
+          string       guidance;
+        };
+        sequence<AlarmIce> alarmarray;
         
         
         ////////////
@@ -126,6 +141,17 @@ module atnf {
           idempotent stringarray getAllSetups();
           //Add/update a new setup to the server's list
           bool addSetup(string setup, string username, string passwd);
+
+          ////////////
+          //Operations for managing alarms.
+          //Get all alarms defined on the system whether they are alarming or not
+          alarmarray getAllAlarms();
+          //Get all active alarms (including acknowledged) or shelved.
+          alarmarray getCurrentAlarms();
+          //Acknowledge alarms (ack=true) or deacknowledge (ack=false)
+          bool acknowledgeAlarms(stringarray pointnames, bool ack, string username, string passwd);
+          //Shelve alarms (shelve=true) or deshelve (shelve=false)
+          bool shelveAlarms(stringarray pointnames, bool shelve, string username, string passwd);          
           
           ////////////
           //Some miscellaneous operations
