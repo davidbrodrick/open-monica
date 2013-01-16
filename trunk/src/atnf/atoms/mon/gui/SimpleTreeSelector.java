@@ -41,11 +41,11 @@ import atnf.atoms.mon.util.TreeUtil;
  * @see TreeUtil
  */
 public class SimpleTreeSelector extends JPanel{
-	
+
 	public final static int SINGLE_TREE_SELECTION = TreeSelectionModel.SINGLE_TREE_SELECTION;
 	public final static int CONTIGUOUS_TREE_SELECTION = TreeSelectionModel.CONTIGUOUS_TREE_SELECTION;
 	public final static int DISCONTIGUOUS_TREE_SELECTION = TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
-	
+
 	/**
 	 * 
 	 */
@@ -159,7 +159,7 @@ public class SimpleTreeSelector extends JPanel{
 	public void setSelectionMode(int mode){
 		itsTree.getSelectionModel().setSelectionMode(mode);
 	}
-	
+
 	public TreePath getSelection(){
 		//TODO still, not too sure if this will work
 		return itsTree.getSelectionModel().getSelectionPath();
@@ -217,60 +217,71 @@ public class SimpleTreeSelector extends JPanel{
 		fireChangeEvent(new ChangeEvent(this));
 	}
 	
+	public SimpleTreeUtil getTreeUtil(){
+		return itsTreeUtil;
+	}
+
 	public class SimpleTreeUtil extends TreeUtil implements TreeSelectionListener{
 
 		public SimpleTreeUtil(String name) {
 			super(name);
 			// TODO Auto-generated constructor stub
 		}
-		
+
 		public SimpleTreeUtil(String name, Object root){
 			super(name, root);
 		}
-		
+
 		@SuppressWarnings("unchecked")
 		@Override
 		public void valueChanged(TreeSelectionEvent e){
+			itsSelected.clear();
 			TreePath[] selection = itsTree.getSelectionPaths();
-		      if (selection == null || selection.length == 0) {
-		        return;
-		      }
-		      for (int i = 0; i < selection.length; i++) {
-		        Object[] path = selection[i].getPath();
+			if (selection == null || selection.length == 0) {
+				return;
+			}
+			for (int i = 0; i < selection.length; i++) {
+				Object[] path = selection[i].getPath();
 
-		        if (path == null || path.length < 2) {
-		          continue;
-		        }
-		        
-		        Vector<Object> nodepaths = new Vector<Object>();
-		        if (((DefaultMutableTreeNode) (selection[i].getLastPathComponent())).isLeaf()) {
-		          //A single leaf node has been selected
-		          nodepaths.add(path);
-		        } else {
-		          //A full branch of the tree has been selected, so get all leaf nodes.
-		          Enumeration branch = ((DefaultMutableTreeNode) (selection[i].getLastPathComponent())).depthFirstEnumeration();
-		          while (branch.hasMoreElements()) {
-		            DefaultMutableTreeNode thisnode = (DefaultMutableTreeNode)branch.nextElement();
-		            if (thisnode.isLeaf()) {
-		              nodepaths.add(thisnode.getPath());
-		            }
-		          }
-		        }
-		                
-		        for (int j=0; j<nodepaths.size(); j++) {
-		          Object[] temppath = (Object[])nodepaths.get(j);
-		          String thispath = "";
-		          for (int k = 1; k < temppath.length; k++) {
-		            thispath += temppath[k];
-		            if (k != temppath.length - 1) {
-		              thispath += ".";
-		            }
-		          }
-		          String username = (String) itsTreeUtil.getNodeObject(thispath);
-		          itsSelected.add(username);
-		        }
-		      }
+				if (path == null || path.length < 2) {
+					continue;
+				}
+
+				Vector<Object> nodepaths = new Vector<Object>();
+				if (((DefaultMutableTreeNode) (selection[i].getLastPathComponent())).isLeaf()) {
+					//A single leaf node has been selected
+					nodepaths.add(path);
+				} else {
+					//A full branch of the tree has been selected, so get all leaf nodes.
+					Enumeration branch = ((DefaultMutableTreeNode) (selection[i].getLastPathComponent())).depthFirstEnumeration();
+					while (branch.hasMoreElements()) {
+						DefaultMutableTreeNode thisnode = (DefaultMutableTreeNode)branch.nextElement();
+						if (thisnode.isLeaf()) {
+							nodepaths.add(thisnode.getPath());
+						}
+					}
+				}
+
+				for (int j=0; j<nodepaths.size(); j++) {
+					Object[] temppath = (Object[])nodepaths.get(j);
+					String thispath = "";
+					for (int k = 1; k < temppath.length; k++) {
+						thispath += temppath[k];
+						if (k != temppath.length - 1) {
+							thispath += ".";
+						}
+					}
+					String username = (String) itsTreeUtil.getNodeObject(thispath);
+					itsSelected.add(username);
+					fireChangeEvent(new ChangeEvent(this));
+				}
+			}
 		}
-		
+
+		@SuppressWarnings("unchecked")
+		public synchronized Vector<String> getSelections() {
+			return (Vector<String>) itsSelected.clone();
+		}
+
 	}
 }
