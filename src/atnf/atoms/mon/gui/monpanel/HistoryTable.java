@@ -39,7 +39,6 @@ import java.text.SimpleDateFormat;
  * any part of the table.
  * 
  * @author David Brodrick
- * @version $Id: HistoryTable.java,v 1.2 2006/06/27 05:51:03 bro764 Exp $
  */
 public class HistoryTable extends MonPanel implements PointListener, Runnable, TableCellRenderer {
   static {
@@ -267,7 +266,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       ss.setName("temp");
 
       // Make a parsable string from the list of point names
-      Vector points = itsPointSelector.getSelections();
+      Vector<String> points = itsPointSelector.getSelections();
       String p = "";
       if (points.size() > 0) {
         p += points.get(0);
@@ -544,7 +543,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
 
       String p = (String) setup.get("points");
       StringTokenizer stp = new StringTokenizer(p, ":");
-      Vector points = new Vector(stp.countTokens());
+      Vector<String> points = new Vector<String>(stp.countTokens());
       while (stp.hasMoreTokens()) {
         points.add(stp.nextToken());
       }
@@ -598,7 +597,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
   /** Should rows be shown in reverse chronological order? */
   protected boolean itsReverse = false;
   /** Each entry is a Vector containing the data for an individual row. */
-  protected Vector itsRows = new Vector();
+  protected Vector<Vector<Object>> itsRows = new Vector<Vector<Object>>();
   /** Contains all the raw data for the monitor points. */
   protected Vector<Vector<PointData>> itsData = new Vector<Vector<PointData>>();
   /** Indicates that the worker thread should continue to run. */
@@ -895,7 +894,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
     boolean foundit = false;
     for (int i = 0; i < itsPoints.size(); i++) {
       if (((String) itsPoints.get(i)).equals(src)) {
-        ((Vector) itsData.get(i)).add(pd);
+        itsData.get(i).add(pd);
         foundit = true;
       }
     }
@@ -932,11 +931,10 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
    *          The print stream to write the data to.
    */
   public synchronized void export(PrintStream p) {
-    final String rcsid = "$Id: HistoryTable.java,v 1.2 2006/06/27 05:51:03 bro764 Exp $";
-    p.println("#Dump from HistoryTable " + rcsid);
+    p.println("#Dump from HistoryTable");
     p.println("#Data dumped at " + (new AbsTime().toString(AbsTime.Format.UTC_STRING)));
     for (int r = 0; r < itsRows.size(); r++) {
-      Vector row = (Vector) itsRows.get(r);
+      Vector<Object> row = itsRows.get(r);
       AbsTime t = (AbsTime) row.get(0);
       p.print(t.getValue() + ", ");
       p.print(t.toString(AbsTime.Format.UTC_STRING));
@@ -966,7 +964,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       AbsTime cutoff = now.add(per);
 
       for (int i = 0; i < itsData.size(); i++) {
-        Vector thisdata = (Vector) itsData.get(i); // Always 0
+        Vector<PointData> thisdata = itsData.get(i); // Always 0
         if (thisdata.isEmpty()) {
           continue;
         }
@@ -978,8 +976,8 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
     }
 
     try {
-      Vector newrows = new Vector();
-      Vector lastrow = null;
+      Vector<Vector<Object>> newrows = new Vector<Vector<Object>>();
+      Vector<Object> lastrow = null;
 
       while (true) {
         lastrow = getNextRow(lastrow);
@@ -1005,7 +1003,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
   /**
    * Return the values for the next row based on time/data of previous row and user options.
    */
-  public Vector getNextRow(Vector prevrow) {
+  public Vector<Object> getNextRow(Vector<Object> prevrow) {
     Vector<Object> res = null;
     boolean done = false;
 
@@ -1038,7 +1036,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
         // Next row will correspond to next update of any column
         AbsTime earliest = null;
         for (int i = 0; i < itsData.size(); i++) {
-          Vector<PointData> v = (Vector) itsData.get(i);
+          Vector<PointData> v = itsData.get(i);
 
           if (v == null || v.size() == 0) {
             continue;
@@ -1066,7 +1064,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
           // Start at first 10 second mark after first data
           AbsTime earliest = null;
           for (int i = 0; i < itsData.size(); i++) {
-            Vector v = (Vector) itsData.get(i);
+            Vector<PointData> v = itsData.get(i);
             if (v == null || v.size() == 0) {
               continue;
             }
@@ -1131,7 +1129,12 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       if (itsSkipRows && res != null && prevrow != null) {
         boolean keepit = false;
         for (int i = 1; i < res.size(); i++) {
-          if (!compare(res.get(i), prevrow.get(i))) {
+          Object data1 = null, data2 = null;
+          if (res.get(i) != null && res.get(i) instanceof PointData)
+            data1 = ((PointData) res.get(i)).getData();
+          if (prevrow.get(i) != null && prevrow.get(i) instanceof PointData)
+            data2 = ((PointData) prevrow.get(i)).getData();
+          if (!compare(data1, data2)) {
             keepit = true;
             break;
           }
@@ -1147,7 +1150,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
     }
 
     if (itsSparse && prevrow != null) {
-      Vector newres = new Vector(res.size());
+      Vector<Object> newres = new Vector<Object>(res.size());
       newres.add(res.get(0));
       for (int i = 1; i < res.size(); i++) {
         if (compare(res.get(i), prevrow.get(i))) {
@@ -1265,7 +1268,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       if (!itsReverse) {
         row = itsRows.size() - row - 1;
       }
-      Vector r = (Vector) itsRows.get(row);
+      Vector<Object> r = itsRows.get(row);
       if (column >= r.size()) {
         return "";
       }
@@ -1352,7 +1355,12 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       res = (Component) value;
     } else {
       PointData pd = (PointData) value;
-      res = new JLabel(pd.getData().toString());
+      Object dataval = pd.getData();
+      if (dataval != null) {
+        res = new JLabel(dataval.toString());
+      } else {
+        res = new JLabel("?");
+      }
       if (pd.getAlarm()) {
         // Highlight this cell as the value was out of range
         res.setForeground(Color.red);
