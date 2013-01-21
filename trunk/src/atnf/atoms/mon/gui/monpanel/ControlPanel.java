@@ -10,18 +10,19 @@ package atnf.atoms.mon.gui.monpanel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.font.TextAttribute;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -71,6 +72,22 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 	private Integer numControls = 0;
 	private ArrayList<ControlPanelDisplayComponent> panelList = new ArrayList<ControlPanelDisplayComponent>();
 
+	/** Array holding the values "Text Field", "Button" and "Checkbox".
+	 *  Used for constant references to these Strings, and also
+	 *	for the values in the "Control Type" JComboBoxes
+	 */
+	private final String[] controlOptions = {"Text Field", "Button", "Checkbox"};
+	/** Array holding the values "Text", "Number" and "True/False".
+	 *  Used for constant references to these Strings, and also
+	 *	for the values in the "Control Type" JComboBoxes
+	 */
+	private final String[] dataOptions = {"Text", "Number", "True/False"};
+
+	/** Array holding the values "Horizontal" and "Vertical".
+	 *  Used for constant references to these Strings, and also
+	 *	for the values in the "Layout" type JComboBox.
+	 */
+	private final String[] layoutOptions = {"Horizontal", "Vertical"};
 
 	static {
 		MonPanel.registerMonPanel("Control Panel", ControlPanel.class);
@@ -94,25 +111,9 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 		private JLabel titleLabel = new JLabel("Title: ");
 		private JTextField title = new JTextField(10);
-		
+
 		private JLabel layoutLabel = new JLabel("Layout: ");
 		private JComboBox layout;
-		/** Array holding the values "Text Field", "Button" and "Checkbox".
-		 *  Used for constant references to these Strings, and also
-		 *	for the values in the "Control Type" JComboBoxes
-		 */
-		private final String[] controlOptions = {"Text Field", "Button", "Checkbox"};
-		/** Array holding the values "Text", "Number" and "True/False".
-		 *  Used for constant references to these Strings, and also
-		 *	for the values in the "Control Type" JComboBoxes
-		 */
-		private final String[] dataOptions = {"Text", "Number", "True/False"};
-		
-		/** Array holding the values "Horizontal" and "Vertical".
-		 *  Used for constant references to these Strings, and also
-		 *	for the values in the "Layout" type JComboBox.
-		 */
-		private final String[] layoutOptions = {"Horizontal", "Vertical"};
 
 		private NumberDocumentFilter ndoc = new NumberDocumentFilter();
 		private ArrayList<ControlPanelSetupComponent> componentList = new ArrayList<ControlPanelSetupComponent>();
@@ -125,11 +126,11 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 			title.setText("Controls");
 			title.setMaximumSize(new Dimension(50, 25));
-			
+
 			numberControls.setMaximumSize(new Dimension(45, 25));
 			numberControls.setModel(spinModel);
 			numberControls.addChangeListener(this);
-			
+
 			layout = new JComboBox(layoutOptions);
 			layout.setEditable(false);
 			layout.setMaximumSize(new Dimension(50, 25));
@@ -213,7 +214,7 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 			numControls = Integer.parseInt(itsInitialSetup.get("controls number"));
 			numberControls.setValue(numControls);
-			
+
 			for (int i = 0; i < numControls; i++){
 				addControlSetup();
 			}
@@ -241,7 +242,7 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 				cpsc.setDataType(dataType);
 				cpsc.setTextField(labelText);
 				cpsc.setValueText(valueText);
-				
+
 
 				n++;
 			}
@@ -319,7 +320,7 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.gridx = 4;
 			bigPanel.add(dataType, gbc);
-			
+
 			gbc.gridx = 0;
 			gbc.gridy = 5;
 			gbc.anchor = GridBagConstraints.EAST;
@@ -328,7 +329,7 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.gridx = 1;
 			bigPanel.add(pointField, gbc);
-			
+
 			gbc.gridx = 2;
 			gbc.gridy = 5;
 			gbc.anchor = GridBagConstraints.EAST;
@@ -440,7 +441,7 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 						if (c.getDataType().equals(dataOptions[1])){
 							Pattern pattern = Pattern.compile("[0-9]*|\\.|[0-9]*\\.[0-9]*");
 							Matcher matcher = pattern.matcher(c.getValueText());
-							if (!matcher.matches()){
+							if (!matcher.matches() || c.getValueText().equals("")){
 								System.out.println("Error in Number");
 								JOptionPane.showMessageDialog(this, 
 										"The data value set in the \"Value\" field is incompatible with the Data type you have selected.\n" +
@@ -539,7 +540,7 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 		private JButton closeButton;
 
-		public ControlPanelSetupComponent(JPanel cont, SimpleTreeSelector stis, JLabel pt, JComboBox ct, JComboBox dt, JTextField lb, JTextField pf, JTextField vf, JLabel vl, JButton close){
+		public ControlPanelSetupComponent(JPanel cont, SimpleTreeSelector stis, JLabel pt, JComboBox ct, JComboBox dt, JTextField pf, JTextField lb, JTextField vf, JLabel vl, JButton close){
 			this.container = cont;
 			this.tree = stis;
 			this.point = pt;
@@ -568,24 +569,21 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 		public JButton getCloseButton() {
 			return closeButton;
 		}
-		
+
 		public String getControlName(){
 			return this.controlName.getText();
 		}
 
 		public void setTextField(String labelText) {
 			label.setText(labelText);
-
 		}
 
 		public void setDataType(String dataType) {
 			data.setSelectedItem(dataType);
-
 		}
 
 		public void setControlType(String controlType) {
 			control.setSelectedItem(controlType);
-
 		}
 
 		public void setPointString(String point2) {
@@ -662,13 +660,12 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 	// ///// NESTED CLASS: ControlPanelDisplayComponent ///////
 
-	public class ControlPanelDisplayComponent{
+	public class ControlPanelDisplayComponent{ //should probably have made this an abstract superclass, but for the moment this is fine - may be worth a refactor later.
 
 		public final static int BUTTON_TYPE = 0x00;
 		public final static int CHECKBOX_TYPE = 0x01;
 		public final static int TEXT_TYPE = 0x02;
 
-		private JPanel container;
 		private String point;
 		private JButton button;
 		private JCheckBox check;
@@ -676,76 +673,53 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 		private JButton confirm;
 		private String dataType;
 		private String buttonValue;
-		private int type;
+		private int controlType;
 
-		public ControlPanelDisplayComponent(JPanel cont, String pt, JButton jb, String bv, String dt){
-			this.container = cont;
+		public ControlPanelDisplayComponent(String pt, JButton jb, String bv, String dt){
 			this.point = pt;
 			this.button = jb; 
 			this.setButtonValue(bv);
-			this.type = BUTTON_TYPE;
+			this.controlType = BUTTON_TYPE;
 			this.dataType = dt;
 		}
 
-		public ControlPanelDisplayComponent(JPanel cont, String pt, JCheckBox jc, String dt, JButton conf){
-			this.container = cont;
+		public ControlPanelDisplayComponent(String pt, JCheckBox jc, String dt, JButton conf){
 			this.point = pt;
 			this.check = jc; 
-			this.type = CHECKBOX_TYPE;
+			this.controlType = CHECKBOX_TYPE;
 			this.dataType = dt;
 			this.confirm = conf;
 		}
 
-		public ControlPanelDisplayComponent(JPanel cont, String pt, JTextField v, JButton conf, String dt){
-			this.container = cont;
+		public ControlPanelDisplayComponent(String pt, JTextField v, JButton conf, String dt){
 			this.point = pt;
 			this.value = v; 
-			this.type = TEXT_TYPE;
+			this.controlType = TEXT_TYPE;
 			this.dataType = dt;
 			this.confirm = conf;
-		}
-
-		public JButton getButton(){
-			if (this.type == BUTTON_TYPE){
-				return button;
-			} else {
-				return null;
-			}
 		}
 
 		public JCheckBox getCheckBox(){
-			if (this.type == CHECKBOX_TYPE){
+			if (this.controlType == CHECKBOX_TYPE){
 				return check;
 			} else {
 				return null;
 			}
 		}
 
-		public JTextField getTextField(){
-			if (this.type == TEXT_TYPE){
-				return value;
-			} else {
-				return null;
-			}
+		public String getDataType(){
+			return dataType;
 		}
-
+		
 		public String getPoint(){
 			return this.point;
 		}
 
-		public JPanel getContainer(){
-			return this.container;
-		}
-
-		public String getdataType(){
-			return dataType;
-		}
-
 		public JButton getConfirmButton(){
-			if (this.type == TEXT_TYPE){
-				return confirm;
+			if (this.controlType == BUTTON_TYPE){
+				return button;
 			} else {
-				return null;
+				return confirm;
 			}
 		}
 
@@ -757,6 +731,24 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 			return buttonValue;
 		}
 
+		public int getControlType(){
+			return controlType;
+		}
+
+		public String getTextFieldContents(){
+			if (controlType == TEXT_TYPE){
+				return this.value.getText();
+			} else {
+				return null;
+			}
+		}
+		
+		public void removeListeners(ControlPanel cp){
+			if (controlType == BUTTON_TYPE) button.removeActionListener(cp);
+			if (controlType == TEXT_TYPE || controlType == CHECKBOX_TYPE) confirm.removeActionListener(cp);
+			if (controlType == CHECKBOX_TYPE)check.removeItemListener(cp);
+			
+		}
 	}
 
 	// ///// END NESTED CLASS ///////
@@ -776,7 +768,10 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 			SavedSetup itsInitialSetup = setup;
 
 			numControls = Integer.parseInt(itsInitialSetup.get("controls number"));
-
+			String layout = itsInitialSetup.get("layout");
+			String title = itsInitialSetup.get("title");
+			
+			
 			String res = itsInitialSetup.get("points");
 			StringTokenizer st = new StringTokenizer(res, ";");
 			Vector<String> components = new Vector<String>();
@@ -784,19 +779,25 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 				components.add(st.nextToken());
 			}
 			GridBagConstraints gbc = new GridBagConstraints();
-			itsMainPanel = new JPanel(new GridBagLayout());
+			itsMainPanel = new JPanel(new BorderLayout());
+			JPanel itsPanel = new JPanel(new GridBagLayout());
+			JLabel titleLabel = new JLabel(title);
+			titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+			Map<TextAttribute, Integer> fontAttributes = new HashMap<TextAttribute, Integer>();
+			fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_TWO_PIXEL);
+			titleLabel.setFont(new Font("Sans Serif", Font.BOLD | Font.ITALIC, 24).deriveFont(fontAttributes));
 
 			gbc.gridy = 0;
-			
+
 			for (String s : components){
-				
+
 				gbc.gridx = 0;
 				gbc.gridheight = 1;
 				gbc.gridwidth = 1;
 				gbc.fill = GridBagConstraints.HORIZONTAL;
 				gbc.weightx = 0.5;
 				gbc.insets = new Insets(5,30,0,0);
-				
+
 				st = new StringTokenizer(s, ",");
 				ControlPanelDisplayComponent cpdc;
 				String point = st.nextToken();
@@ -805,53 +806,62 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 				String controlName = st.nextToken();
 				String labelText = st.nextToken();
 				String bValue = st.nextToken();
+
+				JLabel itsName = new JLabel(controlName);
+				itsName.setFont(new Font("Sans Serif", Font.BOLD | Font.ITALIC, 14));
 				
-				JLabel itsPoint = new JLabel(controlName);
 				
-				itsMainPanel.add(itsPoint, gbc);
+				itsPanel.add(itsName, gbc);
 				gbc.insets = new Insets(5,10,0,0);
-				
+
 				if (controlType.equals("Button")){
 					JButton jb = new JButton(labelText);
+					jb.addActionListener(this);
 					gbc.gridx = 3;
 					gbc.insets = new Insets(5,10,0,30);
-					itsMainPanel.add(jb, gbc);
-					cpdc = new ControlPanelDisplayComponent(itsMainPanel, point, jb, bValue, dataType);
+					itsPanel.add(jb, gbc);
+					cpdc = new ControlPanelDisplayComponent(point, jb, bValue, dataType);
 				} else if (controlType.equals("Checkbox")){
 					JCheckBox jc = new JCheckBox(labelText);
 					JButton send = new JButton("Send");
 					send.addActionListener(this);
 					gbc.gridx = 2;
-					itsMainPanel.add(jc, gbc);
+					itsPanel.add(jc, gbc);
 					gbc.gridx = 3;
 					gbc.insets = new Insets(5,10,0,30);
-					itsMainPanel.add(send, gbc);
-					cpdc = new ControlPanelDisplayComponent(itsMainPanel, point, jc, dataType, send);
-
+					itsPanel.add(send, gbc);
+					cpdc = new ControlPanelDisplayComponent(point, jc, dataType, send);
 				} else {
-					JLabel tfl = new JLabel(labelText + ": ");
+					JLabel tfl;
+					if (labelText.equals("\t")){
+						tfl = new JLabel(labelText);
+					} else {
+						tfl = new JLabel(labelText + ": ");
+					}
 					tfl.setHorizontalAlignment(SwingConstants.RIGHT);
 					JTextField tf = new JTextField(10);
 					JButton send = new JButton("Send");
 					send.addActionListener(this);
 					tf.setEditable(true);
 					gbc.gridx = 1;
-					itsMainPanel.add(tfl, gbc);
+					itsPanel.add(tfl, gbc);
 					gbc.gridx = 2;
-					itsMainPanel.add(tf, gbc);
+					itsPanel.add(tf, gbc);
 					gbc.gridx = 3;
 					gbc.insets = new Insets(5,10,0,30);
-					itsMainPanel.add(send, gbc);
-					cpdc = new ControlPanelDisplayComponent(itsMainPanel, point, tf, send, dataType);
+					itsPanel.add(send, gbc);
+					cpdc = new ControlPanelDisplayComponent(point, tf, send, dataType);
 
 				}
 
 				panelList.add(cpdc);
-				
+
 				gbc.gridy += 1;
 
 			}
-
+			
+			itsMainPanel.add(titleLabel, BorderLayout.NORTH);
+			itsMainPanel.add(itsPanel, BorderLayout.CENTER);
 
 
 			itsMainPanel.revalidate();
@@ -882,7 +892,14 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 	}
 
 	public void vaporise() {
-		//TODO
+		for (ControlPanelDisplayComponent c : panelList){
+			c.removeListeners(this);
+		}
+		
+		panelList = new ArrayList<ControlPanelDisplayComponent>();
+		itsMainPanel.removeAll();
+		itsMainPanel.revalidate();
+		itsMainPanel.repaint();
 	}
 
 	public void export(PrintStream p) {
@@ -895,7 +912,46 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		// TODO Auto-generated method stub
+
+		if (arg0.getSource() instanceof JButton){
+			JButton source = (JButton) arg0.getSource();
+
+			for (ControlPanelDisplayComponent c : panelList){
+				if (source.equals(c.getConfirmButton())){
+					if (c.getControlType() == ControlPanelDisplayComponent.BUTTON_TYPE){
+						String value = c.getButtonValue();
+						if (value != null){
+							//TODO Action for sending button data to control point
+							System.out.println("Sending data from BUTTON_TYPE control " + value);
+						}
+					} else if (c.getControlType() == ControlPanelDisplayComponent.CHECKBOX_TYPE){
+
+						JCheckBox cb = c.getCheckBox();
+						if (cb != null){
+							boolean state = cb.isSelected();
+							String value;
+							if (state){
+								value = "true";
+							} else {
+								value = "false";
+							}
+							//TODO Action for sending checkbox data to control point
+							System.out.println("Sending data from CHECKBOX_TYPE control: "+ value);
+						}
+					} else {
+						String value = c.getTextFieldContents();
+						if (value != null){
+							//TODO Action for sending text field data to control point
+							System.out.println("Sending data from TEXT_TYPE control: " + value);
+						}
+					}
+
+					break;
+
+				}
+			}
+
+		}
 
 	}
 
