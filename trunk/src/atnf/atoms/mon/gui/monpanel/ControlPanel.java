@@ -214,10 +214,13 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 			numControls = Integer.parseInt(itsInitialSetup.get("controls number"));
 			numberControls.setValue(numControls);
-
+			
 			for (int i = 0; i < numControls; i++){
 				addControlSetup();
 			}
+			
+			layout.setSelectedItem(itsInitialSetup.get("layout"));
+			title.setText(itsInitialSetup.get("title"));
 
 			String res = itsInitialSetup.get("points");
 			StringTokenizer st = new StringTokenizer(res, ";");
@@ -242,8 +245,7 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 				cpsc.setDataType(dataType);
 				cpsc.setTextField(labelText);
 				cpsc.setValueText(valueText);
-
-
+				
 				n++;
 			}
 
@@ -710,7 +712,7 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 		public String getDataType(){
 			return dataType;
 		}
-		
+
 		public String getPoint(){
 			return this.point;
 		}
@@ -742,12 +744,12 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 				return null;
 			}
 		}
-		
+
 		public void removeListeners(ControlPanel cp){
 			if (controlType == BUTTON_TYPE) button.removeActionListener(cp);
 			if (controlType == TEXT_TYPE || controlType == CHECKBOX_TYPE) confirm.removeActionListener(cp);
 			if (controlType == CHECKBOX_TYPE)check.removeItemListener(cp);
-			
+
 		}
 	}
 
@@ -770,8 +772,8 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 			numControls = Integer.parseInt(itsInitialSetup.get("controls number"));
 			String layout = itsInitialSetup.get("layout");
 			String title = itsInitialSetup.get("title");
-			
-			
+
+
 			String res = itsInitialSetup.get("points");
 			StringTokenizer st = new StringTokenizer(res, ";");
 			Vector<String> components = new Vector<String>();
@@ -787,79 +789,145 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 			fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_TWO_PIXEL);
 			titleLabel.setFont(new Font("Sans Serif", Font.BOLD | Font.ITALIC, 24).deriveFont(fontAttributes));
 
+			gbc.gridx = 0;
 			gbc.gridy = 0;
+			if (layout.equals(layoutOptions[0])){
 
-			for (String s : components){
+				for (String s : components){
 
-				gbc.gridx = 0;
-				gbc.gridheight = 1;
-				gbc.gridwidth = 1;
-				gbc.fill = GridBagConstraints.HORIZONTAL;
-				gbc.weightx = 0.5;
-				gbc.insets = new Insets(5,30,0,0);
+					gbc.gridx = 0;
+					gbc.gridheight = 1;
+					gbc.gridwidth = 1;
+					gbc.fill = GridBagConstraints.HORIZONTAL;
+					gbc.weightx = 0.5;
+					gbc.insets = new Insets(5,30,0,0);
 
-				st = new StringTokenizer(s, ",");
-				ControlPanelDisplayComponent cpdc;
-				String point = st.nextToken();
-				String controlType = st.nextToken();
-				String dataType = st.nextToken();
-				String controlName = st.nextToken();
-				String labelText = st.nextToken();
-				String bValue = st.nextToken();
+					st = new StringTokenizer(s, ",");
+					ControlPanelDisplayComponent cpdc;
+					String point = st.nextToken();
+					String controlType = st.nextToken();
+					String dataType = st.nextToken();
+					String controlName = st.nextToken();
+					String labelText = st.nextToken();
+					String bValue = st.nextToken();
 
-				JLabel itsName = new JLabel(controlName);
-				itsName.setFont(new Font("Sans Serif", Font.BOLD | Font.ITALIC, 14));
-				
-				
-				itsPanel.add(itsName, gbc);
-				gbc.insets = new Insets(5,10,0,0);
+					JLabel itsName = new JLabel(controlName);
+					itsName.setFont(new Font("Sans Serif", Font.BOLD | Font.ITALIC, 14));
 
-				if (controlType.equals("Button")){
-					JButton jb = new JButton(labelText);
-					jb.addActionListener(this);
-					gbc.gridx = 3;
-					gbc.insets = new Insets(5,10,0,30);
-					itsPanel.add(jb, gbc);
-					cpdc = new ControlPanelDisplayComponent(point, jb, bValue, dataType);
-				} else if (controlType.equals("Checkbox")){
-					JCheckBox jc = new JCheckBox(labelText);
-					JButton send = new JButton("Send");
-					send.addActionListener(this);
-					gbc.gridx = 2;
-					itsPanel.add(jc, gbc);
-					gbc.gridx = 3;
-					gbc.insets = new Insets(5,10,0,30);
-					itsPanel.add(send, gbc);
-					cpdc = new ControlPanelDisplayComponent(point, jc, dataType, send);
-				} else {
-					JLabel tfl;
-					if (labelText.equals("\t")){
-						tfl = new JLabel(labelText);
+
+					itsPanel.add(itsName, gbc);
+					gbc.insets = new Insets(5,10,0,0);
+
+					if (controlType.equals("Button")){
+						JButton jb = new JButton(labelText);
+						jb.addActionListener(this);
+						gbc.gridx = 3;
+						gbc.insets = new Insets(5,10,0,30);
+						itsPanel.add(jb, gbc);
+						cpdc = new ControlPanelDisplayComponent(point, jb, bValue, dataType);
+					} else if (controlType.equals("Checkbox")){
+						JCheckBox jc = new JCheckBox(labelText);
+						JButton send = new JButton("Send");
+						send.addActionListener(this);
+						gbc.gridx = 2;
+						itsPanel.add(jc, gbc);
+						gbc.gridx = 3;
+						gbc.insets = new Insets(5,10,0,30);
+						itsPanel.add(send, gbc);
+						cpdc = new ControlPanelDisplayComponent(point, jc, dataType, send);
 					} else {
-						tfl = new JLabel(labelText + ": ");
+						JLabel tfl;
+						if (labelText.equals("\t")){
+							tfl = new JLabel(labelText);
+						} else {
+							tfl = new JLabel(labelText + ": ");
+						}
+						tfl.setHorizontalAlignment(SwingConstants.RIGHT);
+						JTextField tf = new JTextField(10);
+						JButton send = new JButton("Send");
+						send.addActionListener(this);
+						tf.setEditable(true);
+						gbc.gridx = 1;
+						itsPanel.add(tfl, gbc);
+						gbc.gridx = 2;
+						itsPanel.add(tf, gbc);
+						gbc.gridx = 3;
+						gbc.insets = new Insets(5,10,0,30);
+						itsPanel.add(send, gbc);
+						cpdc = new ControlPanelDisplayComponent(point, tf, send, dataType);
+
 					}
-					tfl.setHorizontalAlignment(SwingConstants.RIGHT);
-					JTextField tf = new JTextField(10);
-					JButton send = new JButton("Send");
-					send.addActionListener(this);
-					tf.setEditable(true);
-					gbc.gridx = 1;
-					itsPanel.add(tfl, gbc);
-					gbc.gridx = 2;
-					itsPanel.add(tf, gbc);
-					gbc.gridx = 3;
-					gbc.insets = new Insets(5,10,0,30);
-					itsPanel.add(send, gbc);
-					cpdc = new ControlPanelDisplayComponent(point, tf, send, dataType);
+					panelList.add(cpdc);
 
+					gbc.gridy += 1;
 				}
+			} else { // how to appear if vertical alignment selected
+				for (String s : components){
+					gbc.gridy = 0;
+					gbc.gridheight = 1;
+					gbc.gridwidth = 1;
+					gbc.fill = GridBagConstraints.BOTH;
+					gbc.weighty = 0.5;
+					gbc.insets = new Insets(5,5,5,5);
+					
+					st = new StringTokenizer(s, ",");
+					ControlPanelDisplayComponent cpdc;
+					String point = st.nextToken();
+					String controlType = st.nextToken();
+					String dataType = st.nextToken();
+					String controlName = st.nextToken();
+					String labelText = st.nextToken();
+					String bValue = st.nextToken();
 
-				panelList.add(cpdc);
+					JLabel itsName = new JLabel(controlName);
+					fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_DOTTED);
+					itsName.setFont(new Font("Sans Serif", Font.BOLD, 14).deriveFont(fontAttributes));
 
-				gbc.gridy += 1;
+					itsPanel.add(itsName, gbc);
 
+					if (controlType.equals("Button")){
+						JButton jb = new JButton(labelText);
+						jb.addActionListener(this);
+						gbc.gridy = 3;
+						itsPanel.add(jb, gbc);
+						cpdc = new ControlPanelDisplayComponent(point, jb, bValue, dataType);
+					} else if (controlType.equals("Checkbox")){
+						JCheckBox jc = new JCheckBox(labelText);
+						JButton send = new JButton("Send");
+						send.addActionListener(this);
+						gbc.gridy = 2;
+						itsPanel.add(jc, gbc);
+						gbc.gridy = 3;
+						itsPanel.add(send, gbc);
+						cpdc = new ControlPanelDisplayComponent(point, jc, dataType, send);
+					} else {
+						JLabel tfl;
+						if (labelText.equals("\t")){
+							tfl = new JLabel(labelText);
+						} else {
+							tfl = new JLabel(labelText + ": ");
+						}
+						tfl.setVerticalAlignment(SwingConstants.BOTTOM);
+						JTextField tf = new JTextField(10);
+						JButton send = new JButton("Send");
+						send.addActionListener(this);
+						tf.setEditable(true);
+						gbc.gridy = 1;
+						itsPanel.add(tfl, gbc);
+						gbc.gridy = 2;
+						itsPanel.add(tf, gbc);
+						gbc.gridy = 3;
+						itsPanel.add(send, gbc);
+						cpdc = new ControlPanelDisplayComponent(point, tf, send, dataType);
+
+					}
+
+					panelList.add(cpdc);
+
+					gbc.gridx += 1;
+				}
 			}
-			
+
 			itsMainPanel.add(titleLabel, BorderLayout.NORTH);
 			itsMainPanel.add(itsPanel, BorderLayout.CENTER);
 
@@ -895,7 +963,7 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 		for (ControlPanelDisplayComponent c : panelList){
 			c.removeListeners(this);
 		}
-		
+
 		panelList = new ArrayList<ControlPanelDisplayComponent>();
 		itsMainPanel.removeAll();
 		itsMainPanel.revalidate();
