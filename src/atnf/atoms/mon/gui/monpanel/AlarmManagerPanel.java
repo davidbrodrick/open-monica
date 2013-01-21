@@ -1177,7 +1177,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 		if (thisAlarm.isAlarming()){
 			stateTabs.setSelectedIndex(4); //if alarming, automatically switch over to the "Alarming" tab
 			if (!klaxon.isAlive()){
-				klaxon.run();
+				klaxon.start();
 			}
 		}
 	}
