@@ -16,12 +16,11 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.font.TextAttribute;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -38,6 +37,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -51,11 +51,15 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
+import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.SavedSetup;
+import atnf.atoms.mon.client.MonClientUtil;
+import atnf.atoms.mon.comms.MoniCAClient;
 import atnf.atoms.mon.gui.MonPanel;
 import atnf.atoms.mon.gui.MonPanelSetupPanel;
 import atnf.atoms.mon.gui.SimpleTreeSelector;
 import atnf.atoms.mon.gui.SimpleTreeSelector.SimpleTreeUtil;
+import atnf.atoms.time.AbsTime;
 
 /**
  * Class representing a control panel.
@@ -63,13 +67,14 @@ import atnf.atoms.mon.gui.SimpleTreeSelector.SimpleTreeUtil;
  * @author Kalinga Hulugalle
  * @see MonPanel
  */
-public class ControlPanel extends MonPanel implements ActionListener, ItemListener {
+public class ControlPanel extends MonPanel implements ActionListener{
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -5900630541567847520L;
 
 	private Integer numControls = 0;
+	/** ArrayList holding references to the JComponents that make up the display in the ControlPanel*/
 	private ArrayList<ControlPanelDisplayComponent> panelList = new ArrayList<ControlPanelDisplayComponent>();
 
 	/** Array holding the values "Text Field", "Button" and "Checkbox".
@@ -89,11 +94,18 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 	 */
 	private final String[] layoutOptions = {"Horizontal", "Vertical"};
 
+	private String username = "";
+	private String passwd = "";
+
+
 	static {
 		MonPanel.registerMonPanel("Control Panel", ControlPanel.class);
 	}
 
 	// //// NESTED CLASS: ControlSetupPanel ///////
+	/**
+	 * Internal class that allows a user to set up and customise a ControlPanel as they would like
+	 */
 	protected class ControlSetupPanel extends MonPanelSetupPanel implements ActionListener, ChangeListener{
 
 		/**
@@ -102,7 +114,9 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 		private static final long serialVersionUID = -3585682908515598074L;
 		/** Main panel for our setup components. */
 		private JPanel itsMainPanel = new JPanel();
+		/** Panel for our persistent components. */
 		private JPanel topPanel = new JPanel();
+		/** JScrollPane for our main setup components. */
 		private JScrollPane viewPane = new JScrollPane();
 
 		private JLabel numberControlsLabel = new JLabel("Number of Controls: ");
@@ -115,9 +129,16 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 		private JLabel layoutLabel = new JLabel("Layout: ");
 		private JComboBox layout;
 
+		/** DocumentFilter used to ensure invalid values do not get entered into a number-only text field*/
 		private NumberDocumentFilter ndoc = new NumberDocumentFilter();
+		/** ArrayList holding all references to the dynamically created JComponents that make up this ControlSetupPanel*/
 		private ArrayList<ControlPanelSetupComponent> componentList = new ArrayList<ControlPanelSetupComponent>();
 
+		/**
+		 * Constructor for a ControlSetupPanel
+		 * @param panel The parent ControlPanel
+		 * @param frame The JFrame that holds this MonPanel
+		 */
 		public ControlSetupPanel(ControlPanel panel, JFrame frame) {
 			super(panel, frame);
 
@@ -200,7 +221,6 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 		@Override
 		protected void showSetup(SavedSetup setup) {
-			//TODO
 			// data validation and verification
 			itsInitialSetup = setup;
 			if (setup == null) {
@@ -214,11 +234,11 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 			numControls = Integer.parseInt(itsInitialSetup.get("controls number"));
 			numberControls.setValue(numControls);
-			
+
 			for (int i = 0; i < numControls; i++){
 				addControlSetup();
 			}
-			
+
 			layout.setSelectedItem(itsInitialSetup.get("layout"));
 			title.setText(itsInitialSetup.get("title"));
 
@@ -245,13 +265,17 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 				cpsc.setDataType(dataType);
 				cpsc.setTextField(labelText);
 				cpsc.setValueText(valueText);
-				
+
 				n++;
 			}
 
 		}
 
-		public void addControlSetup(){
+		/**
+		 * Method used to easily add new Control Setups to the ControlSetupPanel in the 
+		 * correct configuration and with associated Listeners for the relevant JComponents
+		 */
+		private void addControlSetup(){
 
 			JPanel bigPanel = new JPanel(new GridBagLayout());
 			GridBagConstraints gbc = new GridBagConstraints();
@@ -528,6 +552,9 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 	// ///// NESTED CLASS: ControlPanelSetupComponent ///////
 
+	/**
+	 * Class used to internally keep track of various elements used in setting up, interacting with and displaying the ControlSetupPanel
+	 */
 	public class ControlPanelSetupComponent{
 
 		private JPanel container;
@@ -542,9 +569,22 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 		private JButton closeButton;
 
-		public ControlPanelSetupComponent(JPanel cont, SimpleTreeSelector stis, JLabel pt, JComboBox ct, JComboBox dt, JTextField pf, JTextField lb, JTextField vf, JLabel vl, JButton close){
+		/**
+		 * Constructor for a ControlPanelSetupComponent
+		 * @param cont The JPanel container holding all the other elements
+		 * @param sts The SimpleTreeSelector in this control setup
+		 * @param pt The JLabel that displays which point is selected
+		 * @param ct The JComboBox that displays the control type options
+		 * @param dt The JComboBox that displays the data type options
+		 * @param pf The JTextField that allows users to enter a name for the displayed Control
+		 * @param lb The JTextField that allows users to enter a label for the control mechanism (JButton, JCheckbox, JTextField)
+		 * @param vf The JTextField that allow users to enter a value that the button-type control will push to the server
+		 * @param vl The JLabel that is paired with the value JTextField
+		 * @param close The JButton used to close a specific instance of a control setup
+		 */
+		public ControlPanelSetupComponent(JPanel cont, SimpleTreeSelector sts, JLabel pt, JComboBox ct, JComboBox dt, JTextField pf, JTextField lb, JTextField vf, JLabel vl, JButton close){
 			this.container = cont;
-			this.tree = stis;
+			this.tree = sts;
 			this.point = pt;
 			this.control = ct;
 			this.data = dt;
@@ -555,39 +595,76 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 			this.closeButton = close;
 		}
 
+		/**
+		 * Sets the text in the Value JTextField to the given parameter value
+		 * @param valueText The value the JTextField should be set to
+		 */
 		public void setValueText(String valueText) {
 			this.value.setText(valueText);
 		}
 
+		/**
+		 * Returns a reference to the data type JComboBox
+		 * @return the JComboBox reference
+		 */
 		public JComboBox getDataBox() {
 			return data;
 
 		}
 
+		/**
+		 * Returns a reference to the control type JComboBox
+		 * @return the JComboBox reference
+		 */
 		public JComboBox getControlBox() {
 			return control;
 		}
 
+		/**
+		 * Returns a reference to the "X" JButton
+		 * @return The "X" JButton reference
+		 */
 		public JButton getCloseButton() {
 			return closeButton;
 		}
 
+		/**
+		 * Returns the value stored in the Control name JTextField
+		 * @return The String value in the JTextField
+		 */
 		public String getControlName(){
 			return this.controlName.getText();
 		}
 
+		/**
+		 * Sets the label text field to the given parameter value
+		 * @param labelText The value the label JTextField should be set to
+		 */
 		public void setTextField(String labelText) {
 			label.setText(labelText);
 		}
 
+		/**
+		 * Sets the selected item in the Data type JComboBox to the given parameter
+		 * @param dataType The value the JComboBox should be set to
+		 */
 		public void setDataType(String dataType) {
 			data.setSelectedItem(dataType);
 		}
 
+		/**
+		 * Sets the selected item in the Control type JComboBox to the given parameter
+		 * @param controlType The value the JComboBox should be set to
+		 */
 		public void setControlType(String controlType) {
 			control.setSelectedItem(controlType);
 		}
 
+		/**
+		 * Sets the selection on the SimpleTreeSelector and the internally selected point
+		 * to the String parameter given
+		 * @param point2 The full point name the selection should be set to
+		 */
 		public void setPointString(String point2) {
 			Vector<String> selection = new Vector<String>();
 			selection.add(point2);
@@ -596,6 +673,10 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 		}
 
+		/**
+		 * Returns a String representation of the selected point on
+		 * the SimpleTreeSelector if one is selected, otherwise returns null.
+		 */
 		public String getTreeSelection(){
 			Vector<String> selections = this.tree.getSelections();
 			if (selections.size() != 1){
@@ -604,11 +685,17 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 				return selections.get(0);
 			}
 		}
-
+		/**
+		 * Returns the reference to the SimpleTreeSelector of this control setup
+		 * @return The SimpleTreeSelector reference
+		 */
 		public SimpleTreeSelector getTree(){
 			return this.tree;
 		}
 
+		/**
+		 * Sets the JLabel display of the selected point from the associated SimpleTreeSelector
+		 */
 		public void setPointString(){
 			String pointString = this.getTreeSelection();
 			if (pointString != null){
@@ -618,38 +705,76 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 			}
 		}
 
+		/**
+		 * Returns the value of the selected item in the control-type JComboBox
+		 * @return String representation of the selected item
+		 */
 		public String getControlType(){
 			return control.getSelectedItem().toString();
 		}
 
+		/**
+		 * Returns the value of the selected item in the data-type JComboBox
+		 * @return String representation of the selected item
+		 */
 		public String getDataType(){
 			return data.getSelectedItem().toString();
 		}
 
+		/**
+		 * Returns the contents of the label text field for this control
+		 * @return The String representation of the JTextField contents
+		 */
 		public String getLabelText(){
 			return label.getText();
 		}
 
+		/**
+		 * Simple getter for the value held in the 
+		 * value text field used with the button-type control
+		 * @return the String representation of the value
+		 */
 		public String getValueText(){
 			return value.getText();
 		}
 
+		/**
+		 * Sets the Value text field visible or invisible
+		 * @param b the visibility of the JTextField
+		 */
 		public void setValueVis(boolean b){
 			value.setVisible(b);
 		}
 
+		/**
+		 * Sets the Value label visible or invisible
+		 * @param b the visibility of the JLabel
+		 */
 		public void setValueLabelVis(boolean b){
 			valueLabel.setVisible(b);
 		}
 
+		/**
+		 * Returns the referene to the JTextField for the button-type control.
+		 * @return the JTextField object
+		 */
 		public JTextField getValueField(){
 			return value;
 		}
-
+		/**
+		 * Returns a reference to the JPanel container for this setup component
+		 * @return The reference to the JPanel
+		 */
 		public JPanel getContainer(){
 			return this.container;
 		}
 
+		/**
+		 * Removes the various listeners from the components in this ControlPanelSetupComponent
+		 * @param csp The parent ControlSetupPanel that implements ChangeListener and ActionListener
+		 * @see ActionListener
+		 * @see ChangeListener
+		 */
 		public void removeListeners(ControlSetupPanel csp){
 			tree.removeChangeListener(csp);
 			closeButton.removeActionListener(csp);
@@ -662,6 +787,11 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 	// ///// NESTED CLASS: ControlPanelDisplayComponent ///////
 
+	/**
+	 * A class that encapsulates much of the data associated with displaying a control 
+	 * in the "Display" tab of the MoniCA panel.
+	 * 
+	 */
 	public class ControlPanelDisplayComponent{ //should probably have made this an abstract superclass, but for the moment this is fine - may be worth a refactor later.
 
 		public final static int BUTTON_TYPE = 0x00;
@@ -677,6 +807,13 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 		private String buttonValue;
 		private int controlType;
 
+		/**
+		 * Constructor for a Button type Display Component
+		 * @param pt The point this component refers to, as a String
+		 * @param jb The JButton reference this component incorporates
+		 * @param bv The value that should be committed on each button press
+		 * @param dt The data type of this component
+		 */
 		public ControlPanelDisplayComponent(String pt, JButton jb, String bv, String dt){
 			this.point = pt;
 			this.button = jb; 
@@ -685,6 +822,13 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 			this.dataType = dt;
 		}
 
+		/**
+		 * Constructor for a Checkbox type Display Component
+		 * @param pt The point this component refers to, as a String
+		 * @param jc The JCheckbox reference this component incorporates
+		 * @param dt The data type of this component
+		 * @param conf The button used to confirm the checkbox selection
+		 */
 		public ControlPanelDisplayComponent(String pt, JCheckBox jc, String dt, JButton conf){
 			this.point = pt;
 			this.check = jc; 
@@ -693,6 +837,13 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 			this.confirm = conf;
 		}
 
+		/**
+		 * Constructor for a Text Field type Display Component
+		 * @param pt The point this component refers to, as a String
+		 * @param v The JTextField reference this component incorporates
+		 * @param conf The button used to confirm the text field entry
+		 * @param dt The data type of this component
+		 */
 		public ControlPanelDisplayComponent(String pt, JTextField v, JButton conf, String dt){
 			this.point = pt;
 			this.value = v; 
@@ -701,6 +852,10 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 			this.confirm = conf;
 		}
 
+		/**
+		 * Method to return a reference to the Checkbox if this component includes one
+		 * @return The JCheckBox reference
+		 */
 		public JCheckBox getCheckBox(){
 			if (this.controlType == CHECKBOX_TYPE){
 				return check;
@@ -709,14 +864,28 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 			}
 		}
 
+		/**
+		 * Method to return a formatted String of the type of data of this component;
+		 * Text, Number or True/False
+		 * @return the String containing the datatype
+		 */
 		public String getDataType(){
 			return dataType;
 		}
 
+		/**
+		 * Returns a formatted String containing the point name of the point associated with this control
+		 * @return The name of the point
+		 */
 		public String getPoint(){
 			return this.point;
 		}
 
+		/**
+		 * Returns the JButton that sends data for this control. For a button-type control, this
+		 * is the button itself. Otherwise, it is the "send" button.
+		 * @return The JButton reference used for pushing data on press
+		 */
 		public JButton getConfirmButton(){
 			if (this.controlType == BUTTON_TYPE){
 				return button;
@@ -725,31 +894,55 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 			}
 		}
 
-		public void setButtonValue(String buttonValue) {
-			this.buttonValue = buttonValue;
+		/**
+		 * Sets the associated value of the JButton in a button-type control
+		 * @param buttonValue the value that should be pushed out when the JButton is pressed
+		 */
+		public void setButtonValue(String bv) {
+			this.buttonValue = bv;
 		}
 
+		/**
+		 * Returns the string contents for the value associated with the button in the relevant control type. If
+		 * this isn't a button type control, then it returns a null value.
+		 * @return The text associated with the button of this control if it is a button control, otherwise null.
+		 */
 		public String getButtonValue() {
-			return buttonValue;
-		}
-
-		public int getControlType(){
-			return controlType;
-		}
-
-		public String getTextFieldContents(){
-			if (controlType == TEXT_TYPE){
-				return this.value.getText();
+			if (this.controlType == BUTTON_TYPE){
+				return buttonValue;
 			} else {
 				return null;
 			}
 		}
 
+		/**
+		 * Returns the int mask of this control type; either BUTTON_TYPE, TEXT_TYPE or CHECKBOX_TYPE
+		 * @return the corresponding int mask
+		 */
+		public int getControlType(){
+			return controlType;
+		}
+		/**
+		 * Returns the string contents for the text field in the relevant control type. If
+		 * this isn't a text-field type control, then it returns a null value.
+		 * @return The text contained in the text field of this control if it is a text-field control, otherwise null.
+		 */
+		public String getTextFieldContents(){
+			if (controlType == TEXT_TYPE){
+				return this.value.getText();
+			} else {
+				return null; //if this ever gets returned, we need to do a null check befor using it.
+			}
+		}
+
+		/**
+		 * Removes the listeners associated with the buttons in this ControlPanelDisplayComponent
+		 * @param cp the parent ControlPanel that implements the ActionListener interface
+		 * @see ActionListener
+		 */
 		public void removeListeners(ControlPanel cp){
 			if (controlType == BUTTON_TYPE) button.removeActionListener(cp);
 			if (controlType == TEXT_TYPE || controlType == CHECKBOX_TYPE) confirm.removeActionListener(cp);
-			if (controlType == CHECKBOX_TYPE)check.removeItemListener(cp);
-
 		}
 	}
 
@@ -791,18 +984,21 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 			gbc.gridx = 0;
 			gbc.gridy = 0;
-			if (layout.equals(layoutOptions[0])){
+			if (layout.equals(layoutOptions[0])){ // how to appear if horizontal layout is selected
 
-				for (String s : components){
-
+				for (String s : components){ // fixes alignment for last line of grid, so it isn't massively spread out
+					if (gbc.gridy == components.size()-1){
+						gbc.weighty = 1.0;
+						gbc.anchor = GridBagConstraints.NORTH;
+					}
 					gbc.gridx = 0;
 					gbc.gridheight = 1;
 					gbc.gridwidth = 1;
 					gbc.fill = GridBagConstraints.HORIZONTAL;
-					gbc.weightx = 0.5;
+					gbc.weightx = 0.001;
 					gbc.insets = new Insets(5,30,0,0);
 
-					st = new StringTokenizer(s, ",");
+					st = new StringTokenizer(s, ","); // pick apart the string into its individual components
 					ControlPanelDisplayComponent cpdc;
 					String point = st.nextToken();
 					String controlType = st.nextToken();
@@ -811,8 +1007,11 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 					String labelText = st.nextToken();
 					String bValue = st.nextToken();
 
+					// rest of this is just formatting and alignment
+
 					JLabel itsName = new JLabel(controlName);
-					itsName.setFont(new Font("Sans Serif", Font.BOLD | Font.ITALIC, 14));
+					fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_DOTTED);
+					itsName.setFont(new Font("Sans Serif", Font.BOLD | Font.ITALIC, 14).deriveFont(fontAttributes));
 
 
 					itsPanel.add(itsName, gbc);
@@ -863,14 +1062,15 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 				}
 			} else { // how to appear if vertical alignment selected
 				for (String s : components){
+					gbc.anchor = GridBagConstraints.CENTER;
 					gbc.gridy = 0;
 					gbc.gridheight = 1;
 					gbc.gridwidth = 1;
-					gbc.fill = GridBagConstraints.BOTH;
-					gbc.weighty = 0.5;
+					gbc.fill = GridBagConstraints.HORIZONTAL;
+					gbc.weighty = 0.001;
 					gbc.insets = new Insets(5,5,5,5);
-					
-					st = new StringTokenizer(s, ",");
+
+					st = new StringTokenizer(s, ","); // pick apart the string into its individual components
 					ControlPanelDisplayComponent cpdc;
 					String point = st.nextToken();
 					String controlType = st.nextToken();
@@ -878,6 +1078,8 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 					String controlName = st.nextToken();
 					String labelText = st.nextToken();
 					String bValue = st.nextToken();
+
+					//rest of this is mostly just formatting and alignment
 
 					JLabel itsName = new JLabel(controlName);
 					fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_DOTTED);
@@ -889,6 +1091,8 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 						JButton jb = new JButton(labelText);
 						jb.addActionListener(this);
 						gbc.gridy = 3;
+						gbc.weighty = 1.0;
+						gbc.anchor = GridBagConstraints.NORTH;
 						itsPanel.add(jb, gbc);
 						cpdc = new ControlPanelDisplayComponent(point, jb, bValue, dataType);
 					} else if (controlType.equals("Checkbox")){
@@ -897,7 +1101,9 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 						send.addActionListener(this);
 						gbc.gridy = 2;
 						itsPanel.add(jc, gbc);
+						gbc.weighty = 1.0;
 						gbc.gridy = 3;
+						gbc.anchor = GridBagConstraints.NORTH;
 						itsPanel.add(send, gbc);
 						cpdc = new ControlPanelDisplayComponent(point, jc, dataType, send);
 					} else {
@@ -917,6 +1123,8 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 						gbc.gridy = 2;
 						itsPanel.add(tf, gbc);
 						gbc.gridy = 3;
+						gbc.weighty = 1.0;
+						gbc.anchor = GridBagConstraints.NORTH;
 						itsPanel.add(send, gbc);
 						cpdc = new ControlPanelDisplayComponent(point, tf, send, dataType);
 
@@ -986,32 +1194,104 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 			for (ControlPanelDisplayComponent c : panelList){
 				if (source.equals(c.getConfirmButton())){
-					if (c.getControlType() == ControlPanelDisplayComponent.BUTTON_TYPE){
-						String value = c.getButtonValue();
-						if (value != null){
-							//TODO Action for sending button data to control point
-							System.out.println("Sending data from BUTTON_TYPE control " + value);
-						}
-					} else if (c.getControlType() == ControlPanelDisplayComponent.CHECKBOX_TYPE){
 
-						JCheckBox cb = c.getCheckBox();
-						if (cb != null){
-							boolean state = cb.isSelected();
-							String value;
-							if (state){
-								value = "true";
-							} else {
-								value = "false";
+					if (username.equals("") || passwd.equals("")){
+						JPanel inputs = new JPanel();
+						inputs.setLayout(new GridBagLayout());
+						GridBagConstraints gbc = new GridBagConstraints();
+						gbc.fill = GridBagConstraints.HORIZONTAL;
+						gbc.weightx = 0.5;
+						gbc.gridx = 0;
+						gbc.gridy = 0;
+						JLabel usernameLabel = new JLabel("Username: ");
+						JTextField usernameField = new JTextField(20);
+						usernameField.setText(username);
+						inputs.add(usernameLabel, gbc);
+						gbc.gridx = 1;
+						gbc.gridwidth = 3;
+						inputs.add(usernameField, gbc);
+						JLabel passwordLabel = new JLabel("Password: ");
+						JPasswordField passwordField = new JPasswordField(20);
+						gbc.gridx = 0;
+						gbc.gridy = 1;
+						gbc.gridwidth = 1;
+						inputs.add(passwordLabel, gbc);
+						gbc.gridwidth = 3;
+						gbc.gridx = 1;
+						inputs.add(passwordField, gbc);
+
+						int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
+
+						if (result == JOptionPane.OK_OPTION){
+							username = usernameField.getText();
+							passwd = new String(passwordField.getPassword());
+
+						}
+					}
+
+
+					try{
+						MoniCAClient server = MonClientUtil.getServer();
+						PointData data = null;
+						if (c.getControlType() == ControlPanelDisplayComponent.BUTTON_TYPE){
+							String value = c.getButtonValue();
+							if (value != null){
+								if (c.getDataType().equals(dataOptions[1])){ //increment the current value with the stored number
+									int intValue = Integer.parseInt(value);
+									Integer currValue = (Integer) server.getData(c.getPoint()).getData();
+									intValue = currValue + intValue;
+									value = Integer.toString(intValue);
+								}
+								data = new PointData(c.getPoint(), AbsTime.factory(), value);
 							}
-							//TODO Action for sending checkbox data to control point
-							System.out.println("Sending data from CHECKBOX_TYPE control: "+ value);
+						} else if (c.getControlType() == ControlPanelDisplayComponent.CHECKBOX_TYPE){
+
+							JCheckBox cb = c.getCheckBox();
+							if (cb != null){
+								boolean state = cb.isSelected();
+								String value;
+								if (state){
+									value = "true";
+								} else {
+									value = "false";
+								}
+								data = new PointData(c.getPoint(), AbsTime.factory(), value);
+							}
+						} else {
+							String value = c.getTextFieldContents().toLowerCase(Locale.ENGLISH);
+							if (value != null){
+								if (c.getDataType().equals(dataOptions[1])){ //make sure we're actually sending a number
+									Pattern pattern = Pattern.compile("[-|+]{0,1}[0-9]*|\\.|[-|+]{0,1}[0-9]*\\.[0-9]*");
+									Matcher matcher = pattern.matcher(value);
+									if (matcher.matches()){
+										data = new PointData(c.getPoint(), AbsTime.factory(), value);
+									} else {
+										throw (new Exception());
+									}
+								} else if (c.getDataType().equals(dataOptions[2])){
+									Pattern pattern = Pattern.compile("true|false");
+									Matcher matcher = pattern.matcher(value);
+									if (matcher.matches()){
+										data = new PointData(c.getPoint(), AbsTime.factory(), value);
+									} else {
+										throw (new Exception());
+									}
+								} else {
+									data = new PointData(c.getPoint(), AbsTime.factory(), value);
+								}
+							}
 						}
-					} else {
-						String value = c.getTextFieldContents();
-						if (value != null){
-							//TODO Action for sending text field data to control point
-							System.out.println("Sending data from TEXT_TYPE control: " + value);
-						}
+
+
+						boolean success = server.setData(c.getPoint(), data, username, passwd);
+						// does it block here? if so, following line is fine
+						if (success == false) throw (new Exception());
+					} catch (Exception e){
+						passwd = "";
+						JOptionPane.showMessageDialog(this, "Something went wrong with the sending of data. " +
+								"\nPlease ensure that you're properly connected to the network, you are attempting to write to a valid point" +
+								"\n and your username and password are correct.", "Data Sending Error", JOptionPane.ERROR_MESSAGE);
+						return;
 					}
 
 					break;
@@ -1023,13 +1303,12 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 
 	}
 
-	@Override
-	public void itemStateChanged(ItemEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
 	// ///// NESTED CLASS: NumberDocumentFilter ///////
+	/**
+	 * Document Filter designed to only allow the entry of characters that adhere to the 
+	 * regex <strong><code>([0-9]*|\.|[0-9]*\.[0-9]*)</code></strong>, i.e. only characters that can be used to form 
+	 * valid floating point numbers.
+	 */
 	public class NumberDocumentFilter extends DocumentFilter{
 		private boolean filter = true;
 
@@ -1045,7 +1324,7 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 		public void insertString(FilterBypass fb, int offset, String text, AttributeSet attr) throws BadLocationException {
 			System.out.println(text);
 			if (filter) {
-				Pattern pattern = Pattern.compile("[0-9]*|\\.|[0-9]*\\.[0-9]*");
+				Pattern pattern = Pattern.compile("[-|+]{0,1}[0-9]*|\\.|[-|+]{0,1}[0-9]*\\.[0-9]*");
 				Matcher matcher = pattern.matcher(text);
 				if (matcher.matches()){
 					super.insertString(fb, offset, text, attr);
@@ -1056,7 +1335,7 @@ public class ControlPanel extends MonPanel implements ActionListener, ItemListen
 		@Override
 		public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
 			if (filter) {
-				Pattern pattern = Pattern.compile("[0-9]*|\\.|[0-9]*\\.[0-9]*");
+				Pattern pattern = Pattern.compile("[-|+]{0,1}[0-9]*|\\.|[-|+]{0,1}[0-9]*\\.[0-9]*");
 				Matcher matcher = pattern.matcher(text);
 				if (matcher.matches()){
 					super.replace(fb, offset, length, text, attrs);
