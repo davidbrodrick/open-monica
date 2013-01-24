@@ -62,7 +62,9 @@ import atnf.atoms.mon.gui.SimpleTreeSelector.SimpleTreeUtil;
 import atnf.atoms.time.AbsTime;
 
 /**
- * Class representing a control panel.
+ * Class representing a control panel. Dynamically adds and removes controls in the setup phase
+ * with a lot of customisability as to the layout and appearance.
+ * Primarily used for pushing data out to control points.
  * 
  * @author Kalinga Hulugalle
  * @see MonPanel
@@ -170,6 +172,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			topPanel.add(Box.createHorizontalGlue());
 
 			this.add(topPanel, BorderLayout.NORTH);
+			viewPane.getVerticalScrollBar().setUnitIncrement(16);
 			viewPane.setViewportView(itsMainPanel);
 			this.add(viewPane, BorderLayout.CENTER);
 
@@ -1142,6 +1145,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 			itsMainPanel.revalidate();
 			itsMainPanel.repaint();
+			itsScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 			itsScrollPane.setViewportView(itsMainPanel);
 
 		} catch (final Exception e) {
@@ -1160,7 +1164,9 @@ public class ControlPanel extends MonPanel implements ActionListener{
 	}
 
 	private void blankSetup() {
-		//TODO
+		numControls = 0;
+		itsMainPanel = new JPanel();
+		itsScrollPane.setViewportView(itsMainPanel);
 	}
 
 	public synchronized SavedSetup getSetup() {

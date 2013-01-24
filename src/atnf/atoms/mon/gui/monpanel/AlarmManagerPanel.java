@@ -15,6 +15,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -40,13 +41,13 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -79,12 +80,13 @@ import atnf.atoms.time.RelTime;
 @SuppressWarnings("serial")
 public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmEventListener{
 
-	//temporary registration to ensure that the panel appears manually, 
-	//and looks correct at least
 	static {
 		MonPanel.registerMonPanel("Alarm Manager", AlarmManagerPanel.class);
 	}
 
+	public static Vector<String> cachedDefaultPoints = new Vector<String>();
+
+	private boolean muteOn = false;
 	private boolean noPriorityAlarms = false;
 	private boolean informationAlarms = false;
 	private boolean warningAlarms = false;
@@ -110,15 +112,16 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	/** Nested class to provide GUI controls for configuring the AlarmManagerPanel */
 	private class AlarmManagerSetupPanel extends MonPanelSetupPanel implements ItemListener, ActionListener{
 
-		private JCheckBox noPriorityCb = new JCheckBox("\"No Priority\" Alarms");
-		private JCheckBox informationCb = new JCheckBox("Information Alarms");
-		private JCheckBox warningCb = new JCheckBox("Warning Alarms");
-		private JCheckBox dangerCb = new JCheckBox("Danger Alarms");
-		private JCheckBox severeCb = new JCheckBox("Severe Alarms");
-		private JCheckBox allCb = new JCheckBox("All");
+		private JCheckBox selectAllPointCb = new JCheckBox("Select All Points");
+		private JLabel catLabel = new JLabel("Select Categories of Alarms: ");
 
-		private JButton loginBtn = new JButton("Login");
-		private JLabel loginState = new JLabel("Not Logged in");
+
+		private JCheckBox noPriorityCb = new JCheckBox("\"No Priority\"");
+		private JCheckBox informationCb = new JCheckBox("Information");
+		private JCheckBox warningCb = new JCheckBox("Warning");
+		private JCheckBox dangerCb = new JCheckBox("Danger");
+		private JCheckBox severeCb = new JCheckBox("Severe");
+		private JCheckBox allCb = new JCheckBox("All");
 
 		/** Main panel for our setup components. */
 		private JPanel itsMainPanel = new JPanel();
@@ -129,16 +132,19 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			super(panel, frame);
 
 			itsMainPanel.setLayout(new BorderLayout());
-			JPanel login = new JPanel();
-			login.setLayout(new BoxLayout(login, BoxLayout.X_AXIS));
 			JPanel selectCategory = new JPanel();
+			JPanel catInfo = new JPanel();
 			JPanel topPanel = new JPanel();
 			topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
 			selectCategory.setLayout(new BoxLayout(selectCategory, BoxLayout.X_AXIS));
-
-			loginState.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-			loginBtn.setAlignmentX(JButton.CENTER_ALIGNMENT);
-			loginBtn.addActionListener(this);
+			GridBagConstraints gbc = new GridBagConstraints();
+			catInfo.setLayout(new GridBagLayout());
+			gbc.insets = new Insets(0,10,0,10);
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.weightx = 0.5;
+			gbc.gridx = 0;
+			gbc.gridy = 0;
 
 			noPriorityCb.addItemListener(this);
 			informationCb.addItemListener(this);
@@ -146,6 +152,13 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			dangerCb.addItemListener(this);
 			severeCb.addItemListener(this);
 			allCb.addItemListener(this);
+
+			catInfo.add(catLabel, gbc);
+			gbc.gridx = 1;
+			gbc.anchor = GridBagConstraints.EAST;
+			catInfo.add(selectAllPointCb, gbc);
+			selectAllPointCb.addItemListener(this);
+			selectAllPointCb.setHorizontalAlignment(SwingConstants.RIGHT);
 
 			// lots of glue so that the layout doesn't look silly when resized horizontally
 			selectCategory.add(Box.createHorizontalGlue());
@@ -162,18 +175,15 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			selectCategory.add(allCb);
 			selectCategory.add(Box.createHorizontalGlue());
 
+			allCb.setSelected(true);
+			selectAllPointCb.setSelected(true);
+
 			itsPointSelector.setPreferredSize(new Dimension(340, 150));
 
-			login.add(loginBtn);
-			login.add(Box.createHorizontalStrut(20));
-			login.add(loginState);
-
-			topPanel.add(login);
+			topPanel.add(catInfo);
 			topPanel.add(selectCategory);
 			itsMainPanel.add(topPanel, BorderLayout.NORTH);
 			itsMainPanel.add(itsPointSelector, BorderLayout.CENTER);
-
-
 
 			this.add(new JScrollPane(itsMainPanel), BorderLayout.CENTER);
 
@@ -190,15 +200,40 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			ss.setClass("atnf.atoms.mon.gui.monpanel.AlarmManagerPanel");
 			ss.setName("alarmSetup");
 
-			Vector<?> points = itsPointSelector.getSelections();
 			String p = "";
-			if (points.size() > 0) {
-				p += points.get(0);
-				// Then add rest of point names with a delimiter
-				for (int i = 1; i < points.size(); i++) {
-					p += ":" + points.get(i);
-				}
+
+			if (allCb.isSelected()){
+				allCb.doClick();
+				allCb.doClick();
+				allCb.setSelected(true);
 			}
+
+			if (selectAllPointCb.isSelected()){
+				selectAllPointCb.doClick();
+				selectAllPointCb.doClick();
+				selectAllPointCb.setSelected(true);
+				//weird hack to get the default settings to work
+
+				String[] points = itsPointSelector.getAllPointNames();
+				if (points.length > 0) {
+					p += points[0];
+					// Then add rest of point names with a delimiter
+					for (int i = 1; i < points.length; i++) {
+						p += ":" + points[i];
+					}
+				}
+			} else {
+				Vector<?> points = itsPointSelector.getSelections();
+				if (points.size() > 0) {
+					p += points.get(0);
+					// Then add rest of point names with a delimiter
+					for (int i = 1; i < points.size(); i++) {
+						p += ":" + points.get(i);
+					}
+				}
+
+			}
+
 			ss.put("points", p);
 
 			if (noPriorityAlarms){
@@ -320,65 +355,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			}
 
 
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			Object source = e.getSource();
-			if (source.equals(loginBtn)){
-
-				JPanel inputs = new JPanel();
-				inputs.setLayout(new GridBagLayout());
-				GridBagConstraints gbc = new GridBagConstraints();
-				gbc.fill = GridBagConstraints.HORIZONTAL;
-				gbc.weightx = 0.5;
-				gbc.gridx = 0;
-				gbc.gridy = 0;
-				JLabel usernameLabel = new JLabel("Username: ");
-				JTextField usernameField = new JTextField(20);
-				inputs.add(usernameLabel, gbc);
-				gbc.gridx = 1;
-				gbc.gridwidth = 3;
-				inputs.add(usernameField, gbc);
-				JLabel passwordLabel = new JLabel("Password: ");
-				JPasswordField passwordField = new JPasswordField(20);
-				gbc.gridx = 0;
-				gbc.gridy = 1;
-				gbc.gridwidth = 1;
-				inputs.add(passwordLabel, gbc);
-				gbc.gridwidth = 3;
-				gbc.gridx = 1;
-				inputs.add(passwordField, gbc);
-
-				int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
-
-				if (result == JOptionPane.OK_OPTION){
-					try {
-						username = usernameField.getText();
-						password = new String(passwordField.getPassword());
-						if (username.equals("") || password.equals("")){
-							throw new IllegalArgumentException(); 
-						}
-					} catch (IllegalArgumentException dfe){
-						username = "";
-						password = "";
-						JOptionPane.showMessageDialog(this, "Incorrect Username or Password", "ERROR LOGGING IN", JOptionPane.ERROR_MESSAGE);
-					}
-				}
-
-				if (username.equals("")){
-					loginState.setText("Not Logged In");
-				} else {
-					loginState.setText("Username set as " + username);
-					loginState.setForeground(new Color(0x6E8B3D));
-				}
-			}
-
-			if (username.equals("") || password.equals("")){
-				JOptionPane.showMessageDialog(this, "You are required to log in with a valid username and password", "AUTHENTICATION ERROR", JOptionPane.ERROR_MESSAGE);
-			}else{
-				super.actionPerformed(e);	
-			}
 		}
 
 		@Override
@@ -521,7 +497,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					severeCb.setSelected(false);
 
 				}
-			}
+			} 
 
 		}
 
@@ -535,16 +511,13 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 		int type = -1;
 
-		JButton notify = new JButton("NOTIFY");
-		JToggleButton ack = new JToggleButton("ACK");
-		JToggleButton shelve = new JToggleButton("SHELVE");
-		JButton cancel = new JButton("Reset");
-		JButton ok = new JButton("Confirm");
+		String typeString;
 
-		boolean tempAck = false;
-		boolean tempShlv = false;
-		boolean ackChanged = false;
-		boolean shlvChanged = false;
+		JButton notify = new JButton("Notify");
+		JButton ack = new JButton("ACKNOWLEDGE");
+		JButton shelve = new JButton("SHELVE");
+		JButton reset = new JButton("Display All Alarms");
+		JToggleButton mute = new JToggleButton("Mute");
 
 		Vector<Alarm> selectedAlarms = new Vector<Alarm>();
 		Vector<String> localPoints = new Vector<String>();
@@ -560,6 +533,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 		public AlarmDisplayPanel(String t){
 			super();
 
+			typeString = t;
 			if (!t.equals("all")) this.type = this.getType(t);
 
 			localListModel = itsListModel;
@@ -567,78 +541,72 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			//LAYOUT
 
 			//Set internals of the panel to appear left to right - 
-			// only three internal panes, at least.
+			// only two internal panes, at least.
 			this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-			// Let's start with initialising the three main panels - nothing
-			// is in them yet, but let's start here anyway
-			JPanel buttons = new JPanel();
+			// Let's start with initialising some JPanels
+			JPanel listPanel = new JPanel(new BorderLayout());
+			JPanel alarmPanel = new JPanel(new BorderLayout());
+			JPanel buttons = new JPanel(new GridLayout(2,2));
+			JPanel alarmPanels = new JPanel();
+
 
 			// Point List panel
 			plist = new JList(localListModel);
 			plist.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 			plist.addListSelectionListener(this);
 			JScrollPane plistScroller = new JScrollPane(plist);
-			plistScroller.setPreferredSize(new Dimension(170, 200));
-			plistScroller.setMinimumSize(new Dimension(140, 100));
-			plistScroller.setMaximumSize(new Dimension(170, Integer.MAX_VALUE));
+			listPanel.setPreferredSize(new Dimension(170, 200));
+			listPanel.setMinimumSize(new Dimension(140, 100));
+			listPanel.setMaximumSize(new Dimension(170, Integer.MAX_VALUE));
 
-			JPanel alarmPanels = new JPanel();
+			reset.setFont(new Font("Sans Serif", Font.ITALIC, reset.getFont().getSize()));
+
+			listPanel.add(reset, BorderLayout.NORTH);
+			listPanel.add(plistScroller, BorderLayout.CENTER);
+
 			// Alarm Details Panel
-			alarmPanels.add(new AlarmPanel());
-
-
+			alarmPanels.add(new AlarmPanel(t));
 			alarmDetailsScroller = new JScrollPane(alarmPanels);
-
-			// Button Panel
-			JPanel confirmation = new JPanel();
-			confirmation.setLayout(new GridLayout(1,2));
-
-
-			// Make the buttons top to bottom
-			buttons.setLayout(new GridLayout(4,1));	
-			buttons.setPreferredSize(new Dimension(300, 0));
-			buttons.setMinimumSize(new Dimension(300, 100));
-			buttons.setMaximumSize(new Dimension(300, Integer.MAX_VALUE));
-
+			alarmDetailsScroller.getVerticalScrollBar().setUnitIncrement(24);
 
 			// Let's add some stuff to the button panel!
 			notify.setToolTipText("Notify someone about these alarms through email.");
-			notify.setFont(new Font("Sans Serif", Font.BOLD, 48));
+			//			notify.setFont(new Font("Sans Serif", Font.BOLD, 48));
 			ack.setToolTipText("Acknowledge these alarms.");
-			ack.setFont(new Font("Sans Serif", Font.BOLD, 48));
+			//			ack.setFont(new Font("Sans Serif", Font.BOLD, 48));
 			shelve.setToolTipText("Shelve the selected alarms.");
-			shelve.setFont(new Font("Sans Serif", Font.BOLD, 48));
-			cancel.setToolTipText("Reset your selections");
-			cancel.setFont(new Font("Sans Serif", Font.ITALIC, 28));
-			ok.setToolTipText("Execute the selected actions on these alarms.");
-			ok.setFont(new Font("Sans Serif", Font.ITALIC, 28));
+			//			shelve.setFont(new Font("Sans Serif", Font.BOLD, 48));
+			reset.setToolTipText("Reset your selections");
+			//			reset.setFont(new Font("Sans Serif", Font.ITALIC, 28));
+			mute.setToolTipText("Mute the Alarm Audio Warning");
+			//			mute.setFont(new Font("Sans Serif", Font.ITALIC, 28));
 
 			// set the action commands that are sent when these buttons are pressed
 			notify.setActionCommand("notify");
-			cancel.setActionCommand("cancel");
-			ok.setActionCommand("ok");
+			reset.setActionCommand("reset");
+			ack.setActionCommand("ack");
+			shelve.setActionCommand("shelve");
 
 			// now register the buttons with the actionlistener
 			notify.addActionListener(this);
-			ack.addItemListener(this);
-			shelve.addItemListener(this);
-			cancel.addActionListener(this);
-			ok.addActionListener(this);
+			ack.addActionListener(this);
+			shelve.addActionListener(this);
+			reset.addActionListener(this);
+			mute.addItemListener(this);
 
 			//let's add the buttons to the button pane now!
-			confirmation.add(cancel);
-			confirmation.add(ok);
-
+			buttons.add(mute);
 			buttons.add(notify);
 			buttons.add(ack);
 			buttons.add(shelve);
-			buttons.add(confirmation);
+
+			alarmPanel.add(alarmDetailsScroller, BorderLayout.CENTER);
+			alarmPanel.add(buttons, BorderLayout.SOUTH);
 
 			//Add the big panels to the tabbed pane now
-			this.add(plistScroller);
-			this.add(alarmDetailsScroller);
-			this.add(buttons);
+			this.add(listPanel);
+			this.add(alarmPanel);
 
 		}
 
@@ -712,42 +680,27 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					}
 				}
 
-			} else if (command.equals("cancel")){
-				// cancel the options taken, unselect all buttons that may
-				// have been selected etc.
-				tempShlv = false;
-				tempAck = false;
-				ack.setSelected(false);
-				shelve.setSelected(false);
+			} else if (command.equals("reset")){
+				// cancel the options taken
 				plist.clearSelection();
+				showDefaultAlarmPanels();
 
-			} else if (command.equals("ok")){
+			} else if (command.equals("ack")){
 				//send the commands along to the server
-				int res = 0;
-				if (ackChanged && ack.isSelected()){
-					res = JOptionPane.showConfirmDialog(this, "This will set all selected points to Acknowledged. Is this OK?", "Confirmation" , JOptionPane.YES_NO_OPTION);
-				} else if (shlvChanged && shelve.isSelected()){
-					res = JOptionPane.showConfirmDialog(this, "This will set all selected points to Shelved. Is this OK?", "Confirmation", JOptionPane.YES_NO_OPTION);
-				} else if (ackChanged && !ack.isSelected()){
-					res = JOptionPane.showConfirmDialog(this, "This will de-Acknowledge all selected points. Is this OK?", "Confirmation" , JOptionPane.YES_NO_OPTION);
-				} else if (shlvChanged && !shelve.isSelected()){
-					res = JOptionPane.showConfirmDialog(this, "This will un-Shelve all selected points. Is this OK?", "Confirmation" , JOptionPane.YES_NO_OPTION);
+				for (Object s : plist.getSelectedValues()){
+					//System.out.println("Username: " + username + "\nPassword: " + password);
+					AlarmMaintainer.setAcknowledged(s.toString(), true, username, password);
+				}			
+				updateListModels();
+				this.updateAlarmPanels();
+			} else if (command.equals("shelve")){
+				for (Object s : plist.getSelectedValues()){
+					//System.out.println("Username: " + username + "\nPassword: " + password);
+					AlarmMaintainer.setShelved(s.toString(), true, username, password);
 				}
-				if (res == JOptionPane.YES_OPTION){
-					ackChanged = false;
-					shlvChanged = false;
-					for (Object s : plist.getSelectedValues()){
-						//System.out.println("Username: " + username + "\nPassword: " + password);
-						AlarmMaintainer.setAcknowledged(s.toString(), tempAck, username, password);
-						AlarmMaintainer.setShelved(s.toString(), tempShlv, username, password);
-					}
-					updateListModels();
-					this.updateAlarmPanels();
-				}
-			} 
-
-
-
+				updateListModels();
+				this.updateAlarmPanels();
+			}
 		}
 
 		private void updateAlarmPanels(){
@@ -761,65 +714,121 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				newPanel.add(a);
 			}
 
-			alarmDetailsScroller.add(newPanel);
+			//	alarmDetailsScroller.add(newPanel);
 			alarmDetailsScroller.setViewportView(newPanel);
 			alarmDetailsScroller.revalidate();
 			alarmDetailsScroller.repaint();
 
 		}
 
+		@SuppressWarnings("unchecked")
+		private void showDefaultAlarmPanels(){
+			JPanel newPanel = new JPanel();
+			newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
+
+			Vector<String> pointNames =  (Vector<String>) itsPoints.clone();
+
+			if (cachedDefaultPoints.size() == 0){ //sorting is expensive, so we'll save the result
+				pointNames = reverseQuickSort(pointNames);
+				cachedDefaultPoints = (Vector<String>) pointNames.clone();
+			} else {
+				pointNames = (Vector<String>) cachedDefaultPoints.clone();
+			}
+			for (String o : pointNames){
+				AlarmPanel a = new AlarmPanel(o);
+				a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
+				newPanel.add(a);
+			}
+
+			//	alarmDetailsScroller.add(newPanel);
+			alarmDetailsScroller.setViewportView(newPanel);
+			alarmDetailsScroller.revalidate();
+			alarmDetailsScroller.repaint();
+		}
+
+
+		/**
+		 * Simple reverse-quicksort implementation on ArrayLists.<br/>
+		 * Adapted from {@link http://en.wikipedia.org/wiki/Quicksort#Simple_version}
+		 * @param array The ArrayList to be reverse-sorted
+		 * @return The reverse-sorted ArrayList
+		 * @see <a href=http://en.wikipedia.org/wiki/Quicksort#Simple_version">http://en.wikipedia.org/wiki/Quicksort#Simple_version</a>
+		 */
+		private synchronized Vector<String> reverseQuickSort(Vector<String> array) {
+			Vector<String> res = array;
+			Vector<String> less = new Vector<String>();
+			Vector<String> greater = new Vector<String>();
+			String removed = "";
+			if (res.size() <= 1){
+				return res;
+			} else {
+				int pivot = res.size()/2;
+				removed = res.remove(pivot);
+
+
+				for (int i = 0; i < res.size(); i++){
+					if (AlarmMaintainer.getAlarm(res.get(i)).getPriority() > AlarmMaintainer.getAlarm(removed).getPriority()){
+						greater.add(res.get(i));
+					} else {
+						less.add(res.get(i));
+					}
+				}
+			}
+			/* DEBUGGING FOR THE REVERSE QUICKSORT 
+			System.out.println("GREATER: ");
+			for (String s : greater){
+				System.out.println(s);
+			}
+			System.out.println("PIVOT: " + removed);
+			System.out.println("LESS: ");
+			for (String s : less){
+				System.out.println(s);
+			}*/
+
+			try {
+				greater = reverseQuickSort(greater);
+				less = reverseQuickSort(less);
+
+				greater.add(removed);
+				greater.addAll(less);
+			} catch (Exception e){
+				e.printStackTrace();
+			}
+
+			return greater;
+		}
 
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
 			if (e.getValueIsAdjusting() == false){
-				try {
-					if (AlarmMaintainer.getAlarm(localListModel.get(plist.getSelectedIndex()).toString()).getAlarmStatus() == Alarm.ACKNOWLEDGED){
-						tempAck = true;
-						ack.setSelected(true);
-						tempShlv = false;
-						shelve.setSelected(false);
-					} else if (AlarmMaintainer.getAlarm(localListModel.get(plist.getSelectedIndex()).toString()).getAlarmStatus() == Alarm.SHELVED){
-						tempShlv = true;
-						shelve.setSelected(true);
-						tempAck = false;
-						ack.setSelected(false);
-					} else {
-						tempShlv = false;
-						shelve.setSelected(false);
-						tempAck = false;
-						ack.setSelected(false);
-					}
-				} catch (ArrayIndexOutOfBoundsException aioobe){
-					// Not sure why this keeps triggering, doesn't seem to have any negative effect... yet.
-					// Probably something to do with removing the element of the list in the JButton thread
+				JList source = (JList) e.getSource();
+				if (source.getSelectedIndices().length > 0){
+					this.updateAlarmPanels();
+				} else {
+					this.showDefaultAlarmPanels();
 				}
-				this.updateAlarmPanels();
 			}
 		}
 
 		@Override
 		public void itemStateChanged(ItemEvent e) {
-			ackChanged = false;
-			shlvChanged = false;
-			if (e.getSource().equals(ack)){
-				ackChanged = true;
+			if (e.getSource().equals(mute)){
 				if (e.getStateChange() == ItemEvent.SELECTED){
-					tempAck = true;
-					tempShlv = false;
-					shelve.setSelected(false);
-				} else if (e.getStateChange() == ItemEvent.DESELECTED){
-					tempAck = false;
-				}
+					muteOn = true;
+					all.mute.setSelected(true);
+					nonAlarmed.mute.setSelected(true);
+					acknowledged.mute.setSelected(true);
+					shelved.mute.setSelected(true);
+					alarming.mute.setSelected(true);
 
-			} else if (e.getSource().equals(shelve)){
-				shlvChanged = true;
-				if (e.getStateChange() == ItemEvent.SELECTED){
-					tempShlv = true;
-					tempAck = false;
-					ack.setSelected(false);
 				} else if (e.getStateChange() == ItemEvent.DESELECTED){
-					tempShlv = false;
-				}
+					muteOn = false;
+					all.mute.setSelected(false);
+					nonAlarmed.mute.setSelected(false);
+					acknowledged.mute.setSelected(false);
+					shelved.mute.setSelected(false);
+					alarming.mute.setSelected(false);
+				} 
 			}
 		}
 
@@ -856,7 +865,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 	private Vector<String> itsPoints = new Vector<String>();
 	private DefaultListModel itsListModel = new DefaultListModel();
-	
+
 	private JTabbedPane stateTabs;
 	private AlarmDisplayPanel all;
 	private AlarmDisplayPanel nonAlarmed;
@@ -872,6 +881,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	public AlarmManagerPanel() {
 		// Set layout
 		this.setLayout(new BorderLayout());
+		AlarmMaintainer.addListener(this);
 
 		stateTabs = new JTabbedPane(JTabbedPane.TOP);
 		all = new AlarmDisplayPanel("all");
@@ -1000,6 +1010,9 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				itsUser = JOptionPane.showInputDialog("Please input your username: ");
 			}*/
 
+			cachedDefaultPoints.clear();
+			itsPoints = new Vector<String>();
+
 			// Get the list of points to be monitored
 			String p = (String) setup.get("points");
 			StringTokenizer stp = new StringTokenizer(p, ":");
@@ -1052,51 +1065,86 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				}
 			}
 
-			Vector<String> badPoints = new Vector<String>();
-			for (String s : itsPoints){
-
-				if (PointDescription.getPoint(s).getPriority() == -1 && !noPriorityAlarms){
-					badPoints.add(s);
-					DataMaintainer.unsubscribe(s, this);
-				}
-				if (PointDescription.getPoint(s).getPriority() == 0 && !informationAlarms){
-					badPoints.remove(s);
-					DataMaintainer.unsubscribe(s, this);
-				}
-				if (PointDescription.getPoint(s).getPriority() == 1 && !warningAlarms){
-					badPoints.remove(s);
-					DataMaintainer.unsubscribe(s, this);
-				}
-				if (PointDescription.getPoint(s).getPriority() == 2 && !dangerAlarms){
-					badPoints.remove(s);
-					DataMaintainer.unsubscribe(s, this);
-				}
-				if (PointDescription.getPoint(s).getPriority() == 3 && !severeAlarms){
-					badPoints.remove(s);
-					DataMaintainer.unsubscribe(s, this);
-				}
-
-			}
-
-			for (String bStr : badPoints){
-				itsPoints.remove(bStr);
-			}
-
-			itsListModel.setSize(itsPoints.size());
-			for (int i = 0; i < itsPoints.size(); i++){
-				itsListModel.setElementAt(itsPoints.get(i), i);
-			}
-
 			for (String pd : itsPoints){
 				AlarmMaintainer.setAlarm(PointDescription.getPoint(pd));
 			}
 
+			Vector<String> badPoints = new Vector<String>();
+			for (String s : itsPoints){
+				//				System.out.println("loadSetup: itsPoints (before removing bad): " + s);
+
+				if (AlarmMaintainer.getAlarm(s).getPriority() == -1 && !noPriorityAlarms){
+					badPoints.add(s);
+					DataMaintainer.unsubscribe(s, this);
+				}
+				if (AlarmMaintainer.getAlarm(s).getPriority() == 0 && !informationAlarms){
+					badPoints.add(s);
+					DataMaintainer.unsubscribe(s, this);
+				}
+				if (AlarmMaintainer.getAlarm(s).getPriority() == 1 && !warningAlarms){
+					badPoints.add(s);
+					DataMaintainer.unsubscribe(s, this);
+				}
+				if (AlarmMaintainer.getAlarm(s).getPriority() == 2 && !dangerAlarms){
+					badPoints.add(s);
+					DataMaintainer.unsubscribe(s, this);
+				}
+				if (AlarmMaintainer.getAlarm(s).getPriority() == 3 && !severeAlarms){
+					badPoints.add(s);
+					DataMaintainer.unsubscribe(s, this);
+				}
+
+			}
+
+			if (badPoints.size() > 0){
+				for (String bStr : badPoints){
+					//					System.out.println("loadSetup: badPoints: " + bStr);
+					itsPoints.remove(bStr);
+				}
+			}
+			
+			// Some incredibly weird shit going down here. itsPoints seemed to lose an element
+			// for absolutely no reason, without it being written to at all.
+			// Seemed to fix it by cloning the array into a new temp variable
+			// Using ArrayList instead of Vector didn't fix it either.
+			// Might be the slightest chance that is may be an issue with Debian JVM implementation? Who knows...
+			
+			@SuppressWarnings ("unchecked")
+			Vector<String> newPoints = (Vector<String>) itsPoints.clone();
+
+			//			System.out.println("Size of itsPoints: " + itsPoints.size());
+
+			itsListModel.setSize(itsPoints.size());
+			/*			for (int i = 0; i < itsPoints.size(); i++){
+				System.out.println("loadSetup: itsPoints: " + itsPoints.get(i));
+				itsListModel.setElementAt(itsPoints.get(i), i);
+				System.out.println("loadSetup: itsListModel: " + itsListModel.get(i));
+
+			}*/
+
+			int i = 0;
+			//			System.out.println("Size of itsPoints (before itsListModel cloning): " + itsPoints.size());
+			for (String s : newPoints){
+				//				System.out.println("newPoint: " + s);
+				itsListModel.setElementAt(s, i);
+				//				System.out.println("loadSetup: itsListModel: " + itsListModel.get(i));
+				i++;
+			}
+			//			System.out.println("Size of itsPoints(after itsListModel cloning): " + itsPoints.size());
+			itsPoints = newPoints;
+			/*for (String s : itsPoints){
+				System.out.println(s);
+			}*/
 			nonAlarmed.updateListModel();
 			acknowledged.updateListModel();
 			shelved.updateListModel();
 			alarming.updateListModel();
 
-			AlarmMaintainer.addListener(this);
+			all.showDefaultAlarmPanels();
+			nonAlarmed.showDefaultAlarmPanels();
+			acknowledged.showDefaultAlarmPanels();
+			shelved.showDefaultAlarmPanels();
+			alarming.showDefaultAlarmPanels();
 
 		} catch (final Exception e) {
 			e.printStackTrace();
@@ -1148,7 +1196,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	private boolean playAudio(String resname) {
 		RelTime sleep = RelTime.factory(1000000);
 		try {
-			InputStream in = Watchdog.class.getClassLoader().getResourceAsStream(resname);
+			InputStream in = AlarmManagerPanel.class.getClassLoader().getResourceAsStream(resname);
 			AudioInputStream soundIn = AudioSystem.getAudioInputStream(in);
 			DataLine.Info info = new DataLine.Info(Clip.class, soundIn.getFormat());
 			Clip clip = (Clip) AudioSystem.getLine(info);
@@ -1187,7 +1235,11 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 		public void run() {
 			RelTime sleep = RelTime.factory(10000000);
 			while (!alarming.localListModel.isEmpty()) {
-				playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
+				if (muteOn){
+					continue;
+				} else {
+					playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
+				}
 			}
 			try {
 				sleep.sleep();
