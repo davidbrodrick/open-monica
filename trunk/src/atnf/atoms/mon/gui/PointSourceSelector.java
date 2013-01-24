@@ -87,6 +87,10 @@ extends TreeItemSelector
       }
     }
   }
+  
+  public String[] getAllPointNames(){
+	  return theirPointNames;
+  }
 
 
   /** Simple test application. */
