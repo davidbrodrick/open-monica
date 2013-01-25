@@ -84,7 +84,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 		MonPanel.registerMonPanel("Alarm Manager", AlarmManagerPanel.class);
 	}
 
-	public static Vector<String> cachedDefaultPoints = new Vector<String>();
+	private static Vector<String> cachedDefaultPoints = new Vector<String>();
 
 	private boolean muteOn = false;
 	private boolean noPriorityAlarms = false;
@@ -93,10 +93,15 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	private boolean dangerAlarms = false;
 	private boolean severeAlarms = false;
 
+	/** Colour for the "All" tab. Black. */
 	public final static Color ALL_COLOUR = Color.BLACK;
+	/** Colour for the "Not Alarming" tab. Grey. */
 	public final static Color NOT_ALARMED_COLOUR = Color.GRAY;
+	/** Colour for the "Acknowledged" tab. Yellow. */
 	public final static Color ACKNOWLEDGED_COLOUR = new Color(0xCDAD00);
+	/** Colour for the "Shelved" tab. Green. */
 	public final static Color SHELVED_COLOUR = new Color(0x6E8B3D);
+	/** Colour for the "Alarming" tab. Reddish-Orange. */
 	public final static Color ALARMING_COLOUR = new Color(0xEE4000);
 
 	private String noPriAlmStr = "noPriority";
@@ -194,7 +199,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 		}
 
-
+		@Override
 		protected SavedSetup getSetup() {
 			SavedSetup ss = new SavedSetup();
 			ss.setClass("atnf.atoms.mon.gui.monpanel.AlarmManagerPanel");
@@ -534,7 +539,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			super();
 
 			typeString = t;
-			if (!t.equals("all")) this.type = this.getType(t);
+			if (!typeString.equals("all")) this.type = this.getType(t);
 
 			localListModel = itsListModel;
 
@@ -610,7 +615,13 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 		}
 
-		private int getType(String type) {
+		/**
+		 * Returns the int mask for a given type formatted as a String.
+		 * These types are masks for the different states an alarm can be in.
+		 * @param type The String equivalent of a given alarm state
+		 * @return An int mask of the alarm state this display panel focusses on
+		 */
+		private int getType(String type) throws InvalidParameterException{
 			int res;
 			if (type.equals("nonAlarmed")){
 				res = Alarm.NOT_ALARMED;
@@ -703,6 +714,9 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			}
 		}
 
+		/**
+		 * Updates, revalidates and repaints the AlarmPanels to match the selections in the JList
+		 */
 		private void updateAlarmPanels(){
 			JPanel newPanel = new JPanel();
 			newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
@@ -832,6 +846,9 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			}
 		}
 
+		/**
+		 * Updates the list model for the specified type, and revalidates and repaints the panel
+		 */
 		public void updateListModel() {
 			this.setListModel(itsListModel);
 			Vector<String> newList = new Vector<String>();
@@ -855,6 +872,10 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 		}
 
+		/**
+		 * Sets the list model for the current AlarmDisplayPanel to the specified list model
+		 * @param lm The DefaultListModel to set the JList to
+		 */
 		private void setListModel(DefaultListModel lm){
 			localListModel = lm;
 		}
@@ -1102,13 +1123,13 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					itsPoints.remove(bStr);
 				}
 			}
-			
+
 			// Some incredibly weird shit going down here. itsPoints seemed to lose an element
 			// for absolutely no reason, without it being written to at all.
 			// Seemed to fix it by cloning the array into a new temp variable
 			// Using ArrayList instead of Vector didn't fix it either.
 			// Might be the slightest chance that is may be an issue with Debian JVM implementation? Who knows...
-			
+
 			@SuppressWarnings ("unchecked")
 			Vector<String> newPoints = (Vector<String>) itsPoints.clone();
 
@@ -1161,6 +1182,9 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 		return true;
 	}
 
+	/**
+	 * Method to create a new blank setup pane
+	 */
 	private void blankSetup() {
 		for (String s : itsPoints){
 			DataMaintainer.unsubscribe(s, this);
@@ -1183,13 +1207,12 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	 */
 	@Override
 	public void vaporise() {
-		// TODO Auto-generated method stub
-
+		// TODO 
 	}
 
 	@Override
 	public void onPointEvent(Object source, PointEvent evt) {
-		// TODO Auto-generated method stub
+		// Only needed for the DataMaintainer subscribe call
 	}
 
 	/** Play an audio sample on the sound card. */
