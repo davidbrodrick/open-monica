@@ -987,19 +987,21 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 			gbc.gridx = 0;
 			gbc.gridy = 0;
+			gbc.insets = new Insets(5,30,0,0);
 			if (layout.equals(layoutOptions[0])){ // how to appear if horizontal layout is selected
 
-				for (String s : components){ // fixes alignment for last line of grid, so it isn't massively spread out
-					if (gbc.gridy == components.size()-1){
+				for (String s : components){ 
+					if (gbc.gridy == components.size()-1){// fixes alignment for last line of grid, so it isn't massively spread out
 						gbc.weighty = 1.0;
 						gbc.anchor = GridBagConstraints.NORTH;
+						gbc.insets = new Insets(10,30,0,0);
 					}
 					gbc.gridx = 0;
 					gbc.gridheight = 1;
 					gbc.gridwidth = 1;
 					gbc.fill = GridBagConstraints.HORIZONTAL;
 					gbc.weightx = 0.001;
-					gbc.insets = new Insets(5,30,0,0);
+					
 
 					st = new StringTokenizer(s, ","); // pick apart the string into its individual components
 					ControlPanelDisplayComponent cpdc;

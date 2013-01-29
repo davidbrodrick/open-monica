@@ -4,12 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -18,10 +20,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JToggleButton;
 import javax.swing.border.Border;
 
 import atnf.atoms.mon.Alarm;
@@ -31,56 +33,64 @@ import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.client.AlarmMaintainer;
 import atnf.atoms.mon.util.MailSender;
 
-public class AlarmPopupFrame extends JFrame implements ActionListener, ItemListener, AlarmEventListener{
+public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEventListener{
 
-	String itsUser = "";
+	String username = "";
 	String password = "";
 	String itsName;
 	PointDescription itsPointDesc;
 	Alarm itsAlarm;
-	boolean shlvChanged = false;
-	boolean ackChanged = false;
-	boolean tempShlv = false;
-	boolean tempAck = false;
+
+	boolean shelved = false;
+
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -2222706905265546584L;
 	boolean active = false;
-	AlarmPanel details = new AlarmPanel();
+	AlarmPanel details;
 	JScrollPane detailsScroller = new JScrollPane();
 	JButton notify = new JButton("NOTIFY");
-	JToggleButton ack = new JToggleButton("ACK");
-	JToggleButton shelve = new JToggleButton("SHELVE");
-	JButton reset = new JButton("Reset");
-	JButton confirm = new JButton("Confirm");
-	public AlarmPopupFrame(String s) throws HeadlessException {
+	JButton ack = new JButton("ACK");
+	JButton shelve = new JButton("SHELVE");
 
-		itsName = s;
-		itsPointDesc = PointDescription.getPoint(itsName);
-		itsAlarm = AlarmMaintainer.getAlarm(itsPointDesc);
+	public AlarmPopupFrame(Alarm a) throws HeadlessException {
+		AlarmMaintainer.addListener(this);
+		itsAlarm = a;
+		itsPointDesc = a.getPointDesc();
+		itsName = itsPointDesc.getFullName();
+
+		details = new AlarmPanel(itsName);
 		this.setLayout(new BorderLayout());
 		this.setMinimumSize(new Dimension(500, 800));
 		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		this.setTitle("ALARM NOTIFICATION FOR POINT " + s);
+		this.setTitle("ALARM NOTIFICATION FOR POINT " + itsName);
 		JPanel content = new JPanel(new BorderLayout());
 		//detailsScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		detailsScroller.setViewportView(details);
 		notify.setToolTipText("Notify someone about these alarms through email.");
 		notify.setFont(new Font("Sans Serif", Font.BOLD, 36));
 		notify.addActionListener(this);
+		notify.setActionCommand("notify");
 		ack.setToolTipText("Acknowledge these alarms.");
 		ack.setFont(new Font("Sans Serif", Font.BOLD, 36));
-		ack.addItemListener(this);
+		ack.setActionCommand("ack");
+		ack.addActionListener(this);
+		if (itsAlarm.isShelved()) shelved = true;
+		if (shelved){
+			shelve.setText("UNSHELVE");
+		} else {
+			shelve.setText("SHELVE");
+		}
 		shelve.setToolTipText("Shelve the selected alarms.");
 		shelve.setFont(new Font("Sans Serif", Font.BOLD, 36));
-		shelve.addItemListener(this);
-		reset.setToolTipText("Reset your selections");
-		reset.setFont(new Font("Sans Serif", Font.ITALIC, 28));
-		reset.addActionListener(this);
-		confirm.setToolTipText("Execute the selected actions on these alarms.");
-		confirm.setFont(new Font("Sans Serif", Font.ITALIC, 28));
-		confirm.addActionListener(this);
+		shelve.setActionCommand("shelve");
+		shelve.addActionListener(this);
+		this.addWindowListener(new WindowAdapter(){
+			public void windowClosing(WindowEvent we){
+				AlarmMaintainer.removeListener(AlarmPopupFrame.this);
+			}
+		});
 		JPanel optionButtons = new JPanel();
 		optionButtons.setLayout(new GridLayout(1,3));
 		optionButtons.add(notify);
@@ -88,8 +98,46 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, ItemListe
 		optionButtons.add(shelve);
 		JPanel confirmButtons = new JPanel();
 		confirmButtons.setLayout(new GridLayout(1,2));
-		confirmButtons.add(reset);
-		confirmButtons.add(confirm);
+
+		content.add(detailsScroller, BorderLayout.CENTER);
+		content.add(optionButtons, BorderLayout.SOUTH);
+		this.getContentPane().add(content, BorderLayout.CENTER);
+		this.getContentPane().add(confirmButtons, BorderLayout.SOUTH);
+		this.pack();
+		this.setLocationByPlatform(true);
+		this.setVisible(false);
+	}
+
+	public AlarmPopupFrame() throws HeadlessException {
+		itsName = "";
+		details = new AlarmPanel();
+		this.setLayout(new BorderLayout());
+		this.setMinimumSize(new Dimension(500, 800));
+		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		this.setTitle("ALARM NOTIFICATION FOR POINT " + itsName);
+		JPanel content = new JPanel(new BorderLayout());
+		//detailsScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		detailsScroller.setViewportView(details);
+		notify.setToolTipText("Notify someone about these alarms through email.");
+		notify.setFont(new Font("Sans Serif", Font.BOLD, 36));
+		notify.addActionListener(this);
+		notify.setActionCommand("notify");
+		ack.setToolTipText("Acknowledge these alarms.");
+		ack.setFont(new Font("Sans Serif", Font.BOLD, 36));
+		ack.setActionCommand("ack");
+		ack.addActionListener(this);
+		shelve.setToolTipText("Shelve the selected alarms.");
+		shelve.setFont(new Font("Sans Serif", Font.BOLD, 36));
+		shelve.setActionCommand("shelve");
+		shelve.addActionListener(this);
+
+		JPanel optionButtons = new JPanel();
+		optionButtons.setLayout(new GridLayout(1,3));
+		optionButtons.add(notify);
+		optionButtons.add(ack);
+		optionButtons.add(shelve);
+		JPanel confirmButtons = new JPanel();
+		confirmButtons.setLayout(new GridLayout(1,2));
 
 		content.add(detailsScroller, BorderLayout.CENTER);
 		content.add(optionButtons, BorderLayout.SOUTH);
@@ -101,9 +149,11 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, ItemListe
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		Object source = arg0.getSource();
-		if (source.equals(notify)){
+	public void actionPerformed(ActionEvent e) {
+		String command = e.getActionCommand();
+
+		if (command.equals("notify")){
+			//notify via email
 			String[] args = new String[3];
 			JPanel inputs = new JPanel();
 			JPanel tFieldsp = new JPanel();
@@ -138,91 +188,135 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, ItemListe
 				args[2] = body.getText();
 				args[2] += "\n\n\n\t -- Sent via MoniCA Java Client";
 				try {		
-					if (!args[0].contains("@")) throw (new IllegalArgumentException());
+
 					//if (!args[0].endsWith("@csiro.au")) throw new IllegalArgumentException("Non-CSIRO Email");//Checks for correct email address
 					MailSender.sendMail(args[0], args[1], args[2]);
 					JOptionPane.showMessageDialog(this, "Email successfully sent!", "Email Notification", JOptionPane.INFORMATION_MESSAGE);
-					this.setVisible(false);
 				} catch (IllegalArgumentException e0){
 					JOptionPane.showMessageDialog(this, "Email sending failed!\n" +
-							"You need to send this to a valid email address!", "Email Notification", JOptionPane.ERROR_MESSAGE);
+							"You need to send this to a CSIRO email address!", "Email Notification", JOptionPane.ERROR_MESSAGE);
 				} catch (Exception e1){
 					JOptionPane.showMessageDialog(this, "Email sending failed!\n" +
 							"You  may want to check your connection settings.", "Email Notification", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 
-		} else if (source.equals(reset)){
-			tempShlv = false;
-			tempAck = false;
-			ack.setSelected(false);
-			shelve.setSelected(false);
-		} else if (source.equals(confirm)){
-			int res = 0;
-			if (ackChanged && ack.isSelected() || shlvChanged && ack.isSelected()){
-				res = JOptionPane.showConfirmDialog(this, "This will set this point to Acknowledged. Is this OK?", "Confirmation" , JOptionPane.YES_NO_OPTION);
-			} else if (shlvChanged && shelve.isSelected() || ackChanged && shelve.isSelected()){
-				res = JOptionPane.showConfirmDialog(this, "This will set this point to Shelved. Is this OK?", "Confirmation", JOptionPane.YES_NO_OPTION);
-			} else if (ackChanged && !ack.isSelected() && !shelve.isSelected()){
-				res = JOptionPane.showConfirmDialog(this, "This will de-Acknowledge this point. Is this OK?", "Confirmation" , JOptionPane.YES_NO_OPTION);
-			} else if (shlvChanged && !shelve.isSelected() && !ack.isSelected()){
-				res = JOptionPane.showConfirmDialog(this, "This will un-Shelve this point. Is this OK?", "Confirmation" , JOptionPane.YES_NO_OPTION);
-			}
-			if (res == JOptionPane.YES_OPTION){
-				ackChanged = false;
-				shlvChanged = false;
-				try {
-					AlarmMaintainer.setAcknowledged(itsPointDesc.getFullName(), tempAck, itsUser, password);
-					AlarmMaintainer.setShelved(itsPointDesc.getFullName(), tempShlv, itsUser, password);
-					this.setVisible(false);
-				} catch (NullPointerException e){
-					// No point available if this is the case
+		} else if (command.equals("ack")){
+			if (username.equals("") || password.equals("")){
+				JPanel inputs = new JPanel();
+				inputs.setLayout(new GridBagLayout());
+				GridBagConstraints gbc = new GridBagConstraints();
+				gbc.fill = GridBagConstraints.HORIZONTAL;
+				gbc.weightx = 0.5;
+				gbc.gridx = 0;
+				gbc.gridy = 0;
+				JLabel usernameLabel = new JLabel("Username: ");
+				JTextField usernameField = new JTextField(20);
+				usernameField.setText(username);
+				inputs.add(usernameLabel, gbc);
+				gbc.gridx = 1;
+				gbc.gridwidth = 3;
+				inputs.add(usernameField, gbc);
+				JLabel passwordLabel = new JLabel("Password: ");
+				JPasswordField passwordField = new JPasswordField(20);
+				gbc.gridx = 0;
+				gbc.gridy = 1;
+				gbc.gridwidth = 1;
+				inputs.add(passwordLabel, gbc);
+				gbc.gridwidth = 3;
+				gbc.gridx = 1;
+				inputs.add(passwordField, gbc);
+
+				int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
+
+				if (result == JOptionPane.OK_OPTION){
+					username = usernameField.getText();
+					password = new String(passwordField.getPassword());
+
 				}
 			}
-		}
+			try{
+				AlarmMaintainer.setAcknowledged(this.itsName, true, username, password);
+				AlarmMaintainer.removeListener(this);
+				this.dispose();
+			} catch (Exception ex){
+				password = "";
+				JOptionPane.showMessageDialog(this, "Something went wrong with the sending of data. " +
+						"\nPlease ensure that you're properly connected to the network, you are attempting to write to a valid point" +
+						"\n and your username and password are correct.", "Data Sending Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+		} else if (command.equals("shelve")){
+			if (username.equals("") || password.equals("")){
+				JPanel inputs = new JPanel();
+				inputs.setLayout(new GridBagLayout());
+				GridBagConstraints gbc = new GridBagConstraints();
+				gbc.fill = GridBagConstraints.HORIZONTAL;
+				gbc.weightx = 0.5;
+				gbc.gridx = 0;
+				gbc.gridy = 0;
+				JLabel usernameLabel = new JLabel("Username: ");
+				JTextField usernameField = new JTextField(20);
+				usernameField.setText(username);
+				inputs.add(usernameLabel, gbc);
+				gbc.gridx = 1;
+				gbc.gridwidth = 3;
+				inputs.add(usernameField, gbc);
+				JLabel passwordLabel = new JLabel("Password: ");
+				JPasswordField passwordField = new JPasswordField(20);
+				gbc.gridx = 0;
+				gbc.gridy = 1;
+				gbc.gridwidth = 1;
+				inputs.add(passwordLabel, gbc);
+				gbc.gridwidth = 3;
+				gbc.gridx = 1;
+				inputs.add(passwordField, gbc);
 
+				int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
+
+				if (result == JOptionPane.OK_OPTION){
+					username = usernameField.getText();
+					password = new String(passwordField.getPassword());
+
+				}
+			} 
+
+			try {
+				shelved = !shelved;
+				AlarmMaintainer.setShelved(this.itsName, shelved, username, password);
+				AlarmMaintainer.removeListener(this);
+				this.dispose();
+			} catch (Exception ex){
+				password = "";
+				JOptionPane.showMessageDialog(this, "Something went wrong with the sending of data. " +
+						"\nPlease ensure that you're properly connected to the network, you are attempting to write to a valid point" +
+						"\n and your username and password are correct.", "Data Sending Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+		}
 	}
 
-	@Override
-	public void itemStateChanged(ItemEvent e) {
-		ackChanged = false;
-		shlvChanged = false;
-		if (e.getSource().equals(ack)){
-			ackChanged = true;
-			if (e.getStateChange() == ItemEvent.SELECTED){
-				tempAck = true;
-				tempShlv = false;
-				shelve.setSelected(false);
-			} else if (e.getStateChange() == ItemEvent.DESELECTED){
-				tempAck = false;
-			}
-
-		} else if (e.getSource().equals(shelve)){
-			shlvChanged = true;
-			if (e.getStateChange() == ItemEvent.SELECTED){
-				tempShlv = true;
-				tempAck = false;
-				ack.setSelected(false);
-			} else if (e.getStateChange() == ItemEvent.DESELECTED){
-				tempShlv = false;
-			}
-		}
-	}
 
 	@Override
 	public void onAlarmEvent(AlarmEvent event) {
-		// Rather than this, might be better to just create new AlarmPopupFrames whenever
-		// and alarm goes off, wherever this is implemented
-		if (event.getAlarm().getAlarmStatus() == Alarm.ALARMING){
-			details = new AlarmPanel(event.getAlarm().getPointDesc().getFullName());
+		if (event.getAlarm().getPointDesc().getFullName().equals(this.itsAlarm.getPointDesc().getFullName())){
+			itsAlarm = event.getAlarm();
+			itsPointDesc = itsAlarm.getPointDesc();
+			details = new AlarmPanel(itsName);
+			if (itsAlarm.isShelved()){
+				shelved = true;
+				shelve.setText("UNSHELVE");
+			} else {
+				shelved = false;
+				shelve.setText("SHELVE");
+			}
 			detailsScroller.setViewportView(details);
-			this.setVisible(true);
-			
+
 		}
 	}
-	
+
 	public static void main(String[] args){
-		AlarmPopupFrame apf = new AlarmPopupFrame("null");
+		AlarmPopupFrame apf = new AlarmPopupFrame();
 		apf.setVisible(true);
 	}
 }
