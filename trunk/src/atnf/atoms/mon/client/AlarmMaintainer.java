@@ -9,9 +9,17 @@
 
 package atnf.atoms.mon.client;
 
-import java.util.*;
-import atnf.atoms.mon.*;
-import atnf.atoms.time.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Vector;
+
+import atnf.atoms.mon.Alarm;
+import atnf.atoms.mon.AlarmEvent;
+import atnf.atoms.mon.AlarmEventListener;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.mon.gui.AlarmPopupFrame;
+import atnf.atoms.time.RelTime;
 
 /**
  * Class which periodically polls the server for the status of priority alarms, and presents a high level interface to client
@@ -55,11 +63,36 @@ public class AlarmMaintainer implements Runnable {
 		theirListeners.remove(listener);
 	}
 
+	/**
+	 * For a given Alarm, creates a new AlarmEvent and distributes it to all the registered listeners
+	 * @param a The Alarm that the listeners are notified about
+	 */
 	private synchronized static void fireAlarmEvent(Alarm a) {
 		AlarmEvent ae = new AlarmEvent(a.getPointDesc(), a);
 		for (AlarmEventListener ael : theirListeners) {
 			ael.onAlarmEvent(ae);
 		}
+
+		if (a.isAlarming() && a.getPriority() == 3){
+			displayAlarmNotification(a);
+		}
+
+	}
+
+	/**
+	 * Method to display automatically an Alarm notification popup frame if the alarm 
+	 * in question is actively alarming and is part of the highest bracket of alarm priorities.
+	 * @param a The Alarm to display the notification about
+	 */
+	private synchronized static void displayAlarmNotification(final Alarm a){
+		new Thread(){
+			@Override
+			public void run(){
+				if (a.isAlarming() && a.getPriority() == 3){
+					AlarmPopupFrame apf = new AlarmPopupFrame(a);
+				}
+			}
+		}.start();
 	}
 
 	@Override
@@ -102,10 +135,13 @@ public class AlarmMaintainer implements Runnable {
 		setAcknowledged(pointname, ack, username, password);
 	}
 
-	/** Write the specified alarm acknowledgement change to the server. */
+	/** Write the specified alarm acknowledgement change to the server, and also temporarily to the local list until it gets updated */
 	public static void setAcknowledged(Vector<String> pointnames, boolean ack, String username, String password) {
 		try {
 			MonClientUtil.getServer().acknowledgeAlarms(pointnames, ack, username, password);
+			for (String s : pointnames){
+				theirAlarms.get(PointDescription.getPoint(s)).setAcknowledged(ack);
+			}
 		} catch (Exception e) {
 		}
 	}
@@ -117,10 +153,13 @@ public class AlarmMaintainer implements Runnable {
 		setShelved(pointname, shelve, username, password);
 	}
 
-	/** Write the specified alarm shelving change to the server. */
+	/** Write the specified alarm shelving change to the server, and also temporarily to the local list until it gets updated */
 	public static void setShelved(Vector<String> pointnames, boolean shelve, String username, String password) {
 		try {
-			MonClientUtil.getServer().shelveAlarms(pointnames, shelve, username, password);
+			MonClientUtil.getServer().shelveAlarms(pointnames, shelve, username, password);	
+			for (String s : pointnames){
+				theirAlarms.get(PointDescription.getPoint(s)).setShelved(shelve);
+			}
 		} catch (Exception e) {
 		}
 	}

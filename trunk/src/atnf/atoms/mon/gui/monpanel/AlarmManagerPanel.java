@@ -41,6 +41,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
@@ -514,6 +515,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 	protected class AlarmDisplayPanel extends JPanel implements	ActionListener, ListSelectionListener, ItemListener{
 
+		boolean selectionIsShelved = false;
 		int type = -1;
 
 		String typeString;
@@ -577,15 +579,13 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 			// Let's add some stuff to the button panel!
 			notify.setToolTipText("Notify someone about these alarms through email.");
-			//			notify.setFont(new Font("Sans Serif", Font.BOLD, 48));
+			notify.setEnabled(false);
 			ack.setToolTipText("Acknowledge these alarms.");
-			//			ack.setFont(new Font("Sans Serif", Font.BOLD, 48));
+			ack.setEnabled(false);
 			shelve.setToolTipText("Shelve the selected alarms.");
-			//			shelve.setFont(new Font("Sans Serif", Font.BOLD, 48));
+			shelve.setEnabled(false);
 			reset.setToolTipText("Reset your selections");
-			//			reset.setFont(new Font("Sans Serif", Font.ITALIC, 28));
 			mute.setToolTipText("Mute the Alarm Audio Warning");
-			//			mute.setFont(new Font("Sans Serif", Font.ITALIC, 28));
 
 			// set the action commands that are sent when these buttons are pressed
 			notify.setActionCommand("notify");
@@ -697,20 +697,109 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				showDefaultAlarmPanels();
 
 			} else if (command.equals("ack")){
-				//send the commands along to the server
-				for (Object s : plist.getSelectedValues()){
-					//System.out.println("Username: " + username + "\nPassword: " + password);
-					AlarmMaintainer.setAcknowledged(s.toString(), true, username, password);
-				}			
-				updateListModels();
-				this.updateAlarmPanels();
-			} else if (command.equals("shelve")){
-				for (Object s : plist.getSelectedValues()){
-					//System.out.println("Username: " + username + "\nPassword: " + password);
-					AlarmMaintainer.setShelved(s.toString(), true, username, password);
+				if (username.equals("") || password.equals("")){
+					JPanel inputs = new JPanel();
+					inputs.setLayout(new GridBagLayout());
+					GridBagConstraints gbc = new GridBagConstraints();
+					gbc.fill = GridBagConstraints.HORIZONTAL;
+					gbc.weightx = 0.5;
+					gbc.gridx = 0;
+					gbc.gridy = 0;
+					JLabel usernameLabel = new JLabel("Username: ");
+					JTextField usernameField = new JTextField(20);
+					usernameField.setText(username);
+					inputs.add(usernameLabel, gbc);
+					gbc.gridx = 1;
+					gbc.gridwidth = 3;
+					inputs.add(usernameField, gbc);
+					JLabel passwordLabel = new JLabel("Password: ");
+					JPasswordField passwordField = new JPasswordField(20);
+					gbc.gridx = 0;
+					gbc.gridy = 1;
+					gbc.gridwidth = 1;
+					inputs.add(passwordLabel, gbc);
+					gbc.gridwidth = 3;
+					gbc.gridx = 1;
+					inputs.add(passwordField, gbc);
+
+					int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
+
+					if (result == JOptionPane.OK_OPTION){
+						username = usernameField.getText();
+						password = new String(passwordField.getPassword());
+
+					}
 				}
-				updateListModels();
-				this.updateAlarmPanels();
+				//send the commands along to the server
+				try {
+					for (Object s : plist.getSelectedValues()){
+						//System.out.println("Username: " + username + "\nPassword: " + password);
+						AlarmMaintainer.setAcknowledged(s.toString(), true, username, password);
+					}			
+					updateListModels();
+					this.updateAlarmPanels();
+				} catch (Exception ex){
+					password = "";
+					JOptionPane.showMessageDialog(this, "Something went wrong with the sending of data. " +
+							"\nPlease ensure that you're properly connected to the network, you are attempting to write to a valid point" +
+							"\n and your username and password are correct.", "Data Sending Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+			} else if (command.equals("shelve")){
+				if (username.equals("") || password.equals("")){
+					JPanel inputs = new JPanel();
+					inputs.setLayout(new GridBagLayout());
+					GridBagConstraints gbc = new GridBagConstraints();
+					gbc.fill = GridBagConstraints.HORIZONTAL;
+					gbc.weightx = 0.5;
+					gbc.gridx = 0;
+					gbc.gridy = 0;
+					JLabel usernameLabel = new JLabel("Username: ");
+					JTextField usernameField = new JTextField(20);
+					usernameField.setText(username);
+					inputs.add(usernameLabel, gbc);
+					gbc.gridx = 1;
+					gbc.gridwidth = 3;
+					inputs.add(usernameField, gbc);
+					JLabel passwordLabel = new JLabel("Password: ");
+					JPasswordField passwordField = new JPasswordField(20);
+					gbc.gridx = 0;
+					gbc.gridy = 1;
+					gbc.gridwidth = 1;
+					inputs.add(passwordLabel, gbc);
+					gbc.gridwidth = 3;
+					gbc.gridx = 1;
+					inputs.add(passwordField, gbc);
+
+					int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
+
+					if (result == JOptionPane.OK_OPTION){
+						username = usernameField.getText();
+						password = new String(passwordField.getPassword());
+
+					}
+				}
+				try {
+					selectionIsShelved = !selectionIsShelved;
+					for (Object s : plist.getSelectedValues()){
+						//System.out.println("Username: " + username + "\nPassword: " + password);
+						AlarmMaintainer.setShelved(s.toString(), selectionIsShelved, username, password);
+					}
+					updateListModels();
+					this.updateAlarmPanels();
+
+					if (selectionIsShelved){
+						shelve.setText("UNSHELVE");
+					} else {
+						shelve.setText("SHELVE");
+					}
+				} catch (Exception ex){
+					password = "";
+					JOptionPane.showMessageDialog(this, "Something went wrong with the sending of data. " +
+							"\nPlease ensure that you're properly connected to the network, you are attempting to write to a valid point" +
+							"\n and your username and password are correct.", "Data Sending Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
 			}
 		}
 
@@ -818,8 +907,20 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				JList source = (JList) e.getSource();
 				if (source.getSelectedIndices().length > 0){
 					this.updateAlarmPanels();
+					ack.setEnabled(true);
+					shelve.setEnabled(true);
+					notify.setEnabled(true);
+					selectionIsShelved = AlarmMaintainer.getAlarm(source.getSelectedValue().toString()).isShelved();
+					if (selectionIsShelved){
+						shelve.setText("UNSHELVE");
+					} else {
+						shelve.setText("SHELVE");
+					}
 				} else {
 					this.showDefaultAlarmPanels();
+					ack.setEnabled(false);
+					shelve.setEnabled(false);
+					notify.setEnabled(false);
 				}
 			}
 		}
