@@ -951,10 +951,12 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 	// ///// END NESTED CLASS ///////
 
+	@Override
 	public MonPanelSetupPanel getControls() {
 		return new ControlSetupPanel(this, itsFrame);
 	}
 
+	@Override
 	public boolean loadSetup(SavedSetup setup) {
 		try {
 			// check if the setup is suitable for our class
@@ -1233,7 +1235,8 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						if (result == JOptionPane.OK_OPTION){
 							username = usernameField.getText();
 							passwd = new String(passwordField.getPassword());
-
+						} else {
+							return;
 						}
 					}
 
@@ -1320,10 +1323,10 @@ public class ControlPanel extends MonPanel implements ActionListener{
 	public class NumberDocumentFilter extends DocumentFilter{
 		private boolean filter = true;
 
-		public boolean getFilterState(){
-			return filter;
-		}
-
+		/**
+		 * Method to set this NumberDocumentFilter to actively filter or not.
+		 * @param state Boolean indicating whether to enable the NumberDocumentFilter
+		 */
 		public void setFilterState(boolean state){
 			this.filter = state;
 		}

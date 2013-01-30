@@ -1,3 +1,10 @@
+// Copyright (C) CSIRO Australia Telescope National Facility
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Library General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+
 package atnf.atoms.mon.gui;
 
 import java.awt.BorderLayout;
@@ -33,6 +40,16 @@ import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.client.AlarmMaintainer;
 import atnf.atoms.mon.util.MailSender;
 
+/**
+ * Class that encapsulates the creation of a JFrame that holds the information about a 
+ * given Alarm. Should generally be used only for high priority alarms, but could theoretically
+ * be used for any alarm, up to the programmer's discretion.
+ * <br/>This class extends the javax.swing.JFrame class, and utilises the atnf.atoms.mon.gui.AlarmPanel class
+ * to draw the alarm details pane. 
+ * @author Kalinga Hulugalle
+ * @see JFrame
+ * @see AlarmPanel
+ */
 public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEventListener{
 
 	String username = "";
@@ -54,60 +71,74 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 	JButton ack = new JButton("ACK");
 	JButton shelve = new JButton("SHELVE");
 
+	/**
+	 * Constructor for a new AlarmPopupFrame
+	 * @param a The Alarm object this AlarmPopupFrame is referencing
+	 * @throws HeadlessException
+	 */
 	public AlarmPopupFrame(Alarm a) throws HeadlessException {
-		AlarmMaintainer.addListener(this);
-		itsAlarm = a;
-		itsPointDesc = a.getPointDesc();
-		itsName = itsPointDesc.getFullName();
+		if (a != null){
+			AlarmMaintainer.addListener(this);
+			itsAlarm = a;
+			itsPointDesc = a.getPointDesc();
+			itsName = itsPointDesc.getFullName();
 
-		details = new AlarmPanel(itsName);
-		this.setLayout(new BorderLayout());
-		this.setMinimumSize(new Dimension(500, 800));
-		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		this.setTitle("ALARM NOTIFICATION FOR POINT " + itsName);
-		JPanel content = new JPanel(new BorderLayout());
-		//detailsScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		detailsScroller.setViewportView(details);
-		notify.setToolTipText("Notify someone about these alarms through email.");
-		notify.setFont(new Font("Sans Serif", Font.BOLD, 36));
-		notify.addActionListener(this);
-		notify.setActionCommand("notify");
-		ack.setToolTipText("Acknowledge these alarms.");
-		ack.setFont(new Font("Sans Serif", Font.BOLD, 36));
-		ack.setActionCommand("ack");
-		ack.addActionListener(this);
-		if (itsAlarm.isShelved()) shelved = true;
-		if (shelved){
-			shelve.setText("UNSHELVE");
-		} else {
-			shelve.setText("SHELVE");
-		}
-		shelve.setToolTipText("Shelve the selected alarms.");
-		shelve.setFont(new Font("Sans Serif", Font.BOLD, 36));
-		shelve.setActionCommand("shelve");
-		shelve.addActionListener(this);
-		this.addWindowListener(new WindowAdapter(){
-			public void windowClosing(WindowEvent we){
-				AlarmMaintainer.removeListener(AlarmPopupFrame.this);
+			details = new AlarmPanel(itsName);
+			this.setLayout(new BorderLayout());
+			this.setMinimumSize(new Dimension(500, 800));
+			this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+			this.setTitle("ALARM NOTIFICATION FOR POINT " + itsName);
+			JPanel content = new JPanel(new BorderLayout());
+			//detailsScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+			detailsScroller.setViewportView(details);
+			notify.setToolTipText("Notify someone about these alarms through email.");
+			notify.setFont(new Font("Sans Serif", Font.BOLD, 36));
+			notify.addActionListener(this);
+			notify.setActionCommand("notify");
+			ack.setToolTipText("Acknowledge these alarms.");
+			ack.setFont(new Font("Sans Serif", Font.BOLD, 36));
+			ack.setActionCommand("ack");
+			ack.addActionListener(this);
+			if (itsAlarm.isShelved()) shelved = true;
+			if (shelved){
+				shelve.setText("UNSHELVE");
+			} else {
+				shelve.setText("SHELVE");
 			}
-		});
-		JPanel optionButtons = new JPanel();
-		optionButtons.setLayout(new GridLayout(1,3));
-		optionButtons.add(notify);
-		optionButtons.add(ack);
-		optionButtons.add(shelve);
-		JPanel confirmButtons = new JPanel();
-		confirmButtons.setLayout(new GridLayout(1,2));
+			shelve.setToolTipText("Shelve the selected alarms.");
+			shelve.setFont(new Font("Sans Serif", Font.BOLD, 36));
+			shelve.setActionCommand("shelve");
+			shelve.addActionListener(this);
+			this.addWindowListener(new WindowAdapter(){
+				public void windowClosing(WindowEvent we){
+					AlarmMaintainer.removeListener(AlarmPopupFrame.this);
+				}
+			});
+			JPanel optionButtons = new JPanel();
+			optionButtons.setLayout(new GridLayout(1,3));
+			optionButtons.add(notify);
+			optionButtons.add(ack);
+			optionButtons.add(shelve);
+			JPanel confirmButtons = new JPanel();
+			confirmButtons.setLayout(new GridLayout(1,2));
 
-		content.add(detailsScroller, BorderLayout.CENTER);
-		content.add(optionButtons, BorderLayout.SOUTH);
-		this.getContentPane().add(content, BorderLayout.CENTER);
-		this.getContentPane().add(confirmButtons, BorderLayout.SOUTH);
-		this.pack();
-		this.setLocationByPlatform(true);
-		this.setVisible(false);
+			content.add(detailsScroller, BorderLayout.CENTER);
+			content.add(optionButtons, BorderLayout.SOUTH);
+			this.getContentPane().add(content, BorderLayout.CENTER);
+			this.getContentPane().add(confirmButtons, BorderLayout.SOUTH);
+			this.pack();
+			this.setLocationByPlatform(true);
+			this.setVisible(false);
+		} else {
+			new AlarmPopupFrame();
+			this.dispose();
+		}
 	}
 
+	/**
+	 * Constructor for a blank AlarmPopupFrame
+	 * @throws HeadlessException
+	 */
 	public AlarmPopupFrame() throws HeadlessException {
 		itsName = "";
 		details = new AlarmPanel();
@@ -232,7 +263,8 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 				if (result == JOptionPane.OK_OPTION){
 					username = usernameField.getText();
 					password = new String(passwordField.getPassword());
-
+				} else {
+					return;
 				}
 			}
 			try{
@@ -278,6 +310,8 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 					username = usernameField.getText();
 					password = new String(passwordField.getPassword());
 
+				} else {
+					return;
 				}
 			} 
 
@@ -315,6 +349,7 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 		}
 	}
 
+	// Test for a blank popup frame
 	public static void main(String[] args){
 		AlarmPopupFrame apf = new AlarmPopupFrame();
 		apf.setVisible(true);
