@@ -1,4 +1,3 @@
-//
 // Copyright (C) CSIRO Australia Telescope National Facility
 //
 // This library is free software; you can redistribute it and/or
@@ -20,9 +19,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.font.TextAttribute;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.security.InvalidParameterException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -50,6 +52,7 @@ import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -119,7 +122,8 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	private class AlarmManagerSetupPanel extends MonPanelSetupPanel implements ItemListener, ActionListener{
 
 		private JCheckBox selectAllPointCb = new JCheckBox("Select All Points");
-		private JLabel catLabel = new JLabel("Select Categories of Alarms: ");
+		private JCheckBox allowAutoAlarms = new JCheckBox("Allow Automatic Notifications");
+		private JLabel catLabel = new JLabel("Select Alarm Categories: ");
 
 
 		private JCheckBox noPriorityCb = new JCheckBox("\"No Priority\"");
@@ -131,7 +135,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 		/** Main panel for our setup components. */
 		private JPanel itsMainPanel = new JPanel();
-		private PointSourceSelector itsPointSelector = new PointSourceSelector();
+		private AMPPointSourceSelector itsPointSelector = new AMPPointSourceSelector();
 
 		/** Constructor for the AlarmManager setup pane **/
 		protected AlarmManagerSetupPanel(AlarmManagerPanel panel, JFrame frame) {
@@ -152,19 +156,27 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			gbc.gridx = 0;
 			gbc.gridy = 0;
 
+			Map<TextAttribute, Integer> fontAttributes = new HashMap<TextAttribute, Integer>();
+			fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_DOTTED);
+			catLabel.setFont(new Font("Sans Serif", Font.BOLD, catLabel.getFont().getSize()).deriveFont(fontAttributes));
+			catInfo.add(catLabel, gbc);
+			gbc.gridx = 1;
+			if (AlarmMaintainer.autoAlarms) allowAutoAlarms.setSelected(true);
+			allowAutoAlarms.addItemListener(this);
+			catInfo.add(allowAutoAlarms, gbc);
+
+			gbc.gridx = 2;
+			gbc.anchor = GridBagConstraints.EAST;
+			catInfo.add(selectAllPointCb, gbc);
+			selectAllPointCb.addItemListener(this);
+			selectAllPointCb.setHorizontalAlignment(SwingConstants.RIGHT);
+
 			noPriorityCb.addItemListener(this);
 			informationCb.addItemListener(this);
 			warningCb.addItemListener(this);
 			dangerCb.addItemListener(this);
 			severeCb.addItemListener(this);
 			allCb.addItemListener(this);
-
-			catInfo.add(catLabel, gbc);
-			gbc.gridx = 1;
-			gbc.anchor = GridBagConstraints.EAST;
-			catInfo.add(selectAllPointCb, gbc);
-			selectAllPointCb.addItemListener(this);
-			selectAllPointCb.setHorizontalAlignment(SwingConstants.RIGHT);
 
 			// lots of glue so that the layout doesn't look silly when resized horizontally
 			selectCategory.add(Box.createHorizontalGlue());
@@ -180,6 +192,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			selectCategory.add(Box.createHorizontalGlue());
 			selectCategory.add(allCb);
 			selectCategory.add(Box.createHorizontalGlue());
+			selectCategory.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
 
 			allCb.setSelected(true);
 			selectAllPointCb.setSelected(true);
@@ -503,16 +516,57 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					severeCb.setSelected(false);
 
 				}
-			} 
+			} else if (source.equals(allowAutoAlarms)){
+				if (e.getStateChange() == ItemEvent.SELECTED){
+					AlarmMaintainer.autoAlarms = true;
+				} else if (e.getStateChange() == ItemEvent.DESELECTED){
+					AlarmMaintainer.autoAlarms = false;
+				}
+			}
 
 		}
 
-	}
+		// /////////////////////// NESTED NESTED CLASS ///////////////////////////////
 
+		/**
+		 * Class to support the changing of the checkbox state when a selection in the Tree
+		 * is made. Small, but fixes an incredibly annoying behaviour without it.
+		 */
+		public class AMPPointSourceSelector extends PointSourceSelector{
+
+			/**
+			 * Constructor, nothing fancy.
+			 */
+			public AMPPointSourceSelector(){
+				super();
+			}
+
+			/**
+			 * Overrides the superclass's actionPerformed() method, though it uses
+			 * the same behaviour, just adds a little to it.
+			 * @param e The ActionEvent object that encapsulates information about the action
+			 */
+			@Override
+			public void actionPerformed(ActionEvent e){
+				super.actionPerformed(e);
+				if (e.getActionCommand().equals("Add")){
+					selectAllPointCb.setSelected(false);
+				}
+			}
+
+		}
+		// ///////////////////// END NESTED NESTED CLASS /////////////////////////////
+	}
 	// ///////////////////// END NESTED CLASS /////////////////////////////
 
 	// /////////////////////// NESTED CLASS ///////////////////////////////
 
+	/**
+	 * Class that encapsulates all the details with displaying the contents of the display,
+	 * including the JList of the points, and the buttons. The actual alarm details are handled
+	 * by the AlarmPanel class
+	 * @see AlarmPanel
+	 */
 	protected class AlarmDisplayPanel extends JPanel implements	ActionListener, ListSelectionListener, ItemListener{
 
 		boolean selectionIsShelved = false;
@@ -678,8 +732,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					args[2] = body.getText();
 					args[2] += "\n\n\n\t -- Sent via MoniCA Java Client";
 					try {		
-
-						//if (!args[0].endsWith("@csiro.au")) throw new IllegalArgumentException("Non-CSIRO Email");//Checks for correct email address
 						MailSender.sendMail(args[0], args[1], args[2]);
 						JOptionPane.showMessageDialog(this, "Email successfully sent!", "Email Notification", JOptionPane.INFORMATION_MESSAGE);
 					} catch (IllegalArgumentException e0){
@@ -689,6 +741,8 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 						JOptionPane.showMessageDialog(this, "Email sending failed!\n" +
 								"You  may want to check your connection settings.", "Email Notification", JOptionPane.ERROR_MESSAGE);
 					}
+				} else {
+					return;
 				}
 
 			} else if (command.equals("reset")){
@@ -728,12 +782,13 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 						username = usernameField.getText();
 						password = new String(passwordField.getPassword());
 
+					} else {
+						return;
 					}
 				}
 				//send the commands along to the server
 				try {
 					for (Object s : plist.getSelectedValues()){
-						//System.out.println("Username: " + username + "\nPassword: " + password);
 						AlarmMaintainer.setAcknowledged(s.toString(), true, username, password);
 					}			
 					updateListModels();
@@ -776,13 +831,13 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					if (result == JOptionPane.OK_OPTION){
 						username = usernameField.getText();
 						password = new String(passwordField.getPassword());
-
+					} else {
+						return;
 					}
 				}
 				try {
 					selectionIsShelved = !selectionIsShelved;
 					for (Object s : plist.getSelectedValues()){
-						//System.out.println("Username: " + username + "\nPassword: " + password);
 						AlarmMaintainer.setShelved(s.toString(), selectionIsShelved, username, password);
 					}
 					updateListModels();
@@ -817,7 +872,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				newPanel.add(a);
 			}
 
-			//	alarmDetailsScroller.add(newPanel);
 			alarmDetailsScroller.setViewportView(newPanel);
 			alarmDetailsScroller.revalidate();
 			alarmDetailsScroller.repaint();
@@ -843,7 +897,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				newPanel.add(a);
 			}
 
-			//	alarmDetailsScroller.add(newPanel);
 			alarmDetailsScroller.setViewportView(newPanel);
 			alarmDetailsScroller.revalidate();
 			alarmDetailsScroller.repaint();
@@ -877,16 +930,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					}
 				}
 			}
-			/* DEBUGGING FOR THE REVERSE QUICKSORT 
-			System.out.println("GREATER: ");
-			for (String s : greater){
-				System.out.println(s);
-			}
-			System.out.println("PIVOT: " + removed);
-			System.out.println("LESS: ");
-			for (String s : less){
-				System.out.println(s);
-			}*/
 
 			try {
 				greater = reverseQuickSort(greater);
@@ -966,7 +1009,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				localListModel.set(i, newList.get(i));
 			}
 
-			//plist.setListData(newList);
 			plist.setModel(localListModel);
 			plist.revalidate();
 			plist.repaint();
@@ -1128,10 +1170,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				return false;
 			}
 
-			/*if (itsUser == null){
-				itsUser = JOptionPane.showInputDialog("Please input your username: ");
-			}*/
-
 			cachedDefaultPoints.clear();
 			itsPoints = new Vector<String>();
 
@@ -1193,8 +1231,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 			Vector<String> badPoints = new Vector<String>();
 			for (String s : itsPoints){
-				//				System.out.println("loadSetup: itsPoints (before removing bad): " + s);
-
 				if (AlarmMaintainer.getAlarm(s).getPriority() == -1 && !noPriorityAlarms){
 					badPoints.add(s);
 					DataMaintainer.unsubscribe(s, this);
@@ -1220,43 +1256,22 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 			if (badPoints.size() > 0){
 				for (String bStr : badPoints){
-					//					System.out.println("loadSetup: badPoints: " + bStr);
 					itsPoints.remove(bStr);
 				}
 			}
 
-			// Some incredibly weird shit going down here. itsPoints seemed to lose an element
-			// for absolutely no reason, without it being written to at all.
-			// Seemed to fix it by cloning the array into a new temp variable
-			// Using ArrayList instead of Vector didn't fix it either.
-			// Might be the slightest chance that is may be an issue with Debian JVM implementation? Who knows...
-
 			@SuppressWarnings ("unchecked")
 			Vector<String> newPoints = (Vector<String>) itsPoints.clone();
 
-			//			System.out.println("Size of itsPoints: " + itsPoints.size());
-
 			itsListModel.setSize(itsPoints.size());
-			/*			for (int i = 0; i < itsPoints.size(); i++){
-				System.out.println("loadSetup: itsPoints: " + itsPoints.get(i));
-				itsListModel.setElementAt(itsPoints.get(i), i);
-				System.out.println("loadSetup: itsListModel: " + itsListModel.get(i));
-
-			}*/
 
 			int i = 0;
-			//			System.out.println("Size of itsPoints (before itsListModel cloning): " + itsPoints.size());
 			for (String s : newPoints){
-				//				System.out.println("newPoint: " + s);
 				itsListModel.setElementAt(s, i);
-				//				System.out.println("loadSetup: itsListModel: " + itsListModel.get(i));
 				i++;
 			}
-			//			System.out.println("Size of itsPoints(after itsListModel cloning): " + itsPoints.size());
 			itsPoints = newPoints;
-			/*for (String s : itsPoints){
-				System.out.println(s);
-			}*/
+
 			nonAlarmed.updateListModel();
 			acknowledged.updateListModel();
 			shelved.updateListModel();
@@ -1343,7 +1358,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 	@Override
 	public void onAlarmEvent(AlarmEvent event) {
-		// TODO Auto-generated method stub
 		this.updateListModels();
 		Alarm thisAlarm = event.getAlarm();
 		if (thisAlarm.isAlarming()){
@@ -1355,19 +1369,31 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	}
 
 	// /////////////////////// NESTED CLASS ///////////////////////////////
+
+	/**
+	 * Class that extends Thread, to create an audio sound effect without tying up any other
+	 * threads, such as the UI or logic threads.
+	 */
 	public class AudioWarning extends Thread {
+		/**
+		 * AudioWarning implementation of the Thread's run() method. Periodically activates
+		 * and sounds an audio warning.
+		 */
+		@Override
 		public void run() {
-			RelTime sleep = RelTime.factory(10000000);
-			while (!alarming.localListModel.isEmpty()) {
-				if (muteOn){
-					continue;
-				} else {
-					playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
-				}
-			}
 			try {
+				RelTime sleep = RelTime.factory(10000000);
+				while (!alarming.localListModel.isEmpty()) {
+					if (muteOn){
+						continue;
+					} else {
+						boolean success = playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
+						if (success == false) throw (new Exception());
+					}
+				}
 				sleep.sleep();
 			} catch (Exception e) {
+				System.err.println("Audio Playing failed");
 			}
 		}
 	}

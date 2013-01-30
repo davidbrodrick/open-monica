@@ -35,6 +35,9 @@ public class AlarmMaintainer implements Runnable {
 	/** Record of points which are currently in a priority alarm state. */
 	private static HashMap<PointDescription, Alarm> theirAlarms = new HashMap<PointDescription, Alarm>(500, 1000);
 
+	/** Boolean to determine whether to allow automatic alarm popups or not */
+	public static boolean autoAlarms = false;
+
 	static {
 		// Start the polling thread
 		new Thread(new AlarmMaintainer(), "AlarmMaintainer Poller").start();
@@ -99,7 +102,25 @@ public class AlarmMaintainer implements Runnable {
 	public void run() {
 		while (true) {
 			try {
-				if (theirListeners.size() > 0) {
+				if (autoAlarms){ // if automatic alarm notifications are enabled
+					// Fetch the list of all alarms from the server
+					Vector<Alarm> newalarms = MonClientUtil.getServer().getAllAlarms();
+
+					if (newalarms != null) {
+						// Update the local alarm information
+						synchronized (theirAlarms) {
+							for (Alarm a : newalarms) {
+								theirAlarms.put(a.getPointDesc(), a);
+							}
+						}
+
+						// Notify any listeners about the updates
+						for (Alarm a : newalarms) {
+							fireAlarmEvent(a);
+						}
+					}
+				} else if (theirListeners.size() > 0) { // if automatic alarms are not enabled,
+														// only update when there are registered listeners
 					// Fetch the list of all alarms from the server
 					Vector<Alarm> newalarms = MonClientUtil.getServer().getAllAlarms();
 

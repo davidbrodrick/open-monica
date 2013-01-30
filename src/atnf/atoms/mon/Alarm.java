@@ -1,3 +1,10 @@
+// Copyright (C) CSIRO Australia Telescope National Facility
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Library General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+
 package atnf.atoms.mon;
 
 import atnf.atoms.mon.util.MonitorUtils;
@@ -6,6 +13,8 @@ import atnf.atoms.time.AbsTime;
 /**
  * Class encapsulating the current alarm status and associated data for a particular point. There is some duplication in this as the
  * structure is essentially self contained but also has reference to the parent PointDescription.
+ * @author David Brodrick
+ * @author Kalinga Hulugalle
  */
 public class Alarm {
   private PointDescription point;
@@ -17,7 +26,7 @@ public class Alarm {
   private boolean acknowledged = false;
   private String acknowledgedBy = null;
   private AbsTime acknowledgedAt = null;
-  private int priority = 0;
+  private int priority = -1;
   private String guidance = null;
 
   public static final int NOT_ALARMED = 0;

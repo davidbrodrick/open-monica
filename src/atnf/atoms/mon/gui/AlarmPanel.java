@@ -1,3 +1,10 @@
+// Copyright (C) CSIRO Australia Telescope National Facility
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Library General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+
 package atnf.atoms.mon.gui;
 
 import java.awt.Color;
@@ -13,18 +20,19 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
 import atnf.atoms.mon.Alarm;
-import atnf.atoms.mon.AlarmManager;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.client.AlarmMaintainer;
 import atnf.atoms.mon.gui.monpanel.AlarmManagerPanel;
 
 /**
  * AlarmPanel class for use by the AlarmManagerPanel class and the automated
- * alarm popup alert functionality (TBC). Basic JPanel extension that displays
+ * AlarmPopupFrame class. Basic JPanel extension that displays
  * some basic information about an alarm in a user-friendly manner so they can 
  * quickly and easily assess the alarm and make a decision on what to do.
  * @author Kalinga Hulugalle
+ * @see JPanel
  * @see AlarmManagerPanel
+ * @see AlarmPopupFrame
  */
 public class AlarmPanel extends JPanel {
 
@@ -41,7 +49,9 @@ public class AlarmPanel extends JPanel {
 	HashMap<Integer, String> rankLookup = new HashMap<Integer, String>();
 	int itsAlarmStatus;
 
-	//Empty alarm panel when no alarms are selected
+	/**
+	 * Default constructor for when an AlarmPanel is created with no associated Alarm
+	 */
 	public AlarmPanel(){
 
 		this.setLayout(new GridBagLayout());
@@ -50,6 +60,10 @@ public class AlarmPanel extends JPanel {
 
 	}
 
+	/**
+	 * Constructor for an AlarmPanel
+	 * @param name The name of the point in dotted-delimiter format
+	 */
 	public AlarmPanel(String name) {
 
 		// Setup on new AlarmPanel instance
@@ -59,20 +73,9 @@ public class AlarmPanel extends JPanel {
 
 		itsName = name;
 		itsPointDesc = PointDescription.getPoint(itsName);
-		/*		System.out.println("DEBUG: Full Name: " + itsPointDesc.getFullName());
-		System.out.println("DEBUG: Long Description: " + itsPointDesc.getLongDesc());
-		System.out.println("DEBUG: Period: " + itsPointDesc.getPeriod());
-		System.out.println("DEBUG: Enabled: " + itsPointDesc.getEnabled());
-		System.out.println("DEBUG: Archive Policy: " + itsPointDesc.getArchivePolicyString());
-		System.out.println("DEBUG: Guidance: " + itsPointDesc.getGuidance());
-		System.out.println("DEBUG: Alarm Conditions: " + itsPointDesc.getAlarmCheckString());
-		System.out.println("DEBUG: Notifications: " + itsPointDesc.getNotificationString());
-		System.out.println("DEBUG: String Equivalent: " + itsPointDesc.getStringEquiv());
-		System.out.println("DEBUG: Priority: " + itsPointDesc.getPriority());*/
 		alarms = AlarmMaintainer.getAllAlarms(); //update current alarms
 
 		if (itsPointDesc != null) hasPointDesc = true;
-
 
 		if (hasPointDesc){
 
@@ -203,6 +206,9 @@ public class AlarmPanel extends JPanel {
 
 	}
 
+	/**
+	 * Method to map the alarm category ranks to their String counterparts.
+	 */
 	private void rankSetup(){
 		rankLookup.put(-1, "NO PRIORITY");
 		rankLookup.put(0, "INFORMATION");

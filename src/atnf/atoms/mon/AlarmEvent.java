@@ -1,3 +1,10 @@
+// Copyright (C) CSIRO Australia Telescope National Facility
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Library General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+
 package atnf.atoms.mon;
 
 import java.util.EventObject;
@@ -5,6 +12,8 @@ import java.util.EventObject;
 /**
  * Class created for utilisation with alarm notifications to Listeners
  * @author Kalinga Hulugalle
+ * @see Alarm
+ * @see AlarmEventListener
  *
  */
 public class AlarmEvent extends EventObject{
