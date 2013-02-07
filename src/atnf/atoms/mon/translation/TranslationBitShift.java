@@ -43,7 +43,11 @@ public class TranslationBitShift extends Translation
     super(parent, init);
     // Parse scale and offset from the argument strings
     if (init.length == 2) {
-      itsAndMask = Integer.parseInt(init[0]);
+      if (init[0].startsWith("0x")) {
+        itsAndMask = Integer.parseInt(init[0].substring(2), 16);
+      } else {
+        itsAndMask = Integer.parseInt(init[0]);
+      }
       itsNumShift = Integer.parseInt(init[1]);
     }
   }
