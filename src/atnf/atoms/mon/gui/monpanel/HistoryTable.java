@@ -608,6 +608,8 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
   protected String itsTimeZone = null;
   /** Actual TimeZone object to be used for display. */
   protected TimeZone itsTZ = null;
+  /** Records if we're waiting on swing to update the GUI. */
+  protected boolean itsGUIUpdatePending = false;
 
   /** C'tor. */
   public HistoryTable() {
@@ -901,16 +903,21 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
     if (!foundit) {
       System.err.println("HistoryTable: got update for \"" + src + "\" but not subscribed to it");
     } else {
-      processData();
-      Runnable updateTable = new Runnable() {
-        public void run() {
-          itsModel.fireTableDataChanged();
+      if (!itsGUIUpdatePending) {
+        // Don't alter the table data while the GUI is rendering it
+        processData();
+        itsGUIUpdatePending = true;
+        Runnable updateTable = new Runnable() {
+          public void run() {
+            itsModel.fireTableDataChanged();
+            itsGUIUpdatePending = false;
+          }
+        };
+        try {
+          SwingUtilities.invokeAndWait(updateTable);
+        } catch (Exception e) {
+          e.printStackTrace();
         }
-      };
-      try {
-        SwingUtilities.invokeAndWait(updateTable);
-      } catch (Exception e) {
-        e.printStackTrace();
       }
     }
   }
@@ -936,7 +943,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
     for (int r = 0; r < itsRows.size(); r++) {
       Vector<Object> row = itsRows.get(r);
       AbsTime t = (AbsTime) row.get(0);
-      p.print(t.getValue() + ", ");
+      p.print(t.toString(AbsTime.Format.HEX_BAT) + ", ");
       p.print(t.toString(AbsTime.Format.UTC_STRING));
       for (int c = 1; c < row.size(); c++) {
         p.print(", ");
@@ -1118,11 +1125,16 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       }
 
       if (itsHideIncomplete) {
+        boolean wasincomplete = false;
         for (int i = 1; i < res.size(); i++) {
           if (res.get(i) == null) {
+            wasincomplete = true;
             prevrow = res;
-            continue;
+            break;
           }
+        }
+        if (wasincomplete) {
+          continue;
         }
       }
 
@@ -1353,6 +1365,8 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
 
     if (value instanceof Component) {
       res = (Component) value;
+    } else if (value instanceof String) {
+      res = new JLabel((String) value);
     } else {
       PointData pd = (PointData) value;
       Object dataval = pd.getData();
