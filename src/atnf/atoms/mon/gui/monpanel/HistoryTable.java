@@ -1050,9 +1050,6 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
           }
           for (int j = 0; j < v.size(); j++) {
             PointData pd = (PointData) v.get(j);
-            if (pd.getAlarm() == true) {
-              System.out.println("HistoryTable:getNextRow:getAlarm true");
-            }
             AbsTime thistime = pd.getTimestamp();
             if ((lasttime == null || thistime.isAfter(lasttime)) && (earliest == null || thistime.isBefore(earliest))) {
               earliest = thistime;
