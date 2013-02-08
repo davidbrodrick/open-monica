@@ -93,6 +93,8 @@ public class AlarmMaintainer implements Runnable {
 			public void run(){
 				if (a.isAlarming() && a.getPriority() == 3){
 					AlarmPopupFrame apf = new AlarmPopupFrame(a);
+					apf.pack();
+					apf.setVisible(true);
 				}
 			}
 		}.start();
@@ -111,6 +113,7 @@ public class AlarmMaintainer implements Runnable {
 						synchronized (theirAlarms) {
 							for (Alarm a : newalarms) {
 								theirAlarms.put(a.getPointDesc(), a);
+								displayAlarmNotification(a);
 							}
 						}
 

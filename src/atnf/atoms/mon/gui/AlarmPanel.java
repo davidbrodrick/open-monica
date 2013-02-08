@@ -14,6 +14,7 @@ import java.awt.GridLayout;
 import java.util.HashMap;
 import java.util.Vector;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -93,23 +94,24 @@ public class AlarmPanel extends JPanel {
 			} else {
 				this.setLayout(new GridLayout(8,1));
 			}
-
+			JPanel alarmTitle = new JPanel();
+			alarmTitle.setLayout(new BoxLayout(alarmTitle, BoxLayout.X_AXIS));
 			JLabel alarmPriority = new JLabel(rankLookup.get(itsAlarm.getPriority()) + " Alarm".toUpperCase());
 			alarmPriority.setForeground(Color.BLACK);
-			alarmPriority.setFont(new Font("Serif", Font.BOLD, 32));
+			alarmPriority.setFont(new Font("Serif", Font.BOLD, 28));
 
 			if (itsAlarm.getPriority() == -1){
-				alarmPriority.setBackground(Color.GRAY);
+				alarmTitle.setBackground(Color.GRAY);
 			} else if (itsAlarm.getPriority() == 0){
-				alarmPriority.setBackground(new Color(0x63B8FF));
+				alarmTitle.setBackground(new Color(0x63B8FF));
 			} else if (itsAlarm.getPriority() == 1){
-				alarmPriority.setBackground(Color.YELLOW);
+				alarmTitle.setBackground(Color.YELLOW);
 			} else if (itsAlarm.getPriority() == 2){
-				alarmPriority.setBackground(new Color(0xFF7F24));			
+				alarmTitle.setBackground(new Color(0xFF7F24));			
 			} else if (itsAlarm.getPriority() == 3){
-				alarmPriority.setBackground(new Color(0xEE0000));
+				alarmTitle.setBackground(new Color(0xEE0000));
 			} else {
-				alarmPriority.setBackground(Color.DARK_GRAY);
+				alarmTitle.setBackground(Color.DARK_GRAY);
 			}
 
 
@@ -139,22 +141,22 @@ public class AlarmPanel extends JPanel {
 			JLabel shelvedBy = new JLabel("Shelved by: " + itsAlarm.getShelvedBy());
 			JLabel shelvedAt = new JLabel("Shelved at " + itsAlarm.getShelvedAt());
 
-			pointString.setFont(new Font("Sans Serif", Font.PLAIN, 24));
-			pointDesc.setFont(new Font("Sans Serif", Font.ITALIC, 24));
-			statusString.setFont(new Font("Sans Serif", Font.ITALIC, 24));
-			status.setFont(new Font("Sans Serif", Font.ITALIC, 24));
-			ackedBy.setFont(new Font("Sans Serif", Font.ITALIC, 24));
-			ackedAt.setFont(new Font("Sans Serif", Font.ITALIC, 18));
-			shelvedBy.setFont(new Font("Sans Serif", Font.ITALIC, 24));
-			shelvedAt.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+			pointString.setFont(new Font("Sans Serif", Font.PLAIN, 18));
+			pointDesc.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+			statusString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+			status.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+			ackedBy.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+			ackedAt.setFont(new Font("Sans Serif", Font.ITALIC, 14));
+			shelvedBy.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+			shelvedAt.setFont(new Font("Sans Serif", Font.ITALIC, 14));
 
 			alarmStatus.setLayout(new BoxLayout(alarmStatus, BoxLayout.X_AXIS));
 			alarmStatus.add(statusString);
 			alarmStatus.add(status);
 
 			JLabel guidanceString = new JLabel("Guidance:");
-			JTextArea guidance = new JTextArea(itsAlarm.getGuidance(), 5, 20);
-			guidanceString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+			JTextArea guidance = new JTextArea(itsAlarm.getGuidance(), 2, 10);
+			guidanceString.setFont(new Font("Sans Serif", Font.ITALIC, 14));
 			guidance.setEditable(false);
 			guidance.setWrapStyleWord(true);
 			guidance.setLineWrap(true);
@@ -168,7 +170,7 @@ public class AlarmPanel extends JPanel {
 			shelvedAt.setBackground(Color.WHITE);
 			guidanceString.setBackground(Color.WHITE);
 
-			alarmPriority.setOpaque(true);
+			alarmTitle.setOpaque(true);
 			pointString.setOpaque(true);
 			pointDesc.setOpaque(true);
 			alarmStatus.setOpaque(true);
@@ -179,8 +181,11 @@ public class AlarmPanel extends JPanel {
 			guidanceString.setOpaque(true);
 			guidance.setOpaque(true);
 
+			alarmTitle.add(Box.createHorizontalGlue());
+			alarmTitle.add(alarmPriority);
+			alarmTitle.add(Box.createHorizontalGlue());
 
-			this.add(alarmPriority);
+			this.add(alarmTitle);
 			this.add(pointString);
 			this.add(pointDesc);
 			this.add(alarmStatus);
@@ -212,8 +217,8 @@ public class AlarmPanel extends JPanel {
 	private void rankSetup(){
 		rankLookup.put(-1, "NO PRIORITY");
 		rankLookup.put(0, "INFORMATION");
-		rankLookup.put(1, "WARNING") ;
-		rankLookup.put(2, "DANGER");
+		rankLookup.put(1, "MINOR") ;
+		rankLookup.put(2, "MAJOR");
 		rankLookup.put(3, "SEVERE");
 	}
 

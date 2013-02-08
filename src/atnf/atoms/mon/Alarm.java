@@ -143,15 +143,15 @@ public class Alarm {
    * Gives a simple categorisation of what state this Alarm is in
    * 
    * @return An <code><strong>int</strong></code> that corresponds to one of four states, NOT_ALARMED, ACKNOWLEDGED, SHELVED and
-   *         ALARMING. The latter categories take priority over the former ones.
+   *         ALARMING. The former categories take priority over the latter ones.
    */
   public int getAlarmStatus() {
     int status = Alarm.NOT_ALARMED;
-    if (this.acknowledged) {
+    if (this.isAcknowledged()) {
       status = Alarm.ACKNOWLEDGED;
-    } else if (this.shelved) {
+    } else if (this.isShelved()) {
       status = Alarm.SHELVED;
-    } else if (this.alarm) { // will only get here if it is not shelved OR acknowledged, but still alarming
+    } else if (this.isAlarming()) { // will only get here if it is not shelved OR acknowledged, but still alarming
       status = Alarm.ALARMING;
     }
     return status;
