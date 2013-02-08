@@ -53,6 +53,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -88,8 +90,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 		MonPanel.registerMonPanel("Alarm Manager", AlarmManagerPanel.class);
 	}
 
-	private static Vector<String> cachedDefaultPoints = new Vector<String>();
-
 	private boolean muteOn = false;
 	private boolean noPriorityAlarms = false;
 	private boolean informationAlarms = false;
@@ -110,8 +110,8 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 	private String noPriAlmStr = "noPriority";
 	private String infoAlmStr = "information";
-	private String warnAlmStr = "warning";
-	private String dangAlmStr = "dangerous";
+	private String warnAlmStr = "minor";
+	private String dangAlmStr = "major";
 	private String sevAlmStr = "severe";
 
 	private String username = "";
@@ -128,8 +128,8 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 		private JCheckBox noPriorityCb = new JCheckBox("\"No Priority\"");
 		private JCheckBox informationCb = new JCheckBox("Information");
-		private JCheckBox warningCb = new JCheckBox("Warning");
-		private JCheckBox dangerCb = new JCheckBox("Danger");
+		private JCheckBox warningCb = new JCheckBox("Minor");
+		private JCheckBox dangerCb = new JCheckBox("Major");
 		private JCheckBox severeCb = new JCheckBox("Severe");
 		private JCheckBox allCb = new JCheckBox("All");
 
@@ -789,7 +789,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				//send the commands along to the server
 				try {
 					for (Object s : plist.getSelectedValues()){
-						AlarmMaintainer.setAcknowledged(s.toString(), true, username, password);
+						new DataSender(s.toString(), "ack", true).start();
 					}			
 					updateListModels();
 					this.updateAlarmPanels();
@@ -838,7 +838,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				try {
 					selectionIsShelved = !selectionIsShelved;
 					for (Object s : plist.getSelectedValues()){
-						AlarmMaintainer.setShelved(s.toString(), selectionIsShelved, username, password);
+						new DataSender(s.toString(), "shelve", selectionIsShelved).start();
 					}
 					updateListModels();
 					this.updateAlarmPanels();
@@ -878,25 +878,28 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 
 		}
 
-		@SuppressWarnings("unchecked")
 		private void showDefaultAlarmPanels(){
 			JPanel newPanel = new JPanel();
 			newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
 
-			Vector<String> pointNames =  (Vector<String>) itsPoints.clone();
+			Vector<String> alarmingPoints = new Vector<String>();
+			HashMap<String, Alarm> lookup = new HashMap<String, Alarm>();
+			Vector<Alarm> alarms = AlarmMaintainer.getAlarms();
 
-			if (cachedDefaultPoints.size() == 0){ //sorting is expensive, so we'll save the result
-				pointNames = reverseQuickSort(pointNames);
-				cachedDefaultPoints = (Vector<String>) pointNames.clone();
-			} else {
-				pointNames = (Vector<String>) cachedDefaultPoints.clone();
+			for (Alarm a : alarms){ //put all the alarms in a locally maintained lookup table
+				lookup.put(a.getPointDesc().getFullName(), a); 
 			}
-			for (String o : pointNames){
-				AlarmPanel a = new AlarmPanel(o);
-				a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
-				newPanel.add(a);
+			if (lookup.size() > 0){
+				for (String s : lookup.keySet()){
+					alarmingPoints.add(s);
+				}
+				alarmingPoints = reverseQuickSort(alarmingPoints, lookup);
+				for (String o : alarmingPoints){					
+					AlarmPanel a = new AlarmPanel(o);
+					a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
+					newPanel.add(a);
+				}
 			}
-
 			alarmDetailsScroller.setViewportView(newPanel);
 			alarmDetailsScroller.revalidate();
 			alarmDetailsScroller.repaint();
@@ -910,7 +913,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 		 * @return The reverse-sorted ArrayList
 		 * @see <a href=http://en.wikipedia.org/wiki/Quicksort#Simple_version">http://en.wikipedia.org/wiki/Quicksort#Simple_version</a>
 		 */
-		private synchronized Vector<String> reverseQuickSort(Vector<String> array) {
+		private synchronized Vector<String> reverseQuickSort(Vector<String> array, HashMap<String, Alarm> lookup) {
 			Vector<String> res = array;
 			Vector<String> less = new Vector<String>();
 			Vector<String> greater = new Vector<String>();
@@ -918,29 +921,26 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			if (res.size() <= 1){
 				return res;
 			} else {
-				int pivot = res.size()/2;
+				int pivot = res.size()/2; //choose midpoint for pivot, no real reason
 				removed = res.remove(pivot);
 
-
 				for (int i = 0; i < res.size(); i++){
-					if (AlarmMaintainer.getAlarm(res.get(i)).getPriority() > AlarmMaintainer.getAlarm(removed).getPriority()){
+					if (lookup.get(res.get(i)).getPriority() > lookup.get(removed).getPriority()){
 						greater.add(res.get(i));
 					} else {
 						less.add(res.get(i));
 					}
 				}
 			}
-
 			try {
-				greater = reverseQuickSort(greater);
-				less = reverseQuickSort(less);
+				greater = reverseQuickSort(greater, lookup);
+				less = reverseQuickSort(less, lookup);
 
 				greater.add(removed);
 				greater.addAll(less);
 			} catch (Exception e){
 				e.printStackTrace();
 			}
-
 			return greater;
 		}
 
@@ -1008,11 +1008,9 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			for (int i = 0; i < newList.size(); i++){
 				localListModel.set(i, newList.get(i));
 			}
-
 			plist.setModel(localListModel);
 			plist.revalidate();
 			plist.repaint();
-
 		}
 
 		/**
@@ -1066,6 +1064,18 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 		stateTabs.setForegroundAt(2, AlarmManagerPanel.ACKNOWLEDGED_COLOUR);
 		stateTabs.setForegroundAt(3, AlarmManagerPanel.SHELVED_COLOUR);
 		stateTabs.setForegroundAt(4, AlarmManagerPanel.ALARMING_COLOUR);
+
+		stateTabs.addChangeListener(new ChangeListener(){
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				JTabbedPane source = (JTabbedPane) e.getSource();
+				try{
+					((AlarmDisplayPanel) source.getSelectedComponent()).showDefaultAlarmPanels();
+				} catch (NullPointerException n){
+					System.err.println("Null Pointer Exception in selecting tabs");
+				}
+			}
+		});
 
 		this.add(stateTabs);
 	}
@@ -1170,7 +1180,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				return false;
 			}
 
-			cachedDefaultPoints.clear();
 			itsPoints = new Vector<String>();
 
 			// Get the list of points to be monitored
@@ -1323,7 +1332,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	 */
 	@Override
 	public void vaporise() {
-		// TODO 
+		AlarmMaintainer.removeListener(this);
 	}
 
 	@Override
@@ -1387,17 +1396,63 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					if (muteOn){
 						continue;
 					} else {
-						boolean success = playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
-						if (success == false) throw (new Exception());
+						boolean highPriority = false;
+						for (int i = 0; i < alarming.localListModel.size(); i++){
+							if (AlarmMaintainer.getAlarm(((String) alarming.localListModel.get(i))).getPriority() >= 2){ //should only siren on Major or Severe alarms
+								highPriority = true;
+								break;
+							}
+						}
+						if (highPriority){
+							boolean success = playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
+							if (success == false) throw (new Exception());
+						}
 					}
+					sleep.sleep();
 				}
-				sleep.sleep();
 			} catch (Exception e) {
 				System.err.println("Audio Playing failed");
 			}
 		}
 	}
+	// ///////////////////// END NESTED CLASS /////////////////////////////
+
+	// ///// NESTED CLASS: DataSender ///////
+	/**
+	 * Data Sending class that extends Thread. Implemented so that data sending wouldn't hold up the UI
+	 */
+	public class DataSender extends Thread implements Runnable{
+
+		String point;
+		String action;
+		boolean state;
+
+
+		public DataSender(String string, String act,
+				boolean selection) {
+			point = string;
+			action = act;
+			state = selection;
+		}
+
+		@Override
+		public void run(){
+			try{
+				if (action.equals("shelve")){
+					AlarmMaintainer.setShelved(point, state, username, password);
+					updateListModels();
+				} else if (action.equals("ack")){
+					AlarmMaintainer.setAcknowledged(point, state, username, password);
+					updateListModels();
+				}
+			} catch (Exception e){
+				password = "";
+				JOptionPane.showMessageDialog(AlarmManagerPanel.this, "Something went wrong with the sending of data. " +
+						"\nPlease ensure that you're properly connected to the network.", 
+						"Data Sending Error", JOptionPane.ERROR_MESSAGE);
+			}
+		}
+
+	}
+	// ///// END NESTED CLASS ///////
 }
-
-// ///////////////////// END NESTED CLASS /////////////////////////////
-

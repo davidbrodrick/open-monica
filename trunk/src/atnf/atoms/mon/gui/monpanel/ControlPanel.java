@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -89,7 +90,12 @@ public class ControlPanel extends MonPanel implements ActionListener{
 	 *	for the values in the "Control Type" JComboBoxes
 	 */
 	private final String[] dataOptions = {"Text", "Number", "True/False"};
-
+	/** Array holding the values "Text" and "Number".
+	 *  Used for constant references to these Strings, and also
+	 *	for the values in the "Control Type" JComboBoxes when "Text Field"
+	 *	is selected.
+	 */
+	private final String[] dataOptions2 = {"Text", "Number"};
 	/** Array holding the values "Horizontal" and "Vertical".
 	 *  Used for constant references to these Strings, and also
 	 *	for the values in the "Layout" type JComboBox.
@@ -301,15 +307,15 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			controlType.addActionListener(this);
 			controlType.setEditable(false);
 			JLabel dataTypeLabel = new JLabel("Data Type: ");
-			JComboBox dataType = new JComboBox(dataOptions);
+			JComboBox dataType = new JComboBox(dataOptions2);
 			dataType.setEditable(false);
 			dataType.addActionListener(this);
 			JLabel pointLabel = new JLabel("Control Name: ");
-			JTextField pointField = new JTextField(10);
+			JTextField pointField = new JTextField(7);
 			JLabel displayLabel = new JLabel("Label: ");
-			JTextField displayField = new JTextField(10);
+			JTextField displayField = new JTextField(7);
 			JLabel valueLabel = new JLabel("Value: ");
-			JTextField valueField = new JTextField(10);
+			JTextField valueField = new JTextField(7);
 			JButton close = new JButton("X");
 			close.setFont(new Font("Monospaced", Font.BOLD, 12));
 			close.setBackground(new Color(0xCD0000));
@@ -344,6 +350,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			bigPanel.add(controlType, gbc);
 
 			gbc.gridx = 3;
+			gbc.anchor = GridBagConstraints.EAST;
 			bigPanel.add(dataTypeLabel, gbc);
 
 			gbc.anchor = GridBagConstraints.WEST;
@@ -467,22 +474,10 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						}
 					}
 					for (ControlPanelSetupComponent c : componentList){
-						if (c.getDataType().equals(dataOptions[1])){
+						if (c.getDataType().equals(dataOptions[1]) && c.getControlType().equals(controlOptions[1])){
 							Pattern pattern = Pattern.compile("[0-9]*|\\.|[0-9]*\\.[0-9]*");
 							Matcher matcher = pattern.matcher(c.getValueText());
 							if (!matcher.matches() || c.getValueText().equals("")){
-								System.out.println("Error in Number");
-								JOptionPane.showMessageDialog(this, 
-										"The data value set in the \"Value\" field is incompatible with the Data type you have selected.\n" +
-										"Please set a valid value for the selected data type.",
-										"Invalid Data Error", JOptionPane.ERROR_MESSAGE);
-								return;
-							}
-						} else if (c.getDataType().equals(dataOptions[2])){
-							Pattern pattern = Pattern.compile("[true|false\\.*]*");
-							Matcher matcher = pattern.matcher(c.getValueText().toLowerCase());
-							if (!matcher.matches()){
-								System.out.println("Error in True/False");
 								JOptionPane.showMessageDialog(this, 
 										"The data value set in the \"Value\" field is incompatible with the Data type you have selected.\n" +
 										"Please set a valid value for the selected data type.",
@@ -500,17 +495,20 @@ public class ControlPanel extends MonPanel implements ActionListener{
 				JComboBox source = (JComboBox) e.getSource();
 				for (ControlPanelSetupComponent c: componentList){
 					if(source.equals(c.getControlBox())){
-						if (c.getControlType().equals(controlOptions[2])){ // true/false
+						if (c.getControlType().equals(controlOptions[2])){ // checkbox
+							c.getDataBox().setModel(new DefaultComboBoxModel(dataOptions));
 							c.getDataBox().setEnabled(false);
 							c.setDataType(dataOptions[2]);
 							c.setValueVis(false);
 							c.setValueLabelVis(false);
 						} else {
 							if (c.getControlType().equals(controlOptions[0])){ // text field
-								c.setDataType(dataOptions[0]);
+								c.getDataBox().setModel(new DefaultComboBoxModel(dataOptions2));
+								c.setDataType(dataOptions2[0]);
 								c.setValueVis(false);
 								c.setValueLabelVis(false);
 							} else if (c.getControlType().equals(controlOptions[1])){// button
+								c.getDataBox().setModel(new DefaultComboBoxModel(dataOptions));
 								c.setDataType(dataOptions[1]);
 								c.setValueVis(true);
 								c.setValueLabelVis(true);
@@ -989,21 +987,23 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 			gbc.gridx = 0;
 			gbc.gridy = 0;
-			gbc.insets = new Insets(5,30,0,0);
-			if (layout.equals(layoutOptions[0])){ // how to appear if horizontal layout is selected
+			if (layout.equals(layoutOptions[1])){ // how to appear if vertical layout is selected
 
 				for (String s : components){ 
 					if (gbc.gridy == components.size()-1){// fixes alignment for last line of grid, so it isn't massively spread out
 						gbc.weighty = 1.0;
 						gbc.anchor = GridBagConstraints.NORTH;
-						gbc.insets = new Insets(10,30,0,0);
+					} else {
+						gbc.anchor = GridBagConstraints.CENTER;
 					}
+					
+					gbc.insets = new Insets(10,30,0,0);
 					gbc.gridx = 0;
 					gbc.gridheight = 1;
 					gbc.gridwidth = 1;
 					gbc.fill = GridBagConstraints.HORIZONTAL;
 					gbc.weightx = 0.001;
-					
+
 
 					st = new StringTokenizer(s, ","); // pick apart the string into its individual components
 					ControlPanelDisplayComponent cpdc;
@@ -1042,32 +1042,26 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						itsPanel.add(send, gbc);
 						cpdc = new ControlPanelDisplayComponent(point, jc, dataType, send);
 					} else {
-						JLabel tfl;
-						if (labelText.equals("\t")){
-							tfl = new JLabel(labelText);
-						} else {
-							tfl = new JLabel(labelText + ": ");
-						}
-						tfl.setHorizontalAlignment(SwingConstants.RIGHT);
-						JTextField tf = new JTextField(10);
 						JButton send = new JButton("Send");
 						send.addActionListener(this);
+						if (!labelText.equals("\t")){
+							send.setText(labelText);
+						}
+						if (gbc.gridy == components.size()-1) gbc.insets = new Insets(11,10,0,0); //odd alignment issue for text field in last component
+						JTextField tf = new JTextField(10);
 						tf.setEditable(true);
-						gbc.gridx = 1;
-						itsPanel.add(tfl, gbc);
 						gbc.gridx = 2;
 						itsPanel.add(tf, gbc);
 						gbc.gridx = 3;
 						gbc.insets = new Insets(5,10,0,30);
 						itsPanel.add(send, gbc);
 						cpdc = new ControlPanelDisplayComponent(point, tf, send, dataType);
-
 					}
 					panelList.add(cpdc);
 
 					gbc.gridy += 1;
 				}
-			} else { // how to appear if vertical alignment selected
+			} else { // how to appear if horizontal alignment selected
 				for (String s : components){
 					gbc.anchor = GridBagConstraints.CENTER;
 					gbc.gridy = 0;
@@ -1114,19 +1108,14 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						itsPanel.add(send, gbc);
 						cpdc = new ControlPanelDisplayComponent(point, jc, dataType, send);
 					} else {
-						JLabel tfl;
-						if (labelText.equals("\t")){
-							tfl = new JLabel(labelText);
-						} else {
-							tfl = new JLabel(labelText + ": ");
-						}
-						tfl.setVerticalAlignment(SwingConstants.BOTTOM);
-						JTextField tf = new JTextField(10);
 						JButton send = new JButton("Send");
 						send.addActionListener(this);
+						if (!labelText.equals("\t")){
+							send.setText(labelText);
+						}
+						JTextField tf = new JTextField(10);
+						send.addActionListener(this);
 						tf.setEditable(true);
-						gbc.gridy = 1;
-						itsPanel.add(tfl, gbc);
 						gbc.gridy = 2;
 						itsPanel.add(tf, gbc);
 						gbc.gridy = 3;
@@ -1134,9 +1123,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						gbc.anchor = GridBagConstraints.NORTH;
 						itsPanel.add(send, gbc);
 						cpdc = new ControlPanelDisplayComponent(point, tf, send, dataType);
-
 					}
-
 					panelList.add(cpdc);
 
 					gbc.gridx += 1;
@@ -1204,7 +1191,6 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 			for (ControlPanelDisplayComponent c : panelList){
 				if (source.equals(c.getConfirmButton())){
-
 					if (username.equals("") || passwd.equals("")){
 						JPanel inputs = new JPanel();
 						inputs.setLayout(new GridBagLayout());
@@ -1239,80 +1225,88 @@ public class ControlPanel extends MonPanel implements ActionListener{
 							return;
 						}
 					}
-
-
-					try{
-						MoniCAClient server = MonClientUtil.getServer();
-						PointData data = null;
-						if (c.getControlType() == ControlPanelDisplayComponent.BUTTON_TYPE){
-							String value = c.getButtonValue();
-							if (value != null){
-								if (c.getDataType().equals(dataOptions[1])){ //increment the current value with the stored number
-									int intValue = Integer.parseInt(value);
-									Integer currValue = (Integer) server.getData(c.getPoint()).getData();
-									intValue = currValue + intValue;
-									value = Integer.toString(intValue);
-								}
-								data = new PointData(c.getPoint(), AbsTime.factory(), value);
-							}
-						} else if (c.getControlType() == ControlPanelDisplayComponent.CHECKBOX_TYPE){
-
-							JCheckBox cb = c.getCheckBox();
-							if (cb != null){
-								boolean state = cb.isSelected();
-								String value;
-								if (state){
-									value = "true";
-								} else {
-									value = "false";
-								}
-								data = new PointData(c.getPoint(), AbsTime.factory(), value);
-							}
-						} else {
-							String value = c.getTextFieldContents().toLowerCase(Locale.ENGLISH);
-							if (value != null){
-								if (c.getDataType().equals(dataOptions[1])){ //make sure we're actually sending a number
-									Pattern pattern = Pattern.compile("[-|+]{0,1}[0-9]*|\\.|[-|+]{0,1}[0-9]*\\.[0-9]*");
-									Matcher matcher = pattern.matcher(value);
-									if (matcher.matches()){
-										data = new PointData(c.getPoint(), AbsTime.factory(), value);
-									} else {
-										throw (new Exception());
-									}
-								} else if (c.getDataType().equals(dataOptions[2])){
-									Pattern pattern = Pattern.compile("true|false");
-									Matcher matcher = pattern.matcher(value);
-									if (matcher.matches()){
-										data = new PointData(c.getPoint(), AbsTime.factory(), value);
-									} else {
-										throw (new Exception());
-									}
-								} else {
-									data = new PointData(c.getPoint(), AbsTime.factory(), value);
-								}
-							}
-						}
-
-
-						boolean success = server.setData(c.getPoint(), data, username, passwd);
-						// does it block here? if so, following line is fine
-						if (success == false) throw (new Exception());
-					} catch (Exception e){
-						passwd = "";
-						JOptionPane.showMessageDialog(this, "Something went wrong with the sending of data. " +
-								"\nPlease ensure that you're properly connected to the network, you are attempting to write to a valid point" +
-								"\n and your username and password are correct.", "Data Sending Error", JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-
+					new DataSender(c).start(); // Start sending thread
 					break;
-
 				}
 			}
+		}
+	}
 
+	// ///// NESTED CLASS: DataSender ///////
+	public class DataSender extends Thread implements Runnable{
+
+		ControlPanelDisplayComponent c;
+
+		public DataSender(ControlPanelDisplayComponent cpdc){
+			c = cpdc;
+		}
+
+		@Override
+		public void run(){
+			try{
+				MoniCAClient server = MonClientUtil.getServer();
+				PointData data = null;
+				if (c.getControlType() == ControlPanelDisplayComponent.BUTTON_TYPE){
+					String value = c.getButtonValue();
+					if (value != null){
+						/*if (c.getDataType().equals(dataOptions[1])){ //increment the current value with the stored number
+							int intValue = Integer.parseInt(value);
+							Integer currValue = (Integer) server.getData(c.getPoint()).getData();
+							intValue = currValue + intValue;
+							value = Integer.toString(intValue);
+						}*/
+						data = new PointData(c.getPoint(), AbsTime.factory(), value);
+					}
+				} else if (c.getControlType() == ControlPanelDisplayComponent.CHECKBOX_TYPE){
+
+					JCheckBox cb = c.getCheckBox();
+					if (cb != null){
+						boolean state = cb.isSelected();
+						String value;
+						if (state){
+							value = "true";
+						} else {
+							value = "false";
+						}
+						data = new PointData(c.getPoint(), AbsTime.factory(), value);
+					}
+				} else {
+					String value = c.getTextFieldContents().toLowerCase(Locale.ENGLISH);
+					if (value != null){
+						if (c.getDataType().equals(dataOptions[1])){ //make sure we're actually sending a number
+							Pattern pattern = Pattern.compile("[-|+]{0,1}[0-9]*|\\.|[-|+]{0,1}[0-9]*\\.[0-9]*");
+							Matcher matcher = pattern.matcher(value);
+							if (matcher.matches()){
+								data = new PointData(c.getPoint(), AbsTime.factory(), value);
+							} else {
+								throw (new Exception());
+							}
+						} else if (c.getDataType().equals(dataOptions[2])){
+							Pattern pattern = Pattern.compile("true|false");
+							Matcher matcher = pattern.matcher(value);
+							if (matcher.matches()){
+								data = new PointData(c.getPoint(), AbsTime.factory(), value);
+							} else {
+								throw (new Exception());
+							}
+						} else {
+							data = new PointData(c.getPoint(), AbsTime.factory(), value);
+						}
+					}
+				}
+			server.setData(c.getPoint(), data, username, passwd);
+			} catch (Exception e){
+				passwd = "";
+				JOptionPane.showMessageDialog(ControlPanel.this, "Something went wrong with the sending of data. " +
+						"\nPlease ensure that you're properly connected to the network, you are attempting to \n" +
+						"write to a valid data-type to the point and your username and password are correct.", 
+						"Data Sending Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
 		}
 
 	}
+	// ///// END NESTED CLASS ///////
 
 	// ///// NESTED CLASS: NumberDocumentFilter ///////
 	/**
@@ -1333,7 +1327,6 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 		@Override
 		public void insertString(FilterBypass fb, int offset, String text, AttributeSet attr) throws BadLocationException {
-			System.out.println(text);
 			if (filter) {
 				Pattern pattern = Pattern.compile("[-|+]{0,1}[0-9]*|\\.|[-|+]{0,1}[0-9]*\\.[0-9]*");
 				Matcher matcher = pattern.matcher(text);
