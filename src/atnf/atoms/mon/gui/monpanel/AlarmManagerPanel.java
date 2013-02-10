@@ -62,11 +62,8 @@ import atnf.atoms.mon.Alarm;
 import atnf.atoms.mon.AlarmEvent;
 import atnf.atoms.mon.AlarmEventListener;
 import atnf.atoms.mon.PointDescription;
-import atnf.atoms.mon.PointEvent;
-import atnf.atoms.mon.PointListener;
 import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.mon.client.AlarmMaintainer;
-import atnf.atoms.mon.client.DataMaintainer;
 import atnf.atoms.mon.gui.AlarmPanel;
 import atnf.atoms.mon.gui.MonPanel;
 import atnf.atoms.mon.gui.MonPanelSetupPanel;
@@ -84,7 +81,7 @@ import atnf.atoms.time.RelTime;
  * @see MonPanel
  */
 @SuppressWarnings("serial")
-public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmEventListener{
+public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 	static {
 		MonPanel.registerMonPanel("Alarm Manager", AlarmManagerPanel.class);
@@ -281,13 +278,17 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				ss.put(sevAlmStr, "false");
 			}
 
+			if (allowAutoAlarms.isSelected()){
+				ss.put("autoAlarms", "true");
+			} else {
+				ss.put("autoAlarms", "false");
+			}
 
 			return ss;
 		}
 
 		@Override
 		protected void showSetup(SavedSetup setup) {
-
 			// data validation and verification
 			itsInitialSetup = setup;
 			if (setup == null) {
@@ -373,7 +374,16 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				allCb .setSelected(true);
 			}
 
-
+			/*// Turns on automatic notifications 
+			if (setup.get("autoAlarms").equals("true")){
+				if (!allowAutoAlarms.isSelected()){
+					allowAutoAlarms.doClick();
+				}
+			} else {
+				if (allowAutoAlarms.isSelected()){
+					allowAutoAlarms.doClick();
+				}
+			}*/
 		}
 
 		@Override
@@ -514,7 +524,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					warningCb.setSelected(false);
 					dangerCb.setSelected(false);
 					severeCb.setSelected(false);
-
 				}
 			} else if (source.equals(allowAutoAlarms)){
 				if (e.getStateChange() == ItemEvent.SELECTED){
@@ -523,7 +532,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 					AlarmMaintainer.autoAlarms = false;
 				}
 			}
-
 		}
 
 		// /////////////////////// NESTED NESTED CLASS ///////////////////////////////
@@ -1123,7 +1131,7 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	public synchronized SavedSetup getSetup() {
 		SavedSetup ss = new SavedSetup();
 		ss.setClass("atnf.atoms.mon.gui.monpanel.AlarmManagerPanel");
-		ss.setName("alarmSetup");
+		ss.setName("Alarm Manager Panel");
 
 		DefaultListModel listPoints = itsListModel;
 		String p = "";
@@ -1189,8 +1197,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				itsPoints.add(stp.nextToken());
 			}
 
-			DataMaintainer.subscribe(itsPoints, this);
-
 			// Get which categories of alarms to monitor
 			String str;
 			str = (String) setup.get(noPriAlmStr);
@@ -1242,23 +1248,18 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			for (String s : itsPoints){
 				if (AlarmMaintainer.getAlarm(s).getPriority() == -1 && !noPriorityAlarms){
 					badPoints.add(s);
-					DataMaintainer.unsubscribe(s, this);
 				}
 				if (AlarmMaintainer.getAlarm(s).getPriority() == 0 && !informationAlarms){
 					badPoints.add(s);
-					DataMaintainer.unsubscribe(s, this);
 				}
 				if (AlarmMaintainer.getAlarm(s).getPriority() == 1 && !warningAlarms){
 					badPoints.add(s);
-					DataMaintainer.unsubscribe(s, this);
 				}
 				if (AlarmMaintainer.getAlarm(s).getPriority() == 2 && !dangerAlarms){
 					badPoints.add(s);
-					DataMaintainer.unsubscribe(s, this);
 				}
 				if (AlarmMaintainer.getAlarm(s).getPriority() == 3 && !severeAlarms){
 					badPoints.add(s);
-					DataMaintainer.unsubscribe(s, this);
 				}
 
 			}
@@ -1311,12 +1312,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	 * Method to create a new blank setup pane
 	 */
 	private void blankSetup() {
-		for (String s : itsPoints){
-			DataMaintainer.unsubscribe(s, this);
-		}
-
-		AlarmMaintainer.removeListener(this);
-
 		itsPoints = new Vector<String>();
 		itsListModel = new DefaultListModel();
 		noPriorityAlarms = false;
@@ -1333,11 +1328,6 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	@Override
 	public void vaporise() {
 		AlarmMaintainer.removeListener(this);
-	}
-
-	@Override
-	public void onPointEvent(Object source, PointEvent evt) {
-		// Only needed for the DataMaintainer subscribe call
 	}
 
 	/** Play an audio sample on the sound card. */
@@ -1386,7 +1376,8 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	public class AudioWarning extends Thread {
 		/**
 		 * AudioWarning implementation of the Thread's run() method. Periodically activates
-		 * and sounds an audio warning.
+		 * and sounds an audio warning if there are high priority (priority >=2 ) alarms currently
+		 * alarming.
 		 */
 		@Override
 		public void run() {
@@ -1420,6 +1411,8 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 	// ///// NESTED CLASS: DataSender ///////
 	/**
 	 * Data Sending class that extends Thread. Implemented so that data sending wouldn't hold up the UI
+	 * @see Thread
+	 * @see Runnable
 	 */
 	public class DataSender extends Thread implements Runnable{
 
@@ -1428,6 +1421,12 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 		boolean state;
 
 
+		/**
+		 * Constructor for this DataSender object
+		 * @param string The name of the point that is being written to
+		 * @param act The "action" that needs to be taken - only "shelve" and "ack" commands are valid
+		 * @param selection Boolean value indicating whether this point should be set to be "true" or "false" depending on the action taken
+		 */
 		public DataSender(String string, String act,
 				boolean selection) {
 			point = string;
@@ -1435,6 +1434,11 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 			state = selection;
 		}
 
+		/**
+		 * Overrides the default {@code run()} method. Using the constructor parameters, sends
+		 * data to the server using the AlarmMaintainer client utility class, and also updates
+		 * the ListModel for each JList, so that the UI doesn't hang while this is performed.
+		 */
 		@Override
 		public void run(){
 			try{
@@ -1444,7 +1448,14 @@ public class AlarmManagerPanel extends MonPanel implements PointListener, AlarmE
 				} else if (action.equals("ack")){
 					AlarmMaintainer.setAcknowledged(point, state, username, password);
 					updateListModels();
+				} else {
+					throw (new IllegalArgumentException());
 				}
+			} catch (IllegalArgumentException i){
+				password = "";
+				JOptionPane.showMessageDialog(AlarmManagerPanel.this, "You somehow sent an invalid command to the server - check the source code!", 
+						"Invalid command Error", JOptionPane.ERROR_MESSAGE);
+
 			} catch (Exception e){
 				password = "";
 				JOptionPane.showMessageDialog(AlarmManagerPanel.this, "Something went wrong with the sending of data. " +

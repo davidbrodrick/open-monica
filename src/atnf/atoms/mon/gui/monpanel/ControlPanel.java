@@ -104,6 +104,8 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 	private String username = "";
 	private String passwd = "";
+	private String titleStr = "";
+	private String layoutStr = "";
 
 
 	static {
@@ -181,17 +183,13 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			viewPane.getVerticalScrollBar().setUnitIncrement(16);
 			viewPane.setViewportView(itsMainPanel);
 			this.add(viewPane, BorderLayout.CENTER);
-
-			if (itsInitialSetup != null) {
-				showSetup(itsInitialSetup);
-			}
 		}
 
 		@Override
 		protected SavedSetup getSetup() {
 			SavedSetup ss = new SavedSetup();
 			ss.setClass("atnf.atoms.mon.gui.monpanel.ControlPanel");
-			ss.setName("controlSetup");
+			ss.setName("Control Panel");
 
 			@SuppressWarnings ("unchecked")
 			ArrayList<ControlPanelSetupComponent> pointInfo = (ArrayList<ControlPanelSetupComponent>) componentList.clone();
@@ -220,9 +218,12 @@ public class ControlPanel extends MonPanel implements ActionListener{
 				}
 			}
 
+			titleStr = title.getText();
+			layoutStr = layout.getSelectedItem().toString();
+
 			ss.put("points", res);
-			ss.put("title", title.getText());
-			ss.put("layout", layout.getSelectedItem().toString());
+			ss.put("title", titleStr);
+			ss.put("layout", layoutStr);
 			ss.put("controls number", Integer.toString(numControls));
 
 			return ss;
@@ -277,7 +278,6 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 				n++;
 			}
-
 		}
 
 		/**
@@ -808,6 +808,9 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		private String buttonValue;
 		private int controlType;
 
+		private String name;
+		private String label;
+
 		/**
 		 * Constructor for a Button type Display Component
 		 * @param pt The point this component refers to, as a String
@@ -815,12 +818,15 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		 * @param bv The value that should be committed on each button press
 		 * @param dt The data type of this component
 		 */
-		public ControlPanelDisplayComponent(String pt, JButton jb, String bv, String dt){
+		public ControlPanelDisplayComponent(String n, String pt, JButton jb, String bv, String dt){
 			this.point = pt;
 			this.button = jb; 
 			this.setButtonValue(bv);
 			this.controlType = BUTTON_TYPE;
 			this.dataType = dt;
+
+			this.name = n;
+			this.label = button.getText();
 		}
 
 		/**
@@ -830,12 +836,15 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		 * @param dt The data type of this component
 		 * @param conf The button used to confirm the checkbox selection
 		 */
-		public ControlPanelDisplayComponent(String pt, JCheckBox jc, String dt, JButton conf){
+		public ControlPanelDisplayComponent(String n, String pt, String lb, JCheckBox jc, String dt, JButton conf){
 			this.point = pt;
 			this.check = jc; 
 			this.controlType = CHECKBOX_TYPE;
 			this.dataType = dt;
 			this.confirm = conf;
+
+			this.name = n;
+			this.label = lb;
 		}
 
 		/**
@@ -845,12 +854,15 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		 * @param conf The button used to confirm the text field entry
 		 * @param dt The data type of this component
 		 */
-		public ControlPanelDisplayComponent(String pt, JTextField v, JButton conf, String dt){
+		public ControlPanelDisplayComponent(String n, String pt, JTextField v, JButton conf, String dt){
 			this.point = pt;
 			this.value = v; 
 			this.controlType = TEXT_TYPE;
 			this.dataType = dt;
 			this.confirm = conf;
+
+			this.name = n;
+			this.label = confirm.getText();
 		}
 
 		/**
@@ -912,7 +924,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			if (this.controlType == BUTTON_TYPE){
 				return buttonValue;
 			} else {
-				return null;
+				return "\t";
 			}
 		}
 
@@ -922,6 +934,23 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		 */
 		public int getControlType(){
 			return controlType;
+		}
+
+		/**
+		 * Returns a string representation of the control type for this panel
+		 * @return A String holding the value of the current control type, or null if it doesn't
+		 * correspond to any of these.
+		 */
+		public String getControlTypeString(){
+			if (getControlType() == ControlPanelDisplayComponent.BUTTON_TYPE){
+				return "button";
+			} else if (getControlType() == ControlPanelDisplayComponent.CHECKBOX_TYPE){
+				return "checkbox";
+			} else if (getControlType() == ControlPanelDisplayComponent.TEXT_TYPE){
+				return "text";
+			} else {
+				return null;
+			}
 		}
 		/**
 		 * Returns the string contents for the text field in the relevant control type. If
@@ -934,6 +963,22 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			} else {
 				return null; //if this ever gets returned, we need to do a null check befor using it.
 			}
+		}
+
+		/**
+		 * Returns the name of this Control
+		 * @return String name of this control
+		 */
+		public String getName(){
+			return name;
+		}
+
+		/**
+		 * Returns the label for either the Button or the checkbox
+		 * @return A String of the label text
+		 */
+		public String getLabel(){
+			return label;
 		}
 
 		/**
@@ -963,14 +1008,14 @@ public class ControlPanel extends MonPanel implements ActionListener{
 				return false;
 			}
 
-			SavedSetup itsInitialSetup = setup;
+			itsSetup = setup;
 
-			numControls = Integer.parseInt(itsInitialSetup.get("controls number"));
-			String layout = itsInitialSetup.get("layout");
-			String title = itsInitialSetup.get("title");
+			numControls = Integer.parseInt(itsSetup.get("controls number"));
+			String layout = itsSetup.get("layout");
+			String title = itsSetup.get("title");
 
 
-			String res = itsInitialSetup.get("points");
+			String res = itsSetup.get("points");
 			StringTokenizer st = new StringTokenizer(res, ";");
 			Vector<String> components = new Vector<String>();
 			while (st.hasMoreTokens()){
@@ -996,7 +1041,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 					} else {
 						gbc.anchor = GridBagConstraints.CENTER;
 					}
-					
+
 					gbc.insets = new Insets(10,30,0,0);
 					gbc.gridx = 0;
 					gbc.gridheight = 1;
@@ -1030,7 +1075,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						gbc.gridx = 3;
 						gbc.insets = new Insets(5,10,0,30);
 						itsPanel.add(jb, gbc);
-						cpdc = new ControlPanelDisplayComponent(point, jb, bValue, dataType);
+						cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, jb, bValue, dataType);
 					} else if (controlType.equals("Checkbox")){
 						JCheckBox jc = new JCheckBox(labelText);
 						JButton send = new JButton("Send");
@@ -1040,7 +1085,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						gbc.gridx = 3;
 						gbc.insets = new Insets(5,10,0,30);
 						itsPanel.add(send, gbc);
-						cpdc = new ControlPanelDisplayComponent(point, jc, dataType, send);
+						cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, labelText, jc, dataType, send);
 					} else {
 						JButton send = new JButton("Send");
 						send.addActionListener(this);
@@ -1055,7 +1100,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						gbc.gridx = 3;
 						gbc.insets = new Insets(5,10,0,30);
 						itsPanel.add(send, gbc);
-						cpdc = new ControlPanelDisplayComponent(point, tf, send, dataType);
+						cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, tf, send, dataType);
 					}
 					panelList.add(cpdc);
 
@@ -1095,7 +1140,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						gbc.weighty = 1.0;
 						gbc.anchor = GridBagConstraints.NORTH;
 						itsPanel.add(jb, gbc);
-						cpdc = new ControlPanelDisplayComponent(point, jb, bValue, dataType);
+						cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, jb, bValue, dataType);
 					} else if (controlType.equals("Checkbox")){
 						JCheckBox jc = new JCheckBox(labelText);
 						JButton send = new JButton("Send");
@@ -1106,7 +1151,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						gbc.gridy = 3;
 						gbc.anchor = GridBagConstraints.NORTH;
 						itsPanel.add(send, gbc);
-						cpdc = new ControlPanelDisplayComponent(point, jc, dataType, send);
+						cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, labelText, jc, dataType, send);
 					} else {
 						JButton send = new JButton("Send");
 						send.addActionListener(this);
@@ -1122,7 +1167,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						gbc.weighty = 1.0;
 						gbc.anchor = GridBagConstraints.NORTH;
 						itsPanel.add(send, gbc);
-						cpdc = new ControlPanelDisplayComponent(point, tf, send, dataType);
+						cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, tf, send, dataType);
 					}
 					panelList.add(cpdc);
 
@@ -1160,6 +1205,10 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		itsScrollPane.setViewportView(itsMainPanel);
 	}
 
+	/** 
+	 * @see atnf.atoms.mon.gui.MonPanel#getSetup()
+	 */
+	@Override 
 	public synchronized SavedSetup getSetup() {
 		return itsSetup;
 	}
@@ -1176,7 +1225,16 @@ public class ControlPanel extends MonPanel implements ActionListener{
 	}
 
 	public void export(PrintStream p) {
-		//TODO
+		String out = "";
+		for (ControlPanelDisplayComponent c : panelList){
+			out += "Point: " + c.getPoint() + ", ";
+			out += "Name: " + c.getName() + ", ";
+			out += "Data Type: " + c.getDataType() + ", ";
+			out += "Control Type: " + c.getControlTypeString() + ", ";
+			out += "Button Value: " + c.getButtonValue() + ", ";
+			out += "\n";
+		}
+		p.println(out);
 	}
 
 	public String getLabel() {
@@ -1185,7 +1243,6 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-
 		if (arg0.getSource() instanceof JButton){
 			JButton source = (JButton) arg0.getSource();
 
@@ -1248,7 +1305,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 				PointData data = null;
 				if (c.getControlType() == ControlPanelDisplayComponent.BUTTON_TYPE){
 					String value = c.getButtonValue();
-					if (value != null){
+					if (!value.equals("\t")){
 						/*if (c.getDataType().equals(dataOptions[1])){ //increment the current value with the stored number
 							int intValue = Integer.parseInt(value);
 							Integer currValue = (Integer) server.getData(c.getPoint()).getData();
@@ -1294,7 +1351,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						}
 					}
 				}
-			server.setData(c.getPoint(), data, username, passwd);
+				server.setData(c.getPoint(), data, username, passwd);
 			} catch (Exception e){
 				passwd = "";
 				JOptionPane.showMessageDialog(ControlPanel.this, "Something went wrong with the sending of data. " +
