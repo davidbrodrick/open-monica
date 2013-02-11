@@ -805,7 +805,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		private JTextField value;
 		private JButton confirm;
 		private String dataType;
-		private String buttonValue;
+		private Object buttonValue;
 		private int controlType;
 
 		private String name;
@@ -821,7 +821,23 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		public ControlPanelDisplayComponent(String n, String pt, JButton jb, String bv, String dt){
 			this.point = pt;
 			this.button = jb; 
-			this.setButtonValue(bv);
+			this.dataType = dt;
+			if (dt.equals(dataOptions[0])) {
+			  // Text
+			  this.setButtonValue(bv);
+			} else if (dt.equals(dataOptions[1])) {
+			  //Number
+			  try {
+	        this.setButtonValue(new Double(bv));
+			  } catch (NumberFormatException e) {
+			    System.err.println("ControlPanel: Error parsing number " + bv);
+			  }
+			} else if (dt.equals(dataOptions[2])) {
+			  // True/False
+			  this.setButtonValue(new Boolean(bv));
+			} else {
+			  System.err.println("ControlPanel: Unknown data type " + dt);
+			}
 			this.controlType = BUTTON_TYPE;
 			this.dataType = dt;
 
@@ -911,7 +927,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		 * Sets the associated value of the JButton in a button-type control
 		 * @param buttonValue the value that should be pushed out when the JButton is pressed
 		 */
-		public void setButtonValue(String bv) {
+		public void setButtonValue(Object bv) {
 			this.buttonValue = bv;
 		}
 
@@ -920,7 +936,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		 * this isn't a button type control, then it returns a null value.
 		 * @return The text associated with the button of this control if it is a button control, otherwise null.
 		 */
-		public String getButtonValue() {
+		public Object getButtonValue() {
 			if (this.controlType == BUTTON_TYPE){
 				return buttonValue;
 			} else {
@@ -1304,7 +1320,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 				MoniCAClient server = MonClientUtil.getServer();
 				PointData data = null;
 				if (c.getControlType() == ControlPanelDisplayComponent.BUTTON_TYPE){
-					String value = c.getButtonValue();
+					Object value = c.getButtonValue();
 					if (!value.equals("\t")){
 						/*if (c.getDataType().equals(dataOptions[1])){ //increment the current value with the stored number
 							int intValue = Integer.parseInt(value);
@@ -1319,11 +1335,11 @@ public class ControlPanel extends MonPanel implements ActionListener{
 					JCheckBox cb = c.getCheckBox();
 					if (cb != null){
 						boolean state = cb.isSelected();
-						String value;
+						Boolean value;
 						if (state){
-							value = "true";
+							value = true;
 						} else {
-							value = "false";
+							value = false;
 						}
 						data = new PointData(c.getPoint(), AbsTime.factory(), value);
 					}
@@ -1334,7 +1350,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 							Pattern pattern = Pattern.compile("[-|+]{0,1}[0-9]*|\\.|[-|+]{0,1}[0-9]*\\.[0-9]*");
 							Matcher matcher = pattern.matcher(value);
 							if (matcher.matches()){
-								data = new PointData(c.getPoint(), AbsTime.factory(), value);
+								data = new PointData(c.getPoint(), AbsTime.factory(), new Double(value));
 							} else {
 								throw (new Exception());
 							}
@@ -1342,7 +1358,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 							Pattern pattern = Pattern.compile("true|false");
 							Matcher matcher = pattern.matcher(value);
 							if (matcher.matches()){
-								data = new PointData(c.getPoint(), AbsTime.factory(), value);
+								data = new PointData(c.getPoint(), AbsTime.factory(), new Boolean(value));
 							} else {
 								throw (new Exception());
 							}
