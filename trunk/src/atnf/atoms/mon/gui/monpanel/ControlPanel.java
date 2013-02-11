@@ -1344,7 +1344,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						data = new PointData(c.getPoint(), AbsTime.factory(), value);
 					}
 				} else {
-					String value = c.getTextFieldContents().toLowerCase(Locale.ENGLISH);
+					String value = c.getTextFieldContents();
 					if (value != null){
 						if (c.getDataType().equals(dataOptions[1])){ //make sure we're actually sending a number
 							Pattern pattern = Pattern.compile("[-|+]{0,1}[0-9]*|\\.|[-|+]{0,1}[0-9]*\\.[0-9]*");
@@ -1355,6 +1355,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 								throw (new Exception());
 							}
 						} else if (c.getDataType().equals(dataOptions[2])){
+						  value = value.toLowerCase(Locale.ENGLISH);
 							Pattern pattern = Pattern.compile("true|false");
 							Matcher matcher = pattern.matcher(value);
 							if (matcher.matches()){
