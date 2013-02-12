@@ -619,8 +619,8 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
     itsTable = new JTable(itsModel);
     itsTable.setDefaultRenderer(Object.class, this);
     // Disable tooltips to prevent constant rerendering on mouse-over
-    ToolTipManager.sharedInstance().unregisterComponent(itsTable);
-    ToolTipManager.sharedInstance().unregisterComponent(itsTable.getTableHeader());
+    //ToolTipManager.sharedInstance().unregisterComponent(itsTable);
+    //ToolTipManager.sharedInstance().unregisterComponent(itsTable.getTableHeader());
 
     itsTable.addMouseListener(new MouseAdapter() {
       public void mouseClicked(MouseEvent e) {
@@ -969,7 +969,6 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
 
   /** Reprocess data and get swing thread to redraw the table. */
   protected void processAndRedraw() {
-    System.err.println("HistoryTable: redrawing data");
     processData();
     Runnable updateTable = new Runnable() {
       public void run() {
@@ -1449,6 +1448,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
         }
         res.setBackground(Color.yellow);
       }
+      ((JComponent)res).setToolTipText(itsPoints.get(column-1) + ": " + pd.getData());
     }
 
     return res;
