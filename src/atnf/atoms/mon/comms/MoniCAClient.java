@@ -275,7 +275,7 @@ public abstract class MoniCAClient {
     RelTime delay = Time.diff(tafter, tbefore);
     AbsTime tlocal = tbefore.add(delay.divide(2));
     RelTime error = Time.diff(tserver, tlocal);
-    System.err.println("MoniCAClient.getClockError: Call took " + delay.getValue() / 1000.0 + ", Error is " + error.getValue() / 1000.0);
+    System.err.println("MoniCAClient: Measurement of clock offsets: Call took " + delay.getValue() / 1000.0 + ", Offset is " + error.getValue() / 1000.0);
     return error;
   }
 }
