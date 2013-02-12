@@ -608,8 +608,10 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
   protected String itsTimeZone = null;
   /** Actual TimeZone object to be used for display. */
   protected TimeZone itsTZ = null;
-  /** Records if we're waiting on swing to update the GUI. */
-  protected boolean itsGUIUpdatePending = false;
+  /** Records if real-time data has been updated since the last GUI redraw. */
+  protected Boolean itsNewDataAvailable = false;
+  /** Record the minimum interval between table updates. */
+  protected static final RelTime theirMinRedrawInterval = RelTime.factory(1500000);
 
   /** C'tor. */
   public HistoryTable() {
@@ -689,13 +691,24 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
         if (itsRealTime) {
           DataMaintainer.subscribe(itsPoints, this);
         }
-      }
-      synchronized (this) {
-        try {
-          wait();
-        } catch (Exception e) {
-          e.printStackTrace();
+      } else {
+        // Periodic redraw of table if data has changed
+        boolean redrawnow;
+        synchronized (itsNewDataAvailable) {
+          redrawnow = itsNewDataAvailable;
+          if (itsNewDataAvailable) {
+            itsNewDataAvailable = false;
+          }
         }
+        if (redrawnow) {
+          processAndRedraw();
+        }
+      }
+      // Short sleep
+      final RelTime loopsleeptime = RelTime.factory(1000000);
+      try {
+        loopsleeptime.sleep();
+      } catch (Exception e) {
       }
     }
   }
@@ -863,9 +876,6 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       column.setMinWidth(100);
 
       itsReInit = true;
-      synchronized (this) {
-        this.notifyAll();
-      }
     } catch (final Exception e) {
       e.printStackTrace();
       if (itsFrame != null) {
@@ -906,31 +916,13 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
   public void onPointEvent(Object source, PointEvent evt) {
     PointData pd = evt.getPointData();
     String src = pd.getName();
-    boolean foundit = false;
     for (int i = 0; i < itsPoints.size(); i++) {
       if (((String) itsPoints.get(i)).equals(src)) {
         itsData.get(i).add(pd);
-        foundit = true;
-      }
-    }
-    if (!foundit) {
-      System.err.println("HistoryTable: got update for \"" + src + "\" but not subscribed to it");
-    } else {
-      if (!itsGUIUpdatePending) {
-        // Don't alter the table data while the GUI is rendering it
-        processData();
-        itsGUIUpdatePending = true;
-        Runnable updateTable = new Runnable() {
-          public void run() {
-            itsModel.fireTableDataChanged();
-            itsGUIUpdatePending = false;
-          }
-        };
-        try {
-          SwingUtilities.invokeAndWait(updateTable);
-        } catch (Exception e) {
-          e.printStackTrace();
+        synchronized (itsNewDataAvailable) {
+          itsNewDataAvailable = true;
         }
+        break;
       }
     }
   }
@@ -973,6 +965,22 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
     }
     p.println();
     p.println();
+  }
+
+  /** Reprocess data and get swing thread to redraw the table. */
+  protected void processAndRedraw() {
+    System.err.println("HistoryTable: redrawing data");
+    processData();
+    Runnable updateTable = new Runnable() {
+      public void run() {
+        itsModel.fireTableDataChanged();
+      }
+    };
+    try {
+      SwingUtilities.invokeAndWait(updateTable);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   /** Discards old data and organised current data into rows for the table. */
@@ -1046,7 +1054,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
           for (int j = thisdata.size() - 2; j >= 0; j--) {
             PointData thisdatum = thisdata.get(j);
             if (!useddata.contains(thisdatum)) {
-              //System.err.println("Can purge " + thisdatum);
+              // System.err.println("Can purge " + thisdatum);
               thisdata.remove(thisdatum);
             }
           }
@@ -1309,7 +1317,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       Vector<PointData> initialdata = MonClientUtil.getServer().getBefore(itsPoints, start);
       for (int i = 0; i < initialdata.size(); i++) {
         if (initialdata.get(i) != null && initialdata.get(i).getData() != null) {
-          //System.err.println("Got initial data = " + initialdata.get(i));
+          // System.err.println("Got initial data = " + initialdata.get(i));
           alldata.get(i).insertElementAt(initialdata.get(i), 0);
         }
       }

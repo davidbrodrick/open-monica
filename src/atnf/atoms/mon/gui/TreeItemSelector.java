@@ -48,7 +48,7 @@ public abstract class TreeItemSelector extends JPanel implements ActionListener 
   protected JTable itsTable = null;
 
   /** Keeps track of which points have currently been selected. */
-  protected Vector itsSelected = new Vector();
+  protected Vector<String> itsSelected = new Vector<String>();
 
   /**
    * The Add button. We keep a reference so we can "press" the button when data
@@ -306,8 +306,8 @@ public abstract class TreeItemSelector extends JPanel implements ActionListener 
    * Get the currently selected items.
    * @return Vector containing String names of all selected items.
    */
-  public synchronized Vector getSelections() {
-    return (Vector) itsSelected.clone();
+  public synchronized Vector<String> getSelections() {
+    return (Vector<String>) itsSelected.clone();
   }
 
   /**
