@@ -1033,7 +1033,7 @@ public class MonFrame extends JFrame implements ActionListener {
         System.err.println("###REMOVED");
       }
     } catch (Exception e) {
-      System.err.println("ERROR: Couldn't load saved arrangement \"" + filename + "\"");
+      //System.err.println("ERROR: Couldn't load saved arrangement \"" + filename + "\"");
       // e.printStackTrace();
       return false;
     }
