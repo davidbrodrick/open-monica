@@ -1354,7 +1354,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       if (data == null) {
         return "";
       }
-      if (column == 0 && (itsNoDate || itsNoMS)) {
+      if (column == 0) {
         // timestamp, might need manipulation
         Date thisdate = ((AbsTime) data).getAsDate();
         DateFormat outdfm = null;
@@ -1364,8 +1364,10 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
           } else {
             outdfm = new SimpleDateFormat("HH:mm:ss.SSS");
           }
-        } else {
+        } else if (itsNoMS) {
           outdfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        } else {
+          outdfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         }
         if (itsTimeZone.equals("local")) {
           outdfm.setTimeZone(TimeZone.getDefault());
@@ -1373,8 +1375,6 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
           outdfm.setTimeZone(TimeZone.getTimeZone(itsTimeZone));
         }
         String s = outdfm.format(thisdate);
-        // if (itsNoMS) s = s.substring(0, s.indexOf("."));
-        // if (itsNoDate) s = s.substring(s.indexOf(" ")+1);
         data = s;
       }
       if (data instanceof String) {
