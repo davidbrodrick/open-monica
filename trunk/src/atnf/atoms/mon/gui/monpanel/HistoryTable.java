@@ -619,8 +619,8 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
     itsTable = new JTable(itsModel);
     itsTable.setDefaultRenderer(Object.class, this);
     // Disable tooltips to prevent constant rerendering on mouse-over
-    //ToolTipManager.sharedInstance().unregisterComponent(itsTable);
-    //ToolTipManager.sharedInstance().unregisterComponent(itsTable.getTableHeader());
+    // ToolTipManager.sharedInstance().unregisterComponent(itsTable);
+    // ToolTipManager.sharedInstance().unregisterComponent(itsTable.getTableHeader());
 
     itsTable.addMouseListener(new MouseAdapter() {
       public void mouseClicked(MouseEvent e) {
@@ -674,18 +674,35 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
         }
         processData();
 
-        Runnable updateTable = new Runnable() {
-          public void run() {
-            removeAll();
-            add(itsScroll);
-            itsModel.fireTableStructureChanged();
-            repaint();
+        if (!itsRealTime && itsRows.isEmpty()) {
+          Runnable gotNoData = new Runnable() {
+            public void run() {
+              removeAll();
+              add(new JLabel("No data was available!", JLabel.CENTER));
+              validate();
+            }
+          };
+          try {
+            SwingUtilities.invokeAndWait(gotNoData);
+          } catch (Exception e) {
+            e.printStackTrace();
           }
-        };
-        try {
-          SwingUtilities.invokeAndWait(updateTable);
-        } catch (Exception e) {
-          e.printStackTrace();
+        } else {
+          Runnable updateTable = new Runnable() {
+            public void run() {
+              removeAll();
+              add(itsScroll);
+              synchronized (itsRows) {
+                itsModel.fireTableStructureChanged();
+              }
+              validate();
+            }
+          };
+          try {
+            SwingUtilities.invokeAndWait(updateTable);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
         }
 
         if (itsRealTime) {
@@ -918,7 +935,9 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
     String src = pd.getName();
     for (int i = 0; i < itsPoints.size(); i++) {
       if (((String) itsPoints.get(i)).equals(src)) {
-        itsData.get(i).add(pd);
+        synchronized (itsData) {
+          itsData.get(i).add(pd);
+        }
         synchronized (itsNewDataAvailable) {
           itsNewDataAvailable = true;
         }
@@ -972,7 +991,9 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
     processData();
     Runnable updateTable = new Runnable() {
       public void run() {
-        itsModel.fireTableDataChanged();
+        synchronized (itsRows) {
+          itsModel.fireTableDataChanged();
+        }
       }
     };
     try {
@@ -984,79 +1005,56 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
 
   /** Discards old data and organised current data into rows for the table. */
   public void processData() {
-    AbsTime cutoff;
-    // First go through and purge any expired data
-    if (itsRealTime) {
-      cutoff = (new AbsTime()).add(itsPeriod.negate());
-      for (int i = 0; i < itsData.size(); i++) {
-        Vector<PointData> thisdata = itsData.get(i); // Always 0
-        if (thisdata.isEmpty()) {
-          continue;
+    try {
+      // Work out timestamp for the oldest row which should be displayed
+      AbsTime cutoff;
+      if (itsRealTime) {
+        cutoff = (new AbsTime()).add(itsPeriod.negate());
+      } else {
+        cutoff = itsStartTime;
+      }
+
+      synchronized (itsRows) {
+        // Generate any new rows that we can
+        Vector<Object> lastrow = null;
+        if (itsRows.size() > 0) {
+          // Get the last row currently being displayed
+          lastrow = itsRows.lastElement();
         }
-        while (thisdata.size() > 0) {
-          if (thisdata.get(0).getTimestamp().isBeforeOrEquals(cutoff)) {
-            // Keep one point in the past for populating cells with no later updates
-            if (thisdata.size() > 1 && thisdata.get(1).getTimestamp().isBeforeOrEquals(cutoff)) {
-              thisdata.remove(0);
-            } else {
+
+        synchronized (itsData) {
+          while (true) {
+            lastrow = getNextRow(lastrow);
+            if (lastrow == null) {
               break;
             }
-          } else {
-            break;
+            // Only display the row if it is within the time range
+            if (((AbsTime) lastrow.get(0)).isAfterOrEquals(cutoff)) {
+              itsRows.add(lastrow);
+            }
           }
-        }
-      }
-    } else {
-      cutoff = itsStartTime;
-    }
 
-    try {
-      Vector<Vector<Object>> newrows = new Vector<Vector<Object>>();
-      Vector<Object> lastrow = null;
+          // Remove any rows which are too old
+          while (itsRows.size() > 0 && ((AbsTime) itsRows.get(0).get(0)).isBefore(cutoff)) {
+            itsRows.remove(0);
+          }
 
-      while (true) {
-        lastrow = getNextRow(lastrow);
-        if (lastrow == null) {
-          break;
-        }
-        // Only display the row if it is within the time range
-        if (((AbsTime) lastrow.get(0)).isAfterOrEquals(cutoff)) {
-          newrows.add(lastrow);
-        }
-      }
-
-      // Limit the number of rows, if requested by the user
-      if (itsLimitRows) {
-        while (newrows.size() > itsMaxRows) {
-          newrows.remove(0);
-        }
-      }
-      // We're finished processing the new data
-      itsRows = newrows;
-
-      // Keep track of which data is actually used in rows so we can prune unused data
-      if (itsSkipRows) {
-        HashSet<PointData> useddata = new HashSet<PointData>(1000, 1000);
-        for (int i = 0; i < itsRows.size(); i++) {
-          for (int j = 1; j < itsRows.get(i).size(); j++) {
-            Object thisdatum = itsRows.get(i).get(j);
-            if (thisdatum instanceof PointData) {
-              // This data appears in a row, therefore record it as being used
-              useddata.add((PointData) thisdatum);
-              // System.err.println("Using " + thisdatum);
+          // Limit the number of rows, if requested by the user
+          if (itsLimitRows) {
+            while (itsRows.size() > itsMaxRows) {
+              itsRows.remove(0);
             }
           }
         }
-        // Now traverse the data store pruning data that wasn't used
+
+        // Remove any data older than the most recent row, except the last which we may still need
+        if (itsRows.size() > 0) {
+          cutoff = (AbsTime) itsRows.lastElement().get(0);
+        }
         for (int i = 0; i < itsData.size(); i++) {
           Vector<PointData> thisdata = itsData.get(i);
-          // Don't remove latest data as we may still need that in the future
-          for (int j = thisdata.size() - 2; j >= 0; j--) {
-            PointData thisdatum = thisdata.get(j);
-            if (!useddata.contains(thisdatum)) {
-              // System.err.println("Can purge " + thisdatum);
-              thisdata.remove(thisdatum);
-            }
+          while (thisdata.size() > 1 && thisdata.get(1).getTimestamp().isBefore(cutoff)) {
+            thisdata.remove(0);
           }
         }
       }
@@ -1449,7 +1447,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
         }
         res.setBackground(Color.yellow);
       }
-      ((JComponent)res).setToolTipText(itsPoints.get(column-1) + ": " + pd.getData());
+      ((JComponent) res).setToolTipText(itsPoints.get(column - 1) + ": " + pd.getData());
     }
 
     return res;
