@@ -984,11 +984,10 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
 
   /** Discards old data and organised current data into rows for the table. */
   public void processData() {
-    AbsTime now = new AbsTime();
-    RelTime per = itsPeriod.negate();
-    AbsTime cutoff = now.add(per);
+    AbsTime cutoff;
     // First go through and purge any expired data
     if (itsRealTime) {
+      cutoff = (new AbsTime()).add(itsPeriod.negate());
       for (int i = 0; i < itsData.size(); i++) {
         Vector<PointData> thisdata = itsData.get(i); // Always 0
         if (thisdata.isEmpty()) {
@@ -1007,6 +1006,8 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
           }
         }
       }
+    } else {
+      cutoff = itsStartTime;
     }
 
     try {
