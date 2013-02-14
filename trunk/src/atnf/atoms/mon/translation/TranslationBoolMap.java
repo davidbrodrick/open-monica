@@ -78,7 +78,7 @@ extends Translation
     }
 
     //Create return structure with right details
-    PointData res = new PointData(itsParent.getFullName(), resstr);
+    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), resstr);
     return res;
   }
 
