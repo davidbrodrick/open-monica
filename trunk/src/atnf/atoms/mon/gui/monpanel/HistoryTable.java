@@ -1047,14 +1047,26 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
           }
         }
 
-        // Remove any data older than the most recent row, except the last which we may still need
-        if (itsRows.size() > 0) {
-          cutoff = (AbsTime) itsRows.lastElement().get(0);
-        }
+        // Find which of the most recent set of data has the oldest timestamp
+        cutoff = null;
         for (int i = 0; i < itsData.size(); i++) {
           Vector<PointData> thisdata = itsData.get(i);
-          while (thisdata.size() > 1 && thisdata.get(1).getTimestamp().isBefore(cutoff)) {
-            thisdata.remove(0);
+          if (!thisdata.isEmpty()) {
+            if (cutoff == null || thisdata.lastElement().getTimestamp().isBefore(cutoff)) {
+              cutoff = thisdata.lastElement().getTimestamp();
+            }
+          }
+        }
+
+        // Prune any data we don't need any more
+        if (cutoff != null) {
+          for (int i = 0; i < itsData.size(); i++) {
+            Vector<PointData> thisdata = itsData.get(i);
+            if (!thisdata.isEmpty()) {
+              while (thisdata.size() > 1 && thisdata.firstElement().getTimestamp().isBefore(cutoff)) {
+                thisdata.remove(0);
+              }
+            }
           }
         }
       }
@@ -1100,8 +1112,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
         AbsTime earliest = null;
         for (int i = 0; i < itsData.size(); i++) {
           Vector<PointData> v = itsData.get(i);
-
-          if (v == null || v.size() == 0) {
+          if (v.isEmpty()) {
             continue;
           }
           for (int j = 0; j < v.size(); j++) {
@@ -1167,7 +1178,13 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
         }
         int previ = MonitorUtils.getPrevEqualsPointData(v, nexttime);
         if (previ == -1) {
-          res.add(null);
+          if (prevrow != null && prevrow.get(i+1) != null) {
+            // Borrow value from previous row
+            res.add(prevrow.get(i+1));
+          } else {
+            // Have no data for this point for this row
+            res.add(null);
+          }
         } else {
           res.add(v.get(previ));
           founddata = true;
