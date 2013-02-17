@@ -61,7 +61,6 @@ import javax.swing.event.ListSelectionListener;
 import atnf.atoms.mon.Alarm;
 import atnf.atoms.mon.AlarmEvent;
 import atnf.atoms.mon.AlarmEventListener;
-import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.mon.client.AlarmMaintainer;
 import atnf.atoms.mon.gui.AlarmPanel;
@@ -176,8 +175,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			allCb.addItemListener(this);
 
 			// lots of glue so that the layout doesn't look silly when resized horizontally
-			selectCategory.add(Box.createHorizontalGlue());
-			selectCategory.add(noPriorityCb);
+			//selectCategory.add(Box.createHorizontalGlue());
+			//selectCategory.add(noPriorityCb);
 			selectCategory.add(Box.createHorizontalGlue());
 			selectCategory.add(informationCb);
 			selectCategory.add(Box.createHorizontalGlue());
@@ -252,11 +251,12 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 			ss.put("points", p);
 
-			if (noPriorityAlarms){
+			/*if (noPriorityAlarms){
 				ss.put(noPriAlmStr, "true");
 			} else {
 				ss.put(noPriAlmStr, "false");
-			}
+			}*/
+			ss.put(noPriAlmStr, "false");
 			if (informationAlarms){
 				ss.put(infoAlmStr, "true");
 			} else {
@@ -1131,7 +1131,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	public synchronized SavedSetup getSetup() {
 		SavedSetup ss = new SavedSetup();
 		ss.setClass("atnf.atoms.mon.gui.monpanel.AlarmManagerPanel");
-		ss.setName("Alarm Manager Panel");
+		ss.setName("alarmSetup");
 
 		DefaultListModel listPoints = itsListModel;
 		String p = "";
@@ -1201,11 +1201,12 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			String str;
 			str = (String) setup.get(noPriAlmStr);
 			if (str != null){
-				if (str.equals("true")){
+				/*if (str.equals("true")){
 					noPriorityAlarms = true;
 				} else if (str.equals("false")){
 					noPriorityAlarms = false;
-				}
+				}*/
+				noPriorityAlarms = false;
 			}
 			str = (String) setup.get(infoAlmStr);
 			if (str != null){
@@ -1240,28 +1241,31 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				}
 			}
 
-			for (String pd : itsPoints){
+			/*for (String pd : itsPoints){
 				AlarmMaintainer.setAlarm(PointDescription.getPoint(pd));
-			}
+			}*/
 
 			Vector<String> badPoints = new Vector<String>();
 			for (String s : itsPoints){
-				if (AlarmMaintainer.getAlarm(s).getPriority() == -1 && !noPriorityAlarms){
+				try {
+					if (AlarmMaintainer.getAlarm(s).getPriority() == -1 && !noPriorityAlarms){
+						badPoints.add(s);
+					}
+					if (AlarmMaintainer.getAlarm(s).getPriority() == 0 && !informationAlarms){
+						badPoints.add(s);
+					}
+					if (AlarmMaintainer.getAlarm(s).getPriority() == 1 && !warningAlarms){
+						badPoints.add(s);
+					}
+					if (AlarmMaintainer.getAlarm(s).getPriority() == 2 && !dangerAlarms){
+						badPoints.add(s);
+					}
+					if (AlarmMaintainer.getAlarm(s).getPriority() == 3 && !severeAlarms){
+						badPoints.add(s);
+					}
+				} catch (NullPointerException n){
 					badPoints.add(s);
 				}
-				if (AlarmMaintainer.getAlarm(s).getPriority() == 0 && !informationAlarms){
-					badPoints.add(s);
-				}
-				if (AlarmMaintainer.getAlarm(s).getPriority() == 1 && !warningAlarms){
-					badPoints.add(s);
-				}
-				if (AlarmMaintainer.getAlarm(s).getPriority() == 2 && !dangerAlarms){
-					badPoints.add(s);
-				}
-				if (AlarmMaintainer.getAlarm(s).getPriority() == 3 && !severeAlarms){
-					badPoints.add(s);
-				}
-
 			}
 
 			if (badPoints.size() > 0){
