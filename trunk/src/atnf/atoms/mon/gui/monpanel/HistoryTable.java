@@ -971,13 +971,9 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       p.print(t.toString(AbsTime.Format.UTC_STRING));
       for (int c = 1; c < row.size(); c++) {
         p.print(", ");
-        Object o = row.get(c);
+        PointData o = (PointData)row.get(c);
         if (o != null) {
-          if (o instanceof Angle) {
-            p.print(((Angle) o).toString(Angle.Format.DEGREES));
-          } else {
-            p.print(o.toString());
-          }
+          p.print(o.getData());
         }
       }
       p.println();
