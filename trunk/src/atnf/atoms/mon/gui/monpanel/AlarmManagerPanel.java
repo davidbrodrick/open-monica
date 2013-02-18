@@ -895,26 +895,22 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					for (int i = 0; i < listValues.length; i++){
 						ignoreList.add(listValues[i].toString());
 						localListModel.removeElement(listValues[i]);
-						System.out.println("other: add to ignore");
 					}
 				} else if (this.type == AlarmDisplayPanel.ALL){ //All tab
 					Object[] listValues = plist.getSelectedValues();
 					if (ignoreList.contains(listValues[0].toString())){ //unignore
 						for (int i = 0; i < listValues.length; i++){
 							ignoreList.remove(listValues[i].toString());
-							System.out.println("all: remove from ignore");
 						}
 					} else {
 						for (int i = 0; i < listValues.length; i++){ //ignore
 							ignoreList.add(listValues[i].toString());
-							System.out.println("all: add to ignore");
 						}
 					}
 				} else { //ignore tab
 					Object[] listValues = plist.getSelectedValues();
 					for (int i = 0; i < listValues.length; i++){
 						ignoreList.remove(listValues[i].toString());
-						System.out.println("ignore: remove from ignore");
 					}
 				}
 			}
@@ -1449,7 +1445,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	public void onAlarmEvent(AlarmEvent event) {
 		updateListModels();
 		Alarm thisAlarm = event.getAlarm();
-		if (thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
+		if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
 			stateTabs.setSelectedIndex(5); //if alarming, automatically switch over to the "Alarming" tab
 			if (!klaxon.isAlive()){
 				klaxon.start();
