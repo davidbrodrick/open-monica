@@ -663,7 +663,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			mute.setToolTipText("Mute the Alarm Audio Warning");
 			ignore.setToolTipText("Set the selected alarms to ignore alarms");
 			ignore.setEnabled(false);
-			
+
 			// set the action commands that are sent when these buttons are pressed
 			notify.setActionCommand("notify");
 			reset.setActionCommand("reset");
@@ -777,7 +777,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			} else if (command.equals("reset")){
 				// cancel the options taken
 				plist.clearSelection();
-				this.showDefaultAlarmPanels();
+				new Thread(){
+					public void run(){
+						AlarmDisplayPanel.this.showDefaultAlarmPanels();
+					}
+				}.start();
 			} else if (command.equals("ack")){
 				if (username.equals("") || password.equals("")){
 					JPanel inputs = new JPanel();
@@ -948,7 +952,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			Vector<Alarm> alarms = AlarmMaintainer.getAlarms();
 
 			for (Alarm a : alarms){ //put all the alarms in a locally maintained lookup table
-				lookup.put(a.getPointDesc().getFullName(), a); 
+				if (!ignoreList.contains(a.getPointDesc().getFullName())) lookup.put(a.getPointDesc().getFullName(), a); 
 			}
 			if (lookup.size() > 0){
 				for (String s : lookup.keySet()){
