@@ -140,22 +140,35 @@ public class PointBuffer {
    * @return Vector containing all data in the specified time range. <tt>null</tt> will be returned if no data were found.
    */
   public static Vector<PointData> getPointData(PointDescription pm, AbsTime start_time, AbsTime end_time, int maxsamples) {
-    // If all data is in memory buffer then return it from there
-    if (isAfterOrEqualsFirstData(pm, start_time)) {
-      return getPointDataBuffer(pm, start_time, end_time);
+    Vector<PointData> bufdata = null;
+    LinkedList<PointData> databuffer = theirBufferTable.get(pm);
+    if (databuffer != null) {
+      synchronized (databuffer) {
+        // If all data is in memory buffer then return it from there
+        if (isAfterOrEqualsFirstData(pm, start_time)) {
+          theirLogger.debug("all data is in memory");
+          return getPointDataBuffer(pm, start_time, end_time);
+        }
+
+        // Some data may be in memory buffer so try there first
+        bufdata = getPointDataBuffer(pm, start_time, end_time);
+      }
     }
 
-    // Some data may be in memory buffer so try there first
-    Vector<PointData> bufdata = getPointDataBuffer(pm, start_time, end_time);
     if (bufdata == null) {
-      bufdata = new Vector<PointData>(); // Ensure not null
+      // Ensure not null
+      bufdata = new Vector<PointData>();
     }
 
     // Then request rest of data from disk archive
     PointArchiver arc = PointArchiver.getPointArchiver();
     Vector<PointData> arcdata = arc.extract(pm, start_time, end_time);
+
     if (arcdata == null) {
       arcdata = new Vector<PointData>(); // Ensure not null
+      theirLogger.debug("got no data from archiver");
+    } else {
+      theirLogger.debug("got " + arcdata.size() + " elements from archiver");
     }
 
     boolean mergebuffer = true;
@@ -221,6 +234,7 @@ public class PointBuffer {
     if (arcdata.size() == 0) {
       arcdata = null;
     }
+    theirLogger.debug("final result has " + arcdata.size() + " elements");
     return arcdata;
   }
 
@@ -282,6 +296,10 @@ public class PointBuffer {
               break;
             }
             res = pd;
+          }
+          if (res == null) {
+            // Data must not exist
+            return null;
           }
         }
       }

@@ -161,7 +161,7 @@ public class PointArchiverASCII extends PointArchiver {
           }
         } else {
           // Need to find it. Find the right directory and get a listing of the files
-          fileName = path + FSEP + getDateTimeNow();
+          fileName = path + FSEP + getDateTime(itsData.firstElement().getTimestamp().getAsDate());
           File myDir = new File(path);
           if (!myDir.isDirectory()) {
             myDir.mkdirs();
@@ -201,7 +201,7 @@ public class PointArchiverASCII extends PointArchiver {
 
           if (latest != -1 && isCompressed(dirFiles[latest])) {
             // Latest file is compressed so need a new file
-            filedate = new Date();
+            filedate = itsData.firstElement().getTimestamp().getAsDate();
             fileName = path + FSEP + getDateTime(filedate);
             file = new File(fileName);
             file.createNewFile();
@@ -246,8 +246,9 @@ public class PointArchiverASCII extends PointArchiver {
         PrintWriter outfile = new PrintWriter(new BufferedWriter(f));
         synchronized (itsData) {
           for (int i = 0; i < itsData.size(); i++) {
-            try {
+            try {              
               PointData pd = (PointData) itsData.elementAt(i);
+              itsLogger.debug("Writing " + getStringForPD(pd));
               outfile.println(getStringForPD(pd));
             } catch (Exception e) {
               itsLogger.warn("In saveNow: " + e.getMessage() + " (for " + ((PointData) itsData.elementAt(i)).getName() + ")");
@@ -339,7 +340,7 @@ public class PointArchiverASCII extends PointArchiver {
    *          Most recent time in the range of interest.
    * @return Vector containing all data for the point over the time range.
    */
-  public Vector<PointData> extract(PointDescription pm, AbsTime start, AbsTime end) {
+  protected Vector<PointData> extractDeep(PointDescription pm, AbsTime start, AbsTime end) {
     // AbsTime starttime = new AbsTime();
     Vector<PointData> res = new Vector<PointData>(1000, 1000);
     // Get the archive directory for the given point
@@ -375,7 +376,7 @@ public class PointArchiverASCII extends PointArchiver {
    *          Find data preceding this timestamp.
    * @return PointData for preceding update or null if none found.
    */
-  public PointData getPreceding(PointDescription pm, AbsTime ts) {
+  protected PointData getPrecedingDeep(PointDescription pm, AbsTime ts) {
     // Get the archive directory for the given point
     String dir = getDir(pm);
     // Get any the archive files relevant to the period of interest
@@ -391,6 +392,7 @@ public class PointArchiverASCII extends PointArchiver {
     // Try to load data from each of the files
     Vector<PointData> tempbuf = new Vector<PointData>(1000, 1000);
     for (int i = 0; i < files.size(); i++) {
+      itsLogger.debug("ArchiverASCII: Loading file " + files.get(i));
       loadFile(tempbuf, pm, dir + FSEP + files.get(i), null, null, false);
     }
 
@@ -412,7 +414,7 @@ public class PointArchiverASCII extends PointArchiver {
    *          Find data following this timestamp.
    * @return PointData for following update or null if none found.
    */
-  public PointData getFollowing(PointDescription pm, AbsTime ts) {
+  protected PointData getFollowingDeep(PointDescription pm, AbsTime ts) {
     // Get the archive directory for the given point
     String dir = getDir(pm);
     // Get any the archive files relevant to the period of interest

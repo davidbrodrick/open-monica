@@ -161,7 +161,7 @@ public class PointArchiverMySQL extends PointArchiver {
    *          Most recent time in the range of interest.
    * @return Vector containing all data for the point over the time range.
    */
-  public Vector<PointData> extract(PointDescription pm, AbsTime start, AbsTime end) {
+  protected Vector<PointData> extractDeep(PointDescription pm, AbsTime start, AbsTime end) {
     try {
       // Can't do anything if the server is not running
       if (!checkConnection()) {
@@ -214,7 +214,7 @@ public class PointArchiverMySQL extends PointArchiver {
    *          Find data preceding this timestamp.
    * @return PointData for preceding update or null if none found.
    */
-  public PointData getPreceding(PointDescription pm, AbsTime ts) {
+  protected PointData getPrecedingDeep(PointDescription pm, AbsTime ts) {
     try {
       // Can't do anything if the server is not running
       if (!checkConnection()) {
@@ -259,7 +259,7 @@ public class PointArchiverMySQL extends PointArchiver {
    *          Find data following this timestamp.
    * @return PointData for following update or null if none found.
    */
-  public PointData getFollowing(PointDescription pm, AbsTime ts) {
+  protected PointData getFollowingDeep(PointDescription pm, AbsTime ts) {
     try {
       // Can't do anything if the server is not running
       if (!checkConnection()) {
