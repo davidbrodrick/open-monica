@@ -127,7 +127,8 @@ public class MoniCAMain {
         // Add shutdown listener to flush archive
         Runtime.getRuntime().addShutdownHook(new Thread() {
           public void run() {
-            PointArchiver.getPointArchiver().flushArchive();            
+            ExternalSystem.stopAll();
+            PointArchiver.getPointArchiver().flushArchive();      
           }
         });
 
