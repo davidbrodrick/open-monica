@@ -53,6 +53,7 @@ public class Alarm {
     alarm = false;
     acknowledged = false;
     shelved = false;
+    guidance = populateGuidanceText();
   }
 
   /**
@@ -68,6 +69,7 @@ public class Alarm {
     priority = point.getPriority();
     data = d;
     alarm = d.getAlarm();
+    guidance = populateGuidanceText();
   }
 
   /**

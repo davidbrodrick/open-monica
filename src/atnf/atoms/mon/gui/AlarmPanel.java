@@ -24,6 +24,7 @@ import atnf.atoms.mon.Alarm;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.client.AlarmMaintainer;
 import atnf.atoms.mon.gui.monpanel.AlarmManagerPanel;
+import atnf.atoms.time.AbsTime.Format;
 
 /**
  * AlarmPanel class for use by the AlarmManagerPanel class and the automated
@@ -54,11 +55,9 @@ public class AlarmPanel extends JPanel {
 	 * Default constructor for when an AlarmPanel is created with no associated Alarm
 	 */
 	public AlarmPanel(){
-
 		this.setLayout(new GridBagLayout());
 		JLabel nope = new JLabel("No selected Alarm point");
 		this.add(nope);
-
 	}
 
 	/**
@@ -74,7 +73,6 @@ public class AlarmPanel extends JPanel {
 
 		itsName = name;
 		itsPointDesc = PointDescription.getPoint(itsName);
-		alarms = AlarmMaintainer.getAllAlarms(); //update current alarms
 
 		if (itsPointDesc != null) hasPointDesc = true;
 
@@ -114,7 +112,6 @@ public class AlarmPanel extends JPanel {
 				alarmTitle.setBackground(Color.DARK_GRAY);
 			}
 
-
 			alarmPriority.setHorizontalAlignment(JLabel.CENTER);
 			JLabel pointString = new JLabel("Point: " + itsName);
 			JLabel pointDesc = new JLabel("Description: " + itsPointDesc.getLongDesc());
@@ -135,12 +132,18 @@ public class AlarmPanel extends JPanel {
 				status.setText("Shelved");
 				status.setForeground(AlarmManagerPanel.SHELVED_COLOUR);
 			}
-
 			JLabel ackedBy = new JLabel("Acknowledged by: " + itsAlarm.getAckedBy());
-			JLabel ackedAt = new JLabel("Acknowledged at: " + itsAlarm.getAckedAt());
+			JLabel ackedAt = new JLabel("Acknowledged at: " + itsAlarm.getAckedAt().toString(Format.UTC_STRING));
+			if (itsAlarm.getAckedBy().equals("null")){
+				ackedBy.setText("Acknowledged by: ");
+				ackedAt.setText("Acknowledged at: ");
+			}
 			JLabel shelvedBy = new JLabel("Shelved by: " + itsAlarm.getShelvedBy());
-			JLabel shelvedAt = new JLabel("Shelved at " + itsAlarm.getShelvedAt());
-
+			JLabel shelvedAt = new JLabel("Shelved at " + itsAlarm.getShelvedAt().toString(Format.UTC_STRING));
+			if (itsAlarm.getShelvedBy().equals("null")){
+				shelvedBy.setText("Shelved by: ");
+				shelvedAt.setText("Shelved at: ");
+			}
 			pointString.setFont(new Font("Sans Serif", Font.PLAIN, 18));
 			pointDesc.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 			statusString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
