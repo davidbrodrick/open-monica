@@ -205,7 +205,6 @@ public class PointArchiverASCII extends PointArchiver {
             fileName = path + FSEP + getDateTime(filedate);
             file = new File(fileName);
             file.createNewFile();
-            itsLogger.debug("Created file: " + fileName);
           } else {
             // Found what we were looking for
             fileName = path + FSEP + dirFiles[latest];
@@ -248,7 +247,6 @@ public class PointArchiverASCII extends PointArchiver {
           for (int i = 0; i < itsData.size(); i++) {
             try {              
               PointData pd = (PointData) itsData.elementAt(i);
-              itsLogger.debug("Writing " + getStringForPD(pd));
               outfile.println(getStringForPD(pd));
             } catch (Exception e) {
               itsLogger.warn("In saveNow: " + e.getMessage() + " (for " + ((PointData) itsData.elementAt(i)).getName() + ")");
@@ -392,7 +390,6 @@ public class PointArchiverASCII extends PointArchiver {
     // Try to load data from each of the files
     Vector<PointData> tempbuf = new Vector<PointData>(1000, 1000);
     for (int i = 0; i < files.size(); i++) {
-      itsLogger.debug("ArchiverASCII: Loading file " + files.get(i));
       loadFile(tempbuf, pm, dir + FSEP + files.get(i), null, null, false);
     }
 

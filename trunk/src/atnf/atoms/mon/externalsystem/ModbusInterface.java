@@ -111,7 +111,7 @@ public class ModbusInterface extends ExternalSystem {
     try {
       trans.execute();
     } catch (Exception e) {
-      e.printStackTrace();
+      theirLogger.warn(itsHost + ":" + itsPort + ": readCoils: " + e);
     }
 
     return (ReadCoilsResponse) trans.getResponse();
@@ -139,7 +139,7 @@ public class ModbusInterface extends ExternalSystem {
     try {
       trans.execute();
     } catch (Exception e) {
-      e.printStackTrace();
+      theirLogger.warn(itsHost + ":" + itsPort + ": readDiscreteInputs: " + e);
     }
 
     return (ReadInputDiscretesResponse) trans.getResponse();
@@ -168,7 +168,7 @@ public class ModbusInterface extends ExternalSystem {
     try {
       trans.execute();
     } catch (Exception e) {
-      e.printStackTrace();
+      theirLogger.warn(itsHost + ":" + itsPort + ": readHoldingRegisters: " + e);
     }
     return (ReadMultipleRegistersResponse) trans.getResponse();
   }
@@ -195,7 +195,7 @@ public class ModbusInterface extends ExternalSystem {
     try {
       trans.execute();
     } catch (Exception e) {
-      e.printStackTrace();
+      theirLogger.warn(itsHost + ":" + itsPort + ": readInputRegisters: " + e);
     }
     return (ReadInputRegistersResponse) trans.getResponse();
   }
@@ -221,7 +221,7 @@ public class ModbusInterface extends ExternalSystem {
     try {
       trans.execute();
     } catch (Exception e) {
-      e.printStackTrace();
+      theirLogger.warn(itsHost + ":" + itsPort + ": writeSingleCoil: " + e);
     }
     return (WriteCoilResponse) trans.getResponse();
   }
@@ -247,7 +247,7 @@ public class ModbusInterface extends ExternalSystem {
     try {
       trans.execute();
     } catch (Exception e) {
-      e.printStackTrace();
+      theirLogger.warn(itsHost + ":" + itsPort + ": writeSingleRegister: " + e);
     }
 
     return (WriteSingleRegisterResponse) trans.getResponse();
@@ -275,7 +275,7 @@ public class ModbusInterface extends ExternalSystem {
     try {
       trans.execute();
     } catch (Exception e) {
-      e.printStackTrace();
+      theirLogger.warn(itsHost + ":" + itsPort + ": writeMultipleCoils: " + e);
     }
     return (WriteMultipleCoilsResponse) trans.getResponse();
   }
@@ -300,7 +300,7 @@ public class ModbusInterface extends ExternalSystem {
     try {
       trans.execute();
     } catch (Exception e) {
-      e.printStackTrace();
+      theirLogger.warn(itsHost + ":" + itsPort + ": writeMultipleRegisters: " + e);
     }
     return (WriteMultipleRegistersResponse) trans.getResponse();
   }

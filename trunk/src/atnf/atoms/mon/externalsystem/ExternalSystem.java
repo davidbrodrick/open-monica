@@ -133,10 +133,13 @@ public class ExternalSystem implements Runnable {
 
   /** Stop all ExternalSystem collection threads. */
   public static void stopAll() {
+    theirLogger.info("Stopping all ExternalSystems");
     Object[] ds = theirExternalSystems.values().toArray();
     for (int i = 0; i < ds.length; i++) {
+      theirLogger.info("Issuing stop request to " + ((ExternalSystem) ds[i]).itsName);
       ((ExternalSystem) ds[i]).stopCollection();
     }
+    theirLogger.info("Stop request to all ExternalSystems now complete");
   }
 
   /** Start the data collection thread. */
@@ -151,7 +154,7 @@ public class ExternalSystem implements Runnable {
    * Stop the data collection thread. This method actually just sets a flag to stop the
    * collection and doesn't actually wait until collection has been stopped.
    */
-  public synchronized void stopCollection() {
+  public void stopCollection() {
     itsKeepRunning = false;
   }
 

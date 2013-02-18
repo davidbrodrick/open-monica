@@ -115,15 +115,12 @@ public abstract class PointArchiver extends Thread {
         synchronized (buffer) {
           if (!buffer.isEmpty()) {
             if (start.isAfter(buffer.lastElement().getTimestamp())) {
-              itsLogger.debug("can't help you");
               // We don't have any data this recent
               res = null;
             } else if (end.isBefore(buffer.firstElement().getTimestamp())) {
-              itsLogger.debug("data is all on disk");
               // Any data is wholly on disk, don't need to delve into the buffer
               res = extractDeep(pm, start, end);
             } else if (start.isAfterOrEquals(buffer.firstElement().getTimestamp())) {
-              itsLogger.debug("data is all in the buffer");
               // Data is wholly in the buffer, don't need to merge with data from disk
               int starti = MonitorUtils.getPrevEqualsPointData(buffer, start);
               assert (starti != -1);
@@ -135,34 +132,26 @@ public abstract class PointArchiver extends Thread {
                 res.add(buffer.get(i));
               }
             } else {
-              itsLogger.debug("need to merge disk data and buffer");
               // Need to merge disk and buffer data
               res = extractDeep(pm, start, end);
               if (res == null) {
                 // Was no data on disk
                 res = new Vector<PointData>(buffer.size());
-              } else {
-                itsLogger.debug("got " + res.size() + " elements from disk");
               }
               if (res.size() < PointArchiver.getPointArchiver().getMaxNumRecords()) {
                 // Disk query wasn't clipped at the memory limit, therefore append buffer data
                 for (int i = 0; i < buffer.size() && buffer.get(i).getTimestamp().isBeforeOrEquals(end); i++) {
                   res.add(buffer.get(i));
                 }
-              } else {
-                itsLogger.debug("disk data was clipped, so not appending buffer");
               }
-              itsLogger.debug("result has " + res.size() + " elements");
             }
           } else {
-            itsLogger.debug("buffer is empty, data is all on disk");
             // Buffer is empty so go with whatever is on disk
             res = extractDeep(pm, start, end);
           }
         }
       } else {
         // There's no buffer so return data from disk
-        itsLogger.debug("no buffer, data is all on disk");
         res = extractDeep(pm, start, end);
       }
     } catch (Exception e) {
@@ -365,7 +354,7 @@ public abstract class PointArchiver extends Thread {
             }
           }
 
-          itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
+          //itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
           saveNow(pm, thisdata);
           try {
             sleeptime2.sleep();
@@ -402,20 +391,22 @@ public abstract class PointArchiver extends Thread {
    *          The data to save to disk
    */
   public void archiveData(PointDescription pm, PointData data) {
-    Vector<PointData> myVec = itsBuffer.get(pm);
-    if (myVec == null) {
-      // Lock buffer then check again to avoid race
-      synchronized (itsBuffer) {
-        myVec = itsBuffer.get(pm);
-        if (myVec == null) {
-          myVec = new Vector<PointData>(100, 500);
-          itsBuffer.put(pm, myVec);
+    if (!itsShuttingDown) {
+      Vector<PointData> myVec = itsBuffer.get(pm);
+      if (myVec == null) {
+        // Lock buffer then check again to avoid race
+        synchronized (itsBuffer) {
+          myVec = itsBuffer.get(pm);
+          if (myVec == null) {
+            myVec = new Vector<PointData>(100, 500);
+            itsBuffer.put(pm, myVec);
+          }
         }
       }
-    }
-    synchronized (myVec) {
-      // Add the new data to our storage buffer
-      myVec.add(data);
+      synchronized (myVec) {
+        // Add the new data to our storage buffer
+        myVec.add(data);
+      }
     }
   }
 

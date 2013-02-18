@@ -146,7 +146,6 @@ public class PointBuffer {
       synchronized (databuffer) {
         // If all data is in memory buffer then return it from there
         if (isAfterOrEqualsFirstData(pm, start_time)) {
-          theirLogger.debug("all data is in memory");
           return getPointDataBuffer(pm, start_time, end_time);
         }
 
@@ -166,9 +165,6 @@ public class PointBuffer {
 
     if (arcdata == null) {
       arcdata = new Vector<PointData>(); // Ensure not null
-      theirLogger.debug("got no data from archiver");
-    } else {
-      theirLogger.debug("got " + arcdata.size() + " elements from archiver");
     }
 
     boolean mergebuffer = true;
@@ -231,10 +227,9 @@ public class PointBuffer {
     }
 
     // Ensure null result if no data were found.
-    if (arcdata.size() == 0) {
+    if (arcdata.isEmpty()) {
       arcdata = null;
-    }
-    theirLogger.debug("final result has " + arcdata.size() + " elements");
+    }    
     return arcdata;
   }
 

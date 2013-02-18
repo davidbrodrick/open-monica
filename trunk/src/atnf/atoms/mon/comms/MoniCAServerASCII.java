@@ -265,6 +265,7 @@ public class MoniCAServerASCII extends Thread {
       itsWriter.flush();
     } catch (Exception e) {
       theirLogger.error("Problem in between request from " + itsClientName + ": " + e);
+      e.printStackTrace();
       itsRunning = false;
     }
   }

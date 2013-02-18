@@ -9,6 +9,7 @@ package atnf.atoms.mon.externalsystem;
 
 import java.util.*;
 import atnf.atoms.mon.*;
+import atnf.atoms.time.AbsTime;
 
 /**
  * This creates a number of dummy monitor points and assigns them a random number data
@@ -49,7 +50,7 @@ public class Simulator extends ExternalSystem {
       String[] empty = { "-" };
       String[] transaction = { "Generic-\"simulator" + theirPopulation + "\"" };
       String[] translation = { "NumDecimals-\"2\"" };
-      String[] arch = { "-" }; // {"COUNTER-1"};
+      String[] arch = { "-" }; // {"All-"};
 
       int period = minseconds + itsRandom.nextInt(maxseconds - minseconds);
       PointDescription pd = PointDescription.factory(names, "Dummy " + i, "Dummy" + i, "simUnits", "sim" + theirPopulation, transaction,
