@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.security.InvalidParameterException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -86,6 +87,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		MonPanel.registerMonPanel("Alarm Manager", AlarmManagerPanel.class);
 	}
 
+	public static HashSet<String> ignoreList = new HashSet<String>();
+
 	private boolean muteOn = false;
 	private boolean noPriorityAlarms = false;
 	private boolean informationAlarms = false;
@@ -103,6 +106,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	public final static Color SHELVED_COLOUR = new Color(0x6E8B3D);
 	/** Colour for the "Alarming" tab. Reddish-Orange. */
 	public final static Color ALARMING_COLOUR = new Color(0xEE4000);
+	/** Colour for the "Ignore" tab. Blue. */
+	private static final Color IGNORE_COLOUR = new Color(0x0066FF);
 
 	private String noPriAlmStr = "noPriority";
 	private String infoAlmStr = "information";
@@ -577,7 +582,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	 */
 	protected class AlarmDisplayPanel extends JPanel implements	ActionListener, ListSelectionListener, ItemListener{
 
+		private static final int ALL = 98;
+		private static final int IGNORED = 99;
 		boolean selectionIsShelved = false;
+		boolean selectionIsIgnored = false;
 		int type = -1;
 
 		String typeString;
@@ -586,7 +594,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		JButton ack = new JButton("ACKNOWLEDGE");
 		JButton shelve = new JButton("SHELVE");
 		JButton reset = new JButton("Display All Alarms");
-		JToggleButton mute = new JToggleButton("Mute");
+		JButton ignore = new JButton("Ignore");
+		JToggleButton mute = new JToggleButton("Mute Audio Warning");
 
 		Vector<Alarm> selectedAlarms = new Vector<Alarm>();
 		Vector<String> localPoints = new Vector<String>();
@@ -603,7 +612,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			super();
 
 			typeString = t;
-			if (!typeString.equals("all")) this.type = this.getType(t);
+			this.type = this.getType(t);
 
 			localListModel = itsListModel;
 
@@ -615,6 +624,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 			// Let's start with initialising some JPanels
 			JPanel listPanel = new JPanel(new BorderLayout());
+			JPanel listButtons = new JPanel(new GridLayout(2,1));
 			JPanel alarmPanel = new JPanel(new BorderLayout());
 			JPanel buttons = new JPanel(new GridLayout(2,2));
 			JPanel alarmPanels = new JPanel();
@@ -630,8 +640,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			listPanel.setMaximumSize(new Dimension(170, Integer.MAX_VALUE));
 
 			reset.setFont(new Font("Sans Serif", Font.ITALIC, reset.getFont().getSize()));
+			mute.setFont(new Font("Sans Serif", Font.ITALIC, reset.getFont().getSize()));
 
-			listPanel.add(reset, BorderLayout.NORTH);
+			listButtons.add(mute);
+			listButtons.add(reset);
+			listPanel.add(listButtons, BorderLayout.NORTH);
 			listPanel.add(plistScroller, BorderLayout.CENTER);
 
 			// Alarm Details Panel
@@ -648,22 +661,27 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			shelve.setEnabled(false);
 			reset.setToolTipText("Reset your selections");
 			mute.setToolTipText("Mute the Alarm Audio Warning");
-
+			ignore.setToolTipText("Set the selected alarms to ignore alarms");
+			ignore.setEnabled(false);
+			
 			// set the action commands that are sent when these buttons are pressed
 			notify.setActionCommand("notify");
 			reset.setActionCommand("reset");
 			ack.setActionCommand("ack");
 			shelve.setActionCommand("shelve");
+			ignore.setActionCommand("ignore");
 
 			// now register the buttons with the actionlistener
+			ignore.addActionListener(this);
 			notify.addActionListener(this);
 			ack.addActionListener(this);
 			shelve.addActionListener(this);
 			reset.addActionListener(this);
 			mute.addItemListener(this);
 
+
 			//let's add the buttons to the button pane now!
-			buttons.add(mute);
+			buttons.add(ignore);
 			buttons.add(notify);
 			buttons.add(ack);
 			buttons.add(shelve);
@@ -674,7 +692,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			//Add the big panels to the tabbed pane now
 			this.add(listPanel);
 			this.add(alarmPanel);
-
 		}
 
 		/**
@@ -693,7 +710,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				res = Alarm.SHELVED;
 			} else if (type.equals("alarming")){
 				res = Alarm.ALARMING;
-			} else {
+			} else if (type.equals("ignored")){
+				res = AlarmDisplayPanel.IGNORED;
+			} else if (type.equals("all")){
+				res = AlarmDisplayPanel.ALL;
+			}else {
 				System.err.println("Alarm State Unrecognised");
 				throw (new InvalidParameterException("Alarm State unrecognised"));
 			}
@@ -756,8 +777,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			} else if (command.equals("reset")){
 				// cancel the options taken
 				plist.clearSelection();
-				showDefaultAlarmPanels();
-
+				this.showDefaultAlarmPanels();
 			} else if (command.equals("ack")){
 				if (username.equals("") || password.equals("")){
 					JPanel inputs = new JPanel();
@@ -785,11 +805,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					inputs.add(passwordField, gbc);
 
 					int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
-
 					if (result == JOptionPane.OK_OPTION){
 						username = usernameField.getText();
 						password = new String(passwordField.getPassword());
-
 					} else {
 						return;
 					}
@@ -850,7 +868,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					}
 					updateListModels();
 					this.updateAlarmPanels();
-
+					if (selectionIsIgnored){
+						shelve.setText("Unignore");
+					} else {
+						shelve.setText("Ignore");
+					}
 					if (selectionIsShelved){
 						shelve.setText("UNSHELVE");
 					} else {
@@ -863,7 +885,37 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 							"\n and your username and password are correct.", "Data Sending Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
+			} else if (command.equals("ignore")){
+				if (this.type != AlarmDisplayPanel.ALL && this.type != AlarmDisplayPanel.IGNORED){ //regular tabs
+					Object[] listValues = plist.getSelectedValues();
+					for (int i = 0; i < listValues.length; i++){
+						ignoreList.add(listValues[i].toString());
+						localListModel.removeElement(listValues[i]);
+						System.out.println("other: add to ignore");
+					}
+				} else if (this.type == AlarmDisplayPanel.ALL){ //All tab
+					Object[] listValues = plist.getSelectedValues();
+					if (ignoreList.contains(listValues[0].toString())){ //unignore
+						for (int i = 0; i < listValues.length; i++){
+							ignoreList.remove(listValues[i].toString());
+							System.out.println("all: remove from ignore");
+						}
+					} else {
+						for (int i = 0; i < listValues.length; i++){ //ignore
+							ignoreList.add(listValues[i].toString());
+							System.out.println("all: add to ignore");
+						}
+					}
+				} else { //ignore tab
+					Object[] listValues = plist.getSelectedValues();
+					for (int i = 0; i < listValues.length; i++){
+						ignoreList.remove(listValues[i].toString());
+						System.out.println("ignore: remove from ignore");
+					}
+				}
 			}
+			this.updateAlarmPanels();
+			AlarmManagerPanel.updateListModels();
 		}
 
 		/**
@@ -879,13 +931,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
 				newPanel.add(a);
 			}
-
 			alarmDetailsScroller.setViewportView(newPanel);
 			alarmDetailsScroller.revalidate();
 			alarmDetailsScroller.repaint();
-
 		}
 
+		/**
+		 * Shows all alarm points that are currently in an alarming or shelved state
+		 */
 		private void showDefaultAlarmPanels(){
 			JPanel newPanel = new JPanel();
 			newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
@@ -902,7 +955,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					alarmingPoints.add(s);
 				}
 				alarmingPoints = reverseQuickSort(alarmingPoints, lookup);
-				for (String o : alarmingPoints){					
+				for (String o : alarmingPoints){
 					AlarmPanel a = new AlarmPanel(o);
 					a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
 					newPanel.add(a);
@@ -958,17 +1011,24 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				JList source = (JList) e.getSource();
 				if (source.getSelectedIndices().length > 0){
 					this.updateAlarmPanels();
+					ignore.setEnabled(true);
 					ack.setEnabled(true);
 					shelve.setEnabled(true);
 					notify.setEnabled(true);
 					selectionIsShelved = AlarmMaintainer.getAlarm(source.getSelectedValue().toString()).isShelved();
+					selectionIsIgnored = (ignoreList.contains(source.getSelectedValue().toString()));
 					if (selectionIsShelved){
 						shelve.setText("UNSHELVE");
 					} else {
 						shelve.setText("SHELVE");
 					}
+					if (selectionIsIgnored){
+						ignore.setText("Unignore");
+					} else {
+						ignore.setText("Ignore");
+					}
 				} else {
-					this.showDefaultAlarmPanels();
+					ignore.setEnabled(false);
 					ack.setEnabled(false);
 					shelve.setEnabled(false);
 					notify.setEnabled(false);
@@ -982,6 +1042,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				if (e.getStateChange() == ItemEvent.SELECTED){
 					muteOn = true;
 					all.mute.setSelected(true);
+					ignored.mute.setSelected(true);
 					nonAlarmed.mute.setSelected(true);
 					acknowledged.mute.setSelected(true);
 					shelved.mute.setSelected(true);
@@ -990,6 +1051,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				} else if (e.getStateChange() == ItemEvent.DESELECTED){
 					muteOn = false;
 					all.mute.setSelected(false);
+					ignored.mute.setSelected(false);
 					nonAlarmed.mute.setSelected(false);
 					acknowledged.mute.setSelected(false);
 					shelved.mute.setSelected(false);
@@ -1007,7 +1069,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			for (int i = 0; i < localListModel.getSize(); i ++){
 				String s = (String) localListModel.get(i);
 				if (AlarmMaintainer.getAlarm(s).getAlarmStatus() == this.type){
-					newList.add(s);
+					if (!ignoreList.contains(s)) newList.add(s);
 				}
 			}
 
@@ -1015,6 +1077,20 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			localListModel.setSize(newList.size());
 			for (int i = 0; i < newList.size(); i++){
 				localListModel.set(i, newList.get(i));
+			}
+			plist.setModel(localListModel);
+			plist.revalidate();
+			plist.repaint();
+		}
+
+		/**
+		 * Updates the list model for the "ignore" list tab
+		 */
+		public void updateIgnoreListModel(){
+			localListModel = new DefaultListModel();
+			localListModel.setSize(ignoreList.size());
+			for (String s : ignoreList){
+				localListModel.addElement(s);
 			}
 			plist.setModel(localListModel);
 			plist.revalidate();
@@ -1037,11 +1113,12 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	private DefaultListModel itsListModel = new DefaultListModel();
 
 	private JTabbedPane stateTabs;
-	private AlarmDisplayPanel all;
-	private AlarmDisplayPanel nonAlarmed;
-	private AlarmDisplayPanel acknowledged;
-	private AlarmDisplayPanel shelved;
-	private AlarmDisplayPanel alarming;
+	private static AlarmDisplayPanel all;
+	private static AlarmDisplayPanel ignored;
+	private static AlarmDisplayPanel nonAlarmed;
+	private static AlarmDisplayPanel acknowledged;
+	private static AlarmDisplayPanel shelved;
+	private static AlarmDisplayPanel alarming;
 
 	private AudioWarning  klaxon = new AudioWarning();
 
@@ -1055,6 +1132,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 		stateTabs = new JTabbedPane(JTabbedPane.TOP);
 		all = new AlarmDisplayPanel("all");
+		ignored = new AlarmDisplayPanel("ignored");
 		nonAlarmed = new AlarmDisplayPanel("nonAlarmed");
 		acknowledged = new AlarmDisplayPanel("acknowledged");
 		shelved = new AlarmDisplayPanel("shelved");
@@ -1062,16 +1140,18 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 		// Insert the tabs into the tabbed pane
 		stateTabs.insertTab("All", null, all, "List of all alarms", 0);
-		stateTabs.insertTab("Non-Alarmed", null, nonAlarmed, "List of non-alarming Alarms", 1);
-		stateTabs.insertTab("Acknowledged", null, acknowledged, "List of Acknowledged Alarms", 2);
-		stateTabs.insertTab("Shelved", null, shelved, "List of Shelved Alarms", 3);
-		stateTabs.insertTab("Alarming", null , alarming, "List of Currently Active alarms", 4);
+		stateTabs.insertTab("Ignored", null, ignored, "List of ignored alarms", 1);
+		stateTabs.insertTab("Non-Alarmed", null, nonAlarmed, "List of non-alarming Alarms", 2);
+		stateTabs.insertTab("Acknowledged", null, acknowledged, "List of Acknowledged Alarms", 3);
+		stateTabs.insertTab("Shelved", null, shelved, "List of Shelved Alarms", 4);
+		stateTabs.insertTab("Alarming", null , alarming, "List of Currently Active alarms", 5);
 
 		stateTabs.setForegroundAt(0, AlarmManagerPanel.ALL_COLOUR);
-		stateTabs.setForegroundAt(1, AlarmManagerPanel.NOT_ALARMED_COLOUR);
-		stateTabs.setForegroundAt(2, AlarmManagerPanel.ACKNOWLEDGED_COLOUR);
-		stateTabs.setForegroundAt(3, AlarmManagerPanel.SHELVED_COLOUR);
-		stateTabs.setForegroundAt(4, AlarmManagerPanel.ALARMING_COLOUR);
+		stateTabs.setForegroundAt(1, AlarmManagerPanel.IGNORE_COLOUR);
+		stateTabs.setForegroundAt(2, AlarmManagerPanel.NOT_ALARMED_COLOUR);
+		stateTabs.setForegroundAt(3, AlarmManagerPanel.ACKNOWLEDGED_COLOUR);
+		stateTabs.setForegroundAt(4, AlarmManagerPanel.SHELVED_COLOUR);
+		stateTabs.setForegroundAt(5, AlarmManagerPanel.ALARMING_COLOUR);
 
 		stateTabs.addChangeListener(new ChangeListener(){
 			@Override
@@ -1088,7 +1168,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		this.add(stateTabs);
 	}
 
-	public void updateListModels(){
+	/**
+	 * Shorthand macro for calling the update methods for each of the tabs
+	 */
+	public static void updateListModels(){
+		ignored.updateIgnoreListModel();
 		nonAlarmed.updateListModel();
 		acknowledged.updateListModel();
 		shelved.updateListModel();
@@ -1169,7 +1253,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		} else {
 			ss.put(sevAlmStr, "false");
 		}
-
 		return ss;
 	}
 
@@ -1244,7 +1327,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			/*for (String pd : itsPoints){
 				AlarmMaintainer.setAlarm(PointDescription.getPoint(pd));
 			}*/
-
 			Vector<String> badPoints = new Vector<String>();
 			for (String s : itsPoints){
 				try {
@@ -1267,7 +1349,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					badPoints.add(s);
 				}
 			}
-
 			if (badPoints.size() > 0){
 				for (String bStr : badPoints){
 					itsPoints.remove(bStr);
@@ -1287,11 +1368,13 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			itsPoints = newPoints;
 
 			nonAlarmed.updateListModel();
+			ignored.updateIgnoreListModel();
 			acknowledged.updateListModel();
 			shelved.updateListModel();
 			alarming.updateListModel();
 
 			all.showDefaultAlarmPanels();
+			ignored.showDefaultAlarmPanels();
 			nonAlarmed.showDefaultAlarmPanels();
 			acknowledged.showDefaultAlarmPanels();
 			shelved.showDefaultAlarmPanels();
@@ -1323,7 +1406,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		warningAlarms = false;
 		dangerAlarms = false;
 		severeAlarms = false;
-
 	}
 
 	/** 
@@ -1361,10 +1443,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 	@Override
 	public void onAlarmEvent(AlarmEvent event) {
-		this.updateListModels();
+		updateListModels();
 		Alarm thisAlarm = event.getAlarm();
-		if (thisAlarm.isAlarming()){
-			stateTabs.setSelectedIndex(4); //if alarming, automatically switch over to the "Alarming" tab
+		if (thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
+			stateTabs.setSelectedIndex(5); //if alarming, automatically switch over to the "Alarming" tab
 			if (!klaxon.isAlive()){
 				klaxon.start();
 			}
