@@ -56,7 +56,7 @@ public class PointArchiverNone extends PointArchiver {
    *          Most recent time in the range of interest.
    * @return Vector containing all data for the point over the time range.
    */
-  public Vector<PointData> extract(PointDescription pm, AbsTime start, AbsTime end) {
+  public Vector<PointData> extractDeep(PointDescription pm, AbsTime start, AbsTime end) {
     return null;
   }
 
@@ -69,7 +69,7 @@ public class PointArchiverNone extends PointArchiver {
    *          Find data preceding this timestamp.
    * @return PointData for preceding update or null if none found.
    */
-  public PointData getPreceding(PointDescription pm, AbsTime ts) {
+  public PointData getPrecedingDeep(PointDescription pm, AbsTime ts) {
     return null;
   }
 
@@ -82,7 +82,7 @@ public class PointArchiverNone extends PointArchiver {
    *          Find data following this timestamp.
    * @return PointData for following update or null if none found.
    */
-  public PointData getFollowing(PointDescription pm, AbsTime ts) {
+  public PointData getFollowingDeep(PointDescription pm, AbsTime ts) {
     return null;
   }
 }

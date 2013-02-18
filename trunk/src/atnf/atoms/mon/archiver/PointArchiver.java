@@ -106,7 +106,84 @@ public abstract class PointArchiver extends Thread {
    *          Most recent time in the range of interest.
    * @return Vector containing all data for the point over the time range.
    */
-  public abstract Vector<PointData> extract(PointDescription pm, AbsTime start, AbsTime end);
+  public Vector<PointData> extract(PointDescription pm, AbsTime start, AbsTime end) {
+    // return extractDeep(pm, start, end);
+    Vector<PointData> res = null;
+    Vector<PointData> buffer = itsBuffer.get(pm);
+    try {
+      if (buffer != null) {
+        synchronized (buffer) {
+          if (!buffer.isEmpty()) {
+            if (start.isAfter(buffer.lastElement().getTimestamp())) {
+              itsLogger.debug("can't help you");
+              // We don't have any data this recent
+              res = null;
+            } else if (end.isBefore(buffer.firstElement().getTimestamp())) {
+              itsLogger.debug("data is all on disk");
+              // Any data is wholly on disk, don't need to delve into the buffer
+              res = extractDeep(pm, start, end);
+            } else if (start.isAfterOrEquals(buffer.firstElement().getTimestamp())) {
+              itsLogger.debug("data is all in the buffer");
+              // Data is wholly in the buffer, don't need to merge with data from disk
+              int starti = MonitorUtils.getPrevEqualsPointData(buffer, start);
+              assert (starti != -1);
+              if (buffer.get(starti).getTimestamp().isBefore(start)) {
+                starti++;
+              }
+              res = new Vector<PointData>(buffer.size());
+              for (int i = starti; i < buffer.size() && buffer.get(i).getTimestamp().isBeforeOrEquals(end); i++) {
+                res.add(buffer.get(i));
+              }
+            } else {
+              itsLogger.debug("need to merge disk data and buffer");
+              // Need to merge disk and buffer data
+              res = extractDeep(pm, start, end);
+              if (res == null) {
+                // Was no data on disk
+                res = new Vector<PointData>(buffer.size());
+              } else {
+                itsLogger.debug("got " + res.size() + " elements from disk");
+              }
+              if (res.size() < PointArchiver.getPointArchiver().getMaxNumRecords()) {
+                // Disk query wasn't clipped at the memory limit, therefore append buffer data
+                for (int i = 0; i < buffer.size() && buffer.get(i).getTimestamp().isBeforeOrEquals(end); i++) {
+                  res.add(buffer.get(i));
+                }
+              } else {
+                itsLogger.debug("disk data was clipped, so not appending buffer");
+              }
+              itsLogger.debug("result has " + res.size() + " elements");
+            }
+          } else {
+            itsLogger.debug("buffer is empty, data is all on disk");
+            // Buffer is empty so go with whatever is on disk
+            res = extractDeep(pm, start, end);
+          }
+        }
+      } else {
+        // There's no buffer so return data from disk
+        itsLogger.debug("no buffer, data is all on disk");
+        res = extractDeep(pm, start, end);
+      }
+    } catch (Exception e) {
+      itsLogger.warn("While extracting archive data: " + e);
+      e.printStackTrace();
+    }
+    return res;
+  }
+
+  /**
+   * Extract data from the archive with no undersampling.
+   * 
+   * @param pm
+   *          Point to extract data for.
+   * @param start
+   *          Earliest time in the range of interest.
+   * @param end
+   *          Most recent time in the range of interest.
+   * @return Vector containing all data for the point over the time range.
+   */
+  protected abstract Vector<PointData> extractDeep(PointDescription pm, AbsTime start, AbsTime end);
 
   /**
    * Return the last update which precedes the specified time. We interpret 'precedes' to mean data_time<=req_time.
@@ -117,7 +194,37 @@ public abstract class PointArchiver extends Thread {
    *          Find data preceding this timestamp.
    * @return PointData for preceding update or null if none found.
    */
-  public abstract PointData getPreceding(PointDescription pm, AbsTime ts);
+  public PointData getPreceding(PointDescription pm, AbsTime ts) {
+    PointData res = null;
+
+    Vector<PointData> buffer = itsBuffer.get(pm);
+    if (buffer != null) {
+      synchronized (buffer) {
+        if (!buffer.isEmpty() && buffer.firstElement().getTimestamp().isBeforeOrEquals(ts)) {
+          // The data is in the buffer
+          res = buffer.get(MonitorUtils.getPrevEqualsPointData(buffer, ts));
+        }
+      }
+    }
+
+    if (res == null) {
+      // Data wasn't in the buffer, need to go to the archive
+      res = getPrecedingDeep(pm, ts);
+    }
+
+    return res;
+  }
+
+  /**
+   * Return the last update which precedes the specified time. We interpret 'precedes' to mean data_time<=req_time.
+   * 
+   * @param pm
+   *          Point to extract data for.
+   * @param ts
+   *          Find data preceding this timestamp.
+   * @return PointData for preceding update or null if none found.
+   */
+  protected abstract PointData getPrecedingDeep(PointDescription pm, AbsTime ts);
 
   /**
    * Return the first update which follows the specified time. We interpret 'follows' to mean data_time>=req_time.
@@ -128,7 +235,65 @@ public abstract class PointArchiver extends Thread {
    *          Find data following this timestamp.
    * @return PointData for following update or null if none found.
    */
-  public abstract PointData getFollowing(PointDescription pm, AbsTime ts);
+  public PointData getFollowing(PointDescription pm, AbsTime ts) {
+    PointData res = null;
+    PointData firstdata = null;
+
+    Vector<PointData> buffer = itsBuffer.get(pm);
+    if (buffer != null) {
+      synchronized (buffer) {
+        if (!buffer.isEmpty()) {
+          if (buffer.firstElement().getTimestamp().isBefore(ts)) {
+            // If the data exists then it will be found in the buffer
+            if (buffer.lastElement().getTimestamp().isAfterOrEquals(ts)) {
+              int i = MonitorUtils.getNextPointData(buffer, ts);
+              // Do some checks because util finds >ts while we are looking for >=ts
+              if (i == -1) {
+                // Must be our last element
+                res = buffer.lastElement();
+              } else if (i > 0) {
+                // Check previous element does not match the equals criteria
+                if (buffer.get(i - 1).getTimestamp().equiv(ts)) {
+                  res = buffer.get(i - 1);
+                } else {
+                  res = buffer.get(i);
+                }
+              } else {
+                res = buffer.get(i);
+              }
+            } else {
+              // There is no such data
+              return null;
+            }
+          } else {
+            // It is possible that oldest data in the buffer is the one we're after
+            firstdata = buffer.firstElement();
+          }
+        }
+      }
+    }
+
+    if (res == null) {
+      res = getFollowingDeep(pm, ts);
+      if (res == null && firstdata != null) {
+        // The first data in the buffer was the one we wanted
+        res = firstdata;
+      }
+    }
+
+    return res;
+  }
+
+  /**
+   * Return the first update which follows the specified time. We interpret 'follows' to mean data_time>=req_time.
+   * 
+   * @param pm
+   *          Point to extract data for.
+   * @param ts
+   *          Find data following this timestamp.
+   * @return PointData for following update or null if none found.
+   */
+  protected abstract PointData getFollowingDeep(PointDescription pm, AbsTime ts);
 
   /**
    * Tell the archiver that MoniCA needs to shut down so that unflushed data can be written out.
@@ -186,7 +351,7 @@ public abstract class PointArchiver extends Thread {
               continue;
             }
           } else {
-            //itsLogger.debug("Flushing " + thisdata.size() + " records for " + pm.getFullName() + " because shutdown requested");
+            // itsLogger.debug("Flushing " + thisdata.size() + " records for " + pm.getFullName() + " because shutdown requested");
           }
 
           synchronized (itsBeingArchived) {
@@ -200,7 +365,7 @@ public abstract class PointArchiver extends Thread {
             }
           }
 
-          // itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
+          itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
           saveNow(pm, thisdata);
           try {
             sleeptime2.sleep();
