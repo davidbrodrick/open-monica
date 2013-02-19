@@ -75,6 +75,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 	private static final long serialVersionUID = -5900630541567847520L;
 
 	private Integer numControls = 0;
+	
 	/** ArrayList holding references to the JComponents that make up the display in the ControlPanel*/
 	private ArrayList<ControlPanelDisplayComponent> panelList = new ArrayList<ControlPanelDisplayComponent>();
 
@@ -83,17 +84,20 @@ public class ControlPanel extends MonPanel implements ActionListener{
 	 *	for the values in the "Control Type" JComboBoxes
 	 */
 	private final String[] controlOptions = {"Text Field", "Button", "Checkbox"};
+	
 	/** Array holding the values "Text", "Number" and "True/False".
 	 *  Used for constant references to these Strings, and also
 	 *	for the values in the "Control Type" JComboBoxes
 	 */
 	private final String[] dataOptions = {"Text", "Number", "True/False"};
+	
 	/** Array holding the values "Text" and "Number".
 	 *  Used for constant references to these Strings, and also
 	 *	for the values in the "Control Type" JComboBoxes when "Text Field"
 	 *	is selected.
 	 */
 	private final String[] dataOptions2 = {"Text", "Number"};
+	
 	/** Array holding the values "Horizontal" and "Vertical".
 	 *  Used for constant references to these Strings, and also
 	 *	for the values in the "Layout" type JComboBox.
@@ -452,6 +456,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		@Override
 		public void actionPerformed(ActionEvent e){
 			ControlPanelSetupComponent cspc = null;
+			
 			if (e.getSource() instanceof JButton){
 				JButton source = (JButton) e.getSource();
 				for (ControlPanelSetupComponent c: componentList){
@@ -1223,7 +1228,6 @@ public class ControlPanel extends MonPanel implements ActionListener{
 					}
 				}
 			}
-
 			itsMainPanel.add(titleLabel, BorderLayout.NORTH);
 			itsMainPanel.add(itsPanel, BorderLayout.CENTER);
 
@@ -1247,11 +1251,17 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		return true;
 	}
 
+	/**
+	 * Resets the display panel to be a blank panel with no contents.
+	 */
 	private void blankSetup() {
 		numControls = 0;
 		itsMainPanel = new JPanel();
 		itsScrollPane.setViewportView(itsMainPanel);
 		itsSetup = null;
+		for (ControlPanelDisplayComponent c : panelList){
+			c.removeListeners(this);
+		}
 	}
 
 	/** 
@@ -1310,12 +1320,12 @@ public class ControlPanel extends MonPanel implements ActionListener{
 	public void export(PrintStream p) {
 		String out = "";
 		for (ControlPanelDisplayComponent c : panelList){
-			out += "Point: " + c.getPoint() + ", ";
-			out += "Name: " + c.getName() + ", ";
-			out += "Data Type: " + c.getDataType() + ", ";
-			out += "Control Type: " + c.getControlTypeString() + ", ";
-			out += "Button Value: " + c.getButtonValue() + ", ";
-			out += "\n";
+			out += "Point: " + c.getPoint() + ", \n";
+			out += "Name: " + c.getName() + ", \n";
+			out += "Data Type: " + c.getDataType() + ", \n";
+			out += "Control Type: " + c.getControlTypeString() + ", \n";
+			out += "Button Value: " + c.getButtonValue() + ", \n";
+			out += "\n\n";
 		}
 		p.println(out);
 	}

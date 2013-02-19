@@ -9,8 +9,9 @@ package atnf.atoms.mon.gui;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
+import java.awt.Insets;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -87,11 +88,22 @@ public class AlarmPanel extends JPanel {
 
 			itsAlarmStatus = itsAlarm.getAlarmStatus();
 
-			if (itsAlarmStatus == Alarm.NOT_ALARMED || itsAlarmStatus == Alarm.ALARMING){
+			/*if (itsAlarmStatus == Alarm.NOT_ALARMED || itsAlarmStatus == Alarm.ALARMING){
 				this.setLayout(new GridLayout(6,1));
 			} else {
 				this.setLayout(new GridLayout(8,1));
-			}
+			}*/
+			this.setBackground(Color.WHITE);
+			this.setLayout(new GridBagLayout());
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.fill = GridBagConstraints.BOTH;
+			gbc.gridx = 0;
+			gbc.gridy = 0;
+			gbc.gridheight = 1;
+			gbc.gridwidth = 1;
+			gbc.weightx = 0.5;
+			gbc.weighty = 1.0;
+			
 			JPanel alarmTitle = new JPanel();
 			alarmTitle.setLayout(new BoxLayout(alarmTitle, BoxLayout.X_AXIS));
 			JLabel alarmPriority = new JLabel(rankLookup.get(itsAlarm.getPriority()) + " Alarm".toUpperCase());
@@ -158,8 +170,9 @@ public class AlarmPanel extends JPanel {
 			alarmStatus.add(status);
 
 			JLabel guidanceString = new JLabel("Guidance:");
-			JTextArea guidance = new JTextArea(itsAlarm.getGuidance(), 2, 10);
+			JTextArea guidance = new JTextArea("\t" + itsAlarm.getGuidance(), 2, 10);
 			guidanceString.setFont(new Font("Sans Serif", Font.ITALIC, 14));
+			guidance.setFont(new Font("Sans Serif", Font.ITALIC, 12));
 			guidance.setEditable(false);
 			guidance.setWrapStyleWord(true);
 			guidance.setLineWrap(true);
@@ -188,30 +201,37 @@ public class AlarmPanel extends JPanel {
 			alarmTitle.add(alarmPriority);
 			alarmTitle.add(Box.createHorizontalGlue());
 
-			this.add(alarmTitle);
-			this.add(pointString);
-			this.add(pointDesc);
-			this.add(alarmStatus);
+			this.add(alarmTitle, gbc);
+			gbc.gridy +=1;
+			gbc.insets = new Insets(0, 10, 0, 10);
+			this.add(pointString, gbc);
+			gbc.gridy +=1;
+			this.add(pointDesc, gbc);
+			gbc.gridy +=1;
+			this.add(alarmStatus, gbc);
+			gbc.gridy +=1;
 			if (itsAlarmStatus == Alarm.ACKNOWLEDGED){
-				this.add(ackedBy);
-				this.add(ackedAt);
+				this.add(ackedBy, gbc);
+				gbc.gridy +=1;
+				this.add(ackedAt, gbc);
+				gbc.gridy +=1;
 			}
 			if (itsAlarmStatus == Alarm.SHELVED){
-				this.add(shelvedBy);
-				this.add(shelvedAt);
+				this.add(shelvedBy, gbc);
+				gbc.gridy +=1;
+				this.add(shelvedAt, gbc);
+				gbc.gridy +=1;
 			}
-			this.add(guidanceString);
-			this.add(guidance);
-
+			this.add(guidanceString, gbc);
+			gbc.gridy +=1;
+			gbc.weighty = 0.000001;
+			this.add(guidance, gbc);
+			gbc.gridy +=1;
 		} else {
-
 			this.setLayout(new GridBagLayout());
 			JLabel nope = new JLabel("No selected Alarm point");
 			this.add(nope);
-
 		}
-
-
 	}
 
 	/**
