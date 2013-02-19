@@ -292,6 +292,7 @@ public class MoniCAIceUtil {
       res.shelvedBy = "null";
       res.shelvedAt = 0;
     }
+    res.guidance = a.getGuidance();
     return res;
   }
   
