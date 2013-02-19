@@ -658,6 +658,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
         } catch (Exception e) {
           e.printStackTrace();
         }
+        itsRows.clear();
         getInitialData();
 
         Runnable informProcessing = new Runnable() {
