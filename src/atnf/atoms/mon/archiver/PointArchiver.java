@@ -354,7 +354,7 @@ public abstract class PointArchiver extends Thread {
             }
           }
 
-          itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
+          // itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
           saveNow(pm, thisdata);
           try {
             sleeptime2.sleep();
