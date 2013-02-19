@@ -263,6 +263,10 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 				if (result == JOptionPane.OK_OPTION){
 					username = usernameField.getText();
 					password = new String(passwordField.getPassword());
+					if (username.isEmpty() || password.isEmpty()){
+						JOptionPane.showMessageDialog(this, "Invalid Username/Password!", "Authentication Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
 				} else {
 					return;
 				}
@@ -309,7 +313,10 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 				if (result == JOptionPane.OK_OPTION){
 					username = usernameField.getText();
 					password = new String(passwordField.getPassword());
-
+					if (username.isEmpty() || password.isEmpty()){
+						JOptionPane.showMessageDialog(this, "Invalid Username/Password!", "Authentication Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
 				} else {
 					return;
 				}

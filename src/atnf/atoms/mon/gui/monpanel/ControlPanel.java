@@ -176,6 +176,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 			this.add(topPanel, BorderLayout.NORTH);
 			viewPane.getVerticalScrollBar().setUnitIncrement(16);
+			viewPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 			viewPane.setViewportView(itsMainPanel);
 			this.add(viewPane, BorderLayout.CENTER);
 		}
@@ -293,9 +294,11 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			SimpleTreeSelector itsSimpleTreeSelector = new SimpleTreeSelector();
 			itsSimpleTreeSelector.addChangeListener(this);
 			JLabel selectedPointLabel = new JLabel("Selected Point: ");
-			selectedPointLabel.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+			selectedPointLabel.setFont(new Font("Sans Serif", Font.ITALIC, 14));
+			JScrollPane pointPane = new JScrollPane();
+			pointPane.setBorder(null);
 			JLabel selectedPoint = new JLabel("No Point Selected");
-			selectedPoint.setFont(new Font("Sans Serif", Font.ITALIC | Font.BOLD, 24));
+			selectedPoint.setFont(new Font("Sans Serif", Font.ITALIC | Font.BOLD, 14));
 			JLabel controlTypeLabel = new JLabel("Control Type: ");
 			JComboBox controlType = new JComboBox(controlOptions);
 			controlType.addActionListener(this);
@@ -312,9 +315,9 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			} else {
 				displayLabel = new JLabel("Button Text: ");
 			}
-			JTextField displayField = new JTextField(7);
+			JTextField displayField = new JTextField(6);
 			JLabel valueLabel = new JLabel("Value: ");
-			JTextField valueField = new JTextField(5);
+			JTextField valueField = new JTextField(4);
 			JButton close = new JButton("X");
 			close.setFont(new Font("Monospaced", Font.BOLD, 12));
 			close.setBackground(new Color(0xCD0000));
@@ -322,22 +325,33 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			close.addActionListener(this);
 
 			gbc.gridheight = 4;
-			gbc.gridwidth = 3;
+			gbc.gridwidth = 2;
 			bigPanel.add(itsSimpleTreeSelector, gbc);
 
 			gbc.insets = new Insets(30, 0, 0, 0);
 			gbc.fill = GridBagConstraints.NONE;
 			gbc.gridheight = 1;
-			gbc.gridwidth = 3;
-			gbc.gridx = 3;
+			gbc.gridwidth = 4;
+			gbc.gridx = 2;
 			gbc.gridy = 1;
+			selectedPointLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+			selectedPointLabel.setHorizontalAlignment(SwingConstants.CENTER);
 			bigPanel.add(selectedPointLabel, gbc);
 
 			gbc.gridy = 2;
+			gbc.gridheight = 2;
+			gbc.gridwidth = 4;
+			gbc.fill = GridBagConstraints.BOTH;
+			gbc.anchor = GridBagConstraints.CENTER;
 			gbc.insets = new Insets(0, 0, 30, 0);
-			bigPanel.add(selectedPoint, gbc);
+			selectedPoint.setHorizontalTextPosition(SwingConstants.CENTER);
+			selectedPoint.setHorizontalAlignment(SwingConstants.CENTER);
+			pointPane.setViewportView(selectedPoint);
+			bigPanel.add(pointPane, gbc);
 
-			gbc.insets = new Insets(5,0,0,0);
+			gbc.insets = new Insets(5,5,0,5);
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.gridheight = 1;
 			gbc.gridwidth = 1;
 			gbc.gridx = 1;
 			gbc.gridy = 4;
@@ -354,10 +368,12 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.gridx = 4;
+			gbc.gridwidth = 2;
 			bigPanel.add(dataType, gbc);
 
 			gbc.gridx = 0;
 			gbc.gridy = 5;
+			gbc.gridwidth = 1;
 			gbc.anchor = GridBagConstraints.EAST;
 			bigPanel.add(pointLabel, gbc);
 
@@ -1242,7 +1258,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 	 * @see atnf.atoms.mon.gui.MonPanel#getSetup()
 	 */
 	@Override 
-	public synchronized SavedSetup getSetup() { //TODO
+	public synchronized SavedSetup getSetup() {
 		if (itsSetup != null){
 			SavedSetup newSetup = (SavedSetup) itsSetup.clone();
 			String res = newSetup.get("points");
@@ -1345,6 +1361,10 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						if (result == JOptionPane.OK_OPTION){
 							username = usernameField.getText();
 							passwd = new String(passwordField.getPassword());
+							if (username.isEmpty() || passwd.isEmpty()){
+								JOptionPane.showMessageDialog(this, "Invalid Username/Password!", "Authentication Error", JOptionPane.ERROR_MESSAGE);
+								return;
+							}
 						} else {
 							return;
 						}
