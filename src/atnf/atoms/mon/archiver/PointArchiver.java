@@ -335,7 +335,7 @@ public abstract class PointArchiver extends Thread {
             int minnumrecs = theirMaxRecordCount + (namehash % theirRecordCountOffset);
             AbsTime cutoff2 = cutoff.add(namehash % theirMaxAgeOffset);
 
-            if (thisdata.size() < minnumrecs && thisdata.firstElement().getTimestamp().isAfter(cutoff2)) {
+            if (thisdata.size() < minnumrecs && thisdata.lastElement().getTimestamp().isAfter(cutoff2)) {
               // Point does not meet any criteria for writing to the archive at this time
               continue;
             }
@@ -354,7 +354,7 @@ public abstract class PointArchiver extends Thread {
             }
           }
 
-          //itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
+          itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
           saveNow(pm, thisdata);
           try {
             sleeptime2.sleep();

@@ -354,9 +354,12 @@ public abstract class MonitorUtils {
    */
   public static int getNextPointData(Vector<PointData> data, AbsTime ts) {
     synchronized (data) {
-      /*System.err.println("Seeking first point after " + ts.toString(AbsTime.Format.UTC_STRING));      
-       * for (int i=0; i<data.size(); i++ ) { //System.err.println(i + " " +
-       * data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING)); }
+      if (data.isEmpty()) {
+        return -1;
+      }
+      /*
+       * System.err.println("Seeking first point after " + ts.toString(AbsTime.Format.UTC_STRING)); for (int i=0; i<data.size(); i++
+       * ) { //System.err.println(i + " " + data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING)); }
        */
       int fullsize = data.size();
       // Handle special cases
@@ -385,7 +388,7 @@ public abstract class MonitorUtils {
         // Next element is the final result
         start++;
       }
-      //System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
+      // System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
       return start;
     }
   }
@@ -397,9 +400,12 @@ public abstract class MonitorUtils {
    */
   public static int getPrevEqualsPointData(Vector<PointData> data, AbsTime ts) {
     synchronized (data) {
-      /*System.err.println("Seeking first point before or equals " + ts.toString(AbsTime.Format.UTC_STRING));
-       * for (int i=0; i<data.size(); i++ ) { //System.err.println(i + " " +
-       * data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING)); }
+      if (data.isEmpty()) {
+        return -1;
+      }
+      /*
+       * System.err.println("Seeking first point before or equals " + ts.toString(AbsTime.Format.UTC_STRING)); for (int i=0;
+       * i<data.size(); i++ ) { //System.err.println(i + " " + data.get(i).getTimestamp().toString(AbsTime.Format.UTC_STRING)); }
        */
       int fullsize = data.size();
       // Handle special cases
@@ -428,7 +434,7 @@ public abstract class MonitorUtils {
         // Next element is the final result
         start++;
       }
-      //System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
+      // System.err.println("Found result at " + start + " " + data.get(start).getTimestamp().toString(AbsTime.Format.UTC_STRING));
       return start;
     }
   }

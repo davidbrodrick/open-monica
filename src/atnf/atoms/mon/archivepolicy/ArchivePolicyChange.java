@@ -9,6 +9,7 @@
 package atnf.atoms.mon.archivepolicy;
 
 import java.lang.reflect.*;
+import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.MonitorUtils;
 
@@ -96,6 +97,11 @@ public class ArchivePolicyChange extends ArchivePolicy
           itsLastSaveData = newData;
           savenow = true;
         }
+      }
+    } else if (newData instanceof AbsTime && itsLastSaveData instanceof AbsTime) {
+      if (!((AbsTime)newData).equiv(itsLastSaveData)) {
+        itsLastSaveData = newData;
+        savenow = true;
       }
     } else {
       try {
