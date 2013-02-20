@@ -102,7 +102,8 @@ public class AlarmPanel extends JPanel {
 			gbc.gridheight = 1;
 			gbc.gridwidth = 1;
 			gbc.weightx = 0.5;
-			gbc.weighty = 1.0;
+			gbc.weighty = 0.00001;
+			gbc.insets = new Insets(0, 0, 10, 0);
 			
 			JPanel alarmTitle = new JPanel();
 			alarmTitle.setLayout(new BoxLayout(alarmTitle, BoxLayout.X_AXIS));
@@ -203,7 +204,7 @@ public class AlarmPanel extends JPanel {
 
 			this.add(alarmTitle, gbc);
 			gbc.gridy +=1;
-			gbc.insets = new Insets(0, 10, 0, 10);
+			gbc.insets = new Insets(0, 10, 5, 10);
 			this.add(pointString, gbc);
 			gbc.gridy +=1;
 			this.add(pointDesc, gbc);
@@ -224,7 +225,6 @@ public class AlarmPanel extends JPanel {
 			}
 			this.add(guidanceString, gbc);
 			gbc.gridy +=1;
-			gbc.weighty = 0.000001;
 			this.add(guidance, gbc);
 			gbc.gridy +=1;
 		} else {
@@ -232,6 +232,179 @@ public class AlarmPanel extends JPanel {
 			JLabel nope = new JLabel("No selected Alarm point");
 			this.add(nope);
 		}
+	}
+	
+	public AlarmPanel(String name, boolean last){
+		this(name);
+		if (last){
+			// Setup on new AlarmPanel instance
+			this.removeAll();
+			this.rankSetup();
+
+			boolean hasPointDesc = false;
+
+			itsName = name;
+			itsPointDesc = PointDescription.getPoint(itsName);
+
+			if (itsPointDesc != null) hasPointDesc = true;
+
+			if (hasPointDesc){
+
+				itsAlarm = AlarmMaintainer.getAlarm(itsPointDesc);
+				if (itsAlarm == null) {
+					System.err.println("No corresponding alarm for this PointDescription");
+					AlarmMaintainer.setAlarm(itsPointDesc);
+					itsAlarm = AlarmMaintainer.getAlarm(itsPointDesc);
+				}
+
+				itsAlarmStatus = itsAlarm.getAlarmStatus();
+
+				this.setBackground(Color.WHITE);
+				this.setLayout(new GridBagLayout());
+				GridBagConstraints gbc = new GridBagConstraints();
+				gbc.fill = GridBagConstraints.BOTH;
+				gbc.gridx = 0;
+				gbc.gridy = 0;
+				gbc.gridheight = 1;
+				gbc.gridwidth = 1;
+				gbc.weightx = 0.5;
+				gbc.weighty = 0.00001;
+				gbc.insets = new Insets(0, 0, 10, 0);
+				
+				JPanel alarmTitle = new JPanel();
+				alarmTitle.setLayout(new BoxLayout(alarmTitle, BoxLayout.X_AXIS));
+				JLabel alarmPriority = new JLabel(rankLookup.get(itsAlarm.getPriority()) + " Alarm".toUpperCase());
+				alarmPriority.setForeground(Color.BLACK);
+				alarmPriority.setFont(new Font("Serif", Font.BOLD, 28));
+
+				if (itsAlarm.getPriority() == -1){
+					alarmTitle.setBackground(Color.GRAY);
+				} else if (itsAlarm.getPriority() == 0){
+					alarmTitle.setBackground(new Color(0x63B8FF));
+				} else if (itsAlarm.getPriority() == 1){
+					alarmTitle.setBackground(Color.YELLOW);
+				} else if (itsAlarm.getPriority() == 2){
+					alarmTitle.setBackground(new Color(0xFF7F24));			
+				} else if (itsAlarm.getPriority() == 3){
+					alarmTitle.setBackground(new Color(0xEE0000));
+				} else {
+					alarmTitle.setBackground(Color.DARK_GRAY);
+				}
+
+				alarmPriority.setHorizontalAlignment(JLabel.CENTER);
+				JLabel pointString = new JLabel("Point: " + itsName);
+				JLabel pointDesc = new JLabel("Description: " + itsPointDesc.getLongDesc());
+				JPanel alarmStatus = new JPanel();
+				JLabel statusString = new JLabel("Status: ");
+				JLabel status = new JLabel();
+
+				if (itsAlarm.getAlarmStatus() == Alarm.ACKNOWLEDGED){
+					status.setText("Acknowledged");
+					status.setForeground(AlarmManagerPanel.ACKNOWLEDGED_COLOUR);
+				} else if (itsAlarm.getAlarmStatus() == Alarm.ALARMING){
+					status.setText("Currently Alarming");
+					status.setForeground(AlarmManagerPanel.ALARMING_COLOUR);
+				} else if (itsAlarm.getAlarmStatus() == Alarm.NOT_ALARMED){
+					status.setText("Not Alarmed");
+					status.setForeground(AlarmManagerPanel.NOT_ALARMED_COLOUR);
+				} else if (itsAlarm.getAlarmStatus() == Alarm.SHELVED){
+					status.setText("Shelved");
+					status.setForeground(AlarmManagerPanel.SHELVED_COLOUR);
+				}
+				JLabel ackedBy = new JLabel("Acknowledged by: " + itsAlarm.getAckedBy());
+				JLabel ackedAt = new JLabel("Acknowledged at: " + itsAlarm.getAckedAt().toString(Format.UTC_STRING));
+				if (itsAlarm.getAckedBy().equals("null")){
+					ackedBy.setText("Acknowledged by: ");
+					ackedAt.setText("Acknowledged at: ");
+				}
+				JLabel shelvedBy = new JLabel("Shelved by: " + itsAlarm.getShelvedBy());
+				JLabel shelvedAt = new JLabel("Shelved at " + itsAlarm.getShelvedAt().toString(Format.UTC_STRING));
+				if (itsAlarm.getShelvedBy().equals("null")){
+					shelvedBy.setText("Shelved by: ");
+					shelvedAt.setText("Shelved at: ");
+				}
+				pointString.setFont(new Font("Sans Serif", Font.PLAIN, 18));
+				pointDesc.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+				statusString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+				status.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+				ackedBy.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+				ackedAt.setFont(new Font("Sans Serif", Font.ITALIC, 14));
+				shelvedBy.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+				shelvedAt.setFont(new Font("Sans Serif", Font.ITALIC, 14));
+
+				alarmStatus.setLayout(new BoxLayout(alarmStatus, BoxLayout.X_AXIS));
+				alarmStatus.add(statusString);
+				alarmStatus.add(status);
+
+				JLabel guidanceString = new JLabel("Guidance:");
+				JTextArea guidance = new JTextArea("\t" + itsAlarm.getGuidance(), 2, 10);
+				guidanceString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+				guidance.setFont(new Font("Sans Serif", Font.ITALIC, 14));
+				guidance.setEditable(false);
+				guidance.setWrapStyleWord(true);
+				guidance.setLineWrap(true);
+
+				pointString.setBackground(Color.WHITE);
+				pointDesc.setBackground(Color.WHITE);
+				alarmStatus.setBackground(Color.WHITE);
+				ackedBy.setBackground(Color.WHITE);
+				ackedAt.setBackground(Color.WHITE);
+				shelvedBy.setBackground(Color.WHITE);
+				shelvedAt.setBackground(Color.WHITE);
+				guidanceString.setBackground(Color.WHITE);
+
+				alarmTitle.setOpaque(true);
+				pointString.setOpaque(true);
+				pointDesc.setOpaque(true);
+				alarmStatus.setOpaque(true);
+				ackedBy.setOpaque(true);
+				ackedAt.setOpaque(true);
+				shelvedBy.setOpaque(true);
+				shelvedAt.setOpaque(true);
+				guidanceString.setOpaque(true);
+				guidance.setOpaque(true);
+
+				alarmTitle.add(Box.createHorizontalGlue());
+				alarmTitle.add(alarmPriority);
+				alarmTitle.add(Box.createHorizontalGlue());
+
+				this.add(alarmTitle, gbc);
+				gbc.gridy +=1;
+				gbc.insets = new Insets(0, 10, 5, 10);
+				this.add(pointString, gbc);
+				gbc.gridy +=1;
+				this.add(pointDesc, gbc);
+				gbc.gridy +=1;
+				this.add(alarmStatus, gbc);
+				gbc.gridy +=1;
+				if (itsAlarmStatus == Alarm.ACKNOWLEDGED){
+					this.add(ackedBy, gbc);
+					gbc.gridy +=1;
+					this.add(ackedAt, gbc);
+					gbc.gridy +=1;
+				}
+				if (itsAlarmStatus == Alarm.SHELVED){
+					this.add(shelvedBy, gbc);
+					gbc.gridy +=1;
+					this.add(shelvedAt, gbc);
+					gbc.gridy +=1;
+				}
+				this.add(guidanceString, gbc);
+				gbc.gridy +=1;
+				gbc.weighty = 1.0;
+				gbc.anchor = GridBagConstraints.NORTH;
+				this.add(guidance, gbc);
+				gbc.gridy +=1;
+			} else {
+				this.setLayout(new GridBagLayout());
+				JLabel nope = new JLabel("No selected Alarm point");
+				this.add(nope);
+			}
+		}
+	}
+	
+	public String getPointName(){
+		return itsName;
 	}
 
 	/**
