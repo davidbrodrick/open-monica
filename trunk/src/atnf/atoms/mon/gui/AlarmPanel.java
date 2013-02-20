@@ -171,8 +171,8 @@ public class AlarmPanel extends JPanel {
 
 			JLabel guidanceString = new JLabel("Guidance:");
 			JTextArea guidance = new JTextArea("\t" + itsAlarm.getGuidance(), 2, 10);
-			guidanceString.setFont(new Font("Sans Serif", Font.ITALIC, 14));
-			guidance.setFont(new Font("Sans Serif", Font.ITALIC, 12));
+			guidanceString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+			guidance.setFont(new Font("Sans Serif", Font.ITALIC, 14));
 			guidance.setEditable(false);
 			guidance.setWrapStyleWord(true);
 			guidance.setLineWrap(true);

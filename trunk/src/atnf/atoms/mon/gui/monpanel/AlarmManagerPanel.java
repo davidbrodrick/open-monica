@@ -88,6 +88,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	}
 
 	public static HashSet<String> ignoreList = new HashSet<String>();
+	public static HashMap<String, Alarm> lookup = new HashMap<String, Alarm>();
 
 	private boolean muteOn = false;
 	private boolean noPriorityAlarms = false;
@@ -612,7 +613,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			super();
 
 			typeString = t;
-			this.type = this.getType(t);
+			this.type = this.convertType(t);
 
 			localListModel = itsListModel;
 
@@ -700,7 +701,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 * @param type The String equivalent of a given alarm state
 		 * @return An int mask of the alarm state this display panel focusses on
 		 */
-		private int getType(String type) throws InvalidParameterException{
+		private int convertType(String type) throws InvalidParameterException{
 			int res;
 			if (type.equals("nonAlarmed")){
 				res = Alarm.NOT_ALARMED;
@@ -719,6 +720,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				throw (new InvalidParameterException("Alarm State unrecognised"));
 			}
 			return res;
+		}
+
+		/**
+		 * Method that returns the int mask type of this AlarmDisplayPanel
+		 * @return The int mask for this AlarmDisplayPanel's type
+		 */
+		private int getType(){
+			return this.type;
 		}
 
 		@Override
@@ -898,13 +907,13 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					return;
 				}
 			} else if (command.equals("ignore")){
-				if (this.type != AlarmDisplayPanel.ALL && this.type != AlarmDisplayPanel.IGNORED){ //regular tabs
+				if (this.getType() != AlarmDisplayPanel.ALL && this.getType() != AlarmDisplayPanel.IGNORED){ //regular tabs
 					Object[] listValues = plist.getSelectedValues();
 					for (int i = 0; i < listValues.length; i++){
 						ignoreList.add(listValues[i].toString());
 						localListModel.removeElement(listValues[i]);
 					}
-				} else if (this.type == AlarmDisplayPanel.ALL){ //All tab
+				} else if (this.getType() == AlarmDisplayPanel.ALL){ //All tab
 					Object[] listValues = plist.getSelectedValues();
 					if (ignoreList.contains(listValues[0].toString())){ //unignore
 						for (int i = 0; i < listValues.length; i++){
@@ -948,21 +957,27 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 * Shows all alarm points that are currently in an alarming or shelved state
 		 */
 		private void showDefaultAlarmPanels(){
+			lookup.clear();
 			JPanel newPanel = new JPanel();
 			newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
 
 			Vector<String> alarmingPoints = new Vector<String>();
-			HashMap<String, Alarm> lookup = new HashMap<String, Alarm>();
 			Vector<Alarm> alarms = AlarmMaintainer.getAlarms();
 
 			for (Alarm a : alarms){ //put all the alarms in a locally maintained lookup table
-				if (!ignoreList.contains(a.getPointDesc().getFullName())) lookup.put(a.getPointDesc().getFullName(), a); 
+				if (ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.IGNORED){ //case for ignored tab
+					lookup.put(a.getPointDesc().getFullName(), a);
+				} else if (!ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.ALL){ //case for all tab
+					lookup.put(a.getPointDesc().getFullName(), a);
+				} else if (!ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == a.getAlarmStatus()){ //case for all tab
+					lookup.put(a.getPointDesc().getFullName(), a);
+				}
 			}
 			if (lookup.size() > 0){
-				for (String s : lookup.keySet()){
-					alarmingPoints.add(s);
+				String[] res = basicReverseQuickSort((lookup.keySet().toArray(new String[0])), 0, lookup.size());
+				for (int i = 0; i < res.length; i++){
+					alarmingPoints.add(res[i]);
 				}
-				alarmingPoints = reverseQuickSort(alarmingPoints, lookup);
 				for (String o : alarmingPoints){
 					AlarmPanel a = new AlarmPanel(o);
 					a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
@@ -974,15 +989,15 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			alarmDetailsScroller.repaint();
 		}
 
-
 		/**
 		 * Simple reverse-quicksort implementation on ArrayLists.<br/>
 		 * Adapted from {@link http://en.wikipedia.org/wiki/Quicksort#Simple_version}
+		 * @deprecated Use the {@link AlarmManagerPanel#basicQuickSort} method instead
 		 * @param array The ArrayList to be reverse-sorted
 		 * @return The reverse-sorted ArrayList
 		 * @see <a href=http://en.wikipedia.org/wiki/Quicksort#Simple_version">http://en.wikipedia.org/wiki/Quicksort#Simple_version</a>
 		 */
-		private synchronized Vector<String> reverseQuickSort(Vector<String> array, HashMap<String, Alarm> lookup) {
+		public synchronized Vector<String> reverseQuickSort(Vector<String> array, HashMap<String, Alarm> lookup) {
 			Vector<String> res = array;
 			Vector<String> less = new Vector<String>();
 			Vector<String> greater = new Vector<String>();
@@ -1076,7 +1091,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			Vector<String> newList = new Vector<String>();
 			for (int i = 0; i < localListModel.getSize(); i ++){
 				String s = (String) localListModel.get(i);
-				if (AlarmMaintainer.getAlarm(s).getAlarmStatus() == this.type){
+				if (AlarmMaintainer.getAlarm(s).getAlarmStatus() == this.getType()){
 					if (!ignoreList.contains(s)) newList.add(s);
 				}
 			}
@@ -1454,7 +1469,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		updateListModels();
 		Alarm thisAlarm = event.getAlarm();
 		if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
-			stateTabs.setSelectedIndex(5); //if alarming, automatically switch over to the "Alarming" tab
 			if (!klaxon.isAlive()){
 				klaxon.start();
 			}
@@ -1560,4 +1574,49 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 	}
 	// ///// END NESTED CLASS ///////
+	
+	/**
+	 * Basic reverse quicksort implementation adapted from {@link http://www.javacodegeeks.com/2012/06/all-you-need-to-know-about-quicksort.html}
+	 * @param arr The array to be sorted
+	 * @param beginIdx The index to begin sorting from
+	 * @param len The length within the array to be sorted
+	 * @return The sorted array (or subsection thereof)
+	 */
+	public static String[] basicReverseQuickSort(String arr[], int beginIdx, int len) {
+	    if ( len <= 1 )
+	         return arr;
+	    
+	    final int endIdx = beginIdx+len-1;
+
+	    // Pivot selection
+	    final int pivotPos = beginIdx+len/2;
+	    arr = swap(arr, pivotPos, endIdx);
+
+	    // partitioning
+	    int p = beginIdx;
+	    for(int i = beginIdx; i < endIdx; i++) {
+	         if (lookup.get(arr[i]).getPriority() >= lookup.get(arr[pivotPos]).getPriority()) {
+	             arr = swap(arr, i, p++);
+	         }
+	     }
+	     arr = swap(arr, p, endIdx);
+
+	     // recursive call
+	     arr = basicReverseQuickSort(arr, p+1,  endIdx-p);
+	     arr = basicReverseQuickSort(arr, beginIdx, p-beginIdx);
+	     return arr;
+	}
+	/**
+	 * Simple utility method to swap two elements in a String[]
+	 * @param arr The array that needs elements swapped
+	 * @param i The index of the first element
+	 * @param e The index of the second element
+	 * @return The array with the elements swapped around
+	 */
+	private static String[] swap(String[] arr, int i, int e){
+		String temp = arr[i];
+		arr[i] = arr[e];
+		arr[e] = temp;
+		return arr;
+	}
 }
