@@ -16,7 +16,9 @@ import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.zip.GZIPInputStream;
@@ -30,8 +32,6 @@ import atnf.atoms.time.RelTime;
 
 /**
  * Contains static methods that may be useful.
- * 
- * @author Le Cuong Nguyen
  */
 public abstract class MonitorUtils {
   private static Hashtable<String, String> theirMacros = new Hashtable<String, String>();
@@ -449,7 +449,7 @@ public abstract class MonitorUtils {
    * <li>$V[point.name] The current value of the specified point.
    * <li>$U The units of the data.
    * <li>$N The name of the point.
-   * <li>$S The source part of the point name.
+   * <li>$S The source part of the point name ($1 is also supported for this purpose).
    * <li>$D The point's description.
    * <li>$T The data's timestamp.
    * <li>$A The alarm status of the data (true or false).
@@ -458,6 +458,19 @@ public abstract class MonitorUtils {
    * */
   public static String doSubstitutions(String template, PointData data, PointDescription point) {
     String res = template;
+
+    // Substitute source first so it can be used in lookup of other points
+    String source = null;
+    if (point != null) {
+      source = point.getSource();
+    } else if (data != null) {
+      source = data.getSource();
+    }
+    if (source != null) {
+      res = res.replace("$S", source);
+      res = res.replace("$1", source);
+    }
+
     while (res.indexOf("$V[") != -1) {
       int start = res.indexOf("$V[");
       int end = res.indexOf(']', start);
@@ -497,11 +510,37 @@ public abstract class MonitorUtils {
     res = res.replace("$U", point.getUnits());
     // Substitute point name
     res = res.replace("$N", point.getFullName());
-    // Substitute source
-    res = res.replace("$S", point.getSource());
     // Substitute point description
     res = res.replace("$D", point.getLongDesc());
 
     return res;
   }
+
+  /** Prune a list of point names back to a minimal pattern which exactly matches all of the points. */
+  /*public static String prunePointTree(String point, HashSet<String> selected, HashSet<String> allpoints) {
+    String res = point;
+    int lastdot = point.lastIndexOf('.');
+    if (lastdot == -1) {
+      System.err.println("no . in point name");
+      return point;
+    }
+    String branch = point.substring(0, lastdot);
+    System.err.println("for point " + point + " branch is " + branch);
+    boolean allmatch = true;
+    Iterator<String> i = allpoints.iterator();
+    while (allmatch && i.hasNext()) {
+      String thispoint = i.next();
+      if (thispoint.startsWith(branch) && !selected.contains(thispoint)) {
+        System.err.println("selected set doesn't contain " + thispoint);
+        allmatch = false;
+      } else if (thispoint.startsWith(branch)) {
+        System.err.println("selected set contains " + thispoint);
+      }
+    }
+    if (allmatch) {
+      res = branch;
+    }
+    System.err.println("result is " + res);
+    return res;
+  }*/
 }
