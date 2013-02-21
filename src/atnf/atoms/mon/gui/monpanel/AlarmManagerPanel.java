@@ -19,10 +19,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.font.TextAttribute;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -42,9 +47,11 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
@@ -52,6 +59,8 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
@@ -93,8 +102,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	private boolean muteOn = false;
 	private boolean noPriorityAlarms = false;
 	private boolean informationAlarms = false;
-	private boolean warningAlarms = false;
-	private boolean dangerAlarms = false;
+	private boolean minorAlarms = false;
+	private boolean majorAlarms = false;
 	private boolean severeAlarms = false;
 
 	/** Colour for the "All" tab. Black. */
@@ -112,8 +121,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 	private String noPriAlmStr = "noPriority";
 	private String infoAlmStr = "information";
-	private String warnAlmStr = "minor";
-	private String dangAlmStr = "major";
+	private String minorAlmStr = "minor";
+	private String majorAlmStr = "major";
 	private String sevAlmStr = "severe";
 
 	private String username = "";
@@ -130,8 +139,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 		private JCheckBox noPriorityCb = new JCheckBox("\"No Priority\"");
 		private JCheckBox informationCb = new JCheckBox("Information");
-		private JCheckBox warningCb = new JCheckBox("Minor");
-		private JCheckBox dangerCb = new JCheckBox("Major");
+		private JCheckBox minorCb = new JCheckBox("Minor");
+		private JCheckBox majorCb = new JCheckBox("Major");
 		private JCheckBox severeCb = new JCheckBox("Severe");
 		private JCheckBox allCb = new JCheckBox("All");
 
@@ -175,8 +184,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 			noPriorityCb.addItemListener(this);
 			informationCb.addItemListener(this);
-			warningCb.addItemListener(this);
-			dangerCb.addItemListener(this);
+			minorCb.addItemListener(this);
+			majorCb.addItemListener(this);
 			severeCb.addItemListener(this);
 			allCb.addItemListener(this);
 
@@ -186,9 +195,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			selectCategory.add(Box.createHorizontalGlue());
 			selectCategory.add(informationCb);
 			selectCategory.add(Box.createHorizontalGlue());
-			selectCategory.add(warningCb);
+			selectCategory.add(minorCb);
 			selectCategory.add(Box.createHorizontalGlue());
-			selectCategory.add(dangerCb);
+			selectCategory.add(majorCb);
 			selectCategory.add(Box.createHorizontalGlue());
 			selectCategory.add(severeCb);
 			selectCategory.add(Box.createHorizontalGlue());
@@ -240,7 +249,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					p += points[0];
 					// Then add rest of point names with a delimiter
 					for (int i = 1; i < points.length; i++) {
-						p += ":" + points[i];
+						try { //only add points that have valid alarms to the setup
+							int priority = AlarmMaintainer.getAlarm(points[i]).getPriority();
+							if (priority >= 0){
+								if ((informationAlarms && priority == 0) || (minorAlarms && priority == 1) || (majorAlarms && priority == 2) || (severeAlarms && priority == 3)){
+									p += ":" + points[i];
+								}
+							}
+						} catch (NullPointerException n){}
 					}
 				}
 			} else {
@@ -252,7 +268,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 						p += ":" + points.get(i);
 					}
 				}
-
 			}
 
 			ss.put("points", p);
@@ -268,15 +283,15 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			} else {
 				ss.put(infoAlmStr, "false");
 			}
-			if (warningAlarms){
-				ss.put(warnAlmStr, "true");
+			if (minorAlarms){
+				ss.put(minorAlmStr, "true");
 			} else {
-				ss.put(warnAlmStr, "false");
+				ss.put(minorAlmStr, "false");
 			}
-			if (dangerAlarms){
-				ss.put(dangAlmStr, "true");
+			if (majorAlarms){
+				ss.put(majorAlmStr, "true");
 			} else {
-				ss.put(dangAlmStr, "false");
+				ss.put(majorAlmStr, "false");
 			}
 			if (severeAlarms){
 				ss.put(sevAlmStr, "true");
@@ -334,21 +349,21 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				}
 			}
 
-			s = setup.get(warnAlmStr);
+			s = setup.get(minorAlmStr);
 			if (s != null) {
 				if (s.equals("true")){
-					warningAlarms = true;
+					minorAlarms = true;
 				} else if (s.equals("false")){
-					warningAlarms = false;
+					minorAlarms = false;
 				}
 			}
 
-			s = setup.get(dangAlmStr);
+			s = setup.get(majorAlmStr);
 			if (s != null) {
 				if (s.equals("true")){
-					dangerAlarms = true;
+					majorAlarms = true;
 				} else if (s.equals("false")){
-					dangerAlarms = false;
+					majorAlarms = false;
 				}
 			}
 
@@ -367,29 +382,18 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			if (informationAlarms){
 				informationCb.setSelected(true);
 			}
-			if (warningAlarms){
-				warningCb.setSelected(true);
+			if (minorAlarms){
+				minorCb.setSelected(true);
 			}
-			if (dangerAlarms){
-				dangerCb.setSelected(true);
+			if (majorAlarms){
+				majorCb.setSelected(true);
 			}
 			if (severeAlarms){
 				severeCb.setSelected(true);
 			}
-			if (noPriorityAlarms && informationAlarms && warningAlarms && dangerAlarms && severeAlarms){
+			if (noPriorityAlarms && informationAlarms && minorAlarms && majorAlarms && severeAlarms){
 				allCb .setSelected(true);
 			}
-
-			/*// Turns on automatic notifications 
-			if (setup.get("autoAlarms").equals("true")){
-				if (!allowAutoAlarms.isSelected()){
-					allowAutoAlarms.doClick();
-				}
-			} else {
-				if (allowAutoAlarms.isSelected()){
-					allowAutoAlarms.doClick();
-				}
-			}*/
 		}
 
 		@Override
@@ -401,18 +405,18 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					noPriorityAlarms = false;
 					states[0] = false;
 					states[1] = informationCb.isSelected();
-					states[2] = warningCb.isSelected();
-					states[3] = dangerCb.isSelected();
+					states[2] = minorCb.isSelected();
+					states[3] = majorCb.isSelected();
 					states[4] = severeCb.isSelected();
 
 					allCb.setSelected(false);
 					informationCb.setSelected(states[1]);
-					warningCb.setSelected(states[2]);
-					dangerCb.setSelected(states[3]);
+					minorCb.setSelected(states[2]);
+					majorCb.setSelected(states[3]);
 					severeCb.setSelected(states[4]);
 				} else if (e.getStateChange() == ItemEvent.SELECTED){
 					noPriorityAlarms = true;
-					if (noPriorityAlarms && informationAlarms && warningAlarms && dangerAlarms && severeAlarms){
+					if (noPriorityAlarms && informationAlarms && minorAlarms && majorAlarms && severeAlarms){
 						allCb.setSelected(true);
 					}
 				}
@@ -422,50 +426,50 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 					states[0] = noPriorityCb.isSelected();
 					states[1] = false;
-					states[2] = warningCb.isSelected();
-					states[3] = dangerCb.isSelected();
+					states[2] = minorCb.isSelected();
+					states[3] = majorCb.isSelected();
 					states[4] = severeCb.isSelected();
 
 					allCb.setSelected(false);
 
 					noPriorityCb.setSelected(states[0]);
-					warningCb.setSelected(states[2]);
-					dangerCb.setSelected(states[3]);
+					minorCb.setSelected(states[2]);
+					majorCb.setSelected(states[3]);
 					severeCb.setSelected(states[4]);
 
 				} else if (e.getStateChange() == ItemEvent.SELECTED){
 					informationAlarms = true;
-					if (noPriorityAlarms && informationAlarms && warningAlarms && dangerAlarms && severeAlarms){
+					if (noPriorityAlarms && informationAlarms && minorAlarms && majorAlarms && severeAlarms){
 						allCb.setSelected(true);
 					}
 				}
-			} else if (source.equals(warningCb)){
+			} else if (source.equals(minorCb)){
 				if (e.getStateChange() == ItemEvent.DESELECTED){
-					warningAlarms = false;
+					minorAlarms = false;
 					states[0] = noPriorityCb.isSelected();
 					states[1] = informationCb.isSelected();
 					states[2] = false;
-					states[3] = dangerCb.isSelected();
+					states[3] = majorCb.isSelected();
 					states[4] = severeCb.isSelected();
 
 					allCb.setSelected(false);
 
 					noPriorityCb.setSelected(states[0]);
 					informationCb.setSelected(states[1]);
-					dangerCb.setSelected(states[3]);
+					majorCb.setSelected(states[3]);
 					severeCb.setSelected(states[4]);
 				} else if (e.getStateChange() == ItemEvent.SELECTED){
-					warningAlarms = true;
-					if (noPriorityAlarms && informationAlarms && warningAlarms && dangerAlarms && severeAlarms){
+					minorAlarms = true;
+					if (noPriorityAlarms && informationAlarms && minorAlarms && majorAlarms && severeAlarms){
 						allCb.setSelected(true);
 					}
 				}
-			} else if (source.equals(dangerCb)){
+			} else if (source.equals(majorCb)){
 				if (e.getStateChange() == ItemEvent.DESELECTED){
 					severeAlarms = false;
 					states[0] = noPriorityCb.isSelected();
 					states[1] = informationCb.isSelected();
-					states[2] = warningCb.isSelected();
+					states[2] = minorCb.isSelected();
 					states[3] = false;
 					states[4] = severeCb.isSelected();
 
@@ -473,12 +477,12 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 					noPriorityCb.setSelected(states[0]);
 					informationCb.setSelected(states[1]);
-					warningCb.setSelected(states[2]);
+					minorCb.setSelected(states[2]);
 					severeCb.setSelected(states[4]);
 
 				} else if (e.getStateChange() == ItemEvent.SELECTED){
-					dangerAlarms = true;
-					if (noPriorityAlarms && informationAlarms && warningAlarms && dangerAlarms && severeAlarms){
+					majorAlarms = true;
+					if (noPriorityAlarms && informationAlarms && minorAlarms && majorAlarms && severeAlarms){
 						allCb.setSelected(true);
 					}
 				}
@@ -487,20 +491,20 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					severeAlarms = false;
 					states[0] = noPriorityCb.isSelected();
 					states[1] = informationCb.isSelected();
-					states[2] = warningCb.isSelected();
-					states[3] = dangerCb.isSelected();
+					states[2] = minorCb.isSelected();
+					states[3] = majorCb.isSelected();
 					states[4] = false;
 
 					allCb.setSelected(false);
 
 					noPriorityCb.setSelected(states[0]);
 					informationCb.setSelected(states[1]);
-					warningCb.setSelected(states[2]);
-					dangerCb.setSelected(states[3]);
+					minorCb.setSelected(states[2]);
+					majorCb.setSelected(states[3]);
 
 				} else if (e.getStateChange() == ItemEvent.SELECTED){
 					severeAlarms = true;
-					if (noPriorityAlarms && informationAlarms && warningAlarms && dangerAlarms && severeAlarms){
+					if (noPriorityAlarms && informationAlarms && minorAlarms && majorAlarms && severeAlarms){
 						allCb.setSelected(true);
 					}
 				}
@@ -508,27 +512,27 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				if (e.getStateChange() == ItemEvent.SELECTED){
 					noPriorityAlarms = true;
 					informationAlarms = true;
-					warningAlarms = true;
-					dangerAlarms = true;
+					minorAlarms = true;
+					majorAlarms = true;
 					severeAlarms = true;
 
 					noPriorityCb.setSelected(true);
 					informationCb.setSelected(true);
-					warningCb.setSelected(true);
-					dangerCb.setSelected(true);
+					minorCb.setSelected(true);
+					majorCb.setSelected(true);
 					severeCb.setSelected(true);
 
 				} else if (e.getStateChange() == ItemEvent.DESELECTED){
 					noPriorityAlarms = false;
 					informationAlarms = false;
-					warningAlarms = false;
-					dangerAlarms = false;
+					minorAlarms = false;
+					majorAlarms = false;
 					severeAlarms = false;
 
 					noPriorityCb.setSelected(false);
 					informationCb.setSelected(false);
-					warningCb.setSelected(false);
-					dangerCb.setSelected(false);
+					minorCb.setSelected(false);
+					majorCb.setSelected(false);
 					severeCb.setSelected(false);
 				}
 			} else if (source.equals(allowAutoAlarms)){
@@ -581,13 +585,33 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	 * by the AlarmPanel class
 	 * @see AlarmPanel
 	 */
-	protected class AlarmDisplayPanel extends JPanel implements	ActionListener, ListSelectionListener, ItemListener{
+	protected class AlarmDisplayPanel extends JPanel implements	ActionListener, ListSelectionListener, ItemListener, MouseListener, KeyListener{
 
 		private static final int ALL = 98;
 		private static final int IGNORED = 99;
-		boolean selectionIsShelved = false;
-		boolean selectionIsIgnored = false;
-		int type = -1;
+		private boolean selectionIsShelved = false;
+		private boolean selectionIsIgnored = false;
+		private int type = -1;
+		private ArrayList<String> panelSelections = new ArrayList<String>();
+		private boolean flashing = false;
+		private boolean flashOn = false;
+		private Timer timer = new Timer(500, new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e){
+				if (flashing){
+					if (flashOn){
+						stateTabs.setBackgroundAt(5, null);
+						flashOn = false;
+					} else {
+						stateTabs.setBackgroundAt(5, Color.YELLOW);
+						flashOn = true;
+					}
+				} else {
+					stateTabs.setBackgroundAt(5, null);
+					flashOn = false;
+				}
+			}
+		});
 
 		String typeString;
 
@@ -611,7 +635,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 */
 		public AlarmDisplayPanel(String t){
 			super();
-
+			
+			timer.start();
 			typeString = t;
 			this.type = this.convertType(t);
 
@@ -693,6 +718,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			//Add the big panels to the tabbed pane now
 			this.add(listPanel);
 			this.add(alarmPanel);
+			this.addKeyListener(this);
 		}
 
 		/**
@@ -831,12 +857,23 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				}
 				//send the commands along to the server
 				try {
-					for (Object s : plist.getSelectedValues()){
-						new DataSender(s.toString(), "ack", true).start();
-					}			
+					if (e.getSource() instanceof JButton){
+						for (Object s : plist.getSelectedValues()){
+							new DataSender(s.toString(), "ack", true).start();
+						}
+					} else {
+						if (e.getSource() instanceof JMenuItem){
+							JMenuItem source = (JMenuItem) e.getSource();
+							JPopupMenu parent = (JPopupMenu) source.getParent();
+							AlarmPanel pan = (AlarmPanel) parent.getInvoker();
+							String point = pan.getPointName();
+							new DataSender(point, "ack", true).start();
+						}
+					}
 					updateListModels();
 					this.updateAlarmPanels();
 				} catch (Exception ex){
+					ex.printStackTrace();
 					password = "";
 					JOptionPane.showMessageDialog(this, "Something went wrong with the sending of data. " +
 							"\nPlease ensure that you're properly connected to the network, you are attempting to write to a valid point" +
@@ -883,9 +920,18 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					}
 				}
 				try {
-					selectionIsShelved = !selectionIsShelved;
-					for (Object s : plist.getSelectedValues()){
-						new DataSender(s.toString(), "shelve", selectionIsShelved).start();
+					if (e.getSource() instanceof JButton){
+						selectionIsShelved = !selectionIsShelved;
+						for (Object s : plist.getSelectedValues()){
+							new DataSender(s.toString(), "shelve", selectionIsShelved).start();
+						}
+					} else if (e.getSource() instanceof JMenuItem){
+						JMenuItem source = (JMenuItem) e.getSource();
+						JPopupMenu parent = (JPopupMenu) source.getParent();
+						AlarmPanel pan = (AlarmPanel) parent.getInvoker();
+						String point = pan.getPointName();
+						selectionIsShelved = !AlarmMaintainer.getAlarm(point).isShelved();
+						new DataSender(point, "shelve", selectionIsShelved).start();
 					}
 					updateListModels();
 					this.updateAlarmPanels();
@@ -907,27 +953,46 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					return;
 				}
 			} else if (command.equals("ignore")){
-				if (this.getType() != AlarmDisplayPanel.ALL && this.getType() != AlarmDisplayPanel.IGNORED){ //regular tabs
-					Object[] listValues = plist.getSelectedValues();
-					for (int i = 0; i < listValues.length; i++){
-						ignoreList.add(listValues[i].toString());
-						localListModel.removeElement(listValues[i]);
-					}
-				} else if (this.getType() == AlarmDisplayPanel.ALL){ //All tab
-					Object[] listValues = plist.getSelectedValues();
-					if (ignoreList.contains(listValues[0].toString())){ //unignore
+				if (e.getSource() instanceof JButton){
+					if (this.getType() != AlarmDisplayPanel.ALL && this.getType() != AlarmDisplayPanel.IGNORED){ //regular tabs
+						Object[] listValues = plist.getSelectedValues();
+						for (int i = 0; i < listValues.length; i++){
+							ignoreList.add(listValues[i].toString());
+							localListModel.removeElement(listValues[i]);
+						}
+					} else if (this.getType() == AlarmDisplayPanel.ALL){ //All tab
+						Object[] listValues = plist.getSelectedValues();
+						if (ignoreList.contains(listValues[0].toString())){ //unignore
+							for (int i = 0; i < listValues.length; i++){
+								ignoreList.remove(listValues[i].toString());
+							}
+						} else {
+							for (int i = 0; i < listValues.length; i++){ //ignore
+								ignoreList.add(listValues[i].toString());
+							}
+						}
+					} else { //ignore tab
+						Object[] listValues = plist.getSelectedValues();
 						for (int i = 0; i < listValues.length; i++){
 							ignoreList.remove(listValues[i].toString());
 						}
-					} else {
-						for (int i = 0; i < listValues.length; i++){ //ignore
-							ignoreList.add(listValues[i].toString());
-						}
 					}
-				} else { //ignore tab
-					Object[] listValues = plist.getSelectedValues();
-					for (int i = 0; i < listValues.length; i++){
-						ignoreList.remove(listValues[i].toString());
+				} else if (e.getSource() instanceof JMenuItem){
+					JMenuItem source = (JMenuItem) e.getSource();
+					JPopupMenu parent = (JPopupMenu) source.getParent();
+					AlarmPanel pan = (AlarmPanel) parent.getInvoker();
+					String point = pan.getPointName();
+					if (this.getType() != AlarmDisplayPanel.ALL && this.getType() != AlarmDisplayPanel.IGNORED){ //regular tabs
+						ignoreList.add(point);
+						localListModel.removeElement(point);
+					} else if (this.getType() == AlarmDisplayPanel.ALL){ //All tab
+						if (ignoreList.contains(point)){ //unignore
+							ignoreList.remove(point);
+						} else {
+							ignoreList.add(point);
+						}
+					} else { //ignore tab
+						ignoreList.remove(point);
 					}
 				}
 			}
@@ -943,10 +1008,18 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
 
 			Object[] pointNames = plist.getSelectedValues();
+			int i = 0;
 			for (Object o : pointNames){
-				AlarmPanel a = new AlarmPanel(o.toString());
+				AlarmPanel a;
+				if (i == pointNames.length-1){
+					a = new AlarmPanel(o.toString(), true);
+				} else {
+					a = new AlarmPanel(o.toString(), false);
+				}
+				a.addMouseListener(this);
 				a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
 				newPanel.add(a);
+				i++;
 			}
 			alarmDetailsScroller.setViewportView(newPanel);
 			alarmDetailsScroller.revalidate();
@@ -978,15 +1051,24 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				for (int i = 0; i < res.length; i++){
 					alarmingPoints.add(res[i]);
 				}
+				int i = 0;
 				for (String o : alarmingPoints){
-					AlarmPanel a = new AlarmPanel(o);
+					AlarmPanel a;
+					if (i == alarmingPoints.size()-1){
+						a = new AlarmPanel(o, true);
+					} else {
+						a = new AlarmPanel(o, false);
+					}
+					a.addMouseListener(this);
 					a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
 					newPanel.add(a);
+					i++;
 				}
 			}
 			alarmDetailsScroller.setViewportView(newPanel);
 			alarmDetailsScroller.revalidate();
 			alarmDetailsScroller.repaint();
+			this.requestFocusInWindow();
 		}
 
 		/**
@@ -1128,6 +1210,75 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			localListModel = lm;
 		}
 
+		@Override
+		public void mouseClicked(MouseEvent arg0) {}
+		@Override
+		public void mouseEntered(MouseEvent arg0) {}
+		@Override
+		public void mouseExited(MouseEvent arg0) {}
+		@Override
+		public void mouseReleased(MouseEvent arg0) {
+			if ((SwingUtilities.isRightMouseButton(arg0))){
+				JPopupMenu jpop = new JPopupMenu();
+				JMenuItem ignMen = new JMenuItem("Ignore");
+				ignMen.setActionCommand("ignore");
+				ignMen.addActionListener(AlarmDisplayPanel.this);
+				JMenuItem ackMen = new JMenuItem("Acknowledge");
+				ackMen.setActionCommand("ack");
+				ackMen.addActionListener(AlarmDisplayPanel.this);
+				JMenuItem shvMen = new JMenuItem("Shelve/Unshelve");
+				shvMen.setActionCommand("shelve");
+				shvMen.addActionListener(AlarmDisplayPanel.this);
+				jpop.add(ignMen);
+				jpop.add(ackMen);
+				jpop.add(shvMen);
+				jpop.show(arg0.getComponent(), arg0.getX(), arg0.getY());
+			}
+		}
+		@Override
+		public void mousePressed(MouseEvent arg0) {
+			AlarmPanel clicked = (AlarmPanel)arg0.getComponent();
+			String point = clicked.getPointName();
+			if (SwingUtilities.isLeftMouseButton(arg0) && arg0.isControlDown()){
+				panelSelections.add(point);
+			} else if (SwingUtilities.isLeftMouseButton(arg0)){
+				plist.clearSelection();
+				plist.setSelectedValue(point, true);
+			} 
+		}
+
+		@Override
+		public void keyPressed(KeyEvent arg0) {
+			if (arg0.getKeyCode() == KeyEvent.VK_CONTROL){
+				panelSelections.clear();
+			}
+		}
+
+		@Override
+		public void keyReleased(KeyEvent arg0) {
+			if (arg0.getKeyCode() == KeyEvent.VK_CONTROL){
+				int[] indices = new int[panelSelections.size()];
+				for (int i = 0,j = 0; i < itsListModel.size(); i++){
+					for (String s : panelSelections){
+						if (s.equals(itsListModel.get(i))){
+							indices[j] = i;
+							j++;
+							break;
+						}
+					}
+				}
+				plist.clearSelection();
+				plist.setSelectedIndices(indices);
+				panelSelections.clear();
+			}
+		}
+
+		@Override
+		public void keyTyped(KeyEvent arg0) {}
+
+		public void setFlashing(boolean flash){
+			flashing = flash;
+		}
 	}
 
 	// ///////////////////// END NESTED CLASS /////////////////////////////
@@ -1182,6 +1333,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				JTabbedPane source = (JTabbedPane) e.getSource();
 				try{
 					((AlarmDisplayPanel) source.getSelectedComponent()).showDefaultAlarmPanels();
+					((AlarmDisplayPanel) source.getSelectedComponent()).requestFocusInWindow();
+					if (((AlarmDisplayPanel) source.getSelectedComponent()).equals(alarming)){
+						alarming.setFlashing(false);
+					}
 				} catch (NullPointerException n){
 					System.err.println("Null Pointer Exception in selecting tabs");
 				}
@@ -1261,15 +1416,15 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		} else {
 			ss.put(infoAlmStr, "false");
 		}
-		if (warningAlarms){
-			ss.put(warnAlmStr, "true");
+		if (minorAlarms){
+			ss.put(minorAlmStr, "true");
 		} else {
-			ss.put(warnAlmStr, "false");
+			ss.put(minorAlmStr, "false");
 		}
-		if (dangerAlarms){
-			ss.put(dangAlmStr, "true");
+		if (majorAlarms){
+			ss.put(majorAlmStr, "true");
 		} else {
-			ss.put(dangAlmStr, "false");
+			ss.put(majorAlmStr, "false");
 		}
 		if (severeAlarms){
 			ss.put(sevAlmStr, "true");
@@ -1322,20 +1477,20 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					informationAlarms = false;
 				}
 			}
-			str = (String) setup.get(warnAlmStr);
+			str = (String) setup.get(minorAlmStr);
 			if (str != null){
 				if (str.equals("true")){
-					warningAlarms = true;
+					minorAlarms = true;
 				} else if (str.equals("false")){
-					warningAlarms = false;
+					minorAlarms = false;
 				}
 			}
-			str = (String) setup.get(dangAlmStr);
+			str = (String) setup.get(majorAlmStr);
 			if (str != null){
 				if (str.equals("true")){
-					dangerAlarms = true;
+					majorAlarms = true;
 				} else if (str.equals("false")){
-					dangerAlarms = false;
+					majorAlarms = false;
 				}
 			}
 			str = (String) setup.get(sevAlmStr);
@@ -1359,10 +1514,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					if (AlarmMaintainer.getAlarm(s).getPriority() == 0 && !informationAlarms){
 						badPoints.add(s);
 					}
-					if (AlarmMaintainer.getAlarm(s).getPriority() == 1 && !warningAlarms){
+					if (AlarmMaintainer.getAlarm(s).getPriority() == 1 && !minorAlarms){
 						badPoints.add(s);
 					}
-					if (AlarmMaintainer.getAlarm(s).getPriority() == 2 && !dangerAlarms){
+					if (AlarmMaintainer.getAlarm(s).getPriority() == 2 && !majorAlarms){
 						badPoints.add(s);
 					}
 					if (AlarmMaintainer.getAlarm(s).getPriority() == 3 && !severeAlarms){
@@ -1403,6 +1558,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			shelved.showDefaultAlarmPanels();
 			alarming.showDefaultAlarmPanels();
 
+			all.requestFocusInWindow();
 		} catch (final Exception e) {
 			e.printStackTrace();
 			if (itsFrame != null) {
@@ -1410,7 +1566,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 						+ "could not be parsed.\n\n" + "The type of exception was:\n\"" + e.getClass().getName() + "\"\n\n", "Error Loading Setup",
 						JOptionPane.WARNING_MESSAGE);
 			} else {
-				System.err.println("AlarmManagerPanel:loadData: " + e.getClass().getName());
+				System.err.println("AlarmManagerPanel:loadSetup: " + e.getClass().getName());
 			}
 			blankSetup();
 			return false;
@@ -1426,8 +1582,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		itsListModel = new DefaultListModel();
 		noPriorityAlarms = false;
 		informationAlarms = false;
-		warningAlarms = false;
-		dangerAlarms = false;
+		minorAlarms = false;
+		majorAlarms = false;
 		severeAlarms = false;
 	}
 
@@ -1469,9 +1625,13 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		updateListModels();
 		Alarm thisAlarm = event.getAlarm();
 		if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
+			alarming.setFlashing(true);
 			if (!klaxon.isAlive()){
 				klaxon.start();
 			}
+		}
+		if (alarming.localListModel.isEmpty()){
+			alarming.setFlashing(false);
 		}
 	}
 
@@ -1574,7 +1734,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 	}
 	// ///// END NESTED CLASS ///////
-	
+
 	/**
 	 * Basic reverse quicksort implementation adapted from {@link http://www.javacodegeeks.com/2012/06/all-you-need-to-know-about-quicksort.html}
 	 * @param arr The array to be sorted
@@ -1583,28 +1743,28 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	 * @return The sorted array (or subsection thereof)
 	 */
 	public static String[] basicReverseQuickSort(String arr[], int beginIdx, int len) {
-	    if ( len <= 1 )
-	         return arr;
-	    
-	    final int endIdx = beginIdx+len-1;
+		if ( len <= 1 )
+			return arr;
 
-	    // Pivot selection
-	    final int pivotPos = beginIdx+len/2;
-	    arr = swap(arr, pivotPos, endIdx);
+		final int endIdx = beginIdx+len-1;
 
-	    // partitioning
-	    int p = beginIdx;
-	    for(int i = beginIdx; i < endIdx; i++) {
-	         if (lookup.get(arr[i]).getPriority() >= lookup.get(arr[pivotPos]).getPriority()) {
-	             arr = swap(arr, i, p++);
-	         }
-	     }
-	     arr = swap(arr, p, endIdx);
+		// Pivot selection
+		final int pivotPos = beginIdx+len/2;
+		arr = swap(arr, pivotPos, endIdx);
 
-	     // recursive call
-	     arr = basicReverseQuickSort(arr, p+1,  endIdx-p);
-	     arr = basicReverseQuickSort(arr, beginIdx, p-beginIdx);
-	     return arr;
+		// partitioning
+		int p = beginIdx;
+		for(int i = beginIdx; i < endIdx; i++) {
+			if (lookup.get(arr[i]).getPriority() >= lookup.get(arr[pivotPos]).getPriority()) {
+				arr = swap(arr, i, p++);
+			}
+		}
+		arr = swap(arr, p, endIdx);
+
+		// recursive call
+		arr = basicReverseQuickSort(arr, p+1,  endIdx-p);
+		arr = basicReverseQuickSort(arr, beginIdx, p-beginIdx);
+		return arr;
 	}
 	/**
 	 * Simple utility method to swap two elements in a String[]
