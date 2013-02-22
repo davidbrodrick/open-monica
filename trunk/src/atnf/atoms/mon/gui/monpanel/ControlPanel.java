@@ -75,7 +75,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 	private static final long serialVersionUID = -5900630541567847520L;
 
 	private Integer numControls = 0;
-	
+
 	/** ArrayList holding references to the JComponents that make up the display in the ControlPanel*/
 	private ArrayList<ControlPanelDisplayComponent> panelList = new ArrayList<ControlPanelDisplayComponent>();
 
@@ -84,20 +84,20 @@ public class ControlPanel extends MonPanel implements ActionListener{
 	 *	for the values in the "Control Type" JComboBoxes
 	 */
 	private final String[] controlOptions = {"Text Field", "Button", "Checkbox"};
-	
+
 	/** Array holding the values "Text", "Number" and "True/False".
 	 *  Used for constant references to these Strings, and also
 	 *	for the values in the "Control Type" JComboBoxes
 	 */
 	private final String[] dataOptions = {"Text", "Number", "True/False"};
-	
+
 	/** Array holding the values "Text" and "Number".
 	 *  Used for constant references to these Strings, and also
 	 *	for the values in the "Control Type" JComboBoxes when "Text Field"
 	 *	is selected.
 	 */
 	private final String[] dataOptions2 = {"Text", "Number"};
-	
+
 	/** Array holding the values "Horizontal" and "Vertical".
 	 *  Used for constant references to these Strings, and also
 	 *	for the values in the "Layout" type JComboBox.
@@ -150,6 +150,11 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		 */
 		public ControlSetupPanel(ControlPanel panel, JFrame frame) {
 			super(panel, frame);
+			/*			if (panel.getPreferredSize().equals(frame.getPreferredSize())){
+				this.setPreferredSize(frame.getPreferredSize());
+			} else {
+				this.setPreferredSize(panel.getPreferredSize());
+			}*/
 
 			topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));			
 			itsMainPanel.setLayout(new BoxLayout(itsMainPanel, BoxLayout.Y_AXIS));
@@ -248,6 +253,11 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			}
 
 			layout.setSelectedItem(itsInitialSetup.get("layout"));
+			if (layout.getSelectedItem().equals(layoutOptions[0])){
+				this.setPreferredSize(new Dimension(numControls * 50, 180));
+			} else {
+				this.setPreferredSize(new Dimension(180, numControls * 30));
+			}
 			title.setText(itsInitialSetup.get("title"));
 
 			String res = itsInitialSetup.get("points");
@@ -456,7 +466,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		@Override
 		public void actionPerformed(ActionEvent e){
 			ControlPanelSetupComponent cspc = null;
-			
+
 			if (e.getSource() instanceof JButton){
 				JButton source = (JButton) e.getSource();
 				for (ControlPanelSetupComponent c: componentList){
@@ -558,6 +568,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 	JScrollPane itsScrollPane = new JScrollPane();
 	/** Constructor. */
 	public ControlPanel() {
+		super();
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		itsMainPanel.setLayout(new BoxLayout(itsMainPanel, BoxLayout.Y_AXIS));
 		JLabel tempLabel = new JLabel("Setup Not Configured. Hit the \"Control Panel\" tab to set up this panel.");
@@ -1058,6 +1069,12 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			numControls = Integer.parseInt(itsSetup.get("controls number"));
 			String layout = itsSetup.get("layout");
 			String title = itsSetup.get("title");
+			
+			if (layout.equals(layoutOptions[0])){
+				this.setPreferredSize(new Dimension(numControls * 50, 180));
+			} else {
+				this.setPreferredSize(new Dimension(180, numControls * 30));
+			}
 
 			String res = itsSetup.get("points");
 			StringTokenizer st = new StringTokenizer(res, ";");
@@ -1077,7 +1094,6 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			gbc.gridx = 0;
 			gbc.gridy = 0;
 			if (layout.equals(layoutOptions[1])){ // how to appear if vertical layout is selected
-
 				for (String s : components){ 
 					if (gbc.gridy == components.size()-1){// fixes alignment for last line of grid, so it isn't massively spread out
 						gbc.weighty = 1.0;
@@ -1230,6 +1246,8 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			}
 			itsMainPanel.add(titleLabel, BorderLayout.NORTH);
 			itsMainPanel.add(itsPanel, BorderLayout.CENTER);
+
+			super.itsFrame.pack();
 
 			itsMainPanel.revalidate();
 			itsMainPanel.repaint();

@@ -42,7 +42,7 @@ public class MonFrame extends JFrame implements ActionListener {
 
     /** Menus for each of the windows, in same order as <i>itsWindows</i>. */
     static Vector itsMenus = new Vector();
-
+    
     /**
      * Called when a window is selected from the menu. The window which was
      * selected is raised to the screen foreground (hopefully).
@@ -340,6 +340,7 @@ public class MonFrame extends JFrame implements ActionListener {
 
   private static int itsWindowWidth = 0;
   private static int itsWindowHeight = 0;
+  private Dimension defaultDim = new Dimension(600,700);
 
   /** C'tor. */
   public MonFrame() {
@@ -417,8 +418,8 @@ public class MonFrame extends JFrame implements ActionListener {
         }
       }
     });
-
-    setSize(new Dimension(600, 700));
+    setSize(defaultDim);
+    setPreferredSize(defaultDim);
     setVisible(true);
   }
 
