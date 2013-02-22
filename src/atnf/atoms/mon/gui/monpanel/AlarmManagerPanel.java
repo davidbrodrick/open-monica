@@ -9,6 +9,7 @@ package atnf.atoms.mon.gui.monpanel;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -50,7 +51,6 @@ import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -73,6 +73,7 @@ import atnf.atoms.mon.AlarmEvent;
 import atnf.atoms.mon.AlarmEventListener;
 import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.mon.client.AlarmMaintainer;
+import atnf.atoms.mon.client.MonClientUtil;
 import atnf.atoms.mon.gui.AlarmPanel;
 import atnf.atoms.mon.gui.MonPanel;
 import atnf.atoms.mon.gui.MonPanelSetupPanel;
@@ -592,7 +593,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		private boolean selectionIsShelved = false;
 		private boolean selectionIsIgnored = false;
 		private int type = -1;
-		private ArrayList<String> panelSelections = new ArrayList<String>();
+		private ArrayList<AlarmPanel> panelSelections = new ArrayList<AlarmPanel>();
 		private boolean flashing = false;
 		private boolean flashOn = false;
 		private Timer timer = new Timer(500, new ActionListener(){
@@ -635,7 +636,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 */
 		public AlarmDisplayPanel(String t){
 			super();
-			
+
 			timer.start();
 			typeString = t;
 			this.type = this.convertType(t);
@@ -818,56 +819,20 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					}
 				}.start();
 			} else if (command.equals("ack")){
-				if (username.equals("") || password.equals("")){
-					JPanel inputs = new JPanel();
-					inputs.setLayout(new GridBagLayout());
-					GridBagConstraints gbc = new GridBagConstraints();
-					gbc.fill = GridBagConstraints.HORIZONTAL;
-					gbc.weightx = 0.5;
-					gbc.gridx = 0;
-					gbc.gridy = 0;
-					JLabel usernameLabel = new JLabel("Username: ");
-					JTextField usernameField = new JTextField(20);
-					usernameField.setText(username);
-					inputs.add(usernameLabel, gbc);
-					gbc.gridx = 1;
-					gbc.gridwidth = 3;
-					inputs.add(usernameField, gbc);
-					JLabel passwordLabel = new JLabel("Password: ");
-					JPasswordField passwordField = new JPasswordField(20);
-					gbc.gridx = 0;
-					gbc.gridy = 1;
-					gbc.gridwidth = 1;
-					inputs.add(passwordLabel, gbc);
-					gbc.gridwidth = 3;
-					gbc.gridx = 1;
-					inputs.add(passwordField, gbc);
-
-					int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
-					if (result == JOptionPane.OK_OPTION){
-						username = usernameField.getText();
-						password = new String(passwordField.getPassword());
-						if (username.isEmpty() || password.isEmpty()){
-							JOptionPane.showMessageDialog(this, "Invalid Username/Password!", "Authentication Error", JOptionPane.ERROR_MESSAGE);
-							return;
-						}
-					} else {
-						return;
-					}
-				}
+				String[] creds = MonClientUtil.showLogin((Component)this, username, password);
+				username = creds[0];
+				password = creds[1];
 				//send the commands along to the server
 				try {
 					if (e.getSource() instanceof JButton){
-						for (Object s : plist.getSelectedValues()){
-							new DataSender(s.toString(), "ack", true).start();
-						}
+						this.listAcknowledge(e);
 					} else {
 						if (e.getSource() instanceof JMenuItem){
-							JMenuItem source = (JMenuItem) e.getSource();
-							JPopupMenu parent = (JPopupMenu) source.getParent();
-							AlarmPanel pan = (AlarmPanel) parent.getInvoker();
-							String point = pan.getPointName();
-							new DataSender(point, "ack", true).start();
+							if (plist.getSelectedIndices().length > 0){
+								this.listAcknowledge(e);
+							} else {
+								this.singlePanelAcknowledge(e);
+							}
 						}
 					}
 					updateListModels();
@@ -881,64 +846,25 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					return;
 				}
 			} else if (command.equals("shelve")){
-				if (username.equals("") || password.equals("")){
-					JPanel inputs = new JPanel();
-					inputs.setLayout(new GridBagLayout());
-					GridBagConstraints gbc = new GridBagConstraints();
-					gbc.fill = GridBagConstraints.HORIZONTAL;
-					gbc.weightx = 0.5;
-					gbc.gridx = 0;
-					gbc.gridy = 0;
-					JLabel usernameLabel = new JLabel("Username: ");
-					JTextField usernameField = new JTextField(20);
-					usernameField.setText(username);
-					inputs.add(usernameLabel, gbc);
-					gbc.gridx = 1;
-					gbc.gridwidth = 3;
-					inputs.add(usernameField, gbc);
-					JLabel passwordLabel = new JLabel("Password: ");
-					JPasswordField passwordField = new JPasswordField(20);
-					gbc.gridx = 0;
-					gbc.gridy = 1;
-					gbc.gridwidth = 1;
-					inputs.add(passwordLabel, gbc);
-					gbc.gridwidth = 3;
-					gbc.gridx = 1;
-					inputs.add(passwordField, gbc);
-
-					int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
-
-					if (result == JOptionPane.OK_OPTION){
-						username = usernameField.getText();
-						password = new String(passwordField.getPassword());
-						if (username.isEmpty() || password.isEmpty()){
-							JOptionPane.showMessageDialog(this, "Invalid Username/Password!", "Authentication Error", JOptionPane.ERROR_MESSAGE);
-							return;
-						}
-					} else {
-						return;
-					}
-				}
+				String[] creds = MonClientUtil.showLogin((Component)this, username, password);
+				username = creds[0];
+				password = creds[1];
 				try {
 					if (e.getSource() instanceof JButton){
-						selectionIsShelved = !selectionIsShelved;
-						for (Object s : plist.getSelectedValues()){
-							new DataSender(s.toString(), "shelve", selectionIsShelved).start();
-						}
+						this.listShelve(e);
 					} else if (e.getSource() instanceof JMenuItem){
-						JMenuItem source = (JMenuItem) e.getSource();
-						JPopupMenu parent = (JPopupMenu) source.getParent();
-						AlarmPanel pan = (AlarmPanel) parent.getInvoker();
-						String point = pan.getPointName();
-						selectionIsShelved = !AlarmMaintainer.getAlarm(point).isShelved();
-						new DataSender(point, "shelve", selectionIsShelved).start();
+						if (plist.getSelectedIndices().length > 0){
+							this.listShelve(e);
+						} else {
+							this.singlePanelShelve(e);
+						}
 					}
 					updateListModels();
 					this.updateAlarmPanels();
 					if (selectionIsIgnored){
-						shelve.setText("Unignore");
+						ignore.setText("Unignore");
 					} else {
-						shelve.setText("Ignore");
+						ignore.setText("Ignore");
 					}
 					if (selectionIsShelved){
 						shelve.setText("UNSHELVE");
@@ -954,50 +880,92 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				}
 			} else if (command.equals("ignore")){
 				if (e.getSource() instanceof JButton){
-					if (this.getType() != AlarmDisplayPanel.ALL && this.getType() != AlarmDisplayPanel.IGNORED){ //regular tabs
-						Object[] listValues = plist.getSelectedValues();
-						for (int i = 0; i < listValues.length; i++){
-							ignoreList.add(listValues[i].toString());
-							localListModel.removeElement(listValues[i]);
-						}
-					} else if (this.getType() == AlarmDisplayPanel.ALL){ //All tab
-						Object[] listValues = plist.getSelectedValues();
-						if (ignoreList.contains(listValues[0].toString())){ //unignore
-							for (int i = 0; i < listValues.length; i++){
-								ignoreList.remove(listValues[i].toString());
-							}
-						} else {
-							for (int i = 0; i < listValues.length; i++){ //ignore
-								ignoreList.add(listValues[i].toString());
-							}
-						}
-					} else { //ignore tab
-						Object[] listValues = plist.getSelectedValues();
-						for (int i = 0; i < listValues.length; i++){
-							ignoreList.remove(listValues[i].toString());
-						}
-					}
+					this.listIgnore(e);
 				} else if (e.getSource() instanceof JMenuItem){
-					JMenuItem source = (JMenuItem) e.getSource();
-					JPopupMenu parent = (JPopupMenu) source.getParent();
-					AlarmPanel pan = (AlarmPanel) parent.getInvoker();
-					String point = pan.getPointName();
-					if (this.getType() != AlarmDisplayPanel.ALL && this.getType() != AlarmDisplayPanel.IGNORED){ //regular tabs
-						ignoreList.add(point);
-						localListModel.removeElement(point);
-					} else if (this.getType() == AlarmDisplayPanel.ALL){ //All tab
-						if (ignoreList.contains(point)){ //unignore
-							ignoreList.remove(point);
-						} else {
-							ignoreList.add(point);
-						}
-					} else { //ignore tab
-						ignoreList.remove(point);
+					if (plist.getSelectedIndices().length > 0){
+						this.listIgnore(e);
+					} else {
+						this.singlePanelIgnore(e);
 					}
 				}
 			}
 			this.updateAlarmPanels();
 			AlarmManagerPanel.updateListModels();
+		}
+
+		private void listIgnore(ActionEvent e){
+			if (this.getType() != AlarmDisplayPanel.ALL && this.getType() != AlarmDisplayPanel.IGNORED){ //regular tabs
+				Object[] listValues = plist.getSelectedValues();
+				for (int i = 0; i < listValues.length; i++){
+					ignoreList.add(listValues[i].toString());
+					localListModel.removeElement(listValues[i]);
+				}
+			} else if (this.getType() == AlarmDisplayPanel.ALL){ //All tab
+				Object[] listValues = plist.getSelectedValues();
+				if (ignoreList.contains(listValues[0].toString())){ //unignore
+					for (int i = 0; i < listValues.length; i++){
+						ignoreList.remove(listValues[i].toString());
+					}
+				} else {
+					for (int i = 0; i < listValues.length; i++){ //ignore
+						ignoreList.add(listValues[i].toString());
+					}
+				}
+			} else { //ignore tab
+				Object[] listValues = plist.getSelectedValues();
+				for (int i = 0; i < listValues.length; i++){
+					ignoreList.remove(listValues[i].toString());
+				}
+			}
+		}
+
+		private void listShelve(ActionEvent e){
+			selectionIsShelved = !selectionIsShelved;
+			for (Object s : plist.getSelectedValues()){
+				new DataSender(s.toString(), "shelve", selectionIsShelved).start();
+			}
+		}
+
+		private void listAcknowledge(ActionEvent e){
+			for (Object s : plist.getSelectedValues()){
+				new DataSender(s.toString(), "ack", true).start();
+			}
+		}
+
+		private void singlePanelIgnore(ActionEvent e){
+			JMenuItem source = (JMenuItem) e.getSource();
+			JPopupMenu parent = (JPopupMenu) source.getParent();
+			AlarmPanel pan = (AlarmPanel) parent.getInvoker();
+			String point = pan.getPointName();
+			if (this.getType() != AlarmDisplayPanel.ALL && this.getType() != AlarmDisplayPanel.IGNORED){ //regular tabs
+				ignoreList.add(point);
+				localListModel.removeElement(point);
+			} else if (this.getType() == AlarmDisplayPanel.ALL){ //All tab
+				if (ignoreList.contains(point)){ //unignore
+					ignoreList.remove(point);
+				} else {
+					ignoreList.add(point);
+				}
+			} else { //ignore tab
+				ignoreList.remove(point);
+			}
+		}
+
+		private void singlePanelShelve(ActionEvent e){
+			JMenuItem source = (JMenuItem) e.getSource();
+			JPopupMenu parent = (JPopupMenu) source.getParent();
+			AlarmPanel pan = (AlarmPanel) parent.getInvoker();
+			String point = pan.getPointName();
+			selectionIsShelved = !AlarmMaintainer.getAlarm(point).isShelved();
+			new DataSender(point, "shelve", selectionIsShelved).start();
+		}
+
+		private void singlePanelAcknowledge(ActionEvent e){
+			JMenuItem source = (JMenuItem) e.getSource();
+			JPopupMenu parent = (JPopupMenu) source.getParent();
+			AlarmPanel pan = (AlarmPanel) parent.getInvoker();
+			String point = pan.getPointName();
+			new DataSender(point, "ack", true).start();
 		}
 
 		/**
@@ -1220,7 +1188,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		public void mouseReleased(MouseEvent arg0) {
 			if ((SwingUtilities.isRightMouseButton(arg0))){
 				JPopupMenu jpop = new JPopupMenu();
-				JMenuItem ignMen = new JMenuItem("Ignore");
+				JMenuItem ignMen = new JMenuItem("Ignore/Unignore");
 				ignMen.setActionCommand("ignore");
 				ignMen.addActionListener(AlarmDisplayPanel.this);
 				JMenuItem ackMen = new JMenuItem("Acknowledge");
@@ -1240,11 +1208,18 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			AlarmPanel clicked = (AlarmPanel)arg0.getComponent();
 			String point = clicked.getPointName();
 			if (SwingUtilities.isLeftMouseButton(arg0) && arg0.isControlDown()){
-				panelSelections.add(point);
+				if (panelSelections.contains(clicked)){
+					panelSelections.remove(clicked);
+					clicked.highlight(Color.WHITE);
+				} else {
+					panelSelections.add(clicked);
+					clicked.highlight(Color.YELLOW);
+				}
 			} else if (SwingUtilities.isLeftMouseButton(arg0)){
 				plist.clearSelection();
 				plist.setSelectedValue(point, true);
 			} 
+			this.requestFocusInWindow();
 		}
 
 		@Override
@@ -1259,8 +1234,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			if (arg0.getKeyCode() == KeyEvent.VK_CONTROL){
 				int[] indices = new int[panelSelections.size()];
 				for (int i = 0,j = 0; i < itsListModel.size(); i++){
-					for (String s : panelSelections){
-						if (s.equals(itsListModel.get(i))){
+					for (AlarmPanel s : panelSelections){
+						if (s.getPointName().equals(itsListModel.get(i))){
 							indices[j] = i;
 							j++;
 							break;
@@ -1268,6 +1243,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					}
 				}
 				plist.clearSelection();
+				for (AlarmPanel ap : panelSelections){
+					ap.highlight(Color.WHITE);
+				}
 				plist.setSelectedIndices(indices);
 				panelSelections.clear();
 			}
