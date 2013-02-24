@@ -449,5 +449,13 @@ public class AlarmPanel extends JPanel {
 		guidance.setBackground(c);
 	}
 
+	/**
+	 * Method to get a reference to the Alarm this AlarmPanel is describing
+	 * @return The Alarm that dictates the contents of this AlarmPanel
+	 */
+	public Alarm getAlarm() {
+		return itsAlarm;
+	}
+
 }
 

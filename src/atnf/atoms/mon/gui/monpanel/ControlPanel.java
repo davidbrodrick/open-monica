@@ -9,6 +9,7 @@ package atnf.atoms.mon.gui.monpanel;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -38,7 +39,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -1359,44 +1359,9 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 			for (ControlPanelDisplayComponent c : panelList){
 				if (source.equals(c.getConfirmButton())){
-					if (username.equals("") || passwd.equals("")){
-						JPanel inputs = new JPanel();
-						inputs.setLayout(new GridBagLayout());
-						GridBagConstraints gbc = new GridBagConstraints();
-						gbc.fill = GridBagConstraints.HORIZONTAL;
-						gbc.weightx = 0.5;
-						gbc.gridx = 0;
-						gbc.gridy = 0;
-						JLabel usernameLabel = new JLabel("Username: ");
-						JTextField usernameField = new JTextField(20);
-						usernameField.setText(username);
-						inputs.add(usernameLabel, gbc);
-						gbc.gridx = 1;
-						gbc.gridwidth = 3;
-						inputs.add(usernameField, gbc);
-						JLabel passwordLabel = new JLabel("Password: ");
-						JPasswordField passwordField = new JPasswordField(20);
-						gbc.gridx = 0;
-						gbc.gridy = 1;
-						gbc.gridwidth = 1;
-						inputs.add(passwordLabel, gbc);
-						gbc.gridwidth = 3;
-						gbc.gridx = 1;
-						inputs.add(passwordField, gbc);
-
-						int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
-
-						if (result == JOptionPane.OK_OPTION){
-							username = usernameField.getText();
-							passwd = new String(passwordField.getPassword());
-							if (username.isEmpty() || passwd.isEmpty()){
-								JOptionPane.showMessageDialog(this, "Invalid Username/Password!", "Authentication Error", JOptionPane.ERROR_MESSAGE);
-								return;
-							}
-						} else {
-							return;
-						}
-					}
+					String[] creds = MonClientUtil.showLogin((Component)this, username, passwd);
+					username = creds[0];
+					passwd = creds[1];
 					new DataSender(c).start(); // Start sending thread
 					break;
 				}
