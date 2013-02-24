@@ -928,7 +928,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 		private void listAcknowledge(ActionEvent e){
 			for (Object s : plist.getSelectedValues()){
-				new DataSender(s.toString(), "ack", true).start();
+				if (AlarmMaintainer.getAlarm(s.toString()).isAlarming()){ //Only able to acknowledge if the alarm is actually alarming
+					new DataSender(s.toString(), "ack", true).start();
+				}
 			}
 		}
 
@@ -956,7 +958,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			JPopupMenu parent = (JPopupMenu) source.getParent();
 			AlarmPanel pan = (AlarmPanel) parent.getInvoker();
 			String point = pan.getPointName();
-			selectionIsShelved = !AlarmMaintainer.getAlarm(point).isShelved();
+			selectionIsShelved = !pan.getAlarm().isShelved();
 			new DataSender(point, "shelve", selectionIsShelved).start();
 		}
 
@@ -1085,7 +1087,16 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				if (source.getSelectedIndices().length > 0){
 					this.updateAlarmPanels();
 					ignore.setEnabled(true);
-					ack.setEnabled(true);
+					if (source.getSelectedIndices().length == 1 && 
+							!AlarmMaintainer.getAlarm(source.getSelectedValue().toString()).isAlarming()){
+						/* Only allow the ack button to be enabled if the selected point is alarming
+						 * or there are multiple points selected, in which case only valid points
+						 * will be acknowledged @see DataSender
+						 */
+						ack.setEnabled(false);
+					} else {
+						ack.setEnabled(true);
+					}
 					shelve.setEnabled(true);
 					notify.setEnabled(true);
 					selectionIsShelved = AlarmMaintainer.getAlarm(source.getSelectedValue().toString()).isShelved();
@@ -1186,7 +1197,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		public void mouseExited(MouseEvent arg0) {}
 		@Override
 		public void mouseReleased(MouseEvent arg0) {
-			if ((SwingUtilities.isRightMouseButton(arg0))){
+			if ((SwingUtilities.isRightMouseButton(arg0) && !(arg0.isControlDown() || arg0.isShiftDown()))){
 				JPopupMenu jpop = new JPopupMenu();
 				JMenuItem ignMen = new JMenuItem("Ignore/Unignore");
 				ignMen.setActionCommand("ignore");
@@ -1197,6 +1208,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				JMenuItem shvMen = new JMenuItem("Shelve/Unshelve");
 				shvMen.setActionCommand("shelve");
 				shvMen.addActionListener(AlarmDisplayPanel.this);
+				AlarmPanel ap = (AlarmPanel) arg0.getComponent();
+				if (plist.getSelectedIndices().length <= 1 && !ap.getAlarm().isAlarming()){
+					ackMen.setEnabled(false); //disable acknowledgement through right-click if selected alarm point is a single panel that isn't alarming
+				}
 				jpop.add(ignMen);
 				jpop.add(ackMen);
 				jpop.add(shvMen);
@@ -1207,7 +1222,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		public void mousePressed(MouseEvent arg0) {
 			AlarmPanel clicked = (AlarmPanel)arg0.getComponent();
 			String point = clicked.getPointName();
-			if (SwingUtilities.isLeftMouseButton(arg0) && arg0.isControlDown()){
+			if (SwingUtilities.isLeftMouseButton(arg0) && (arg0.isControlDown() || arg0.isShiftDown())){
+				ignore.setEnabled(false);
+				ack.setEnabled(false);
+				shelve.setEnabled(false);
+				notify.setEnabled(false);
 				if (panelSelections.contains(clicked)){
 					panelSelections.remove(clicked);
 					clicked.highlight(Color.WHITE);
@@ -1224,14 +1243,18 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 		@Override
 		public void keyPressed(KeyEvent arg0) {
-			if (arg0.getKeyCode() == KeyEvent.VK_CONTROL){
+			if (arg0.getKeyCode() == KeyEvent.VK_CONTROL || arg0.getKeyCode() == KeyEvent.VK_SHIFT){
 				panelSelections.clear();
+				ignore.setEnabled(false);
+				ack.setEnabled(false);
+				shelve.setEnabled(false);
+				notify.setEnabled(false);
 			}
 		}
 
 		@Override
 		public void keyReleased(KeyEvent arg0) {
-			if (arg0.getKeyCode() == KeyEvent.VK_CONTROL){
+			if (arg0.getKeyCode() == KeyEvent.VK_CONTROL || arg0.getKeyCode() == KeyEvent.VK_SHIFT){
 				int[] indices = new int[panelSelections.size()];
 				for (int i = 0,j = 0; i < itsListModel.size(); i++){
 					for (AlarmPanel s : panelSelections){
