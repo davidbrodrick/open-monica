@@ -71,6 +71,7 @@ import javax.swing.event.ListSelectionListener;
 import atnf.atoms.mon.Alarm;
 import atnf.atoms.mon.AlarmEvent;
 import atnf.atoms.mon.AlarmEventListener;
+import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.mon.client.AlarmMaintainer;
 import atnf.atoms.mon.client.MonClientUtil;
@@ -79,6 +80,7 @@ import atnf.atoms.mon.gui.MonPanel;
 import atnf.atoms.mon.gui.MonPanelSetupPanel;
 import atnf.atoms.mon.gui.PointSourceSelector;
 import atnf.atoms.mon.util.MailSender;
+import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.time.AbsTime;
 import atnf.atoms.time.RelTime;
 
@@ -247,26 +249,54 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 				String[] points = itsPointSelector.getAllPointNames();
 				if (points.length > 0) {
-					p += points[0];
-					// Then add rest of point names with a delimiter
-					for (int i = 1; i < points.length; i++) {
+					HashSet<String> selections = new HashSet<String>();
+					HashSet<String> allPoints = new HashSet<String>();
+					for (int i = 0; i < points.length; i++){
+						allPoints.add(points[i]);
 						try { //only add points that have valid alarms to the setup
 							int priority = AlarmMaintainer.getAlarm(points[i]).getPriority();
 							if (priority >= 0){
 								if ((informationAlarms && priority == 0) || (minorAlarms && priority == 1) || (majorAlarms && priority == 2) || (severeAlarms && priority == 3)){
-									p += ":" + points[i];
+									selections.add(points[i]);
 								}
 							}
 						} catch (NullPointerException n){}
+					}
+
+					selections = MonitorUtils.prunePointTree(selections, allPoints);
+
+					int n = 0;
+					for (String s : selections){
+						if (n == 0){
+							p += s;
+						} else {
+							p += ":" + s;
+						}
+						n++;
 					}
 				}
 			} else {
 				Vector<?> points = itsPointSelector.getSelections();
 				if (points.size() > 0) {
-					p += points.get(0);
-					// Then add rest of point names with a delimiter
-					for (int i = 1; i < points.size(); i++) {
-						p += ":" + points.get(i);
+					HashSet<String> selections = new HashSet<String>();
+					HashSet<String> allPoints = new HashSet<String>();
+					String[] names = PointDescription.getAllPointNames();
+					for (int i = 0; i < names.length; i++){
+						allPoints.add(names[i]);
+					}
+					for (int i = 0; i < points.size(); i++) {
+						selections.add(points.get(i).toString());
+					}
+					selections = MonitorUtils.prunePointTree(selections, allPoints);
+
+					int n = 0;
+					for (String s : selections){
+						if (n == 0){
+							p += s;
+						} else {
+							p += ":" + s;
+						}
+						n++;
 					}
 				}
 			}
@@ -1399,11 +1429,32 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		DefaultListModel listPoints = itsListModel;
 		String p = "";
 		if (listPoints.size() > 0) {
-			p += listPoints.get(0);
+			HashSet<String> selections = new HashSet<String>();
+			HashSet<String> allPoints = new HashSet<String>();
+			String[] names = PointDescription.getAllPointNames();
+			for (int i = 0; i < names.length; i++){
+				allPoints.add(names[i]);
+			}
+			for (int i = 0; i < listPoints.size(); i++) {
+				selections.add(listPoints.get(i).toString());
+			}
+			selections = MonitorUtils.prunePointTree(selections, allPoints);
+
+			int n = 0;
+			for (String s : selections){
+				if (n == 0){
+					p += s;
+				} else {
+					p += ":" + s;
+				}
+				n++;
+			}
+
+			/*p += listPoints.get(0);
 			// Then add rest of point names with a delimiter
 			for (int i = 1; i < listPoints.size(); i++) {
 				p += ":" + listPoints.get(i);
-			}
+			}*/
 		}
 		ss.put("points", p);
 
@@ -1450,13 +1501,30 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				return false;
 			}
 
+			/* Decoding the pruned values - this should be backwards compatible
+			 * with old Setups. This should be relatively quick compared to parsing
+			 * the Strings of (potentially) thousands of points using the StringTokenizer
+			 * Even if the actual pruning operation is slow, loading a saved setup 
+			 * should be relatively efficient compared to generating one. 
+			 */
+			HashSet<String> depruned = new HashSet<String>();
+			HashSet<String> allPoints = new HashSet<String>();
 			itsPoints = new Vector<String>();
 
 			// Get the list of points to be monitored
 			String p = (String) setup.get("points");
 			StringTokenizer stp = new StringTokenizer(p, ":");
 			while (stp.hasMoreTokens()) {
-				itsPoints.add(stp.nextToken());
+				depruned.add(stp.nextToken());
+			}
+			String[] names = PointDescription.getAllPointNames();
+			for (int i = 0; i < names.length; i++){
+				allPoints.add(names[i]);
+			}
+			
+			depruned = MonitorUtils.sprout(depruned, allPoints);
+			for (String s : depruned){
+				itsPoints.add(s);
 			}
 
 			// Get which categories of alarms to monitor
