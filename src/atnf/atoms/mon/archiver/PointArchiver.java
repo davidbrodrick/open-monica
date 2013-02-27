@@ -346,7 +346,7 @@ public abstract class PointArchiver extends Thread {
           synchronized (itsBeingArchived) {
             if (itsBeingArchived.contains(pm.getFullName())) {
               // Point is already being archived
-              itsLogger.warn(pm.getFullName() + " is already being archived");
+              //itsLogger.warn(pm.getFullName() + " is already being archived");
               continue;
             } else {
               // Flag that the point is now being archived
@@ -354,7 +354,7 @@ public abstract class PointArchiver extends Thread {
             }
           }
 
-          // itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
+          //itsLogger.debug("Archiving " + thisdata.size() + " records for " + pm.getFullName());
           saveNow(pm, thisdata);
           try {
             sleeptime2.sleep();
