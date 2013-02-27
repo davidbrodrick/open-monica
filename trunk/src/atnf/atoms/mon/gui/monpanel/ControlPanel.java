@@ -1362,6 +1362,10 @@ public class ControlPanel extends MonPanel implements ActionListener{
 					String[] creds = MonClientUtil.showLogin((Component)this, username, passwd);
 					username = creds[0];
 					passwd = creds[1];
+					if (username.isEmpty() || passwd.isEmpty()){
+						passwd = ""; 
+						return;
+					}
 					new DataSender(c).start(); // Start sending thread
 					break;
 				}

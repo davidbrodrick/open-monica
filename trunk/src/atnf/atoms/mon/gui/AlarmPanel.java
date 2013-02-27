@@ -123,7 +123,7 @@ public class AlarmPanel extends JPanel {
 			alarmPriority.setForeground(Color.BLACK);
 			alarmPriority.setFont(new Font("Serif", Font.BOLD, 28));
 
-			if (itsAlarm.getPriority() == -1){
+			if (itsAlarm.getPriority() == -1 || !itsAlarm.isAlarming()){
 				alarmTitle.setBackground(Color.GRAY);
 			} else if (itsAlarm.getPriority() == 0){
 				alarmTitle.setBackground(new Color(0x63B8FF));
@@ -169,14 +169,14 @@ public class AlarmPanel extends JPanel {
 				shelvedBy.setText("Shelved by: ");
 				shelvedAt.setText("Shelved at: ");
 			}
-			pointString.setFont(new Font("Sans Serif", Font.PLAIN, 18));
+			pointString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 			pointDesc.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 			statusString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 			status.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 			ackedBy.setFont(new Font("Sans Serif", Font.ITALIC, 18));
-			ackedAt.setFont(new Font("Sans Serif", Font.ITALIC, 14));
+			ackedAt.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 			shelvedBy.setFont(new Font("Sans Serif", Font.ITALIC, 18));
-			shelvedAt.setFont(new Font("Sans Serif", Font.ITALIC, 14));
+			shelvedAt.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 
 			alarmStatus.setLayout(new BoxLayout(alarmStatus, BoxLayout.X_AXIS));
 			alarmStatus.add(statusString);
@@ -289,7 +289,7 @@ public class AlarmPanel extends JPanel {
 				alarmPriority.setForeground(Color.BLACK);
 				alarmPriority.setFont(new Font("Serif", Font.BOLD, 28));
 
-				if (itsAlarm.getPriority() == -1){
+				if (itsAlarm.getPriority() == -1 || !itsAlarm.isAlarming()){
 					alarmTitle.setBackground(Color.GRAY);
 				} else if (itsAlarm.getPriority() == 0){
 					alarmTitle.setBackground(new Color(0x63B8FF));
@@ -335,14 +335,14 @@ public class AlarmPanel extends JPanel {
 					shelvedBy.setText("Shelved by: ");
 					shelvedAt.setText("Shelved at: ");
 				}
-				pointString.setFont(new Font("Sans Serif", Font.PLAIN, 18));
+				pointString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 				pointDesc.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 				statusString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 				status.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 				ackedBy.setFont(new Font("Sans Serif", Font.ITALIC, 18));
-				ackedAt.setFont(new Font("Sans Serif", Font.ITALIC, 14));
+				ackedAt.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 				shelvedBy.setFont(new Font("Sans Serif", Font.ITALIC, 18));
-				shelvedAt.setFont(new Font("Sans Serif", Font.ITALIC, 14));
+				shelvedAt.setFont(new Font("Sans Serif", Font.ITALIC, 18));
 
 				alarmStatus.setLayout(new BoxLayout(alarmStatus, BoxLayout.X_AXIS));
 				alarmStatus.add(statusString);
