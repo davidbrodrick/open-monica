@@ -735,7 +735,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			shelve.addActionListener(this);
 			reset.addActionListener(this);
 			mute.addItemListener(this);
-
+			plist.addMouseListener(this);
 
 			//let's add the buttons to the button pane now!
 			buttons.add(ignore);
@@ -843,17 +843,24 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			} else if (command.equals("reset")){
 				// cancel the options taken
 				plist.clearSelection();
-				new Thread(){
-					public void run(){
-						AlarmDisplayPanel.this.showDefaultAlarmPanels();
-					}
-				}.start();
-			} else if (command.equals("ack")){
-				String[] creds = MonClientUtil.showLogin((Component)this, username, password);
-				username = creds[0];
-				password = creds[1];
-				//send the commands along to the server
 				try {
+					SwingUtilities.invokeLater(new Runnable(){
+						public void run(){
+							AlarmDisplayPanel.this.showDefaultAlarmPanels();
+						}
+					});
+				} catch (Exception e1) {}
+			} else if (command.equals("ack")){
+				try {
+					String[] creds = MonClientUtil.showLogin((Component)this, username, password);
+					username = creds[0];
+					password = creds[1];
+					if (username.isEmpty() || password.isEmpty()){
+						password = ""; 
+						return;
+					}
+					//send the commands along to the server
+
 					if (e.getSource() instanceof JButton){
 						this.listAcknowledge(e);
 					} else {
@@ -876,10 +883,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					return;
 				}
 			} else if (command.equals("shelve")){
-				String[] creds = MonClientUtil.showLogin((Component)this, username, password);
-				username = creds[0];
-				password = creds[1];
 				try {
+					String[] creds = MonClientUtil.showLogin((Component)this, username, password);
+					username = creds[0];
+					password = creds[1];
+					if (username.isEmpty() || password.isEmpty()){
+						password = ""; 
+						return;
+					}
 					if (e.getSource() instanceof JButton){
 						this.listShelve(e);
 					} else if (e.getSource() instanceof JMenuItem){
@@ -1035,7 +1046,12 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
 
 			Vector<String> alarmingPoints = new Vector<String>();
-			Vector<Alarm> alarms = AlarmMaintainer.getAlarms();
+			Vector<Alarm> alarms = null;
+			if (this.getType() == Alarm.NOT_ALARMED || this.getType() == AlarmDisplayPanel.IGNORED){
+				alarms = AlarmMaintainer.getAllAlarms();
+			} else {
+				alarms = AlarmMaintainer.getAlarms();
+			}
 
 			for (Alarm a : alarms){ //put all the alarms in a locally maintained lookup table
 				if (ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.IGNORED){ //case for ignored tab
@@ -1065,10 +1081,33 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					i++;
 				}
 			}
+			this.updateList();
+			plist.revalidate();
+			plist.repaint();
 			alarmDetailsScroller.setViewportView(newPanel);
 			alarmDetailsScroller.revalidate();
 			alarmDetailsScroller.repaint();
 			this.requestFocusInWindow();
+		}
+
+		private void updateList(){
+			if (plist.getModel().getSize() == 0){
+				@SuppressWarnings ("unchecked")
+				Vector<String> newPoints = (Vector<String>)itsPoints.clone();
+				itsListModel.setSize(itsPoints.size());
+
+				int i = 0;
+				for (String s : newPoints){
+					itsListModel.setElementAt(s, i);
+					i++;
+				}
+				itsPoints = newPoints;
+			}
+			if (this.type == AlarmDisplayPanel.IGNORED){
+				this.updateIgnoreListModel();
+			} else {
+				updateListModel();
+			}
 		}
 
 		/**
@@ -1184,6 +1223,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				String s = (String) localListModel.get(i);
 				if (AlarmMaintainer.getAlarm(s).getAlarmStatus() == this.getType()){
 					if (!ignoreList.contains(s)) newList.add(s);
+				} else if (this.getType() == AlarmDisplayPanel.ALL){
+					newList.add(s);
 				}
 			}
 
@@ -1238,9 +1279,18 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				JMenuItem shvMen = new JMenuItem("Shelve/Unshelve");
 				shvMen.setActionCommand("shelve");
 				shvMen.addActionListener(AlarmDisplayPanel.this);
-				AlarmPanel ap = (AlarmPanel) arg0.getComponent();
-				if (plist.getSelectedIndices().length <= 1 && !ap.getAlarm().isAlarming()){
-					ackMen.setEnabled(false); //disable acknowledgement through right-click if selected alarm point is a single panel that isn't alarming
+				if (arg0.getComponent() instanceof AlarmPanel){
+					AlarmPanel ap = (AlarmPanel) arg0.getComponent();
+					if (plist.getSelectedIndices().length <= 1 && !ap.getAlarm().isAlarming()){
+						ackMen.setEnabled(false); //disable acknowledgement through right-click if selected alarm point is a single panel that isn't alarming
+					}
+				} else if (arg0.getComponent() instanceof JList){
+					if (plist.getSelectedIndices().length <= 1){
+						plist.setSelectedIndex(plist.locationToIndex(arg0.getPoint())); //select the item
+						if (!AlarmMaintainer.getAlarm(plist.getSelectedValue().toString()).isAlarming()){
+							ackMen.setEnabled(false); //disable acknowledgement through right-click if selected alarm point is a point that isn't alarming
+						}
+					}
 				}
 				jpop.add(ignMen);
 				jpop.add(ackMen);
@@ -1250,25 +1300,27 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		}
 		@Override
 		public void mousePressed(MouseEvent arg0) {
-			AlarmPanel clicked = (AlarmPanel)arg0.getComponent();
-			String point = clicked.getPointName();
-			if (SwingUtilities.isLeftMouseButton(arg0) && (arg0.isControlDown() || arg0.isShiftDown())){
-				ignore.setEnabled(false);
-				ack.setEnabled(false);
-				shelve.setEnabled(false);
-				notify.setEnabled(false);
-				if (panelSelections.contains(clicked)){
-					panelSelections.remove(clicked);
-					clicked.highlight(Color.WHITE);
-				} else {
-					panelSelections.add(clicked);
-					clicked.highlight(Color.YELLOW);
-				}
-			} else if (SwingUtilities.isLeftMouseButton(arg0)){
-				plist.clearSelection();
-				plist.setSelectedValue(point, true);
-			} 
-			this.requestFocusInWindow();
+			if (arg0.getComponent() instanceof AlarmPanel){
+				AlarmPanel clicked = (AlarmPanel)arg0.getComponent();
+				String point = clicked.getPointName();
+				if (SwingUtilities.isLeftMouseButton(arg0) && (arg0.isControlDown() || arg0.isShiftDown())){
+					ignore.setEnabled(false);
+					ack.setEnabled(false);
+					shelve.setEnabled(false);
+					notify.setEnabled(false);
+					if (panelSelections.contains(clicked)){
+						panelSelections.remove(clicked);
+						clicked.highlight(Color.WHITE);
+					} else {
+						panelSelections.add(clicked);
+						clicked.highlight(Color.YELLOW);
+					}
+				} else if (SwingUtilities.isLeftMouseButton(arg0)){
+					plist.clearSelection();
+					plist.setSelectedValue(point, true);
+				} 
+				this.requestFocusInWindow();
+			}
 		}
 
 		@Override
@@ -1521,7 +1573,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			for (int i = 0; i < names.length; i++){
 				allPoints.add(names[i]);
 			}
-			
+
 			depruned = MonitorUtils.sprout(depruned, allPoints);
 			for (String s : depruned){
 				itsPoints.add(s);
@@ -1602,30 +1654,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				}
 			}
 
-			@SuppressWarnings ("unchecked")
-			Vector<String> newPoints = (Vector<String>) itsPoints.clone();
-
-			itsListModel.setSize(itsPoints.size());
-
-			int i = 0;
-			for (String s : newPoints){
-				itsListModel.setElementAt(s, i);
-				i++;
-			}
-			itsPoints = newPoints;
-
-			nonAlarmed.updateListModel();
-			ignored.updateIgnoreListModel();
-			acknowledged.updateListModel();
-			shelved.updateListModel();
-			alarming.updateListModel();
-
-			all.showDefaultAlarmPanels();
-			ignored.showDefaultAlarmPanels();
-			nonAlarmed.showDefaultAlarmPanels();
-			acknowledged.showDefaultAlarmPanels();
-			shelved.showDefaultAlarmPanels();
-			alarming.showDefaultAlarmPanels();
+			this.updateLists();
 
 			all.requestFocusInWindow();
 		} catch (final Exception e) {
@@ -1641,6 +1670,32 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			return false;
 		}
 		return true;
+	}
+
+	private void updateLists(){
+		@SuppressWarnings ("unchecked")
+		Vector<String> newPoints = (Vector<String>) itsPoints.clone();
+		itsListModel.setSize(itsPoints.size());
+
+		int i = 0;
+		for (String s : newPoints){
+			itsListModel.setElementAt(s, i);
+			i++;
+		}
+		itsPoints = newPoints;
+
+		nonAlarmed.updateListModel();
+		ignored.updateIgnoreListModel();
+		acknowledged.updateListModel();
+		shelved.updateListModel();
+		alarming.updateListModel();
+
+		all.showDefaultAlarmPanels();
+		ignored.showDefaultAlarmPanels();
+		nonAlarmed.showDefaultAlarmPanels();
+		acknowledged.showDefaultAlarmPanels();
+		shelved.showDefaultAlarmPanels();
+		alarming.showDefaultAlarmPanels();
 	}
 
 	/**
@@ -1684,6 +1739,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			clip.close();
 		} catch (Exception e) {
 			System.err.println("AlarmManagerPanel.playAudio: " + e.getClass());
+			e.printStackTrace();
 			return false;
 		}
 		return true;
@@ -1720,23 +1776,26 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		public void run() {
 			try {
 				RelTime sleep = RelTime.factory(10000000);
-				while (!alarming.localListModel.isEmpty()) {
-					if (muteOn){
-						continue;
-					} else {
-						boolean highPriority = false;
-						for (int i = 0; i < alarming.localListModel.size(); i++){
-							if (AlarmMaintainer.getAlarm(((String) alarming.localListModel.get(i))).getPriority() >= 2){ //should only siren on Major or Severe alarms
-								highPriority = true;
-								break;
+				while (true){
+					if (!alarming.localListModel.isEmpty()) {
+						if (muteOn){
+							sleep.sleep();
+							continue;
+						} else {
+							boolean highPriority = false;
+							for (int i = 0; i < alarming.localListModel.size(); i++){
+								if (AlarmMaintainer.getAlarm(((String) alarming.localListModel.get(i))).getPriority() >= 0){ //should only siren on Major or Severe alarms
+									highPriority = true;
+									break;
+								}
+							}
+							if (highPriority){
+								boolean success = playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
+								if (success == false) throw (new Exception());
 							}
 						}
-						if (highPriority){
-							boolean success = playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
-							if (success == false) throw (new Exception());
-						}
+						sleep.sleep();
 					}
-					sleep.sleep();
 				}
 			} catch (Exception e) {
 				System.err.println("Audio Playing failed");

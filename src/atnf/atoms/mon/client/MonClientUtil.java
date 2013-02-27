@@ -845,7 +845,10 @@ public class MonClientUtil {
 				res[1] = password;
 				return res;
 			} else {
-				return null;
+				String[] res = new String[2];
+				res[0] = username;
+				res[1] = "";
+				return res;
 			}
 		} else {
 			String[] res = new String[2];
