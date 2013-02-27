@@ -12,7 +12,7 @@ import java.util.HashMap;
 
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.transaction.TransactionStrings;
+import atnf.atoms.mon.transaction.*;
 import atnf.atoms.mon.externalsystem.*;
 
 
@@ -39,14 +39,14 @@ public class ISServer extends ASCIISocket {
   public Object parseData(PointDescription requestor) throws Exception {
     HashMap<String,Object> res = new HashMap<String,Object>();
     query = itsTickleString;
-    TransactionStrings thistrans = (TransactionStrings) getMyTransactions(requestor.getInputTransactions()).get(0);
+    Transaction thistrans = getMyTransactions(requestor.getInputTransactions()).get(0);
 
     if (thistrans instanceof TransactionStrings) {
         // The Transaction contains an alternate query string to be issued to the server
-        if (thistrans.getNumStrings() < 1) {
+        if (((TransactionStrings)thistrans).getNumStrings() < 1) {
           throw new Exception("ISServer: Not enough arguments in Transaction");
         }
-        query = thistrans.getString();
+        query = ((TransactionStrings)thistrans).getString();
         // Substitute EOL characters
         query = query.replaceAll("\\\\n", "\n").replaceAll("\\\\r", "\r");
     }
