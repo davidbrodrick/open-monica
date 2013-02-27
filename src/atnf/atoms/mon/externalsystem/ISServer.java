@@ -12,7 +12,10 @@ import java.util.HashMap;
 
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
+import atnf.atoms.mon.transaction.TransactionStrings;
 import atnf.atoms.mon.externalsystem.*;
+
+
 
 /**
  * Provides a generic interface to a perl server which sends requested data over a TCP socket
@@ -20,21 +23,35 @@ import atnf.atoms.mon.externalsystem.*;
 public class ISServer extends ASCIISocket {
   /** Timestamp of the last message. */
   private String itsTstamp = null;
-  private String TickleString = "all";
+  private String itsTickleString = "all";
+  private String query = "";
   
   public ISServer(String[] args) {
     super(args);
     //System.err.println("ISServer: Constructing with args:\n" + args[0] +"\n" + args[1] + "\n" + args[2]);
     if ( args.length > 3 ) {
       // assume we were given Address, port, interval, ticklestring
-      TickleString = args[3];
+      itsTickleString = args[3];
     }
   }
 
   /** Query all of the latest values and return a HashMap containing them. */
   public Object parseData(PointDescription requestor) throws Exception {
     HashMap<String,Object> res = new HashMap<String,Object>();
-    itsWriter.write(TickleString + "\r\n");
+    query = itsTickleString;
+    TransactionStrings thistrans = (TransactionStrings) getMyTransactions(requestor.getInputTransactions()).get(0);
+
+    if (thistrans instanceof TransactionStrings) {
+        // The Transaction contains an alternate query string to be issued to the server
+        if (thistrans.getNumStrings() < 1) {
+          throw new Exception("ISServer: Not enough arguments in Transaction");
+        }
+        query = thistrans.getString();
+        // Substitute EOL characters
+        query = query.replaceAll("\\\\n", "\n").replaceAll("\\\\r", "\r");
+    }
+
+    itsWriter.write(query + "\r\n");
     itsWriter.flush();
     //System.err.println("ISServer: sent request");
 
@@ -53,7 +70,7 @@ public class ISServer extends ASCIISocket {
         String line = itsReader.readLine();
         //System.err.println("ISServer: got response: " + line);
         StringTokenizer st = new StringTokenizer(line, "\t");
-        if (st.countTokens() < 2)
+        if (st.countTokens() < 2) 
           continue;
         key = st.nextToken();
         Object value = st.nextToken().trim();
