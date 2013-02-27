@@ -285,6 +285,7 @@ public class MoniCAIceUtil {
       res.acknowledgedBy = "null";
       res.acknowledgedAt = 0;
     }
+    res.shelved = a.isShelved();
     if (a.getShelvedBy()!=null) {
       res.shelvedBy = a.getShelvedBy();
       res.shelvedAt = a.getShelvedAt().getValue();
