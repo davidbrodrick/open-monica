@@ -866,7 +866,7 @@ public class MonClientUtil {
 		JPanel inputs = new JPanel();
 		JPanel tFieldsp = new JPanel();
 		tFieldsp.setLayout(new GridLayout(3,2,0,5));
-		JLabel lemail = new JLabel("CSIRO Recipient: ");
+		JLabel lemail = new JLabel("Recipient: ");
 		JLabel lsubject = new JLabel("Subject: ");
 		JLabel lbody = new JLabel("Body Text: ");
 		lemail.setHorizontalAlignment(JLabel.LEFT);

@@ -122,7 +122,7 @@ public class AlarmMaintainer implements Runnable {
 						synchronized (theirAlarms) {
 							for (Alarm a : newalarms) {
 								theirAlarms.put(a.getPointDesc(), a);
-								if (a.getAlarmStatus() == Alarm.ALARMING && a.getPriority() >= 2) displayAlarmNotification(a);
+								if (a.getAlarmStatus() == Alarm.ALARMING && a.getPriority() >= 1) displayAlarmNotification(a);
 							}
 						}
 						// Notify any listeners about the updates

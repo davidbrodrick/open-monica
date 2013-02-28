@@ -97,6 +97,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	public static HashSet<String> ignoreList = new HashSet<String>();
 	public static HashMap<String, Alarm> lookup = new HashMap<String, Alarm>();
 
+	private JCheckBox allowAutoAlarms = new JCheckBox("Allow Automatic Notifications");
+	
 	private boolean muteOn = false;
 	private boolean noPriorityAlarms = false;
 	private boolean informationAlarms = false;
@@ -131,7 +133,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	private class AlarmManagerSetupPanel extends MonPanelSetupPanel implements ItemListener, ActionListener{
 
 		private JCheckBox selectAllPointCb = new JCheckBox("Select All Points");
-		private JCheckBox allowAutoAlarms = new JCheckBox("Allow Automatic Notifications");
 		private JLabel catLabel = new JLabel("Select Alarm Categories: ");
 
 
@@ -1729,6 +1730,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		if (alarming.localListModel.isEmpty()){
 			alarming.setFlashing(false);
 		}
+		if (AlarmMaintainer.autoAlarms){
+			allowAutoAlarms.setSelected(true);
+		} else {
+			allowAutoAlarms.setSelected(false);
+		}
 	}
 
 	// /////////////////////// NESTED CLASS ///////////////////////////////
@@ -1755,7 +1761,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 						} else {
 							boolean highPriority = false;
 							for (int i = 0; i < alarming.localListModel.size(); i++){
-								if (AlarmMaintainer.getAlarm(((String) alarming.localListModel.get(i))).getPriority() >= 2){ //should only siren on Major or Severe alarms
+								if (AlarmMaintainer.getAlarm(((String) alarming.localListModel.get(i))).getPriority() >= 1){ //should only siren on Major or Severe alarms
 									highPriority = true;
 									break;
 								}
