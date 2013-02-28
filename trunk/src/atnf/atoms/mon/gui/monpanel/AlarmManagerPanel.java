@@ -1719,7 +1719,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		ignLabel.setText("IGN: " + ignored.plist.getModel().getSize());
 		ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
 		shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
-		almLabel.setText("ALM: " + ignored.plist.getModel().getSize());
+		almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
 		Alarm thisAlarm = event.getAlarm();
 		if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
 			alarming.setFlashing(true);

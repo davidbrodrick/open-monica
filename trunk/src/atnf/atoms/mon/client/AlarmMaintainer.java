@@ -81,11 +81,6 @@ public class AlarmMaintainer implements Runnable {
 		for (AlarmEventListener ael : theirListeners) {
 			ael.onAlarmEvent(ae);
 		}
-
-		if (a.isAlarming() && a.getPriority() == 3) {
-			displayAlarmNotification(a);
-		}
-
 	}
 
 	/**
