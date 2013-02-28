@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -1387,6 +1388,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 		});
 		
+		multiSelectLabel.setOpaque(true);
+		
 		statusPanel.add(ignLabel);
 		statusPanel.add(ackLabel);
 		statusPanel.add(shvLabel);
@@ -1621,6 +1624,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					itsPoints.remove(bStr);
 				}
 			}
+			
+			Collections.sort(itsPoints);
 
 			this.updateLists();
 
@@ -1716,6 +1721,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	@Override
 	public void onAlarmEvent(AlarmEvent event) {
 		updateListModels();
+		all.updateList();
+		ignored.updateList();
+		acknowledged.updateList();
+		shelved.updateList();
+		alarming.updateList();
 		ignLabel.setText("IGN: " + ignored.plist.getModel().getSize());
 		ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
 		shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
