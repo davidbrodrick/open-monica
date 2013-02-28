@@ -487,14 +487,25 @@ public class MoniCAClientIce extends MoniCAClient {
       // Get the alarms from the server and construct local representations from them
       AlarmIce[] icealarms = itsIceClient.getAllAlarms();
       if (icealarms != null && icealarms.length > 0) {
-        res = new Vector<Alarm>(icealarms.length);
-        for (int i = 0; i < icealarms.length; i++) {
+        // First check if we need to fetch any new point definitions
+        Vector<String> fetchpoints = null;        
+        for (int i = 0; i < icealarms.length; i++) {       
           String pointname = icealarms[i].pointname;
           if (PointDescription.getPoint(pointname) == null) {
             // We need to fetch the point definition for this point
             System.err.println("MoniCAClientIce.getAllAlarms: Fetching PointDescription for " + pointname);
-            getPoint(pointname);
+            if (fetchpoints==null) {
+              fetchpoints = new Vector<String>(icealarms.length);
+            }
+            fetchpoints.add(pointname);
           }
+        }
+        if (fetchpoints!=null) {
+          getPoints(fetchpoints);
+        }
+        
+        res = new Vector<Alarm>(icealarms.length);
+        for (int i = 0; i < icealarms.length; i++) {
           Alarm thisalarm = MoniCAIceUtil.getAlarmFromIce(icealarms[i]);
           if (thisalarm != null) {
             res.add(thisalarm);

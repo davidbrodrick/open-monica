@@ -1072,7 +1072,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			if (layout.equals(layoutOptions[0])){
 				this.setPreferredSize(new Dimension(numControls * 50, 180));
 			} else {
-				this.setPreferredSize(new Dimension(180, numControls * 30));
+				this.setPreferredSize(new Dimension(180, 50 + numControls * 30));
 			}
 
 			String res = itsSetup.get("points");
