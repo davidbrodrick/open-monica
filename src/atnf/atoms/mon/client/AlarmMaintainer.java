@@ -49,6 +49,7 @@ public class AlarmMaintainer implements Runnable {
 	private static ArrayList<AlarmEventListener> theirListeners = new ArrayList<AlarmEventListener>();
 
 	public static HashMap<String, AlarmPopupFrame> popupMap = new HashMap<String, AlarmPopupFrame>();
+	private static String lastMapped = "";
 
 	/**
 	 * Registers the specified listener with the AlarmEvent source
@@ -98,7 +99,11 @@ public class AlarmMaintainer implements Runnable {
 					AlarmPopupFrame apf = new AlarmPopupFrame(a);
 					apf.pack();
 					apf.setVisible(true);
+					if (popupMap.size() > 0) {
+						apf.setLocationRelativeTo(popupMap.get(lastMapped));
+					}
 					popupMap.put(apf.getPointName(), apf);
+					lastMapped = apf.getPointName();
 				}
 			}
 		});

@@ -17,12 +17,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.InputStream;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.DataLine;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -35,7 +30,6 @@ import atnf.atoms.mon.AlarmEventListener;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.client.AlarmMaintainer;
 import atnf.atoms.mon.client.MonClientUtil;
-import atnf.atoms.mon.gui.monpanel.AlarmManagerPanel;
 import atnf.atoms.time.RelTime;
 
 /**
@@ -289,31 +283,6 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 		}
 	}
 
-	/** Play an audio sample on the sound card. */
-	private boolean playAudio(String resname) {
-		RelTime sleep = RelTime.factory(1000000);
-		try {
-			InputStream in = AlarmManagerPanel.class.getClassLoader().getResourceAsStream(resname);
-			AudioInputStream soundIn = AudioSystem.getAudioInputStream(in);
-			DataLine.Info info = new DataLine.Info(Clip.class, soundIn.getFormat());
-			Clip clip = (Clip) AudioSystem.getLine(info);
-			clip.open(soundIn);
-			sleep.sleep(); // Clips start of clip without this
-			clip.start();
-			// Wait until clip is finished then release the sound card
-			while (clip.isActive()) {
-				Thread.yield();
-			}
-			clip.drain();
-			sleep.sleep(); // Clips end of clip without this
-			clip.close();
-		} catch (Exception e) {
-			System.err.println("AlarmManagerPanel.playAudio: " + e.getClass());
-			return false;
-		}
-		return true;
-	}
-
 	// Test for a blank popup frame
 	public static void main(String[] args){
 		AlarmPopupFrame apf = new AlarmPopupFrame();
@@ -336,7 +305,7 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 			try {
 				RelTime sleep = RelTime.factory(10000000);
 				while (alive){
-					boolean success = playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
+					boolean success = MonClientUtil.playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
 					if (success == false) throw (new Exception());
 					sleep.sleep();
 				}
