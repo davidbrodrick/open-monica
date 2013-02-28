@@ -9,7 +9,6 @@ package atnf.atoms.mon.gui.monpanel;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -1359,7 +1358,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 			for (ControlPanelDisplayComponent c : panelList){
 				if (source.equals(c.getConfirmButton())){
-					String[] creds = MonClientUtil.showLogin((Component)this, username, passwd);
+					String[] creds = MonClientUtil.showLogin(this, username, passwd);
 					username = creds[0];
 					passwd = creds[1];
 					if (username.isEmpty() || passwd.isEmpty()){
