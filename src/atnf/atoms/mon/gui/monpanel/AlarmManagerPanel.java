@@ -636,6 +636,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 		});
 
+		Object[] selections; 
+
 		String typeString;
 
 		JButton notify = new JButton("Notify");
@@ -1311,6 +1313,29 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		public void setFlashing(boolean flash){
 			flashing = flash;
 		}
+
+		public void storeSelections(){
+			selections = plist.getSelectedValues();
+		}
+
+		public void setSelections(){
+			if (selections.length > 0){
+				int[] res = new int[selections.length];
+				int i = 0;
+				int j = 0;
+				for (i = 0; i < plist.getModel().getSize(); i++){
+					for (j = 0; j < selections.length; j++){
+						if (plist.getModel().getElementAt(i).toString().equals(selections[j].toString())){
+							res[j] = i;
+							break;
+						}
+					}
+				}
+				this.plist.setSelectedIndices(res);
+			} else {
+				this.showDefaultAlarmPanels();
+			}
+		}
 	}
 
 	// ///////////////////// END NESTED CLASS /////////////////////////////
@@ -1685,14 +1710,34 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		AlarmMaintainer.removeListener(this);
 	}
 
+	private void storeSelections(){
+		all.storeSelections();
+		ignored.storeSelections();
+		nonAlarmed.storeSelections();
+		acknowledged.storeSelections();
+		shelved.storeSelections();
+		alarming.storeSelections();
+	}
+
+	private void setSelections(){
+		all.setSelections();
+		ignored.setSelections();
+		nonAlarmed.setSelections();
+		acknowledged.setSelections();
+		shelved.setSelections();
+		alarming.setSelections();
+	}
+
 	@Override
 	public void onAlarmEvent(AlarmEvent event) {
+		this.storeSelections();
 		updateListModels();
 		all.updateList();
 		ignored.updateList();
 		acknowledged.updateList();
 		shelved.updateList();
 		alarming.updateList();
+		this.setSelections();
 		ignLabel.setText("IGN: " + ignored.plist.getModel().getSize());
 		ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
 		shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
