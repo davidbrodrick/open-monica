@@ -8,37 +8,35 @@
 package atnf.atoms.mon.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.InputStream;
 
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.border.Border;
 
 import atnf.atoms.mon.Alarm;
 import atnf.atoms.mon.AlarmEvent;
 import atnf.atoms.mon.AlarmEventListener;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.client.AlarmMaintainer;
-import atnf.atoms.mon.util.MailSender;
+import atnf.atoms.mon.client.MonClientUtil;
+import atnf.atoms.mon.gui.monpanel.AlarmManagerPanel;
+import atnf.atoms.time.RelTime;
 
 /**
  * Class that encapsulates the creation of a JFrame that holds the information about a 
@@ -57,6 +55,8 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 	String itsName;
 	PointDescription itsPointDesc;
 	Alarm itsAlarm;
+	boolean alive = true;
+	AudioWarning klaxon = new AudioWarning();
 
 	boolean shelved = false;
 
@@ -70,6 +70,8 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 	JButton notify = new JButton("NOTIFY");
 	JButton ack = new JButton("ACK");
 	JButton shelve = new JButton("SHELVE");
+	JButton dismiss = new JButton("DISMISS");
+	JButton ignoreAlms = new JButton("Turn off Notifications");
 
 	/**
 	 * Constructor for a new AlarmPopupFrame
@@ -85,18 +87,17 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 
 			details = new AlarmPanel(itsName);
 			this.setLayout(new BorderLayout());
-			this.setMinimumSize(new Dimension(500, 800));
+			this.setMinimumSize(new Dimension(300,500));
 			this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 			this.setTitle("ALARM NOTIFICATION FOR POINT " + itsName);
 			JPanel content = new JPanel(new BorderLayout());
-			//detailsScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 			detailsScroller.setViewportView(details);
-			notify.setToolTipText("Notify someone about these alarms through email.");
-			notify.setFont(new Font("Sans Serif", Font.BOLD, 36));
+			notify.setToolTipText("Notify someone about this alarm through email.");
+			notify.setFont(new Font("Sans Serif", Font.BOLD, 18));
 			notify.addActionListener(this);
 			notify.setActionCommand("notify");
-			ack.setToolTipText("Acknowledge these alarms.");
-			ack.setFont(new Font("Sans Serif", Font.BOLD, 36));
+			ack.setToolTipText("Acknowledge this alarm.");
+			ack.setFont(new Font("Sans Serif", Font.BOLD, 18));
 			ack.setActionCommand("ack");
 			ack.addActionListener(this);
 			if (itsAlarm.isShelved()) shelved = true;
@@ -105,33 +106,54 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 			} else {
 				shelve.setText("SHELVE");
 			}
-			shelve.setToolTipText("Shelve the selected alarms.");
-			shelve.setFont(new Font("Sans Serif", Font.BOLD, 36));
+			shelve.setToolTipText("Shelve this alarm.");
+			shelve.setFont(new Font("Sans Serif", Font.BOLD, 18));
 			shelve.setActionCommand("shelve");
 			shelve.addActionListener(this);
+			dismiss.setToolTipText("Dismiss this alarm.");
+			dismiss.setFont(new Font("Sans Serif", Font.BOLD, 18));
+			dismiss.setActionCommand("dismiss");
+			dismiss.addActionListener(this);
+			ignoreAlms.setToolTipText("Turn off automatic notifications.");
+			ignoreAlms.setFont(new Font("Sans Serif", Font.BOLD, 18));
+			ignoreAlms.setActionCommand("ignore");
+			ignoreAlms.addActionListener(this);
 			this.addWindowListener(new WindowAdapter(){
 				public void windowClosing(WindowEvent we){
 					AlarmMaintainer.removeListener(AlarmPopupFrame.this);
 				}
 			});
 			JPanel optionButtons = new JPanel();
-			optionButtons.setLayout(new GridLayout(1,3));
+			optionButtons.setLayout(new GridLayout(2,2));
 			optionButtons.add(notify);
 			optionButtons.add(ack);
 			optionButtons.add(shelve);
-			JPanel confirmButtons = new JPanel();
-			confirmButtons.setLayout(new GridLayout(1,2));
+			optionButtons.add(dismiss);
 
 			content.add(detailsScroller, BorderLayout.CENTER);
 			content.add(optionButtons, BorderLayout.SOUTH);
 			this.getContentPane().add(content, BorderLayout.CENTER);
-			this.getContentPane().add(confirmButtons, BorderLayout.SOUTH);
+			this.getContentPane().add(ignoreAlms, BorderLayout.SOUTH);
 			this.pack();
 			this.setLocationByPlatform(true);
-			this.setVisible(false);
-		} else {
-			new AlarmPopupFrame();
-			this.dispose();
+			this.addWindowListener(new WindowListener(){
+				@Override
+				public void windowActivated(WindowEvent arg0) {}
+				@Override
+				public void windowClosed(WindowEvent arg0) {}
+				@Override
+				public void windowClosing(WindowEvent arg0) {
+					AlarmPopupFrame.this.vaporise();
+				}
+				@Override
+				public void windowDeactivated(WindowEvent arg0) {}
+				@Override
+				public void windowDeiconified(WindowEvent arg0) {}
+				@Override
+				public void windowIconified(WindowEvent arg0) {}
+				@Override
+				public void windowOpened(WindowEvent arg0) {}
+			});
 		}
 	}
 
@@ -143,40 +165,54 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 		itsName = "";
 		details = new AlarmPanel();
 		this.setLayout(new BorderLayout());
-		this.setMinimumSize(new Dimension(500, 800));
+		this.setMinimumSize(new Dimension(300, 500));
 		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		this.setTitle("ALARM NOTIFICATION FOR POINT " + itsName);
 		JPanel content = new JPanel(new BorderLayout());
 		//detailsScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		detailsScroller.setViewportView(details);
 		notify.setToolTipText("Notify someone about these alarms through email.");
-		notify.setFont(new Font("Sans Serif", Font.BOLD, 36));
+		notify.setFont(new Font("Sans Serif", Font.BOLD, 18));
 		notify.addActionListener(this);
 		notify.setActionCommand("notify");
 		ack.setToolTipText("Acknowledge these alarms.");
-		ack.setFont(new Font("Sans Serif", Font.BOLD, 36));
+		ack.setFont(new Font("Sans Serif", Font.BOLD, 18));
 		ack.setActionCommand("ack");
 		ack.addActionListener(this);
-		shelve.setToolTipText("Shelve the selected alarms.");
-		shelve.setFont(new Font("Sans Serif", Font.BOLD, 36));
+		shelve.setToolTipText("Shelve this alarm.");
+		shelve.setFont(new Font("Sans Serif", Font.BOLD, 18));
 		shelve.setActionCommand("shelve");
 		shelve.addActionListener(this);
-
+		dismiss.setToolTipText("Dismiss this alarm.");
+		dismiss.setFont(new Font("Sans Serif", Font.BOLD, 18));
+		dismiss.setActionCommand("dismiss");
+		dismiss.addActionListener(this);
+		ignoreAlms.setToolTipText("Turn off automatic notifications.");
+		ignoreAlms.setFont(new Font("Sans Serif", Font.BOLD, 18));
+		ignoreAlms.setActionCommand("ignore");
+		ignoreAlms.addActionListener(this);
+		this.addWindowListener(new WindowAdapter(){
+			public void windowClosing(WindowEvent we){
+				AlarmMaintainer.removeListener(AlarmPopupFrame.this);
+			}
+		});
 		JPanel optionButtons = new JPanel();
-		optionButtons.setLayout(new GridLayout(1,3));
+		optionButtons.setLayout(new GridLayout(1,4));
 		optionButtons.add(notify);
 		optionButtons.add(ack);
 		optionButtons.add(shelve);
-		JPanel confirmButtons = new JPanel();
-		confirmButtons.setLayout(new GridLayout(1,2));
+		optionButtons.add(dismiss);
 
 		content.add(detailsScroller, BorderLayout.CENTER);
 		content.add(optionButtons, BorderLayout.SOUTH);
 		this.getContentPane().add(content, BorderLayout.CENTER);
-		this.getContentPane().add(confirmButtons, BorderLayout.SOUTH);
+		this.getContentPane().add(ignoreAlms, BorderLayout.SOUTH);
 		this.pack();
 		this.setLocationByPlatform(true);
-		this.setVisible(false);
+	}
+	
+	public String getPointName(){
+		return itsName;
 	}
 
 	@Override
@@ -184,97 +220,19 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 		String command = e.getActionCommand();
 
 		if (command.equals("notify")){
-			//notify via email
-			String[] args = new String[3];
-			JPanel inputs = new JPanel();
-			JPanel tFieldsp = new JPanel();
-			tFieldsp.setLayout(new GridLayout(3,2,0,5));
-			JLabel lemail = new JLabel("CSIRO Recipient: ");
-			JLabel lsubject = new JLabel("Subject: ");
-			JLabel lbody = new JLabel("Body Text: ");
-			lemail.setHorizontalAlignment(JLabel.LEFT);
-			lsubject.setHorizontalAlignment(JLabel.LEFT);
-			JTextField email = new JTextField(20);
-			JTextField subject = new JTextField(20);
-			JTextArea body = new JTextArea(5,20);
-			Border border = BorderFactory.createLineBorder(Color.BLACK);
-			body.setBorder(border);
-			email.setBorder(border);
-			subject.setBorder(border);
-
-			tFieldsp.add(lemail);
-			tFieldsp.add(email);
-			tFieldsp.add(lsubject);
-			tFieldsp.add(subject);
-			tFieldsp.add(lbody);
-
-			inputs.setLayout(new BoxLayout(inputs,BoxLayout.Y_AXIS));
-			inputs.add(tFieldsp);
-			inputs.add(body);
-
-			int result = JOptionPane.showConfirmDialog(this, inputs, "Please fill out the following fields: ", JOptionPane.OK_CANCEL_OPTION);
-			if (result == JOptionPane.OK_OPTION){
-				args[0] = email.getText();
-				args[1] = subject.getText();
-				args[2] = body.getText();
-				args[2] += "\n\n\n\t -- Sent via MoniCA Java Client";
-				try {		
-
-					//if (!args[0].endsWith("@csiro.au")) throw new IllegalArgumentException("Non-CSIRO Email");//Checks for correct email address
-					MailSender.sendMail(args[0], args[1], args[2]);
-					JOptionPane.showMessageDialog(this, "Email successfully sent!", "Email Notification", JOptionPane.INFORMATION_MESSAGE);
-				} catch (IllegalArgumentException e0){
-					JOptionPane.showMessageDialog(this, "Email sending failed!\n" +
-							"You need to send this to a CSIRO email address!", "Email Notification", JOptionPane.ERROR_MESSAGE);
-				} catch (Exception e1){
-					JOptionPane.showMessageDialog(this, "Email sending failed!\n" +
-							"You  may want to check your connection settings.", "Email Notification", JOptionPane.ERROR_MESSAGE);
-				}
-			}
+			MonClientUtil.showEmailPrompt(this);
 
 		} else if (command.equals("ack")){
-			if (username.equals("") || password.equals("")){
-				JPanel inputs = new JPanel();
-				inputs.setLayout(new GridBagLayout());
-				GridBagConstraints gbc = new GridBagConstraints();
-				gbc.fill = GridBagConstraints.HORIZONTAL;
-				gbc.weightx = 0.5;
-				gbc.gridx = 0;
-				gbc.gridy = 0;
-				JLabel usernameLabel = new JLabel("Username: ");
-				JTextField usernameField = new JTextField(20);
-				usernameField.setText(username);
-				inputs.add(usernameLabel, gbc);
-				gbc.gridx = 1;
-				gbc.gridwidth = 3;
-				inputs.add(usernameField, gbc);
-				JLabel passwordLabel = new JLabel("Password: ");
-				JPasswordField passwordField = new JPasswordField(20);
-				gbc.gridx = 0;
-				gbc.gridy = 1;
-				gbc.gridwidth = 1;
-				inputs.add(passwordLabel, gbc);
-				gbc.gridwidth = 3;
-				gbc.gridx = 1;
-				inputs.add(passwordField, gbc);
-
-				int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
-
-				if (result == JOptionPane.OK_OPTION){
-					username = usernameField.getText();
-					password = new String(passwordField.getPassword());
-					if (username.isEmpty() || password.isEmpty()){
-						JOptionPane.showMessageDialog(this, "Invalid Username/Password!", "Authentication Error", JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-				} else {
-					return;
-				}
+			String[] res = MonClientUtil.showLogin(this, username, password);
+			username = res[0];
+			password = res[1];
+			if (username.isEmpty() || password.isEmpty()){
+				password = ""; 
+				return;
 			}
 			try{
 				AlarmMaintainer.setAcknowledged(this.itsName, true, username, password);
-				AlarmMaintainer.removeListener(this);
-				this.dispose();
+				this.vaporise();
 			} catch (Exception ex){
 				password = "";
 				JOptionPane.showMessageDialog(this, "Something went wrong with the sending of data. " +
@@ -283,50 +241,17 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 				return;
 			}
 		} else if (command.equals("shelve")){
-			if (username.equals("") || password.equals("")){
-				JPanel inputs = new JPanel();
-				inputs.setLayout(new GridBagLayout());
-				GridBagConstraints gbc = new GridBagConstraints();
-				gbc.fill = GridBagConstraints.HORIZONTAL;
-				gbc.weightx = 0.5;
-				gbc.gridx = 0;
-				gbc.gridy = 0;
-				JLabel usernameLabel = new JLabel("Username: ");
-				JTextField usernameField = new JTextField(20);
-				usernameField.setText(username);
-				inputs.add(usernameLabel, gbc);
-				gbc.gridx = 1;
-				gbc.gridwidth = 3;
-				inputs.add(usernameField, gbc);
-				JLabel passwordLabel = new JLabel("Password: ");
-				JPasswordField passwordField = new JPasswordField(20);
-				gbc.gridx = 0;
-				gbc.gridy = 1;
-				gbc.gridwidth = 1;
-				inputs.add(passwordLabel, gbc);
-				gbc.gridwidth = 3;
-				gbc.gridx = 1;
-				inputs.add(passwordField, gbc);
-
-				int result = JOptionPane.showConfirmDialog(this, inputs, "Authentication", JOptionPane.OK_CANCEL_OPTION);
-
-				if (result == JOptionPane.OK_OPTION){
-					username = usernameField.getText();
-					password = new String(passwordField.getPassword());
-					if (username.isEmpty() || password.isEmpty()){
-						JOptionPane.showMessageDialog(this, "Invalid Username/Password!", "Authentication Error", JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-				} else {
-					return;
-				}
-			} 
-
+			String[] res = MonClientUtil.showLogin(this, username, password);
+			username = res[0];
+			password = res[1];
+			if (username.isEmpty() || password.isEmpty()){
+				password = ""; 
+				return;
+			}
 			try {
 				shelved = !shelved;
 				AlarmMaintainer.setShelved(this.itsName, shelved, username, password);
-				AlarmMaintainer.removeListener(this);
-				this.dispose();
+				this.vaporise();
 			} catch (Exception ex){
 				password = "";
 				JOptionPane.showMessageDialog(this, "Something went wrong with the sending of data. " +
@@ -336,6 +261,13 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 			}
 		}
 	}
+	
+	private void vaporise(){
+		AlarmMaintainer.removeListener(this);
+		alive = false;
+		AlarmMaintainer.popupMap.remove(itsPointDesc.getFullName());
+		this.dispose();
+	}
 
 
 	@Override
@@ -343,17 +275,40 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 		if (event.getAlarm().getPointDesc().getFullName().equals(this.itsAlarm.getPointDesc().getFullName())){
 			itsAlarm = event.getAlarm();
 			itsPointDesc = itsAlarm.getPointDesc();
-			details = new AlarmPanel(itsName);
-			if (itsAlarm.isShelved()){
-				shelved = true;
-				shelve.setText("UNSHELVE");
-			} else {
-				shelved = false;
-				shelve.setText("SHELVE");
+			AlarmPanel newPanel = new AlarmPanel(itsPointDesc.getFullName());
+			this.detailsScroller.setViewportView(newPanel);
+			if (itsAlarm.getPriority() >= 2 && !klaxon.isAlive()){
+				klaxon.start();
 			}
-			detailsScroller.setViewportView(details);
-
+			if (itsAlarm.getAlarmStatus() != Alarm.ALARMING){
+				this.vaporise();
+			}
 		}
+	}
+
+	/** Play an audio sample on the sound card. */
+	private boolean playAudio(String resname) {
+		RelTime sleep = RelTime.factory(1000000);
+		try {
+			InputStream in = AlarmManagerPanel.class.getClassLoader().getResourceAsStream(resname);
+			AudioInputStream soundIn = AudioSystem.getAudioInputStream(in);
+			DataLine.Info info = new DataLine.Info(Clip.class, soundIn.getFormat());
+			Clip clip = (Clip) AudioSystem.getLine(info);
+			clip.open(soundIn);
+			sleep.sleep(); // Clips start of clip without this
+			clip.start();
+			// Wait until clip is finished then release the sound card
+			while (clip.isActive()) {
+				Thread.yield();
+			}
+			clip.drain();
+			sleep.sleep(); // Clips end of clip without this
+			clip.close();
+		} catch (Exception e) {
+			System.err.println("AlarmManagerPanel.playAudio: " + e.getClass());
+			return false;
+		}
+		return true;
 	}
 
 	// Test for a blank popup frame
@@ -361,4 +316,31 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 		AlarmPopupFrame apf = new AlarmPopupFrame();
 		apf.setVisible(true);
 	}
+	// /////////////////////// NESTED CLASS ///////////////////////////////
+
+	/**
+	 * Class that extends Thread, to create an audio sound effect without tying up any other
+	 * threads, such as the UI or logic threads.
+	 */
+	public class AudioWarning extends Thread {
+		/**
+		 * AudioWarning implementation of the Thread's run() method. Periodically activates
+		 * and sounds an audio warning if there are high priority (priority >=2 ) alarms currently
+		 * alarming.
+		 */
+		@Override
+		public void run() {
+			try {
+				RelTime sleep = RelTime.factory(10000000);
+				while (alive){
+					boolean success = playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
+					if (success == false) throw (new Exception());
+					sleep.sleep();
+				}
+			} catch (Exception e) {
+				System.err.println("Audio Playing failed");
+			}
+		}
+	}
+	// ///////////////////// END NESTED CLASS /////////////////////////////
 }

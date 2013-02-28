@@ -13,6 +13,8 @@ import javax.swing.*;
 
 import java.awt.*;
 import java.awt.event.*;
+
+import javax.swing.border.Border;
 import javax.swing.tree.*;
 import javax.swing.Timer;
 import atnf.atoms.mon.*;
@@ -855,6 +857,55 @@ public class MonClientUtil {
 			res[0] = username;
 			res[1] = password;
 			return res;
+		}
+	}
+	
+	public static void showEmailPrompt(Component comp){
+		//notify via email
+		String[] args = new String[3];
+		JPanel inputs = new JPanel();
+		JPanel tFieldsp = new JPanel();
+		tFieldsp.setLayout(new GridLayout(3,2,0,5));
+		JLabel lemail = new JLabel("CSIRO Recipient: ");
+		JLabel lsubject = new JLabel("Subject: ");
+		JLabel lbody = new JLabel("Body Text: ");
+		lemail.setHorizontalAlignment(JLabel.LEFT);
+		lsubject.setHorizontalAlignment(JLabel.LEFT);
+		JTextField email = new JTextField(20);
+		JTextField subject = new JTextField(20);
+		JTextArea body = new JTextArea(5,20);
+		Border border = BorderFactory.createLineBorder(Color.BLACK);
+		body.setBorder(border);
+		email.setBorder(border);
+		subject.setBorder(border);
+
+		tFieldsp.add(lemail);
+		tFieldsp.add(email);
+		tFieldsp.add(lsubject);
+		tFieldsp.add(subject);
+		tFieldsp.add(lbody);
+
+		inputs.setLayout(new BoxLayout(inputs,BoxLayout.Y_AXIS));
+		inputs.add(tFieldsp);
+		inputs.add(body);
+
+		int result = JOptionPane.showConfirmDialog(comp, inputs, "Please fill out the following fields: ", JOptionPane.OK_CANCEL_OPTION);
+		if (result == JOptionPane.OK_OPTION){
+			args[0] = email.getText();
+			args[1] = subject.getText();
+			args[2] = body.getText();
+			args[2] += "\n\n\n\t -- Sent via MoniCA Java Client";
+			try {		
+				//if (!args[0].endsWith("@csiro.au")) throw new IllegalArgumentException("Non-CSIRO Email");//Checks for correct email address
+				MailSender.sendMail(args[0], args[1], args[2]);
+				JOptionPane.showMessageDialog(comp, "Email successfully sent!", "Email Notification", JOptionPane.INFORMATION_MESSAGE);
+			} catch (IllegalArgumentException e0){
+				JOptionPane.showMessageDialog(comp, "Email sending failed!\n" +
+						"You need to send this to a CSIRO email address!", "Email Notification", JOptionPane.ERROR_MESSAGE);
+			} catch (Exception e1){
+				JOptionPane.showMessageDialog(comp, "Email sending failed!\n" +
+						"You  may want to check your connection settings.", "Email Notification", JOptionPane.ERROR_MESSAGE);
+			}
 		}
 	}
 }

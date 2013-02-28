@@ -9,7 +9,6 @@ package atnf.atoms.mon.gui.monpanel;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -54,14 +53,11 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -79,7 +75,6 @@ import atnf.atoms.mon.gui.AlarmPanel;
 import atnf.atoms.mon.gui.MonPanel;
 import atnf.atoms.mon.gui.MonPanelSetupPanel;
 import atnf.atoms.mon.gui.PointSourceSelector;
-import atnf.atoms.mon.util.MailSender;
 import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.time.AbsTime;
 import atnf.atoms.time.RelTime;
@@ -792,54 +787,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			String command = e.getActionCommand();
 
 			if (command.equals("notify")){
-				//notify via email
-				String[] args = new String[3];
-				JPanel inputs = new JPanel();
-				JPanel tFieldsp = new JPanel();
-				tFieldsp.setLayout(new GridLayout(3,2,0,5));
-				JLabel lemail = new JLabel("CSIRO Recipient: ");
-				JLabel lsubject = new JLabel("Subject: ");
-				JLabel lbody = new JLabel("Body Text: ");
-				lemail.setHorizontalAlignment(JLabel.LEFT);
-				lsubject.setHorizontalAlignment(JLabel.LEFT);
-				JTextField email = new JTextField(20);
-				JTextField subject = new JTextField(20);
-				JTextArea body = new JTextArea(5,20);
-				Border border = BorderFactory.createLineBorder(Color.BLACK);
-				body.setBorder(border);
-				email.setBorder(border);
-				subject.setBorder(border);
-
-				tFieldsp.add(lemail);
-				tFieldsp.add(email);
-				tFieldsp.add(lsubject);
-				tFieldsp.add(subject);
-				tFieldsp.add(lbody);
-
-				inputs.setLayout(new BoxLayout(inputs,BoxLayout.Y_AXIS));
-				inputs.add(tFieldsp);
-				inputs.add(body);
-
-				int result = JOptionPane.showConfirmDialog(this, inputs, "Please fill out the following fields: ", JOptionPane.OK_CANCEL_OPTION);
-				if (result == JOptionPane.OK_OPTION){
-					args[0] = email.getText();
-					args[1] = subject.getText();
-					args[2] = body.getText();
-					args[2] += "\n\n\n\t -- Sent via MoniCA Java Client";
-					try {		
-						MailSender.sendMail(args[0], args[1], args[2]);
-						JOptionPane.showMessageDialog(this, "Email successfully sent!", "Email Notification", JOptionPane.INFORMATION_MESSAGE);
-					} catch (IllegalArgumentException e0){
-						JOptionPane.showMessageDialog(this, "Email sending failed!\n" +
-								"You need to send this to a CSIRO email address!", "Email Notification", JOptionPane.ERROR_MESSAGE);
-					} catch (Exception e1){
-						JOptionPane.showMessageDialog(this, "Email sending failed!\n" +
-								"You  may want to check your connection settings.", "Email Notification", JOptionPane.ERROR_MESSAGE);
-					}
-				} else {
-					return;
-				}
-
+				MonClientUtil.showEmailPrompt(this);
 			} else if (command.equals("reset")){
 				// cancel the options taken
 				plist.clearSelection();
@@ -852,7 +800,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				} catch (Exception e1) {}
 			} else if (command.equals("ack")){
 				try {
-					String[] creds = MonClientUtil.showLogin((Component)this, username, password);
+					String[] creds = MonClientUtil.showLogin(this, username, password);
 					username = creds[0];
 					password = creds[1];
 					if (username.isEmpty() || password.isEmpty()){
@@ -884,7 +832,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				}
 			} else if (command.equals("shelve")){
 				try {
-					String[] creds = MonClientUtil.showLogin((Component)this, username, password);
+					String[] creds = MonClientUtil.showLogin(this, username, password);
 					username = creds[0];
 					password = creds[1];
 					if (username.isEmpty() || password.isEmpty()){
@@ -1331,6 +1279,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				ack.setEnabled(false);
 				shelve.setEnabled(false);
 				notify.setEnabled(false);
+				AlarmManagerPanel.this.multiSelectLabel.setText("Multi-Select: ON");
+				AlarmManagerPanel.this.multiSelectLabel.setBackground(Color.YELLOW);
 			}
 		}
 
@@ -1353,6 +1303,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				}
 				plist.setSelectedIndices(indices);
 				panelSelections.clear();
+				AlarmManagerPanel.this.multiSelectLabel.setText("Multi-Select: OFF");
+				AlarmManagerPanel.this.multiSelectLabel.setBackground(null);
 			}
 		}
 
@@ -1376,7 +1328,15 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	private static AlarmDisplayPanel acknowledged;
 	private static AlarmDisplayPanel shelved;
 	private static AlarmDisplayPanel alarming;
+	
+	private JPanel statusPanel = new JPanel(new GridLayout(1,5));
+	private JLabel ignLabel = new JLabel("IGN: 0");
+	private JLabel ackLabel = new JLabel("ACK: 0");
+	private JLabel shvLabel = new JLabel("SHV: 0");
+	private JLabel almLabel = new JLabel("ALM: 0");
+	private JLabel multiSelectLabel = new JLabel("Multi-Select: OFF");
 
+	private boolean alive = true;
 	private AudioWarning  klaxon = new AudioWarning();
 
 	/**
@@ -1425,8 +1385,15 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				}
 			}
 		});
+		
+		statusPanel.add(ignLabel);
+		statusPanel.add(ackLabel);
+		statusPanel.add(shvLabel);
+		statusPanel.add(almLabel);
+		statusPanel.add(multiSelectLabel);
 
-		this.add(stateTabs);
+		this.add(stateTabs, BorderLayout.CENTER);
+		this.add(statusPanel, BorderLayout.SOUTH);
 	}
 
 	/**
@@ -1716,6 +1683,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	 */
 	@Override
 	public void vaporise() {
+		alive = false;
 		AlarmMaintainer.removeListener(this);
 	}
 
@@ -1739,7 +1707,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			clip.close();
 		} catch (Exception e) {
 			System.err.println("AlarmManagerPanel.playAudio: " + e.getClass());
-			e.printStackTrace();
 			return false;
 		}
 		return true;
@@ -1748,6 +1715,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	@Override
 	public void onAlarmEvent(AlarmEvent event) {
 		updateListModels();
+		ignLabel.setText("IGN: " + ignored.plist.getModel().getSize());
+		ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
+		shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
+		almLabel.setText("ALM: " + ignored.plist.getModel().getSize());
 		Alarm thisAlarm = event.getAlarm();
 		if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
 			alarming.setFlashing(true);
@@ -1776,7 +1747,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		public void run() {
 			try {
 				RelTime sleep = RelTime.factory(10000000);
-				while (true){
+				while (alive){
 					if (!alarming.localListModel.isEmpty()) {
 						if (muteOn){
 							sleep.sleep();
@@ -1784,7 +1755,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 						} else {
 							boolean highPriority = false;
 							for (int i = 0; i < alarming.localListModel.size(); i++){
-								if (AlarmMaintainer.getAlarm(((String) alarming.localListModel.get(i))).getPriority() >= 0){ //should only siren on Major or Severe alarms
+								if (AlarmMaintainer.getAlarm(((String) alarming.localListModel.get(i))).getPriority() >= 2){ //should only siren on Major or Severe alarms
 									highPriority = true;
 									break;
 								}
