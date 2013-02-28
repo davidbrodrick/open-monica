@@ -85,7 +85,7 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 			itsPointDesc = a.getPointDesc();
 			itsName = itsPointDesc.getFullName();
 
-			details = new AlarmPanel(itsName);
+			details = new AlarmPanel(itsName, true);
 			this.setLayout(new BorderLayout());
 			this.setMinimumSize(new Dimension(300,500));
 			this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -124,7 +124,7 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 				}
 			});
 			JPanel optionButtons = new JPanel();
-			optionButtons.setLayout(new GridLayout(2,2));
+			optionButtons.setLayout(new GridLayout(1,4));
 			optionButtons.add(notify);
 			optionButtons.add(ack);
 			optionButtons.add(shelve);
@@ -218,10 +218,8 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
-
 		if (command.equals("notify")){
 			MonClientUtil.showEmailPrompt(this);
-
 		} else if (command.equals("ack")){
 			String[] res = MonClientUtil.showLogin(this, username, password);
 			username = res[0];
@@ -259,6 +257,11 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 						"\n and your username and password are correct.", "Data Sending Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
+		} else if (command.equals("dismiss")){
+			this.vaporise();
+		} else if (command.equals("ignore")){
+			AlarmMaintainer.autoAlarms = false;
+			this.vaporise();
 		}
 	}
 	
@@ -275,7 +278,7 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 		if (event.getAlarm().getPointDesc().getFullName().equals(this.itsAlarm.getPointDesc().getFullName())){
 			itsAlarm = event.getAlarm();
 			itsPointDesc = itsAlarm.getPointDesc();
-			AlarmPanel newPanel = new AlarmPanel(itsPointDesc.getFullName());
+			AlarmPanel newPanel = new AlarmPanel(itsPointDesc.getFullName(), true);
 			this.detailsScroller.setViewportView(newPanel);
 			if (itsAlarm.getPriority() >= 2 && !klaxon.isAlive()){
 				klaxon.start();
