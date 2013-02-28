@@ -24,7 +24,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.font.TextAttribute;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -35,10 +34,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.DataLine;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -99,7 +94,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	public static HashMap<String, Alarm> lookup = new HashMap<String, Alarm>();
 
 	private JCheckBox allowAutoAlarms = new JCheckBox("Allow Automatic Notifications");
-	
+
 	private boolean muteOn = false;
 	private boolean noPriorityAlarms = false;
 	private boolean informationAlarms = false;
@@ -1330,7 +1325,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	private static AlarmDisplayPanel acknowledged;
 	private static AlarmDisplayPanel shelved;
 	private static AlarmDisplayPanel alarming;
-	
+
 	private JPanel statusPanel = new JPanel(new GridLayout(1,5));
 	private JLabel ignLabel = new JLabel("IGN: 0");
 	private JLabel ackLabel = new JLabel("ACK: 0");
@@ -1387,9 +1382,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				}
 			}
 		});
-		
+
 		multiSelectLabel.setOpaque(true);
-		
+
 		statusPanel.add(ignLabel);
 		statusPanel.add(ackLabel);
 		statusPanel.add(shvLabel);
@@ -1594,9 +1589,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				}
 			}
 
-			/*for (String pd : itsPoints){
-				AlarmMaintainer.setAlarm(PointDescription.getPoint(pd));
-			}*/
 			Vector<String> badPoints = new Vector<String>();
 			for (String s : itsPoints){
 				try {
@@ -1624,7 +1616,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					itsPoints.remove(bStr);
 				}
 			}
-			
+
 			Collections.sort(itsPoints);
 
 			this.updateLists();
@@ -1693,31 +1685,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		AlarmMaintainer.removeListener(this);
 	}
 
-	/** Play an audio sample on the sound card. */
-	private boolean playAudio(String resname) {
-		RelTime sleep = RelTime.factory(1000000);
-		try {
-			InputStream in = AlarmManagerPanel.class.getClassLoader().getResourceAsStream(resname);
-			AudioInputStream soundIn = AudioSystem.getAudioInputStream(in);
-			DataLine.Info info = new DataLine.Info(Clip.class, soundIn.getFormat());
-			Clip clip = (Clip) AudioSystem.getLine(info);
-			clip.open(soundIn);
-			sleep.sleep(); // Clips start of clip without this
-			clip.start();
-			// Wait until clip is finished then release the sound card
-			while (clip.isActive()) {
-				Thread.yield();
-			}
-			clip.drain();
-			sleep.sleep(); // Clips end of clip without this
-			clip.close();
-		} catch (Exception e) {
-			System.err.println("AlarmManagerPanel.playAudio: " + e.getClass());
-			return false;
-		}
-		return true;
-	}
-
 	@Override
 	public void onAlarmEvent(AlarmEvent event) {
 		updateListModels();
@@ -1761,28 +1728,32 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 */
 		@Override
 		public void run() {
+			boolean highPriority = false;
 			try {
 				RelTime sleep = RelTime.factory(10000000);
 				while (alive){
-					if (!alarming.localListModel.isEmpty()) {
-						if (muteOn){
-							sleep.sleep();
-							continue;
-						} else {
-							boolean highPriority = false;
-							for (int i = 0; i < alarming.localListModel.size(); i++){
-								if (AlarmMaintainer.getAlarm(((String) alarming.localListModel.get(i))).getPriority() >= 1){ //should only siren on Major or Severe alarms
-									highPriority = true;
-									break;
+					synchronized (alarming.localListModel){
+						alarming.updateListModel();
+						if (!alarming.localListModel.isEmpty()) {
+							if (muteOn){
+								sleep.sleep();
+								continue;
+							} else {
+								highPriority = false;
+								for (int i = 0; i < alarming.localListModel.size(); i++){
+									if (AlarmMaintainer.getAlarm(((String) alarming.localListModel.get(i))).getPriority() >= 1){
+										highPriority = true;
+										break;
+									}
 								}
 							}
 							if (highPriority){
-								boolean success = playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
+								boolean success = MonClientUtil.playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
 								if (success == false) throw (new Exception());
 							}
 						}
-						sleep.sleep();
 					}
+					sleep.sleep();
 				}
 			} catch (Exception e) {
 				System.err.println("Audio Playing failed");
@@ -1802,7 +1773,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		String point;
 		String action;
 		boolean state;
-
 
 		/**
 		 * Constructor for this DataSender object
