@@ -80,7 +80,7 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 			itsPointDesc = a.getPointDesc();
 			itsName = itsPointDesc.getFullName();
 
-			details = new AlarmPanel(itsName, true);
+			details = new AlarmPanel(itsName);
 			this.setLayout(new BorderLayout());
 			this.setMinimumSize(new Dimension(300,500));
 			this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -273,7 +273,7 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 		if (event.getAlarm().getPointDesc().getFullName().equals(this.itsAlarm.getPointDesc().getFullName())){
 			itsAlarm = event.getAlarm();
 			itsPointDesc = itsAlarm.getPointDesc();
-			AlarmPanel newPanel = new AlarmPanel(itsPointDesc.getFullName(), true);
+			AlarmPanel newPanel = new AlarmPanel(itsPointDesc.getFullName());
 			this.detailsScroller.setViewportView(newPanel);
 			if (itsAlarm.getPriority() >= 2 && !klaxon.isAlive()){
 				klaxon.start();

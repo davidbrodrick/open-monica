@@ -688,9 +688,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			plist.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 			plist.addListSelectionListener(this);
 			JScrollPane plistScroller = new JScrollPane(plist);
-			listPanel.setPreferredSize(new Dimension(170, 200));
+			listPanel.setPreferredSize(new Dimension(200, 200));
 			listPanel.setMinimumSize(new Dimension(140, 100));
-			listPanel.setMaximumSize(new Dimension(170, Integer.MAX_VALUE));
+			listPanel.setMaximumSize(new Dimension(200, Integer.MAX_VALUE));
 
 			reset.setFont(new Font("Sans Serif", Font.ITALIC, reset.getFont().getSize()));
 			mute.setFont(new Font("Sans Serif", Font.ITALIC, reset.getFont().getSize()));
@@ -975,20 +975,28 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 */
 		private void updateAlarmPanels(){
 			JPanel newPanel = new JPanel();
-			newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
+			newPanel.setLayout(new GridBagLayout());
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.weighty = 0.000000001;
+			gbc.weightx = 0.5;
+			gbc.gridx = 0;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.anchor = GridBagConstraints.NORTH;
 
 			Object[] pointNames = plist.getSelectedValues();
 			int i = 0;
 			for (Object o : pointNames){
+				gbc.gridy = i;
 				AlarmPanel a;
 				if (i == pointNames.length-1){
-					a = new AlarmPanel(o.toString(), true);
+					gbc.weighty = 1.0;
+					a = new AlarmPanel(o.toString());
 				} else {
-					a = new AlarmPanel(o.toString(), false);
+					a = new AlarmPanel(o.toString());
 				}
 				a.addMouseListener(this);
 				a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
-				newPanel.add(a);
+				newPanel.add(a, gbc);
 				i++;
 			}
 			alarmDetailsScroller.setViewportView(newPanel);
@@ -1001,8 +1009,16 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 */
 		private void showDefaultAlarmPanels(){
 			lookup.clear();
+			this.updateListModel();
+			this.updateList();
 			JPanel newPanel = new JPanel();
-			newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
+			newPanel.setLayout(new GridBagLayout());
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.weighty = 0.000000001;
+			gbc.weightx = 0.5;
+			gbc.gridx = 0;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.anchor = GridBagConstraints.NORTH;
 
 			Collection<String> alarmingPoints = new Vector<String>();
 			Collection<Alarm> alarms = null;
@@ -1032,15 +1048,17 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				}
 				int i = 0;
 				for (String o : alarmingPoints){
+					gbc.gridy = i;
 					AlarmPanel a;
 					if (i == alarmingPoints.size()-1){
-						a = new AlarmPanel(o, true);
+						gbc.weighty = 1.0;
+						a = new AlarmPanel(o);
 					} else {
-						a = new AlarmPanel(o, false);
+						a = new AlarmPanel(o);
 					}
 					a.addMouseListener(this);
 					a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
-					newPanel.add(a);
+					newPanel.add(a, gbc);
 					i++;
 				}
 			}
@@ -1290,7 +1308,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				jpop.add(ackMen);
 				jpop.add(shvMen);
 				jpop.show(arg0.getComponent(), arg0.getX(), arg0.getY());
+				this.requestFocusInWindow();
 			}
+			
 		}
 		@Override
 		public void mousePressed(MouseEvent arg0) {
@@ -1319,6 +1339,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				} 
 				this.requestFocusInWindow();
 			}
+			
 		}
 
 		@Override
