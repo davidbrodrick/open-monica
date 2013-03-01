@@ -732,6 +732,19 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			reset.addActionListener(this);
 			mute.addItemListener(this);
 			plist.addMouseListener(this);
+			plist.addKeyListener(new KeyListener(){
+				@Override
+				public void keyPressed(KeyEvent arg0) {}
+				@Override
+				public void keyReleased(KeyEvent arg0) {
+					if(arg0.getKeyCode() == KeyEvent.VK_CONTROL || arg0.getKeyCode() == KeyEvent.VK_SHIFT){
+						AlarmManagerPanel.this.multiSelectLabel.setText("Multi-Select: OFF");
+						AlarmManagerPanel.this.multiSelectLabel.setBackground(null);
+					}
+				}
+				@Override
+				public void keyTyped(KeyEvent arg0) {}
+			});
 
 			//let's add the buttons to the button pane now!
 			buttons.add(ignore);
@@ -975,6 +988,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 */
 		private void updateAlarmPanels(){
 			JPanel newPanel = new JPanel();
+			newPanel.setOpaque(true);
+			newPanel.setBackground(Color.WHITE);
 			newPanel.setLayout(new GridBagLayout());
 			GridBagConstraints gbc = new GridBagConstraints();
 			gbc.weighty = 0.000000001;
@@ -993,9 +1008,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					a = new AlarmPanel(o.toString());
 				} else {
 					a = new AlarmPanel(o.toString());
+					a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
 				}
 				a.addMouseListener(this);
-				a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
 				newPanel.add(a, gbc);
 				i++;
 			}
@@ -1008,10 +1023,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 * Shows all alarm points that are currently in an alarming or shelved state
 		 */
 		private void showDefaultAlarmPanels(){
+			if (all.plist.getModel().getSize() == 0){
+				updateLists();
+			}
 			lookup.clear();
 			this.updateListModel();
-			this.updateList();
 			JPanel newPanel = new JPanel();
+			newPanel.setOpaque(true);
+			newPanel.setBackground(Color.WHITE);
 			newPanel.setLayout(new GridBagLayout());
 			GridBagConstraints gbc = new GridBagConstraints();
 			gbc.weighty = 0.000000001;
@@ -1021,11 +1040,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			gbc.anchor = GridBagConstraints.NORTH;
 
 			Collection<String> alarmingPoints = new Vector<String>();
-			Collection<Alarm> alarms = null;
+			Collection<Alarm> alarms = new Vector<Alarm>();
 			if (this.getType() == Alarm.NOT_ALARMED || this.getType() == AlarmDisplayPanel.IGNORED){
 				if (localAlarms.size() > 0){
-					alarms = localAlarms.values();
-				} else {
 					alarms = AlarmMaintainer.getAllAlarms();
 				}
 			} else {
@@ -1055,40 +1072,20 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 						a = new AlarmPanel(o);
 					} else {
 						a = new AlarmPanel(o);
+						a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
 					}
 					a.addMouseListener(this);
-					a.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.GRAY));
 					newPanel.add(a, gbc);
 					i++;
 				}
 			}
-			this.updateList();
+			this.updateListModel();
 			plist.revalidate();
 			plist.repaint();
 			alarmDetailsScroller.setViewportView(newPanel);
 			alarmDetailsScroller.revalidate();
 			alarmDetailsScroller.repaint();
 			this.requestFocusInWindow();
-		}
-
-		private void updateList(){
-			if (plist.getModel().getSize() == 0){
-				@SuppressWarnings ("unchecked")
-				Vector<String> newPoints = (Vector<String>)itsPoints.clone();
-				itsListModel.setSize(itsPoints.size());
-
-				int i = 0;
-				for (String s : newPoints){
-					itsListModel.setElementAt(s, i);
-					i++;
-				}
-				itsPoints = newPoints;
-			}
-			if (this.type == AlarmDisplayPanel.IGNORED){
-				this.updateIgnoreListModel();
-			} else {
-				updateListModel();
-			}
 		}
 
 		/**
@@ -1215,43 +1212,28 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 * Updates the list model for the specified type, and revalidates and repaints the panel
 		 */
 		public void updateListModel() {
-			this.setListModel(itsListModel);
-			Vector<String> newList = new Vector<String>();
-			for (int i = 0; i < localListModel.getSize(); i ++){
-				String s = (String) localListModel.get(i);
-				try {
-					if (localAlarms.get(s).getAlarmStatus() == this.getType()){
-						if (!ignoreList.contains(s)) newList.add(s);
-					} else if (this.getType() == AlarmDisplayPanel.ALL){
-						newList.add(s);
-					}
-				} catch (NullPointerException n){
+			if (this.getType() == AlarmDisplayPanel.IGNORED){
+				localListModel = new DefaultListModel();
+				localListModel.setSize(ignoreList.size());
+				for (String s : ignoreList){
+					localListModel.addElement(s);
+				}
+			} else {
+				this.setListModel(itsListModel);
+				Vector<String> newList = new Vector<String>();
+				for (int i = 0; i < localListModel.getSize(); i ++){
+					String s = (String) localListModel.get(i);
 					if (AlarmMaintainer.getAlarm(s).getAlarmStatus() == this.getType()){
 						if (!ignoreList.contains(s)) newList.add(s);
 					} else if (this.getType() == AlarmDisplayPanel.ALL){
 						newList.add(s);
 					}
 				}
-			}
-
-			localListModel = new DefaultListModel();
-			localListModel.setSize(newList.size());
-			for (int i = 0; i < newList.size(); i++){
-				localListModel.set(i, newList.get(i));
-			}
-			plist.setModel(localListModel);
-			plist.revalidate();
-			plist.repaint();
-		}
-
-		/**
-		 * Updates the list model for the "ignore" list tab
-		 */
-		public void updateIgnoreListModel(){
-			localListModel = new DefaultListModel();
-			localListModel.setSize(ignoreList.size());
-			for (String s : ignoreList){
-				localListModel.addElement(s);
+				localListModel = new DefaultListModel();
+				localListModel.setSize(newList.size());
+				for (int i = 0; i < newList.size(); i++){
+					localListModel.set(i, newList.get(i));
+				}
 			}
 			plist.setModel(localListModel);
 			plist.revalidate();
@@ -1310,7 +1292,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				jpop.show(arg0.getComponent(), arg0.getX(), arg0.getY());
 				this.requestFocusInWindow();
 			}
-			
+
 		}
 		@Override
 		public void mousePressed(MouseEvent arg0) {
@@ -1339,7 +1321,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				} 
 				this.requestFocusInWindow();
 			}
-			
+
 		}
 
 		@Override
@@ -1496,7 +1478,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	 * Shorthand macro for calling the update methods for each of the tabs
 	 */
 	public static void updateListModels(){
-		ignored.updateIgnoreListModel();
+		ignored.updateListModel();
 		nonAlarmed.updateListModel();
 		acknowledged.updateListModel();
 		shelved.updateListModel();
@@ -1718,6 +1700,13 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 			this.updateLists();
 
+			all.showDefaultAlarmPanels();
+			ignored.showDefaultAlarmPanels();
+			nonAlarmed.showDefaultAlarmPanels();
+			acknowledged.showDefaultAlarmPanels();
+			shelved.showDefaultAlarmPanels();
+			alarming.showDefaultAlarmPanels();
+			
 			all.requestFocusInWindow();
 		} catch (final Exception e) {
 			e.printStackTrace();
@@ -1747,17 +1736,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		itsPoints = newPoints;
 
 		nonAlarmed.updateListModel();
-		ignored.updateIgnoreListModel();
+		ignored.updateListModel();
 		acknowledged.updateListModel();
 		shelved.updateListModel();
 		alarming.updateListModel();
-
-		all.showDefaultAlarmPanels();
-		ignored.showDefaultAlarmPanels();
-		nonAlarmed.showDefaultAlarmPanels();
-		acknowledged.showDefaultAlarmPanels();
-		shelved.showDefaultAlarmPanels();
-		alarming.showDefaultAlarmPanels();
 	}
 
 	/**
@@ -1791,7 +1773,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				select.storeSelections();
 			}
 			updateListModels();
-			updateLists();
 			if (thisAlarm.getAlarmStatus() == select.getType() || select.getType() == AlarmDisplayPanel.ALL || select.getType() == AlarmDisplayPanel.IGNORED){
 				select.setSelections();
 			}
@@ -1834,7 +1815,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 		}
 		updateListModels();
-		updateLists();
 		select.setSelections();
 		if (alarming.localListModel.isEmpty()){
 			alarming.setFlashing(false);
