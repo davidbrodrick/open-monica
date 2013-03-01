@@ -27,6 +27,7 @@ import java.awt.font.TextAttribute;
 import java.io.PrintStream;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -92,6 +93,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 	public static HashSet<String> ignoreList = new HashSet<String>();
 	public static HashMap<String, Alarm> lookup = new HashMap<String, Alarm>();
+	public static HashMap<PointDescription, Alarm> localAlarms = new HashMap<PointDescription, Alarm>();
 
 	private JCheckBox allowAutoAlarms = new JCheckBox("Allow Automatic Notifications");
 
@@ -239,7 +241,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				selectAllPointCb.setSelected(true);
 				//weird hack to get the default settings to work
 
-				String[] points = itsPointSelector.getAllPointNames();
+				String[] points = PointDescription.getAllPointNames();
 				if (points.length > 0) {
 					HashSet<String> selections = new HashSet<String>();
 					HashSet<String> allPoints = new HashSet<String>();
@@ -879,6 +881,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 			this.updateAlarmPanels();
 			AlarmManagerPanel.updateListModels();
+			ignLabel.setText("IGN: " + ignoreList.size());
+			ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
+			shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
+			almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
 		}
 
 		private void listIgnore(ActionEvent e){
@@ -992,10 +998,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			JPanel newPanel = new JPanel();
 			newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
 
-			Vector<String> alarmingPoints = new Vector<String>();
-			Vector<Alarm> alarms = null;
+			Collection<String> alarmingPoints = new Vector<String>();
+			Collection<Alarm> alarms = null;
 			if (this.getType() == Alarm.NOT_ALARMED || this.getType() == AlarmDisplayPanel.IGNORED){
-				alarms = AlarmMaintainer.getAllAlarms();
+				if (localAlarms.size() > 0){
+					alarms = localAlarms.values();
+				} else {
+					alarms = AlarmMaintainer.getAllAlarms();
+				}
 			} else {
 				alarms = AlarmMaintainer.getAlarms();
 			}
@@ -1264,7 +1274,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					}
 				} else if (SwingUtilities.isLeftMouseButton(arg0)){
 					plist.clearSelection();
-					plist.setSelectedValue(point, true);
+					try {
+						plist.setSelectedValue(point, true);
+					} catch (NullPointerException n){
+						this.showDefaultAlarmPanels();
+					}
 				} 
 				this.requestFocusInWindow();
 			}
@@ -1710,53 +1724,40 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		AlarmMaintainer.removeListener(this);
 	}
 
-	private void storeSelections(){
-		all.storeSelections();
-		ignored.storeSelections();
-		nonAlarmed.storeSelections();
-		acknowledged.storeSelections();
-		shelved.storeSelections();
-		alarming.storeSelections();
-	}
-
-	private void setSelections(){
-		all.setSelections();
-		ignored.setSelections();
-		nonAlarmed.setSelections();
-		acknowledged.setSelections();
-		shelved.setSelections();
-		alarming.setSelections();
-	}
-
 	@Override
 	public void onAlarmEvent(AlarmEvent event) {
-		this.storeSelections();
-		updateListModels();
-		all.updateList();
-		ignored.updateList();
-		acknowledged.updateList();
-		shelved.updateList();
-		alarming.updateList();
-		this.setSelections();
-		ignLabel.setText("IGN: " + ignored.plist.getModel().getSize());
-		ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
-		shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
-		almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
-		Alarm thisAlarm = event.getAlarm();
-		if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
-			alarming.setFlashing(true);
-			if (!klaxon.isAlive()){
-				klaxon.start();
+		System.out.println(event.getAlarm().isSameAs(localAlarms.get(event.getAlarm().getPointDesc())) + " " + event.getAlarm().getPointDesc().getFullName());
+		if (!event.getAlarm().isSameAs(localAlarms.get(event.getAlarm().getPointDesc()))){
+			Alarm thisAlarm = event.getAlarm();
+			AlarmDisplayPanel select = (AlarmDisplayPanel) stateTabs.getSelectedComponent();
+			if (thisAlarm.getAlarmStatus() == select.getType() || select.getType() == AlarmDisplayPanel.ALL || select.getType() == AlarmDisplayPanel.IGNORED){
+				select.storeSelections();
 			}
-		}
-		if (alarming.localListModel.isEmpty()){
-			alarming.setFlashing(false);
+			updateListModels();
+			updateLists();
+			if (thisAlarm.getAlarmStatus() == select.getType() || select.getType() == AlarmDisplayPanel.ALL || select.getType() == AlarmDisplayPanel.IGNORED){
+				select.setSelections();
+			}
+			localAlarms.put(thisAlarm.getPointDesc(), thisAlarm);
+			if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
+				alarming.setFlashing(true);
+				if (!klaxon.isAlive()){
+					klaxon.start();
+				}
+			}
+			if (alarming.localListModel.isEmpty()){
+				alarming.setFlashing(false);
+			}
 		}
 		if (AlarmMaintainer.autoAlarms){
 			allowAutoAlarms.setSelected(true);
 		} else {
 			allowAutoAlarms.setSelected(false);
 		}
+		ignLabel.setText("IGN: " + ignoreList.size());
+		ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
+		shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
+		almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
 	}
 
 	// /////////////////////// NESTED CLASS ///////////////////////////////
