@@ -7,6 +7,7 @@
 
 package atnf.atoms.mon;
 
+import java.util.Collection;
 import java.util.EventListener;
 
 /**
@@ -23,4 +24,12 @@ public interface AlarmEventListener extends EventListener{
 	 * @param event The AlarmEvent that encapsulates the information about this Alarm change
 	 */
 	public void onAlarmEvent(AlarmEvent event);
+	
+	/**
+	 * Method that is called by the AlarmEvent source on each object that implements the
+	 * AlarmEvent interface to notify that AlarmEventListener of a change in a Collection
+	 * of Alarm objects.
+	 * @param events The Collection of AlarmEvents that encapsulate the information about the Alarm changes
+	 */
+	public void onAlarmEvent(Collection<AlarmEvent> events);
 }
