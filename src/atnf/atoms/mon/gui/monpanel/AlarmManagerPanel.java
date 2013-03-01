@@ -93,7 +93,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 	public static HashSet<String> ignoreList = new HashSet<String>();
 	public static HashMap<String, Alarm> lookup = new HashMap<String, Alarm>();
-	public static HashMap<PointDescription, Alarm> localAlarms = new HashMap<PointDescription, Alarm>();
+	public static HashMap<String, Alarm> localAlarms = new HashMap<String, Alarm>();
 
 	private JCheckBox allowAutoAlarms = new JCheckBox("Allow Automatic Notifications");
 
@@ -922,8 +922,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 		private void listAcknowledge(ActionEvent e){
 			for (Object s : plist.getSelectedValues()){
-				if (AlarmMaintainer.getAlarm(s.toString()).isAlarming()){ //Only able to acknowledge if the alarm is actually alarming
-					new DataSender(s.toString(), "ack", true).start();
+				try {
+					if (localAlarms.get(s.toString()).isAlarming()){ //Only able to acknowledge if the alarm is actually alarming
+						new DataSender(s.toString(), "ack", true).start();
+					}
+				} catch (NullPointerException n){
+					if (AlarmMaintainer.getAlarm(s.toString()).isAlarming()){ //Only able to acknowledge if the alarm is actually alarming
+						new DataSender(s.toString(), "ack", true).start();
+					}
 				}
 			}
 		}
@@ -1113,19 +1119,36 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				if (source.getSelectedIndices().length > 0){
 					this.updateAlarmPanels();
 					ignore.setEnabled(true);
-					if (source.getSelectedIndices().length == 1 && 
-							!AlarmMaintainer.getAlarm(source.getSelectedValue().toString()).isAlarming()){
-						/* Only allow the ack button to be enabled if the selected point is alarming
-						 * or there are multiple points selected, in which case only valid points
-						 * will be acknowledged @see DataSender
-						 */
-						ack.setEnabled(false);
-					} else {
-						ack.setEnabled(true);
+					try {
+						if (source.getSelectedIndices().length == 1 && 
+								!localAlarms.get(source.getSelectedValue().toString()).isAlarming()){
+							/* Only allow the ack button to be enabled if the selected point is alarming
+							 * or there are multiple points selected, in which case only valid points
+							 * will be acknowledged @see DataSender
+							 */
+							ack.setEnabled(false);
+						} else {
+							ack.setEnabled(true);
+						}
+					} catch (NullPointerException n) {
+						if (source.getSelectedIndices().length == 1 && 
+								!AlarmMaintainer.getAlarm(source.getSelectedValue().toString()).isAlarming()){
+							/* Only allow the ack button to be enabled if the selected point is alarming
+							 * or there are multiple points selected, in which case only valid points
+							 * will be acknowledged @see DataSender
+							 */
+							ack.setEnabled(false);
+						} else {
+							ack.setEnabled(true);
+						}
 					}
 					shelve.setEnabled(true);
 					notify.setEnabled(true);
-					selectionIsShelved = AlarmMaintainer.getAlarm(source.getSelectedValue().toString()).isShelved();
+					try {
+						selectionIsShelved = localAlarms.get(source.getSelectedValue().toString()).isShelved();
+					} catch (NullPointerException e1) {
+						selectionIsShelved = AlarmMaintainer.getAlarm(source.getSelectedValue().toString()).isShelved();
+					}
 					selectionIsIgnored = (ignoreList.contains(source.getSelectedValue().toString()));
 					if (selectionIsShelved){
 						shelve.setText("UNSHELVE");
@@ -1178,10 +1201,18 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			Vector<String> newList = new Vector<String>();
 			for (int i = 0; i < localListModel.getSize(); i ++){
 				String s = (String) localListModel.get(i);
-				if (AlarmMaintainer.getAlarm(s).getAlarmStatus() == this.getType()){
-					if (!ignoreList.contains(s)) newList.add(s);
-				} else if (this.getType() == AlarmDisplayPanel.ALL){
-					newList.add(s);
+				try {
+					if (localAlarms.get(s).getAlarmStatus() == this.getType()){
+						if (!ignoreList.contains(s)) newList.add(s);
+					} else if (this.getType() == AlarmDisplayPanel.ALL){
+						newList.add(s);
+					}
+				} catch (NullPointerException n){
+					if (AlarmMaintainer.getAlarm(s).getAlarmStatus() == this.getType()){
+						if (!ignoreList.contains(s)) newList.add(s);
+					} else if (this.getType() == AlarmDisplayPanel.ALL){
+						newList.add(s);
+					}
 				}
 			}
 
@@ -1244,8 +1275,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				} else if (arg0.getComponent() instanceof JList){
 					if (plist.getSelectedIndices().length <= 1){
 						plist.setSelectedIndex(plist.locationToIndex(arg0.getPoint())); //select the item
-						if (!AlarmMaintainer.getAlarm(plist.getSelectedValue().toString()).isAlarming()){
-							ackMen.setEnabled(false); //disable acknowledgement through right-click if selected alarm point is a point that isn't alarming
+						try {
+							if (!localAlarms.get(plist.getSelectedValue().toString()).isAlarming()){
+								ackMen.setEnabled(false); //disable acknowledgement through right-click if selected alarm point is a point that isn't alarming
+							}
+						} catch (NullPointerException n){
+							if (!AlarmMaintainer.getAlarm(plist.getSelectedValue().toString()).isAlarming()){
+								ackMen.setEnabled(false); //disable acknowledgement through right-click if selected alarm point is a point that isn't alarming
+							}
 						}
 					}
 				}
@@ -1726,7 +1763,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 	@Override
 	public void onAlarmEvent(AlarmEvent event) {
-		System.out.println(event.getAlarm().isSameAs(localAlarms.get(event.getAlarm().getPointDesc())) + " " + event.getAlarm().getPointDesc().getFullName());
 		if (!event.getAlarm().isSameAs(localAlarms.get(event.getAlarm().getPointDesc()))){
 			Alarm thisAlarm = event.getAlarm();
 			AlarmDisplayPanel select = (AlarmDisplayPanel) stateTabs.getSelectedComponent();
@@ -1738,7 +1774,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			if (thisAlarm.getAlarmStatus() == select.getType() || select.getType() == AlarmDisplayPanel.ALL || select.getType() == AlarmDisplayPanel.IGNORED){
 				select.setSelections();
 			}
-			localAlarms.put(thisAlarm.getPointDesc(), thisAlarm);
+			localAlarms.put(thisAlarm.getPointDesc().getFullName(), thisAlarm);
 			if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
 				alarming.setFlashing(true);
 				if (!klaxon.isAlive()){
@@ -1748,6 +1784,39 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			if (alarming.localListModel.isEmpty()){
 				alarming.setFlashing(false);
 			}
+		}
+		if (AlarmMaintainer.autoAlarms){
+			allowAutoAlarms.setSelected(true);
+		} else {
+			allowAutoAlarms.setSelected(false);
+		}
+		ignLabel.setText("IGN: " + ignoreList.size());
+		ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
+		shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
+		almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
+	}
+
+	@Override
+	public void onAlarmEvent(Collection<AlarmEvent> events) {
+		AlarmDisplayPanel select = (AlarmDisplayPanel) stateTabs.getSelectedComponent();
+		select.storeSelections();
+		for (AlarmEvent event : events){
+			if (!event.getAlarm().isSameAs(localAlarms.get(event.getAlarm().getPointDesc()))){
+				Alarm thisAlarm = event.getAlarm();
+				if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
+					alarming.setFlashing(true);
+					if (!klaxon.isAlive()){
+						klaxon.start();
+					}
+				}
+				localAlarms.put(thisAlarm.getPointDesc().getFullName(), thisAlarm);
+			}
+		}
+		updateListModels();
+		updateLists();
+		select.setSelections();
+		if (alarming.localListModel.isEmpty()){
+			alarming.setFlashing(false);
 		}
 		if (AlarmMaintainer.autoAlarms){
 			allowAutoAlarms.setSelected(true);
@@ -1787,9 +1856,16 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 							} else {
 								highPriority = false;
 								for (int i = 0; i < alarming.localListModel.size(); i++){
-									if (AlarmMaintainer.getAlarm(((String) alarming.localListModel.get(i))).getPriority() >= 1){
-										highPriority = true;
-										break;
+									try {
+										if (localAlarms.get(((String) alarming.localListModel.get(i))).getPriority() >= 1){
+											highPriority = true;
+											break;
+										}
+									} catch (NullPointerException n){
+										if (AlarmMaintainer.getAlarm(((String) alarming.localListModel.get(i))).getPriority() >= 1){
+											highPriority = true;
+											break;
+										}
 									}
 								}
 							}

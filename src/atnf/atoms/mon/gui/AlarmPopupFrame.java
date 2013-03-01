@@ -17,6 +17,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.Collection;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -315,4 +316,10 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 		}
 	}
 	// ///////////////////// END NESTED CLASS /////////////////////////////
+
+	@Override
+	public void onAlarmEvent(Collection<AlarmEvent> events) {
+		//Don't need to worry about this, rely on normal call only
+		return;
+	}
 }

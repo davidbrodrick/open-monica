@@ -10,6 +10,7 @@
 package atnf.atoms.mon.client;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
@@ -84,6 +85,17 @@ public class AlarmMaintainer implements Runnable {
 		}
 	}
 
+	private synchronized static void fireAlarmEvent(Collection<Alarm> a) {
+		Vector<AlarmEvent> alarms = new Vector<AlarmEvent>();
+		for (Alarm am : a){
+			AlarmEvent ae = new AlarmEvent(am.getPointDesc(), am);
+			alarms.add(ae);
+		}
+		for (AlarmEventListener ael : theirListeners) {
+			ael.onAlarmEvent(alarms);
+		}
+	}
+
 	/**
 	 * Method to display automatically an Alarm notification popup frame if the alarm in question is actively alarming and is part of
 	 * the highest bracket of alarm priorities.
@@ -125,10 +137,18 @@ public class AlarmMaintainer implements Runnable {
 							}
 						}
 						// Notify any listeners about the updates
-						for (Alarm a : newalarms) {
-							if (a.getAlarmStatus() == Alarm.ALARMING && a.getPriority() >= 1) displayAlarmNotification(a);
-							fireAlarmEvent(a);
+						if (newalarms.size() > 1){
+							fireAlarmEvent(newalarms);
+							for (Alarm a : newalarms) {
+								if (a.getAlarmStatus() == Alarm.ALARMING && a.getPriority() >= 1) displayAlarmNotification(a);
+							}
+						} else {
+							for (Alarm a : newalarms) {
+								if (a.getAlarmStatus() == Alarm.ALARMING && a.getPriority() >= 1) displayAlarmNotification(a);
+								fireAlarmEvent(a);
+							}
 						}
+
 					}
 				} else if (theirListeners.size() > 0) { // if automatic alarms are not enabled,
 					// only update when there are registered listeners
@@ -144,8 +164,10 @@ public class AlarmMaintainer implements Runnable {
 						}
 
 						// Notify any listeners about the updates
-						for (Alarm a : newalarms) {
-							fireAlarmEvent(a);
+						if (newalarms.size() > 1){
+							fireAlarmEvent(newalarms);
+						} else {
+							fireAlarmEvent(newalarms.get(0));
 						}
 					}
 				}
@@ -260,6 +282,10 @@ public class AlarmMaintainer implements Runnable {
 		AlarmEventListener listener = new AlarmEventListener() {
 			public void onAlarmEvent(AlarmEvent event) {
 				System.err.println(event.getAlarm());
+			}
+
+			@Override
+			public void onAlarmEvent(Collection<AlarmEvent> events) {
 			}
 		};
 		AlarmMaintainer.addListener(listener);
