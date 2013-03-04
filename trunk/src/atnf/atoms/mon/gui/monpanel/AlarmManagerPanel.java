@@ -1043,7 +1043,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 			Collection<String> alarmingPoints = new Vector<String>();
 			Collection<Alarm> alarms = new Vector<Alarm>();
-			if (this.getType() == AlarmDisplayPanel.IGNORED){
+			if (this.getType() == AlarmDisplayPanel.ALL || this.getType() == AlarmDisplayPanel.IGNORED){
 				alarms = AlarmMaintainer.getAllAlarms();
 			} else {
 				alarms = AlarmMaintainer.getAlarms();
@@ -1365,8 +1365,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			flashing = flash;
 		}
 
-		public void storeSelections(){
+		public boolean storeSelections(){
+			selections = new String[plist.getSelectedValues().length];
 			selections = plist.getSelectedValues();
+			if (selections.length > 0){
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 		public void setSelections(){
@@ -1442,13 +1448,19 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		stateTabs.addChangeListener(new ChangeListener(){
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				JTabbedPane source = (JTabbedPane) e.getSource();
+				final JTabbedPane source = (JTabbedPane) e.getSource();
 				try{
-					((AlarmDisplayPanel) source.getSelectedComponent()).showDefaultAlarmPanels();
-					((AlarmDisplayPanel) source.getSelectedComponent()).requestFocusInWindow();
-					if (((AlarmDisplayPanel) source.getSelectedComponent()).equals(alarming)){
-						alarming.setFlashing(false);
-					}
+					SwingUtilities.invokeLater(new Runnable(){
+						@Override
+						public void run(){
+							((AlarmDisplayPanel) source.getSelectedComponent()).showDefaultAlarmPanels();
+							((AlarmDisplayPanel) source.getSelectedComponent()).requestFocusInWindow();
+							if (((AlarmDisplayPanel) source.getSelectedComponent()).equals(alarming)){
+								alarming.setFlashing(false);
+							}
+						}
+					});
+
 				} catch (NullPointerException n){
 					System.err.println("Null Pointer Exception in selecting tabs");
 				}
@@ -1698,12 +1710,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			shelved.showDefaultAlarmPanels();
 			alarming.showDefaultAlarmPanels();
 
-			if (alarming.localListModel.size() > 0){
-				stateTabs.setSelectedComponent(alarming);
-				alarming.requestFocusInWindow();
-			} else {
-				all.requestFocusInWindow();
-			}
+			stateTabs.setSelectedComponent(alarming);
+			alarming.requestFocusInWindow();
 
 		} catch (final Exception e) {
 			e.printStackTrace();
@@ -1762,19 +1770,28 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 	@Override
 	public void onAlarmEvent(AlarmEvent event) {
+		boolean selectionsStored = false;
+		final AlarmDisplayPanel select = (AlarmDisplayPanel) stateTabs.getSelectedComponent();
 		if (!event.getAlarm().isSameAs(localAlarms.get(event.getAlarm().getPointDesc()))){
 			Alarm thisAlarm = event.getAlarm();
-			AlarmDisplayPanel select = (AlarmDisplayPanel) stateTabs.getSelectedComponent();
+
 			if (thisAlarm.getAlarmStatus() == select.getType() || select.getType() == AlarmDisplayPanel.ALL || select.getType() == AlarmDisplayPanel.IGNORED){
-				select.storeSelections();
+				selectionsStored = select.storeSelections();
 			}
 			updateListModels();
-			if (thisAlarm.getAlarmStatus() == select.getType() || select.getType() == AlarmDisplayPanel.ALL || select.getType() == AlarmDisplayPanel.IGNORED){
+			if (selectionsStored){
 				select.setSelections();
+			} else {
+				select.showDefaultAlarmPanels();
 			}
 			localAlarms.put(thisAlarm.getPointDesc().getFullName(), thisAlarm);
 			if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
-				alarming.setFlashing(true);
+				SwingUtilities.invokeLater(new Runnable(){
+					@Override
+					public void run(){
+						alarming.setFlashing(true);
+					}
+				});
 				if (!klaxon.isAlive()){
 					klaxon.start();
 				}
@@ -1783,26 +1800,51 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				alarming.setFlashing(false);
 			}
 		}
+		if (selectionsStored){
+			SwingUtilities.invokeLater(new Runnable(){
+				@Override
+				public void run(){
+					select.setSelections();
+				}
+			});
+		} else {
+			SwingUtilities.invokeLater(new Runnable(){
+				@Override
+				public void run(){
+					select.showDefaultAlarmPanels();
+				}
+			});
+		}
 		if (AlarmMaintainer.autoAlarms){
 			allowAutoAlarms.setSelected(true);
 		} else {
 			allowAutoAlarms.setSelected(false);
 		}
-		ignLabel.setText("IGN: " + ignoreList.size());
-		ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
-		shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
-		almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
+		SwingUtilities.invokeLater(new Runnable(){
+			@Override
+			public void run(){
+				ignLabel.setText("IGN: " + ignoreList.size());
+				ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
+				shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
+				almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
+			}
+		});
 	}
 
 	@Override
 	public void onAlarmEvent(Collection<AlarmEvent> events) {
-		AlarmDisplayPanel select = (AlarmDisplayPanel) stateTabs.getSelectedComponent();
-		select.storeSelections();
+		final AlarmDisplayPanel select = (AlarmDisplayPanel) stateTabs.getSelectedComponent();
+		boolean selectionsStored = select.storeSelections();
 		for (AlarmEvent event : events){
-			if (!event.getAlarm().isSameAs(localAlarms.get(event.getAlarm().getPointDesc()))){
+			if (!event.getAlarm().isSameAs(localAlarms.get(event.getAlarm().getPointDesc().getFullName()))){
 				Alarm thisAlarm = event.getAlarm();
 				if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
-					alarming.setFlashing(true);
+					SwingUtilities.invokeLater(new Runnable(){
+						@Override
+						public void run(){
+							alarming.setFlashing(true);
+						}
+					});
 					if (!klaxon.isAlive()){
 						klaxon.start();
 					}
@@ -1811,8 +1853,22 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 		}
 		updateListModels();
-		select.setSelections();
-		if (alarming.localListModel.isEmpty()){
+		if (selectionsStored){
+			SwingUtilities.invokeLater(new Runnable(){
+				@Override
+				public void run(){
+					select.setSelections();
+				}
+			});
+		} else {
+			SwingUtilities.invokeLater(new Runnable(){
+				@Override
+				public void run(){
+					select.showDefaultAlarmPanels();
+				}
+			});
+		}
+		if (alarming.plist.getModel().getSize() == 0){
 			alarming.setFlashing(false);
 		}
 		if (AlarmMaintainer.autoAlarms){
@@ -1820,10 +1876,15 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		} else {
 			allowAutoAlarms.setSelected(false);
 		}
-		ignLabel.setText("IGN: " + ignoreList.size());
-		ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
-		shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
-		almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
+		SwingUtilities.invokeLater(new Runnable(){
+			@Override
+			public void run(){
+				ignLabel.setText("IGN: " + ignoreList.size());
+				ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
+				shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
+				almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
+			}
+		});
 	}
 
 	// /////////////////////// NESTED CLASS ///////////////////////////////
