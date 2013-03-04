@@ -1017,7 +1017,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				i++;
 			}
 			alarmDetailsScroller.setViewportView(newPanel);
-			alarmDetailsScroller.revalidate();
 			alarmDetailsScroller.repaint();
 		}
 
@@ -1078,12 +1077,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					newPanel.add(a, gbc);
 					i++;
 				}
-				plist.revalidate();
-				plist.repaint();
-				alarmDetailsScroller.setViewportView(newPanel);
-				alarmDetailsScroller.revalidate();
-				alarmDetailsScroller.repaint();
 			}
+			plist.revalidate();
+			plist.repaint();
+			alarmDetailsScroller.setViewportView(newPanel);
+			alarmDetailsScroller.repaint();
 			this.requestFocusInWindow();
 		}
 
@@ -1450,17 +1448,15 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			public void stateChanged(ChangeEvent e) {
 				final JTabbedPane source = (JTabbedPane) e.getSource();
 				try{
-					SwingUtilities.invokeLater(new Runnable(){
-						@Override
-						public void run(){
-							((AlarmDisplayPanel) source.getSelectedComponent()).showDefaultAlarmPanels();
-							((AlarmDisplayPanel) source.getSelectedComponent()).requestFocusInWindow();
-							if (((AlarmDisplayPanel) source.getSelectedComponent()).equals(alarming)){
-								alarming.setFlashing(false);
-							}
-						}
-					});
-
+					JPanel replace = new JPanel();
+					replace.setBackground(Color.WHITE);
+					replace.setOpaque(true);
+					((AlarmDisplayPanel) source.getSelectedComponent()).alarmDetailsScroller.setViewportView(replace);
+					((AlarmDisplayPanel) source.getSelectedComponent()).showDefaultAlarmPanels();
+					((AlarmDisplayPanel) source.getSelectedComponent()).requestFocusInWindow();
+					if (((AlarmDisplayPanel) source.getSelectedComponent()).equals(alarming)){
+						alarming.setFlashing(false);
+					}
 				} catch (NullPointerException n){
 					System.err.println("Null Pointer Exception in selecting tabs");
 				}
@@ -1839,12 +1835,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			if (!event.getAlarm().isSameAs(localAlarms.get(event.getAlarm().getPointDesc().getFullName()))){
 				Alarm thisAlarm = event.getAlarm();
 				if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
-					SwingUtilities.invokeLater(new Runnable(){
-						@Override
-						public void run(){
-							alarming.setFlashing(true);
-						}
-					});
+					if (select.getType() != Alarm.ALARMING){
+						alarming.setFlashing(true);
+					} else {
+						alarming.setFlashing(false);
+					}
 					if (!klaxon.isAlive()){
 						klaxon.start();
 					}
