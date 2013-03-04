@@ -61,7 +61,6 @@ public class AlarmPanel extends JPanel {
 	JLabel ackedAt;
 	JLabel shelvedBy;
 	JLabel shelvedAt;
-	JLabel guidanceString;
 	JTextArea guidance;
 
 	/**
@@ -101,7 +100,7 @@ public class AlarmPanel extends JPanel {
 			gbc.gridwidth = 1;
 			gbc.weightx = 0.5;
 			gbc.weighty = 0.5;
-			gbc.insets = new Insets(0, 0, 10, 0);
+			gbc.insets = new Insets(0, 0, 3, 0);
 
 			JPanel alarmTitle = new JPanel();
 			alarmTitle.setLayout(new BoxLayout(alarmTitle, BoxLayout.X_AXIS));
@@ -155,23 +154,21 @@ public class AlarmPanel extends JPanel {
 				shelvedBy.setText("Shelved by: ");
 				shelvedAt.setText("Shelved at: ");
 			}
-			pointString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
-			pointDesc.setFont(new Font("Sans Serif", Font.ITALIC, 18));
-			statusString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
-			status.setFont(new Font("Sans Serif", Font.ITALIC, 18));
-			ackedBy.setFont(new Font("Sans Serif", Font.ITALIC, 18));
-			ackedAt.setFont(new Font("Sans Serif", Font.ITALIC, 18));
-			shelvedBy.setFont(new Font("Sans Serif", Font.ITALIC, 18));
-			shelvedAt.setFont(new Font("Sans Serif", Font.ITALIC, 18));
+			pointString.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			pointDesc.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			statusString.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			status.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			ackedBy.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			ackedAt.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			shelvedBy.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			shelvedAt.setFont(new Font("Sans Serif", Font.BOLD, 14));
 
 			alarmStatus.setLayout(new BoxLayout(alarmStatus, BoxLayout.X_AXIS));
 			alarmStatus.add(statusString);
 			alarmStatus.add(status);
 
-			guidanceString = new JLabel("Guidance:");
-			guidance = new JTextArea("\t" + itsAlarm.getGuidance(), 2, 10);
-			guidanceString.setFont(new Font("Sans Serif", Font.ITALIC, 18));
-			guidance.setFont(new Font("Sans Serif", Font.ITALIC, 14));
+			guidance = new JTextArea(itsAlarm.getGuidance(), 2, 10);
+			guidance.setFont(new Font("Sans Serif", Font.PLAIN, 14));
 			guidance.setEditable(false);
 			guidance.setWrapStyleWord(true);
 			guidance.setLineWrap(true);
@@ -183,7 +180,6 @@ public class AlarmPanel extends JPanel {
 			ackedAt.setBackground(Color.WHITE);
 			shelvedBy.setBackground(Color.WHITE);
 			shelvedAt.setBackground(Color.WHITE);
-			guidanceString.setBackground(Color.WHITE);
 
 			alarmTitle.setOpaque(true);
 			pointString.setOpaque(true);
@@ -193,7 +189,6 @@ public class AlarmPanel extends JPanel {
 			ackedAt.setOpaque(true);
 			shelvedBy.setOpaque(true);
 			shelvedAt.setOpaque(true);
-			guidanceString.setOpaque(true);
 			guidance.setOpaque(true);
 
 			alarmTitle.add(Box.createHorizontalGlue());
@@ -202,7 +197,7 @@ public class AlarmPanel extends JPanel {
 
 			this.add(alarmTitle, gbc);
 			gbc.gridy +=1;
-			gbc.insets = new Insets(0, 10, 5, 10);
+			gbc.insets = new Insets(0, 10, 2, 10);
 			this.add(pointString, gbc);
 			gbc.gridy +=1;
 			this.add(pointDesc, gbc);
@@ -222,8 +217,6 @@ public class AlarmPanel extends JPanel {
 				gbc.gridy +=1;
 			}
 			if (this.getAlarm().isAlarming()){
-				this.add(guidanceString, gbc);
-				gbc.gridy +=1;
 				this.add(guidance, gbc);
 				gbc.gridy +=1;
 			}
@@ -260,7 +253,6 @@ public class AlarmPanel extends JPanel {
 		ackedAt.setBackground(c);
 		shelvedBy.setBackground(c);
 		shelvedAt.setBackground(c);
-		guidanceString.setBackground(c);
 		guidance.setBackground(c);
 	}
 
