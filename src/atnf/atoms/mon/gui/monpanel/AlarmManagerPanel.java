@@ -625,14 +625,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			public void actionPerformed(ActionEvent e){
 				if (flashing){
 					if (flashOn){
-						stateTabs.setBackgroundAt(5, null);
+						stateTabs.setBackgroundAt(4, null);
 						flashOn = false;
 					} else {
-						stateTabs.setBackgroundAt(5, Color.YELLOW);
+						stateTabs.setBackgroundAt(4, Color.YELLOW);
 						flashOn = true;
 					}
 				} else {
-					stateTabs.setBackgroundAt(5, null);
+					stateTabs.setBackgroundAt(4, null);
 					flashOn = false;
 				}
 			}
@@ -1043,10 +1043,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 			Collection<String> alarmingPoints = new Vector<String>();
 			Collection<Alarm> alarms = new Vector<Alarm>();
-			if (this.getType() == Alarm.NOT_ALARMED || this.getType() == AlarmDisplayPanel.IGNORED){
-				if (localAlarms.size() > 0){
-					alarms = AlarmMaintainer.getAllAlarms();
-				}
+			if (this.getType() == AlarmDisplayPanel.IGNORED){
+				alarms = AlarmMaintainer.getAllAlarms();
 			} else {
 				alarms = AlarmMaintainer.getAlarms();
 			}
@@ -1192,7 +1190,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					muteOn = true;
 					all.mute.setSelected(true);
 					ignored.mute.setSelected(true);
-					nonAlarmed.mute.setSelected(true);
 					acknowledged.mute.setSelected(true);
 					shelved.mute.setSelected(true);
 					alarming.mute.setSelected(true);
@@ -1201,7 +1198,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					muteOn = false;
 					all.mute.setSelected(false);
 					ignored.mute.setSelected(false);
-					nonAlarmed.mute.setSelected(false);
 					acknowledged.mute.setSelected(false);
 					shelved.mute.setSelected(false);
 					alarming.mute.setSelected(false);
@@ -1401,7 +1397,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	private JTabbedPane stateTabs;
 	private static AlarmDisplayPanel all;
 	private static AlarmDisplayPanel ignored;
-	private static AlarmDisplayPanel nonAlarmed;
 	private static AlarmDisplayPanel acknowledged;
 	private static AlarmDisplayPanel shelved;
 	private static AlarmDisplayPanel alarming;
@@ -1427,7 +1422,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		stateTabs = new JTabbedPane(JTabbedPane.TOP);
 		all = new AlarmDisplayPanel("all");
 		ignored = new AlarmDisplayPanel("ignored");
-		nonAlarmed = new AlarmDisplayPanel("nonAlarmed");
 		acknowledged = new AlarmDisplayPanel("acknowledged");
 		shelved = new AlarmDisplayPanel("shelved");
 		alarming = new AlarmDisplayPanel("alarming");
@@ -1435,17 +1429,15 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		// Insert the tabs into the tabbed pane
 		stateTabs.insertTab("All", null, all, "List of all alarms", 0);
 		stateTabs.insertTab("Ignored", null, ignored, "List of ignored alarms", 1);
-		stateTabs.insertTab("Non-Alarmed", null, nonAlarmed, "List of non-alarming Alarms", 2);
-		stateTabs.insertTab("Acknowledged", null, acknowledged, "List of Acknowledged Alarms", 3);
-		stateTabs.insertTab("Shelved", null, shelved, "List of Shelved Alarms", 4);
-		stateTabs.insertTab("Alarming", null , alarming, "List of Currently Active alarms", 5);
+		stateTabs.insertTab("Acknowledged", null, acknowledged, "List of Acknowledged Alarms", 2);
+		stateTabs.insertTab("Shelved", null, shelved, "List of Shelved Alarms", 3);
+		stateTabs.insertTab("Alarming", null , alarming, "List of Currently Active alarms", 4);
 
 		stateTabs.setForegroundAt(0, AlarmManagerPanel.ALL_COLOUR);
 		stateTabs.setForegroundAt(1, AlarmManagerPanel.IGNORE_COLOUR);
-		stateTabs.setForegroundAt(2, AlarmManagerPanel.NOT_ALARMED_COLOUR);
-		stateTabs.setForegroundAt(3, AlarmManagerPanel.ACKNOWLEDGED_COLOUR);
-		stateTabs.setForegroundAt(4, AlarmManagerPanel.SHELVED_COLOUR);
-		stateTabs.setForegroundAt(5, AlarmManagerPanel.ALARMING_COLOUR);
+		stateTabs.setForegroundAt(2, AlarmManagerPanel.ACKNOWLEDGED_COLOUR);
+		stateTabs.setForegroundAt(3, AlarmManagerPanel.SHELVED_COLOUR);
+		stateTabs.setForegroundAt(4, AlarmManagerPanel.ALARMING_COLOUR);
 
 		stateTabs.addChangeListener(new ChangeListener(){
 			@Override
@@ -1480,7 +1472,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	 */
 	public static void updateListModels(){
 		ignored.updateListModel();
-		nonAlarmed.updateListModel();
 		acknowledged.updateListModel();
 		shelved.updateListModel();
 		alarming.updateListModel();
@@ -1703,7 +1694,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 			all.showDefaultAlarmPanels();
 			ignored.showDefaultAlarmPanels();
-			nonAlarmed.showDefaultAlarmPanels();
 			acknowledged.showDefaultAlarmPanels();
 			shelved.showDefaultAlarmPanels();
 			alarming.showDefaultAlarmPanels();
@@ -1714,7 +1704,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			} else {
 				all.requestFocusInWindow();
 			}
-			
+
 		} catch (final Exception e) {
 			e.printStackTrace();
 			if (itsFrame != null) {
@@ -1742,7 +1732,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		}
 		itsPoints = newPoints;
 
-		nonAlarmed.updateListModel();
 		ignored.updateListModel();
 		acknowledged.updateListModel();
 		shelved.updateListModel();
