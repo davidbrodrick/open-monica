@@ -1448,15 +1448,20 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			public void stateChanged(ChangeEvent e) {
 				final JTabbedPane source = (JTabbedPane) e.getSource();
 				try{
-					JPanel replace = new JPanel();
-					replace.setBackground(Color.WHITE);
-					replace.setOpaque(true);
-					((AlarmDisplayPanel) source.getSelectedComponent()).alarmDetailsScroller.setViewportView(replace);
-					((AlarmDisplayPanel) source.getSelectedComponent()).showDefaultAlarmPanels();
-					((AlarmDisplayPanel) source.getSelectedComponent()).requestFocusInWindow();
-					if (((AlarmDisplayPanel) source.getSelectedComponent()).equals(alarming)){
-						alarming.setFlashing(false);
-					}
+					SwingUtilities.invokeLater(new Runnable(){
+						@Override
+						public void run(){
+							JPanel replace = new JPanel();
+							replace.setBackground(Color.WHITE);
+							replace.setOpaque(true);
+							((AlarmDisplayPanel) source.getSelectedComponent()).alarmDetailsScroller.setViewportView(replace);
+							((AlarmDisplayPanel) source.getSelectedComponent()).showDefaultAlarmPanels();
+							((AlarmDisplayPanel) source.getSelectedComponent()).requestFocusInWindow();
+							if (((AlarmDisplayPanel) source.getSelectedComponent()).equals(alarming)){
+								alarming.setFlashing(false);
+							}
+						}
+					});
 				} catch (NullPointerException n){
 					System.err.println("Null Pointer Exception in selecting tabs");
 				}
