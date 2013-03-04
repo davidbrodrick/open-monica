@@ -152,60 +152,6 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 		}
 	}
 
-	/**
-	 * Constructor for a blank AlarmPopupFrame
-	 * @throws HeadlessException
-	 */
-	public AlarmPopupFrame() throws HeadlessException {
-		itsName = "";
-		details = new AlarmPanel();
-		this.setLayout(new BorderLayout());
-		this.setMinimumSize(new Dimension(300, 500));
-		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		this.setTitle("ALARM NOTIFICATION FOR POINT " + itsName);
-		JPanel content = new JPanel(new BorderLayout());
-		//detailsScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		detailsScroller.setViewportView(details);
-		notify.setToolTipText("Notify someone about these alarms through email.");
-		notify.setFont(new Font("Sans Serif", Font.BOLD, 18));
-		notify.addActionListener(this);
-		notify.setActionCommand("notify");
-		ack.setToolTipText("Acknowledge these alarms.");
-		ack.setFont(new Font("Sans Serif", Font.BOLD, 18));
-		ack.setActionCommand("ack");
-		ack.addActionListener(this);
-		shelve.setToolTipText("Shelve this alarm.");
-		shelve.setFont(new Font("Sans Serif", Font.BOLD, 18));
-		shelve.setActionCommand("shelve");
-		shelve.addActionListener(this);
-		dismiss.setToolTipText("Dismiss this alarm.");
-		dismiss.setFont(new Font("Sans Serif", Font.BOLD, 18));
-		dismiss.setActionCommand("dismiss");
-		dismiss.addActionListener(this);
-		ignoreAlms.setToolTipText("Turn off automatic notifications.");
-		ignoreAlms.setFont(new Font("Sans Serif", Font.BOLD, 18));
-		ignoreAlms.setActionCommand("ignore");
-		ignoreAlms.addActionListener(this);
-		this.addWindowListener(new WindowAdapter(){
-			public void windowClosing(WindowEvent we){
-				AlarmMaintainer.removeListener(AlarmPopupFrame.this);
-			}
-		});
-		JPanel optionButtons = new JPanel();
-		optionButtons.setLayout(new GridLayout(1,4));
-		optionButtons.add(notify);
-		optionButtons.add(ack);
-		optionButtons.add(shelve);
-		optionButtons.add(dismiss);
-
-		content.add(detailsScroller, BorderLayout.CENTER);
-		content.add(optionButtons, BorderLayout.SOUTH);
-		this.getContentPane().add(content, BorderLayout.CENTER);
-		this.getContentPane().add(ignoreAlms, BorderLayout.SOUTH);
-		this.pack();
-		this.setLocationByPlatform(true);
-	}
-	
 	public String getPointName(){
 		return itsName;
 	}
@@ -284,11 +230,6 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 		}
 	}
 
-	// Test for a blank popup frame
-	public static void main(String[] args){
-		AlarmPopupFrame apf = new AlarmPopupFrame();
-		apf.setVisible(true);
-	}
 	// /////////////////////// NESTED CLASS ///////////////////////////////
 
 	/**

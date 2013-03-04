@@ -702,6 +702,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 			// Alarm Details Panel
 			alarmPanels.add(new AlarmPanel(t));
+			alarmPanels.setBackground(Color.WHITE);
+			alarmPanels.setOpaque(true);
 			alarmDetailsScroller = new JScrollPane(alarmPanels);
 			alarmDetailsScroller.getVerticalScrollBar().setUnitIncrement(24);
 
@@ -1078,13 +1080,12 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					newPanel.add(a, gbc);
 					i++;
 				}
+				plist.revalidate();
+				plist.repaint();
+				alarmDetailsScroller.setViewportView(newPanel);
+				alarmDetailsScroller.revalidate();
+				alarmDetailsScroller.repaint();
 			}
-			this.updateListModel();
-			plist.revalidate();
-			plist.repaint();
-			alarmDetailsScroller.setViewportView(newPanel);
-			alarmDetailsScroller.revalidate();
-			alarmDetailsScroller.repaint();
 			this.requestFocusInWindow();
 		}
 
@@ -1706,8 +1707,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			acknowledged.showDefaultAlarmPanels();
 			shelved.showDefaultAlarmPanels();
 			alarming.showDefaultAlarmPanels();
+
+			if (alarming.localListModel.size() > 0){
+				stateTabs.setSelectedComponent(alarming);
+				alarming.requestFocusInWindow();
+			} else {
+				all.requestFocusInWindow();
+			}
 			
-			all.requestFocusInWindow();
 		} catch (final Exception e) {
 			e.printStackTrace();
 			if (itsFrame != null) {

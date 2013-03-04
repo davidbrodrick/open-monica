@@ -65,15 +65,6 @@ public class AlarmPanel extends JPanel {
 	JTextArea guidance;
 
 	/**
-	 * Default constructor for when an AlarmPanel is created with no associated Alarm
-	 */
-	public AlarmPanel(){
-		this.setLayout(new GridBagLayout());
-		JLabel nope = new JLabel("No selected Alarm point");
-		this.add(nope);
-	}
-
-	/**
 	 * Constructor for an AlarmPanel
 	 * @param name The name of the point in dotted-delimiter format
 	 */
@@ -81,6 +72,7 @@ public class AlarmPanel extends JPanel {
 
 		// Setup on new AlarmPanel instance
 		this.rankSetup();
+		this.setBackground(Color.WHITE);
 
 		boolean hasPointDesc = false;
 
@@ -100,7 +92,6 @@ public class AlarmPanel extends JPanel {
 
 			itsAlarmStatus = itsAlarm.getAlarmStatus();
 
-			this.setBackground(Color.WHITE);
 			this.setLayout(new GridBagLayout());
 			GridBagConstraints gbc = new GridBagConstraints();
 			gbc.fill = GridBagConstraints.BOTH;
@@ -236,10 +227,6 @@ public class AlarmPanel extends JPanel {
 				this.add(guidance, gbc);
 				gbc.gridy +=1;
 			}
-		} else {
-			this.setLayout(new GridBagLayout());
-			JLabel nope = new JLabel("No selected Alarm point");
-			this.add(nope);
 		}
 	}
 
