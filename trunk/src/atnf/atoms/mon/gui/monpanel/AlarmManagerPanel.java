@@ -1072,12 +1072,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 
 			for (Alarm a : alarms){ //put all the alarms in a locally maintained lookup table
-				if (ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.IGNORED){ //case for ignored tab
-					alarmingPoints.add(a.getPointDesc().getFullName());
-				} else if (!ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.ALL){ //case for all tab
-					alarmingPoints.add(a.getPointDesc().getFullName());
-				} else if (!ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == a.getAlarmStatus()){ //case for all tab
-					alarmingPoints.add(a.getPointDesc().getFullName());
+				if (itsPoints.contains(a.getPointDesc().getFullName())){
+					if (ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.IGNORED){ //case for ignored tab
+						alarmingPoints.add(a.getPointDesc().getFullName());
+					} else if (!ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.ALL){ //case for all tab
+						alarmingPoints.add(a.getPointDesc().getFullName());
+					} else if (!ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == a.getAlarmStatus()){ //case for all tab
+						alarmingPoints.add(a.getPointDesc().getFullName());
+					}
 				}
 			}
 			if (alarmingPoints.size() > 0){
@@ -1413,24 +1415,28 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 */
 		public void setSelections(){
 			if (selections.length > 0){
-				int[] res = new int[selections.length];
-				int i = 0;
-				int j = 0;
-				for (i = 0; i < plist.getModel().getSize(); i++){
-					for (j = 0; j < selections.length; j++){
-						if (plist.getModel().getElementAt(i).toString().equals(selections[j].toString())){
-							res[j] = i;
-							break;
+				try {
+					int[] res = new int[selections.length];
+					int i = 0;
+					int j = 0;
+					for (i = 0; i < plist.getModel().getSize(); i++){
+						for (j = 0; j < selections.length; j++){
+							if (plist.getModel().getElementAt(i).toString().equals(selections[j].toString())){
+								res[j] = i;
+								break;
+							}
 						}
 					}
+					this.plist.setSelectedIndices(res);
+					SwingUtilities.invokeLater(new Runnable(){
+						@Override
+						public void run(){
+							alarmDetailsScroller.getVerticalScrollBar().setValue(scrollBarPos);
+						}
+					});
+				} catch (Exception e){
+					this.showDefaultAlarmPanels();
 				}
-				this.plist.setSelectedIndices(res);
-				SwingUtilities.invokeLater(new Runnable(){
-					@Override
-					public void run(){
-						alarmDetailsScroller.getVerticalScrollBar().setValue(scrollBarPos);
-					}
-				});
 			} else {
 				this.showDefaultAlarmPanels();
 			}
