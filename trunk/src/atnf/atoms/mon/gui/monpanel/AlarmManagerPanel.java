@@ -1946,14 +1946,13 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		@Override
 		public void run() {
 			boolean highPriority = false;
-			try {
-				RelTime sleep = RelTime.factory(10000000);
-				while (alive){
+			RelTime sleep = RelTime.factory(10000000);
+			while (alive){
+				try {
 					synchronized (alarming.localListModel){
 						alarming.updateListModel();
 						if (!alarming.localListModel.isEmpty()) {
 							if (muteOn){
-								sleep.sleep();
 								continue;
 							} else {
 								highPriority = false;
@@ -1977,10 +1976,13 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 							}
 						}
 					}
-					sleep.sleep();
+				} catch (Exception e) {
+					System.err.println("Audio Playing failed");
+				} finally {
+					try {
+						sleep.sleep();
+					}catch (Exception ex){}
 				}
-			} catch (Exception e) {
-				System.err.println("Audio Playing failed");
 			}
 		}
 	}
