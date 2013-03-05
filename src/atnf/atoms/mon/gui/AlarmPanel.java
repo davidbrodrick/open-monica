@@ -12,7 +12,9 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.TimeZone;
 import java.util.Vector;
 
 import javax.swing.Box;
@@ -43,6 +45,9 @@ public class AlarmPanel extends JPanel {
 	 * 
 	 */
 	private static final long serialVersionUID = 5673594608903644332L;
+	
+	/** Australian non daylight-savings timezone. Would be nice to have a way to get this from the server though. */
+	private static String timezone = "UTC+10";
 
 	String itsName;
 	String itsUser;
@@ -68,6 +73,15 @@ public class AlarmPanel extends JPanel {
 	 * @param name The name of the point in dotted-delimiter format
 	 */
 	public AlarmPanel(String name) {
+		TimeZone tz = TimeZone.getTimeZone("Australia/Sydney");
+		boolean inDs = tz.inDaylightTime(new Date());
+		
+		if (inDs){
+			timezone = "UTC+11";
+		} else {
+			timezone = "UTC+10";
+		}
+
 
 		// Setup on new AlarmPanel instance
 		this.rankSetup();
@@ -143,13 +157,13 @@ public class AlarmPanel extends JPanel {
 				status.setForeground(AlarmManagerPanel.SHELVED_COLOUR);
 			}
 			ackedBy = new JLabel("Acknowledged by: " + itsAlarm.getAckedBy());
-			ackedAt = new JLabel("Acknowledged at: " + itsAlarm.getAckedAt().toString(Format.UTC_STRING));
+			ackedAt = new JLabel("Acknowledged at: " + itsAlarm.getAckedAt().toString(Format.UTC_STRING) + " (" + timezone + ")");
 			if (itsAlarm.getAckedBy().equals("null")){
 				ackedBy.setText("Acknowledged by: ");
 				ackedAt.setText("Acknowledged at: ");
 			}
 			shelvedBy = new JLabel("Shelved by: " + itsAlarm.getShelvedBy());
-			shelvedAt = new JLabel("Shelved at " + itsAlarm.getShelvedAt().toString(Format.UTC_STRING));
+			shelvedAt = new JLabel("Shelved at " + itsAlarm.getShelvedAt().toString(Format.UTC_STRING) + " (" + timezone + ")");
 			if (itsAlarm.getShelvedBy().equals("null")){
 				shelvedBy.setText("Shelved by: ");
 				shelvedAt.setText("Shelved at: ");
