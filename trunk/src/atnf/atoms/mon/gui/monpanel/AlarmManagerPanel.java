@@ -92,7 +92,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	}
 
 	public static HashSet<String> ignoreList = new HashSet<String>();
-	public static HashMap<String, Alarm> lookup = new HashMap<String, Alarm>();
 	public static HashMap<String, Alarm> localAlarms = new HashMap<String, Alarm>();
 
 	private JCheckBox allowAutoAlarms = new JCheckBox("Allow Automatic Notifications");
@@ -639,6 +638,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		});
 
 		Object[] selections; 
+		int scrollBarPos = 0;
 
 		String typeString;
 
@@ -672,7 +672,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			//LAYOUT
 
 			//Set internals of the panel to appear left to right - 
-			// only two internal panes, at least.
 			this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
 			// Let's start with initialising some JPanels
@@ -902,6 +901,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
 		}
 
+		/**
+		 * Ignores a number of Alarms that have been selected from the JList
+		 * @param e The ActionEvent that is received that triggers this behaviour
+		 */
 		private void listIgnore(ActionEvent e){
 			if (this.getType() != AlarmDisplayPanel.ALL && this.getType() != AlarmDisplayPanel.IGNORED){ //regular tabs
 				Object[] listValues = plist.getSelectedValues();
@@ -928,6 +931,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 		}
 
+		/**
+		 * Shelves a number of Alarms that have been selected from the JList
+		 * @param e The ActionEvent that is received that triggers this behaviour
+		 */
 		private void listShelve(ActionEvent e){
 			selectionIsShelved = !selectionIsShelved;
 			for (Object s : plist.getSelectedValues()){
@@ -935,6 +942,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 		}
 
+		/**
+		 * Acknowledges a number of Alarms that have been selected from the JList
+		 * @param e The ActionEvent that is received that triggers this behaviour
+		 */
 		private void listAcknowledge(ActionEvent e){
 			for (Object s : plist.getSelectedValues()){
 				try {
@@ -949,6 +960,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 		}
 
+		/**
+		 * Ignores an alarm where only a single panel is the focus, with no selections in the JList
+		 * @param e The ActionEvent that is received that triggers this behaviour
+		 */
 		private void singlePanelIgnore(ActionEvent e){
 			JMenuItem source = (JMenuItem) e.getSource();
 			JPopupMenu parent = (JPopupMenu) source.getParent();
@@ -968,6 +983,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 		}
 
+		/**
+		 * Shelves an alarm where only a single panel is the focus, with no selections in the JList
+		 * @param e The ActionEvent that is received that triggers this behaviour
+		 */
 		private void singlePanelShelve(ActionEvent e){
 			JMenuItem source = (JMenuItem) e.getSource();
 			JPopupMenu parent = (JPopupMenu) source.getParent();
@@ -977,6 +996,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			new DataSender(point, "shelve", selectionIsShelved).start();
 		}
 
+		/**
+		 * Acknowledges an alarm where only a single panel is the focus, with no selections in the JList
+		 * @param e The ActionEvent that is received that triggers this behaviour
+		 */
 		private void singlePanelAcknowledge(ActionEvent e){
 			JMenuItem source = (JMenuItem) e.getSource();
 			JPopupMenu parent = (JPopupMenu) source.getParent();
@@ -1027,7 +1050,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			if (all.plist.getModel().getSize() == 0){
 				updateLists();
 			}
-			lookup.clear();
 			this.updateListModel();
 			JPanel newPanel = new JPanel();
 			newPanel.setOpaque(true);
@@ -1040,7 +1062,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.anchor = GridBagConstraints.NORTH;
 
-			Collection<String> alarmingPoints = new Vector<String>();
+			Collection<String> alarmingPoints = new ArrayList<String>();
 			Collection<Alarm> alarms = new Vector<Alarm>();
 			if (this.getType() == AlarmDisplayPanel.ALL || this.getType() == AlarmDisplayPanel.IGNORED){
 				alarms = AlarmMaintainer.getAllAlarms();
@@ -1050,18 +1072,15 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 			for (Alarm a : alarms){ //put all the alarms in a locally maintained lookup table
 				if (ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.IGNORED){ //case for ignored tab
-					lookup.put(a.getPointDesc().getFullName(), a);
+					alarmingPoints.add(a.getPointDesc().getFullName());
 				} else if (!ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.ALL){ //case for all tab
-					lookup.put(a.getPointDesc().getFullName(), a);
+					alarmingPoints.add(a.getPointDesc().getFullName());
 				} else if (!ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == a.getAlarmStatus()){ //case for all tab
-					lookup.put(a.getPointDesc().getFullName(), a);
+					alarmingPoints.add(a.getPointDesc().getFullName());
 				}
 			}
-			if (lookup.size() > 0){
-				String[] res = basicReverseQuickSort((lookup.keySet().toArray(new String[0])), 0, lookup.size());
-				for (int i = 0; i < res.length; i++){
-					alarmingPoints.add(res[i]);
-				}
+			if (alarmingPoints.size() > 0){
+				alarmingPoints = alphaSortByPriority(alarmingPoints.toArray(new String[0]));
 				int i = 0;
 				for (String o : alarmingPoints){
 					gbc.gridy = i;
@@ -1082,13 +1101,19 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			plist.repaint();
 			alarmDetailsScroller.setViewportView(newPanel);
 			alarmDetailsScroller.repaint();
+			SwingUtilities.invokeLater(new Runnable(){
+				@Override
+				public void run() { 
+					alarmDetailsScroller.getVerticalScrollBar().setValue(0);
+				}
+			});
 			this.requestFocusInWindow();
 		}
 
 		/**
 		 * Simple reverse-quicksort implementation on ArrayLists.<br/>
 		 * Adapted from {@link http://en.wikipedia.org/wiki/Quicksort#Simple_version}
-		 * @deprecated Use the {@link AlarmManagerPanel#basicQuickSort} method instead
+		 * @deprecated Uses the {@link AlarmManagerPanel#basicQuickSort} method instead.
 		 * @param array The ArrayList to be reverse-sorted
 		 * @return The reverse-sorted ArrayList
 		 * @see <a href=http://en.wikipedia.org/wiki/Quicksort#Simple_version">http://en.wikipedia.org/wiki/Quicksort#Simple_version</a>
@@ -1359,13 +1384,22 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		@Override
 		public void keyTyped(KeyEvent arg0) {}
 
+		/**
+		 * Sets the boolean value for whether this panel's tab should start flashing.
+		 * @param flash A boolean signifying whether this should start flashing or not.
+		 */
 		public void setFlashing(boolean flash){
 			flashing = flash;
 		}
 
+		/**
+		 * Method that stores the current list selections.
+		 * @return Returns true if there were selections stored, otherwise false
+		 */
 		public boolean storeSelections(){
 			selections = new String[plist.getSelectedValues().length];
 			selections = plist.getSelectedValues();
+			scrollBarPos = alarmDetailsScroller.getVerticalScrollBar().getValue();
 			if (selections.length > 0){
 				return true;
 			} else {
@@ -1373,6 +1407,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 		}
 
+		/**
+		 * Method to reset the selections in the JList after they have been stored, if applicable
+		 */
 		public void setSelections(){
 			if (selections.length > 0){
 				int[] res = new int[selections.length];
@@ -1387,6 +1424,12 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					}
 				}
 				this.plist.setSelectedIndices(res);
+				SwingUtilities.invokeLater(new Runnable(){
+					@Override
+					public void run(){
+						alarmDetailsScroller.getVerticalScrollBar().setValue(scrollBarPos);
+					}
+				});
 			} else {
 				this.showDefaultAlarmPanels();
 			}
@@ -2002,12 +2045,13 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 	/**
 	 * Basic reverse quicksort implementation adapted from {@link http://www.javacodegeeks.com/2012/06/all-you-need-to-know-about-quicksort.html}
+	 * @deprecated Uses {@link AlarmManagerPanel#alphaSortByPriority(String[])} instead.
 	 * @param arr The array to be sorted
 	 * @param beginIdx The index to begin sorting from
 	 * @param len The length within the array to be sorted
 	 * @return The sorted array (or subsection thereof)
 	 */
-	public static String[] basicReverseQuickSort(String arr[], int beginIdx, int len) {
+	public static String[] basicReverseQuickSort(String arr[], int beginIdx, int len, HashMap<String, Alarm> lookup) {
 		if ( len <= 1 )
 			return arr;
 
@@ -2027,8 +2071,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		arr = swap(arr, p, endIdx);
 
 		// recursive call
-		arr = basicReverseQuickSort(arr, p+1,  endIdx-p);
-		arr = basicReverseQuickSort(arr, beginIdx, p-beginIdx);
+		arr = basicReverseQuickSort(arr, p+1,  endIdx-p, lookup);
+		arr = basicReverseQuickSort(arr, beginIdx, p-beginIdx, lookup);
 		return arr;
 	}
 	/**
@@ -2043,5 +2087,41 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		arr[i] = arr[e];
 		arr[e] = temp;
 		return arr;
+	}
+
+	/**
+	 * Utility method to sort an array of Alarm names alphabetically, and by their priorities
+	 * @param arr An array containing the names of the strings
+	 * @return The sorted array
+	 */
+	private static ArrayList<String> alphaSortByPriority(String arr[]){
+		ArrayList<String> sev = new ArrayList<String>();
+		ArrayList<String> maj = new ArrayList<String>();
+		ArrayList<String> min = new ArrayList<String>();
+		ArrayList<String> inf = new ArrayList<String>();
+
+		for (int i = 0; i < arr.length; i++){
+			int pr = AlarmMaintainer.getAlarm(arr[i]).getPriority();
+			if (pr == 3){
+				sev.add(arr[i]);
+			} else if (pr == 2){
+				maj.add(arr[i]);
+			} else if (pr == 1){
+				min.add(arr[i]);
+			} else if (pr == 0){
+				inf.add(arr[i]);
+			}
+		}
+
+		Collections.sort(sev);
+		Collections.sort(maj);
+		Collections.sort(min);
+		Collections.sort(inf);
+
+		sev.addAll(maj);
+		sev.addAll(min);
+		sev.addAll(inf);
+
+		return sev;
 	}
 }
