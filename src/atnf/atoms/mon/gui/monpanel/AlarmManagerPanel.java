@@ -1420,7 +1420,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 * Method that stores the current list selections.
 		 * @return Returns true if there were selections stored, otherwise false
 		 */
-		public boolean storeSelections(){
+		public synchronized boolean storeSelections(){
 			selections = new String[plist.getSelectedValues().length];
 			selections = plist.getSelectedValues();
 			scrollBarPos = alarmDetailsScroller.getVerticalScrollBar().getValue();
@@ -1434,7 +1434,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		/**
 		 * Method to reset the selections in the JList after they have been stored, if applicable
 		 */
-		public void setSelections(){
+		public synchronized void setSelections(){
 			if (selections.length > 0){
 				try {
 					int[] res = new int[selections.length];
@@ -1522,13 +1522,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					SwingUtilities.invokeLater(new Runnable(){
 						@Override
 						public void run(){
+							AlarmDisplayPanel selectedTab = ((AlarmDisplayPanel) source.getSelectedComponent());
 							JPanel replace = new JPanel();
 							replace.setBackground(Color.WHITE);
 							replace.setOpaque(true);
-							((AlarmDisplayPanel) source.getSelectedComponent()).alarmDetailsScroller.setViewportView(replace);
-							((AlarmDisplayPanel) source.getSelectedComponent()).showDefaultAlarmPanels();
-							((AlarmDisplayPanel) source.getSelectedComponent()).requestFocusInWindow();
-							if (((AlarmDisplayPanel) source.getSelectedComponent()).equals(alarming)){
+							selectedTab.alarmDetailsScroller.setViewportView(replace);
+							selectedTab.showDefaultAlarmPanels();
+							selectedTab.requestFocusInWindow();
+							if (selectedTab.equals(alarming)){
 								alarming.setFlashing(false);
 							}
 						}
@@ -1922,31 +1923,28 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			RelTime sleep = RelTime.factory(10000000);
 			while (alive){
 				try {
-					synchronized (alarming.localListModel){
-						alarming.updateListModel();
-						if (!alarming.localListModel.isEmpty()) {
-							if (muteOn){
-								continue;
-							} else {
-								highPriority = false;
-								for (int i = 0; i < alarming.localListModel.size(); i++){
-									try {
-										if (localAlarms.get(((String) alarming.localListModel.get(i))).getPriority() >= 1){
-											highPriority = true;
-											break;
-										}
-									} catch (NullPointerException n){
-										if (AlarmMaintainer.getAlarm(((String) alarming.localListModel.get(i))).getPriority() >= 1){
-											highPriority = true;
-											break;
-										}
+					if (!alarming.localListModel.isEmpty()) {
+						if (muteOn){
+							continue;
+						} else {
+							highPriority = false;
+							for (int i = 0; i < alarming.localListModel.size(); i++){
+								try {
+									if (localAlarms.get(((String) alarming.localListModel.get(i))).getPriority() >= 1){
+										highPriority = true;
+										break;
+									}
+								} catch (NullPointerException n){
+									if (AlarmMaintainer.getAlarm(((String) alarming.localListModel.get(i))).getPriority() >= 1){
+										highPriority = true;
+										break;
 									}
 								}
 							}
-							if (highPriority){
-								boolean success = MonClientUtil.playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
-								if (success == false) throw (new Exception());
-							}
+						}
+						if (highPriority){
+							boolean success = MonClientUtil.playAudio("atnf/atoms/mon/gui/monpanel/watchdog.wav");
+							if (success == false) throw (new Exception());
 						}
 					}
 				} catch (Exception e) {
