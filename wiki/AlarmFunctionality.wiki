@@ -1,0 +1,14 @@
+#summary Describes the alarm and notification framework.
+
+= Introduction =
+
+This document describes the functionality within MoniCA for dealing with alarms and notifications of alarm conditions.
+
+
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
