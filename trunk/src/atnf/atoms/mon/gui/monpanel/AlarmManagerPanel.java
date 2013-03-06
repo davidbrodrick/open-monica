@@ -1246,13 +1246,13 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					}
 				}
 				AlarmManagerPanel.ignoreList = newList;
-				Collections.sort(al);
+				al = alphaSortByPriority(al.toArray(new String[0]));
 				for (String s : al){
 					localListModel.addElement(s);
 				}
 			} else {
 				this.setListModel(itsListModel);
-				Vector<String> newList = new Vector<String>();
+				ArrayList<String> newList = new ArrayList<String>();
 				for (int i = 0; i < localListModel.getSize(); i ++){
 					String s = (String) localListModel.get(i);
 					if (AlarmMaintainer.getAlarm(s).getAlarmStatus() == this.getType()){
@@ -1261,6 +1261,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 						newList.add(s);
 					}
 				}
+				newList = alphaSortByPriority(newList.toArray(new String[0]));
 				localListModel = new DefaultListModel();
 				localListModel.setSize(newList.size());
 				for (int i = 0; i < newList.size(); i++){
