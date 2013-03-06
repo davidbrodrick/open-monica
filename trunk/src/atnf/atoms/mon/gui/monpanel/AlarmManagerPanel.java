@@ -735,12 +735,17 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			plist.addMouseListener(this);
 			plist.addKeyListener(new KeyListener(){
 				@Override
-				public void keyPressed(KeyEvent arg0) {}
+				public void keyPressed(KeyEvent arg0) {
+					if(arg0.getKeyCode() == KeyEvent.VK_CONTROL || arg0.getKeyCode() == KeyEvent.VK_SHIFT){
+						controlShiftIsDown =  true;
+					}
+				}
 				@Override
 				public void keyReleased(KeyEvent arg0) {
 					if(arg0.getKeyCode() == KeyEvent.VK_CONTROL || arg0.getKeyCode() == KeyEvent.VK_SHIFT){
 						AlarmManagerPanel.this.multiSelectLabel.setText("Multi-Select: OFF");
 						AlarmManagerPanel.this.multiSelectLabel.setBackground(null);
+						controlShiftIsDown = false;
 					}
 				}
 				@Override
@@ -1333,6 +1338,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				AlarmPanel clicked = (AlarmPanel)arg0.getComponent();
 				String point = clicked.getPointName();
 				if (SwingUtilities.isLeftMouseButton(arg0) && (arg0.isControlDown() || arg0.isShiftDown())){
+					controlShiftIsDown = true;
 					ignore.setEnabled(false);
 					ack.setEnabled(false);
 					shelve.setEnabled(false);
@@ -1344,14 +1350,17 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 						panelSelections.add(clicked);
 						clicked.highlight(Color.YELLOW);
 					}
-				} else if (SwingUtilities.isLeftMouseButton(arg0)){
-					plist.clearSelection();
-					try {
-						plist.setSelectedValue(point, true);
-					} catch (NullPointerException n){
-						this.showDefaultAlarmPanels();
+				} else {
+					if (SwingUtilities.isLeftMouseButton(arg0)){
+						plist.clearSelection();
+						try {
+							plist.setSelectedValue(point, true);
+						} catch (NullPointerException n){
+							this.showDefaultAlarmPanels();
+						}
 					}
-				} 
+					controlShiftIsDown = false;
+				}
 				this.requestFocusInWindow();
 			}
 
@@ -1367,12 +1376,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				notify.setEnabled(false);
 				AlarmManagerPanel.this.multiSelectLabel.setText("Multi-Select: ON");
 				AlarmManagerPanel.this.multiSelectLabel.setBackground(Color.YELLOW);
+				controlShiftIsDown = true;
 			}
 		}
 
 		@Override
 		public void keyReleased(KeyEvent arg0) {
 			if (arg0.getKeyCode() == KeyEvent.VK_CONTROL || arg0.getKeyCode() == KeyEvent.VK_SHIFT){
+				controlShiftIsDown = false;
 				int[] indices = new int[panelSelections.size()];
 				for (int i = 0,j = 0; i < itsListModel.size(); i++){
 					for (AlarmPanel s : panelSelections){
@@ -1831,66 +1842,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 	@Override
 	public void onAlarmEvent(AlarmEvent event) {
-		boolean selectionsStored = false;
-		final AlarmDisplayPanel select = (AlarmDisplayPanel) stateTabs.getSelectedComponent();
-		if (!event.getAlarm().isSameAs(localAlarms.get(event.getAlarm().getPointDesc()))){
-			Alarm thisAlarm = event.getAlarm();
-
-			if (thisAlarm.getAlarmStatus() == select.getType() || select.getType() == AlarmDisplayPanel.ALL || select.getType() == AlarmDisplayPanel.IGNORED){
-				selectionsStored = select.storeSelections();
-			}
-			updateListModels();
-			if (selectionsStored){
-				select.setSelections();
-			} else {
-				select.showDefaultAlarmPanels();
-			}
-			localAlarms.put(thisAlarm.getPointDesc().getFullName(), thisAlarm);
-			if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
-				SwingUtilities.invokeLater(new Runnable(){
-					@Override
-					public void run(){
-						alarming.setFlashing(true);
-					}
-				});
-				if (!klaxon.isAlive()){
-					klaxon.start();
-				}
-			}
-			if (alarming.localListModel.isEmpty()){
-				alarming.setFlashing(false);
-			}
-		}
-		if (selectionsStored){
-			SwingUtilities.invokeLater(new Runnable(){
-				@Override
-				public void run(){
-					select.setSelections();
-				}
-			});
-		} else {
-			SwingUtilities.invokeLater(new Runnable(){
-				@Override
-				public void run(){
-					select.showDefaultAlarmPanels();
-				}
-			});
-		}
-		if (AlarmMaintainer.autoAlarms){
-			allowAutoAlarms.setSelected(true);
-		} else {
-			allowAutoAlarms.setSelected(false);
-		}
-		SwingUtilities.invokeLater(new Runnable(){
-			@Override
-			public void run(){
-				ignLabel.setText("IGN: " + ignoreList.size());
-				ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
-				shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
-				almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
-			}
-		});
+		// Don't do anything, we don't handle single alarm events
 	}
+
+	private boolean controlShiftIsDown = false;
 
 	@Override
 	public void onAlarmEvent(Collection<AlarmEvent> events) {
@@ -1913,20 +1868,22 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 		}
 		updateListModels();
-		if (selectionsStored){
-			SwingUtilities.invokeLater(new Runnable(){
-				@Override
-				public void run(){
-					select.setSelections();
-				}
-			});
-		} else {
-			SwingUtilities.invokeLater(new Runnable(){
-				@Override
-				public void run(){
-					select.showDefaultAlarmPanels();
-				}
-			});
+		if (!controlShiftIsDown){
+			if (selectionsStored){
+				SwingUtilities.invokeLater(new Runnable(){
+					@Override
+					public void run(){
+						select.setSelections();
+					}
+				});
+			} else {
+				SwingUtilities.invokeLater(new Runnable(){
+					@Override
+					public void run(){
+						select.showDefaultAlarmPanels();
+					}
+				});
+			}
 		}
 		if (alarming.plist.getModel().getSize() == 0){
 			alarming.setFlashing(false);
