@@ -1385,9 +1385,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			if (arg0.getKeyCode() == KeyEvent.VK_CONTROL || arg0.getKeyCode() == KeyEvent.VK_SHIFT){
 				controlShiftIsDown = false;
 				int[] indices = new int[panelSelections.size()];
-				for (int i = 0,j = 0; i < itsListModel.size(); i++){
+				for (int i = 0,j = 0; i < localListModel.size(); i++){
 					for (AlarmPanel s : panelSelections){
-						if (s.getPointName().equals(itsListModel.get(i))){
+						if (s.getPointName().equals(localListModel.get(i))){
 							indices[j] = i;
 							j++;
 							break;
