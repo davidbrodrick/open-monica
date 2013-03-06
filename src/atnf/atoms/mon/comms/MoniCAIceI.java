@@ -207,7 +207,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
         }
         // Act on the new data value
         PointData newval = values.get(i);
-        theirLogger.trace("Assigning value " + newval + " to point " + thispoint.getFullName() + " as requested by " + username);
+        theirLogger.trace("Assigning value " + newval + " for \"" + username + "@" + getRemoteInfo(__current) + "\"");
         // AbsTime start = AbsTime.factory();
         thispoint.firePointEvent(new PointEvent(this, newval, true));
         // theirLogger.debug("Call took " + Time.diff(AbsTime.factory(), start).toString(RelTime.Format.SECS_BAT));
