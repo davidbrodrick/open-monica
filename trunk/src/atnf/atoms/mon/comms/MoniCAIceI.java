@@ -56,6 +56,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
     PointDescriptionIce[] temp = new PointDescriptionIce[names.length];
     int numfound = 0;
     for (int i = 0; i < names.length; i++) {
+      checkPoint(names[i], __current);
       PointDescription thispoint = PointDescription.getPoint(names[i]);
       if (thispoint != null) {
         temp[i] = MoniCAIceUtil.getPointDescriptionAsIce(thispoint);
@@ -107,6 +108,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
     AbsTime absend = AbsTime.factory(end);
     PointDataIce[][] res = new PointDataIce[names.length][];
     for (int i = 0; i < names.length; i++) {
+      checkPoint(names[i], __current);
       // Get the requested data from the buffer/archive
       Vector<PointData> thisdata = PointBuffer.getPointData(names[i], absstart, absend, (int) maxsamples);
       if (thisdata == null) {
@@ -128,6 +130,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   public PointDataIce[] getData(String[] names, Ice.Current __current) {
     PointDataIce[] temp = new PointDataIce[names.length];
     for (int i = 0; i < names.length; i++) {
+      checkPoint(names[i], __current);
       PointData pd = PointBuffer.getPointData(names[i]);
       PointDataIce pdi;
       if (pd != null) {
@@ -145,6 +148,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   public PointDataIce[] getBefore(String[] names, long t, Ice.Current __current) {
     PointDataIce[] temp = new PointDataIce[names.length];
     for (int i = 0; i < names.length; i++) {
+      checkPoint(names[i], __current);
       PointData pd = PointBuffer.getPreceding(names[i], AbsTime.factory(t));
       PointDataIce pdi;
       if (pd != null) {
@@ -162,6 +166,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   public PointDataIce[] getAfter(String[] names, long t, Ice.Current __current) {
     PointDataIce[] temp = new PointDataIce[names.length];
     for (int i = 0; i < names.length; i++) {
+      checkPoint(names[i], __current);
       PointData pd = PointBuffer.getFollowing(names[i], AbsTime.factory(t));
       PointDataIce pdi;
       if (pd != null) {
@@ -191,6 +196,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
     boolean result = true;
     Vector<PointData> values = MoniCAIceUtil.getPointDataFromIce(rawvalues);
     for (int i = 0; i < numpoints; i++) {
+      checkPoint(names[i], __current);
       try {
         // Get the specified point
         PointDescription thispoint = PointDescription.getPoint(names[i]);
@@ -229,19 +235,20 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   }
 
   /** Acknowledge (ack=true) or deacknowledge (ack=false) the specified alarms. */
-  public boolean acknowledgeAlarms(String[] pointnames, boolean ack, String encname, String encpass, Current __current) {
+  public boolean acknowledgeAlarms(String[] names, boolean ack, String encname, String encpass, Current __current) {
     // TODO: Authentication/authorisation not currently checked
     // Decrypt the user's credentials
     String username = KeyKeeper.decrypt(encname);
     String password = KeyKeeper.decrypt(encpass);
 
     boolean res = true;
-    for (int i = 0; i < pointnames.length; i++) {
-      PointDescription thispoint = PointDescription.getPoint(pointnames[i]);
+    for (int i = 0; i < names.length; i++) {
+      checkPoint(names[i], __current);
+      PointDescription thispoint = PointDescription.getPoint(names[i]);
       if (thispoint != null) {
         AlarmManager.setAcknowledged(thispoint, ack, username);
+        theirLogger.debug("Point \"" + names[i] + "\" acknowledged=" + ack + " by \"" + username + "@" + getRemoteInfo(__current) + "\"");
       } else {
-        theirLogger.warn("In acknowledgeAlarms method, point " + pointnames[i] + " is not defined");
         res = false;
       }
     }
@@ -249,19 +256,20 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   }
 
   /** Shelve (shelve=true) or deshelve (shelve=false) the specified alarms. */
-  public boolean shelveAlarms(String[] pointnames, boolean shelve, String encname, String encpass, Current __current) {
+  public boolean shelveAlarms(String[] names, boolean shelve, String encname, String encpass, Current __current) {
     // TODO: Authentication/authorisation not currently checked
     // Decrypt the user's credentials
     String username = KeyKeeper.decrypt(encname);
     String password = KeyKeeper.decrypt(encpass);
 
     boolean res = true;
-    for (int i = 0; i < pointnames.length; i++) {
-      PointDescription thispoint = PointDescription.getPoint(pointnames[i]);
+    for (int i = 0; i < names.length; i++) {
+      checkPoint(names[i], __current);
+      PointDescription thispoint = PointDescription.getPoint(names[i]);
       if (thispoint != null) {
         AlarmManager.setShelved(thispoint, shelve, username);
+        theirLogger.debug("Point \"" + names[i] + "\" shelved=" + shelve + " by \"" + username + "@" + getRemoteInfo(__current) + "\"");
       } else {
-        theirLogger.warn("In shelveAlarms method, point " + pointnames[i] + " is not defined");
         res = false;
       }
     }
@@ -279,6 +287,24 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   /** Return the current time on the server. */
   public long getCurrentTime(Ice.Current __current) {
     return (new AbsTime()).getValue();
+  }
+
+  /** Check if the point is valid and log appropriate messages if it is not. */
+  private void checkPoint(String name, Ice.Current __current) {
+    int type = PointDescription.checkPointNameType(name);
+    if (type < 0) {
+      theirLogger.debug("Request for non-existent point \"" + name + "\" from " + getRemoteInfo(__current));
+    } else if (type > 0) {
+      theirLogger.debug("Request for alias name \"" + name + "\" from " + getRemoteInfo(__current));
+    }
+  }
+
+  /** Get the remote clients IP/port. */
+  private String getRemoteInfo(Ice.Current __current) {
+    String temp = __current.con.toString();
+    temp = temp.substring(temp.indexOf('\n') + 1);
+    temp = temp.substring(temp.indexOf('=') + 1).trim();
+    return temp;
   }
 
   /** Start the server on the default port. */
