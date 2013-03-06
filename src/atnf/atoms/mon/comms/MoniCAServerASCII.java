@@ -241,6 +241,7 @@ public class MoniCAServerASCII extends Thread {
 
       // Get/check monitor point name
       String mpname = st.nextToken();
+      checkPoint(mpname);
       if (!PointDescription.checkPointName(mpname)) {
         itsWriter.println("? Named point doesn't exist");
         itsWriter.flush();
@@ -293,6 +294,7 @@ public class MoniCAServerASCII extends Thread {
 
       // Get/check monitor point name
       String mpname = st.nextToken();
+      checkPoint(mpname);
       if (!PointDescription.checkPointName(mpname)) {
         itsWriter.println("? Named point doesn't exist");
         itsWriter.flush();
@@ -329,6 +331,7 @@ public class MoniCAServerASCII extends Thread {
       int numpoints = Integer.parseInt(tempstr);
       for (int i = 0; i < numpoints; i++) {
         String pointname = itsReader.readLine().trim();
+        checkPoint(pointname);
         PointDescription pm = PointDescription.getPoint(pointname);
         if (pm == null) {
           itsWriter.println("?");
@@ -351,6 +354,7 @@ public class MoniCAServerASCII extends Thread {
       int numpoints = Integer.parseInt(tempstr);
       for (int i = 0; i < numpoints; i++) {
         String pointname = itsReader.readLine().trim();
+        checkPoint(pointname);
         if (PointDescription.checkPointName(pointname)) {
           PointData pd = PointBuffer.getPointData(pointname);
           if (pd == null) {
@@ -386,6 +390,8 @@ public class MoniCAServerASCII extends Thread {
           itsWriter.println("? Expect name, type code and value. Tab delimited.");
           continue;
         }
+        
+        checkPoint(tokens[0]);
         PointDescription thispoint = PointDescription.getPoint(tokens[0]);
         if (thispoint != null) {
           PointData newval = new PointData(thispoint.getFullName());
@@ -472,11 +478,13 @@ public class MoniCAServerASCII extends Thread {
           itsWriter.println("? Expect name, and acknowledgement value. Tab delimited.");
           continue;
         }
+        
+        checkPoint(tokens[0]);
         PointDescription thispoint = PointDescription.getPoint(tokens[0]);
         if (thispoint != null) {
           boolean ackval = Boolean.parseBoolean(tokens[1]);
           AlarmManager.setAcknowledged(thispoint, ackval, username, now);
-          theirLogger.debug("Alarm acknowledgement for " + thispoint.getFullName() + " set to " + ackval + " by " + username + " from " + itsClientName);
+          theirLogger.debug("Point \"" + tokens[0] + "\" acknowledged=" + ackval + " by \"" + username + "@" + itsClientName + "\"");
           itsWriter.println(thispoint.getFullName() + "\tOK");
         } else {
           itsWriter.println("? Named point doesn't exist");
@@ -508,11 +516,13 @@ public class MoniCAServerASCII extends Thread {
           itsWriter.println("? Expect name, and acknowledgement value. Tab delimited.");
           continue;
         }
+        
+        checkPoint(tokens[0]);
         PointDescription thispoint = PointDescription.getPoint(tokens[0]);
         if (thispoint != null) {
           boolean ackval = Boolean.parseBoolean(tokens[1]);
           AlarmManager.setShelved(thispoint, ackval, username, now);
-          theirLogger.debug("Alarm shelving for " + thispoint.getFullName() + " set to " + ackval + " by " + username + " from " + itsClientName);
+          theirLogger.debug("Point \"" + tokens[0] + "\" shelved=" + ackval + " by \"" + username + "@" + itsClientName + "\"");
           itsWriter.println(thispoint.getFullName() + "\tOK");
         } else {
           itsWriter.println("? Named point doesn't exist");
@@ -552,6 +562,7 @@ public class MoniCAServerASCII extends Thread {
         }
 
         String pointname = st.nextToken().trim();
+        checkPoint(pointname);
         if (PointDescription.checkPointName(pointname)) {
           // All arguments look good so do the query
           PointData pd = PointBuffer.getFollowing(pointname, argtime);
@@ -598,6 +609,7 @@ public class MoniCAServerASCII extends Thread {
         }
 
         String pointname = st.nextToken().trim();
+        checkPoint(pointname);
         if (PointDescription.checkPointName(pointname)) {
           // All arguments look good so do the query
           PointData pd = PointBuffer.getPreceding(pointname, argtime);
@@ -628,6 +640,7 @@ public class MoniCAServerASCII extends Thread {
       for (int i = 0; i < numpoints; i++) {
         String pointname = itsReader.readLine().trim();
         // Make sure the monitor point name is valid
+        checkPoint(pointname);
         if (PointDescription.checkPointName(pointname)) {
           PointDescription pm = PointDescription.getPoint(pointname);
           if (pm == null) {
@@ -658,6 +671,16 @@ public class MoniCAServerASCII extends Thread {
     }
   }
 
+  /** Check if the point is valid and log appropriate messages if it is not. */
+  private void checkPoint(String name) {
+    int type = PointDescription.checkPointNameType(name);
+    if (type < 0) {
+      theirLogger.debug("Request for non-existent point \"" + name + "\" from " + itsClientName);
+    } else if (type > 0) {
+      theirLogger.debug("Request for alias name \"" + name + "\" from " + itsClientName);
+    }
+  }
+  
   /**
    * Starting point for threads. If this object was created without a specified socket then we start a server thread which awaits
    * client connections and spawns new instances to service new clients. If a socket was specified at construction then we know that

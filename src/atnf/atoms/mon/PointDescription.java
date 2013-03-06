@@ -1090,7 +1090,30 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       return false;
     }
   }
-
+  
+  /** Check if the point if the given name if an alias, rather than a primary point name. */
+  public static boolean checkPointAlias(String name) {
+    if (theirPoints.containsKey(name) && !theirUniquePoints.containsKey(name)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  
+  /** Check if the point is a valid primary name (0), a valid alias (1) or doesn't exist (-1). */
+  public static int checkPointNameType(String name) {
+    if (!theirPoints.containsKey(name)) {
+      // Point doesn't exist
+      return -1;
+    } else if (!theirUniquePoints.containsKey(name)) {
+      // Point is an alias
+      return 1;
+    } else {
+      // Point is a valid primary name
+      return 0;
+    }
+  }
+  
   /**
    * Flag that initialisation of statically defined points has been completed.
    */
