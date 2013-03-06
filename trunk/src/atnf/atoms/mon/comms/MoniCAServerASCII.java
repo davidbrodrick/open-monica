@@ -84,7 +84,7 @@ public class MoniCAServerASCII extends Thread {
       theirServers.add(this);
     }
     theirNumClients++;
-    itsClientName = socket.getInetAddress().getHostAddress();
+    itsClientName = socket.getInetAddress().getHostAddress() + ":" + socket.getPort();
     // System.out.println("MonitorServerASCII: New Connection from " +
     // itsClientName);
     itsSocket = socket;
@@ -675,9 +675,9 @@ public class MoniCAServerASCII extends Thread {
   private void checkPoint(String name) {
     int type = PointDescription.checkPointNameType(name);
     if (type < 0) {
-      theirLogger.debug("Request for non-existent point \"" + name + "\" from " + itsClientName);
+      theirLogger.debug("Request for non-existent point \"" + name + "\" from \"" + itsClientName + "\"");
     } else if (type > 0) {
-      theirLogger.debug("Request for alias name \"" + name + "\" from " + itsClientName);
+      theirLogger.debug("Request for alias name \"" + name + "\" from \"" + itsClientName + "\"");
     }
   }
   
