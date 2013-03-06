@@ -1236,9 +1236,18 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 */
 		public void updateListModel() {
 			if (this.getType() == AlarmDisplayPanel.IGNORED){
+				ArrayList<String> al = new ArrayList<String>();
+				HashSet<String> newList = new HashSet<String>();
 				localListModel = new DefaultListModel();
-				localListModel.setSize(ignoreList.size());
 				for (String s : ignoreList){
+					if (!s.equals("") || s != null){
+						al.add(s);
+						newList.add(s);
+					}
+				}
+				AlarmManagerPanel.ignoreList = newList;
+				Collections.sort(al);
+				for (String s : al){
 					localListModel.addElement(s);
 				}
 			} else {
