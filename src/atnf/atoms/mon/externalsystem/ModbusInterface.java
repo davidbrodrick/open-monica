@@ -59,7 +59,7 @@ public class ModbusInterface extends ExternalSystem {
       itsConnected = true;
 
     } catch (Exception e) {
-      theirLogger.warn(e);
+      theirLogger.warn("(" + itsHost + ":" + itsPort + "):" + e);
       itsConnected = false;
       throw e;
     }
