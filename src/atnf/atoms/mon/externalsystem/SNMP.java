@@ -43,6 +43,12 @@ import atnf.atoms.mon.transaction.TransactionStrings;
  * <tt>TransactionStrings</tt> and set the first argument after the channel id
  * to be the OID of the data point to be collected in dot notation. For instance
  * like this <tt>Strings-"snmp-$1:161""1.3.6.1.2.1.1.3.0"</tt>.
+ *
+ * <P>
+ * For set/assignment operations, the relevant TransactionStrings must be in the
+ * output transactions field, and must contain an additional string being the 
+ * SNMP data type to write the value as. For instance:
+ * <tt>Strings-"snmp-192.168.1.113:161""1.3.6.1.4.1.32111.1.1.2.5.0""Integer32"</tt>
  * 
  * @author David Brodrick
  */
@@ -118,7 +124,39 @@ public class SNMP extends ExternalSystem {
       itsConnected = false;
     }
   }
+  
+  public void putData(PointDescription pm, PointData pd) throws Exception {
+    TransactionStrings tds = (TransactionStrings) getMyTransactions(pm.getOutputTransactions()).get(0);
 
+    // Check we have correct number of arguments
+    if (tds.getNumStrings() < 2) {
+      theirLogger.error("(" + itsHostName + "): Expect OID and Type Code argument in Transaction for point \"" + pm.getFullName() + "\"");
+      throw new IllegalArgumentException("Missing OID and Type Code argument in Transaction");
+    }
+    
+    // Get the value to assign
+    AbstractVariable newval = getSNMPVariable(tds.getString(1), pd);
+    if (newval!=null) {
+      // Create an OID from the string argument
+      OID oid = new OID(tds.getString());
+
+      // Send the SNMP request
+      PDU pdu = DefaultPDUFactory.createPDU(itsTarget, PDU.SET);
+      pdu.add(new VariableBinding(oid, newval));
+      ResponseEvent response = itsSNMP.send(pdu, itsTarget);
+
+      // Process response
+      PDU responsePDU = response.getResponse();
+      if (responsePDU == null || responsePDU.getErrorStatus() != SnmpConstants.SNMP_ERROR_SUCCESS || !responsePDU.get(0).getOid().equals(oid)) {
+        // Response timed out or was in error
+        theirLogger.warn("While setting " + itsHostName + ":" + tds.getString() + ":" + responsePDU);
+      }    
+
+      // Increment the transaction counter for this ExternalSystem
+      itsNumTransactions++;
+    }
+  }
+  
   public void getData(PointDescription[] points) throws Exception {
     for (int i = 0; i < points.length; i++) {
       PointDescription pm = points[i];
@@ -134,7 +172,6 @@ public class SNMP extends ExternalSystem {
 
       // Send the SNMP request
       PDU pdu = DefaultPDUFactory.createPDU(itsTarget, PDU.GET);
-      pdu.setType(PDU.GET);
       pdu.add(new VariableBinding(oid));
       ResponseEvent response = itsSNMP.send(pdu, itsTarget);
 
@@ -152,6 +189,19 @@ public class SNMP extends ExternalSystem {
 
       // Increment the transaction counter for this ExternalSystem
       itsNumTransactions++;
+    }
+  }
+  
+  protected AbstractVariable getSNMPVariable(String typecode, PointData pd) {
+    if (pd==null || pd.getData()==null) {
+      return null;
+    } else if (typecode.equals("OctetString")) {
+      return new OctetString(pd.getData().toString());
+    } else if (typecode.equals("Integer32") && pd.getData() instanceof Number) {
+      return new Integer32(((Number)pd.getData()).intValue());
+    } else {
+      theirLogger.warn("Unhandled type code/data value: \"" + typecode + "\" with " + pd);
+      return null;
     }
   }
 }
