@@ -1,4 +1,4 @@
-#summary Describes the alarm and notification framework.
+#summary Describes the MoniCA alarm framework.
 
 = Introduction =
 
@@ -51,9 +51,7 @@ Alarms with a priority include a "guidance" message which will be presented to t
 
 == Acknowledgement ==
 
-An active alarm may be acknowledged, which means that it has been noted by a duly authorised operator and corrective action will be undertaken (or perhaps that the alarm may be safely ignored).
-
-The action of acknowledging an alarm implies that the operator is taking responsibility for the alarm, as the alarm will no longer be in an active alarming state to alert other users of the system.
+An active alarm may be acknowledged, which means that it has been noted by a duly authorised operator and corrective action will be undertaken (or perhaps that the alarm may be safely ignored). The action of acknowledging an alarm implies that the operator is taking responsibility for the alarm, as the alarm will no longer be in an active alarming state to alert other users of the system.
 
 An alarm will remain acknowledged until the underlying alarm condition is resolved. If the alarm is triggered again in the future it will again be presented to the operator as an active alarm.
 
