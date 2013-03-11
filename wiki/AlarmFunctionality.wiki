@@ -72,3 +72,9 @@ The MoniCA client includes an !AlarmManager which can be used to manipulate the 
 == Ignoring ==
 
 In addition to being able to view, acknowledge and shelve alarms, the MoniCA client can also locally ignore an alarm. An alarm may be ignored, for instance, when an operator does not have the authority or area of responsibility to centrally acknowledge an alarm.
+
+= Other Interfaces =
+
+Information about alarms can be obtained and manipulated through the [ClientASCII MoniCA ASCII Interface].
+
+Complete control of the alarm machinery is also available through the [WebClient Web Client Javascript Library].
