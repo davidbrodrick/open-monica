@@ -23,7 +23,7 @@ The valid substitution strings in the template are:
 ||$V[point.name] || The current value of the specified point. ||
 ||$U || The units of the data. ||
 ||$N || The name of the point. ||
-||$S || The source part of the point name. ||
+||$S or $1 || The source part of the point name. ||
 ||$D || The point's description. ||
 ||$T || The data's timestamp as a UTC time. ||
 ||$A || The alarm status of the data (true or false). ||
