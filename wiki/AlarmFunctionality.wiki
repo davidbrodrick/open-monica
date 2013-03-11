@@ -5,10 +5,27 @@
 This document describes the functionality within MoniCA for dealing with alarms and notifications of alarm conditions.
 
 
+= Defining Alarm Criteria =
 
-= Details =
+Any point in MoniCA may define zero or more !AlarmCheck classes which will evaluate the value of the point and may flag abnormal conditions. A simple example would be checking if a numeric value (eg. a pressure) is within an expected range or not.
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+The following table contains information about the different kinds of !AlarmCheck classes available in MoniCA, their function, and what arguments they take.
+
+|| *Class* || *Description* || *Arguments* ||
+|| Boolean || Flags an alarm if the point's value matches the specified boolean state. || *State:* "true" to flag a true boolean input as an alarm condition, "false" if a false condition represents an alarm. *Num Cycles:* An optional argument which specifies how many consecutive updates must be in the state before flagging the alarm (default is one). ||
+|| Range || Checks if a numeric value is within a given range. || *Lower:* The lower bound for the numeric range. *Upper:* The upper bound. *In/Out:* Optional argument can be "true" to specify that a value outside of the range is the alarm condition (the default), or "false" if the input being inside the range is the alarm condition. *Num Cycles:* An optional argument which specifies how many consecutive updates must be in the state before flagging the alarm (default is one). || 
+|| StringMatch || Checks if the input matches any of a given set of strings. || *Mode:* If set to "true" then a matched string indicates the value is okay while a negative match indicates an alarm, if "false" then a matched string indicates an alarm. *Strings:* Any other arguments specified are interpreted as the strings to check the value against. ||
+|| ValueMatch || Checks if the numeric input is an exact match for the given value. || *Value:* A value (interpreted as a double) to be checked against. *Mode:* If "true" then any value except the one specified is taken as an alarm, if "false" then a match is deemed to be an alarm. *Num Cycles:* An optional argument which specifies how many consecutive updates must be in the state before flagging the alarm (default is one). ||
+
+= Notifications =
+
+Normally defining the alarm criteria in itself will only cause the point to be highlighted if a user is inspecting it in the MoniCA GUI client. The Notification framework is intended to augment this by allowing automated actions, such as sending an email, to be taken based on a points alarm state.
+
+If an automatic notification is desired then one or more Notifications can be defined in the point's definition.
+
+At the moment there are only a couple of trivial Notification classes.
+
+|| *Class* || *Description* || *Arguments* ||
+|| !EmailOnAlarm || Sends an email on the rising edge of an alarm state transition. ||  *Recipient:* The email address to send the email to, eg. "fred@email.com".
+*Sender:* The email address of the sender This field is optional and if none is given then a default address will be used. *Subject:* The subject line of the email, eg. "Warning from MoniCA". *Body:* The body text of the email, eg. "Warning\nThe new value is $V". [Substitutions] may be used in the subject and email body. ||
+|| EmailOnAlarmChange || Sends an email on the rising or falling edge of an alarm state transition. || The arguments are as per !EmailOnAlarm. ||
