@@ -6,7 +6,7 @@ This document describes the functionality within MoniCA for dealing with alarms 
 
 = Defining Alarm Criteria =
 
-Any point in MoniCA may define zero or more !AlarmCheck classes which will evaluate the value of the point and may flag abnormal conditions. A simple example would be checking if a numeric value (eg. a pressure) is within an expected range or not.
+Any point in MoniCA may [MonitorPointsFileFormat define] zero or more !AlarmCheck classes which will evaluate the value of the point and may flag abnormal conditions. A simple example would be checking if a numeric value (eg. a pressure) is within an expected range or not.
 
 The following table contains information about the different kinds of !AlarmCheck classes available in MoniCA, their function, and what arguments they take.
 
@@ -20,7 +20,7 @@ The following table contains information about the different kinds of !AlarmChec
 
 Normally defining the alarm criteria in itself will only cause the point to be highlighted if a user is inspecting it in the MoniCA GUI client. The Notification framework is intended to augment this by allowing automated actions, such as sending an email, to be taken based on a points alarm state.
 
-If an automatic notification is desired then one or more Notifications can be defined in the point's definition.
+If an automatic notification is desired then one or more Notifications can be defined in the [MonitorPointsFileFormat point's definition].
 
 At the moment there are only a couple of trivial Notification classes. We envisage richer functionality such as manipulating other points (ie. taking automated corrective action), etc. will be implemented over time.
 
@@ -36,7 +36,7 @@ In addition to just highlighting abnormal values and optionally taking notificat
 
 == Different Priorities ==
 
-By default points have priority "NO PRIORITY" which means an alarm condition will not enter into the higher level alarm management machinery. This can be changed by defining an alarm priority in the point definition.
+By default points have priority "NO PRIORITY" which means an alarm condition will not enter into the higher level alarm management machinery. This can be changed by defining an alarm priority in the [MonitorPointsFileFormat point definition].
 
 || *Integer* || *Priority* || *Description* ||
 || -1 || NO PRIORITY || Alarm conditions do not enter in to the alarm management systems at all. This is the default. ||
@@ -47,7 +47,7 @@ By default points have priority "NO PRIORITY" which means an alarm condition wil
 
 == Guidance Message ==
 
-Alarms with a priority include a "guidance" message which will be presented to the operator when the alarm is triggered. The guidance message can use [Substitutions] to incorporate the current values of other points within the system along with other information.
+Alarms with a priority include a "guidance" message which will be presented to the operator when the alarm is triggered. The guidance message can use [Substitutions] to incorporate the current values of other points within the system along with other information. The guidance message template is contained in the [MonitorPointsFileFormat point definition].
 
 == Acknowledgement ==
 
