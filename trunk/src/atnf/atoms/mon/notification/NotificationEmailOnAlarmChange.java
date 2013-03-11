@@ -15,7 +15,7 @@ import atnf.atoms.mon.util.MonitorUtils;
 import org.apache.log4j.Logger;
 
 /**
- * Sends an email when the data changes into an alarm state.
+ * Sends an email when the data changes in to or out of an alarm state.
  * 
  * <P>
  * The definition requires three string arguments:
@@ -32,21 +32,21 @@ import org.apache.log4j.Logger;
  * 
  * @author David Brodrick
  */
-public class NotificationEmailOnAlarm extends AbstractNotificationEmail {
+public class NotificationEmailOnAlarmChange extends AbstractNotificationEmail {
   /** The previous data value. */
   protected PointData itsLastData;
 
   /** Logger. */
-  protected static Logger theirLogger = Logger.getLogger(NotificationEmailOnAlarm.class);
+  protected static Logger theirLogger = Logger.getLogger(NotificationEmailOnAlarmChange.class);
 
-  public NotificationEmailOnAlarm(PointDescription parent, String[] init) {
+  public NotificationEmailOnAlarmChange(PointDescription parent, String[] init) {
     super(parent, init);
   }
 
   /** Send an email if the alarm status changed. */
   public void checkNotify(PointData data) {
     if (itsLastData != null) {
-      if (!itsLastData.getAlarm() && data.getAlarm()) {
+      if (itsLastData.getAlarm() != data.getAlarm()) {
         sendEmail(data);
       }
     }
