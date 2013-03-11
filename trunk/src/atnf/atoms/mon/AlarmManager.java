@@ -51,19 +51,9 @@ public class AlarmManager {
 	 * @param point - The String-formatted name of the point
 	 * @return The Alarm that corresponds to this point name
 	 */
-	public static Alarm getAlarm(String point){
-		Alarm res = null;
-		synchronized (theirAlarms){
-			Iterator<Alarm> i = theirAlarms.values().iterator();
-			while (i.hasNext()){
-				Alarm thisAlarm = i.next();
-				if (thisAlarm.getPointDesc().getFullName().equals(point)){
-					res = thisAlarm;
-					break;
-				}
-			}
-		}
-		return res;
+	public static Alarm getAlarm(String pointname){
+	  PointDescription point = PointDescription.getPoint(pointname);
+	  return getAlarm(point);
 	}
 
 	/**
@@ -72,18 +62,9 @@ public class AlarmManager {
 	 * @return The Alarm that corresponds to this PointDescription
 	 */
 	public static Alarm getAlarm(PointDescription point){
-		Alarm res = null;
 		synchronized (theirAlarms){
-			Iterator<Alarm> i = theirAlarms.values().iterator();
-			while (i.hasNext()){
-				Alarm thisAlarm = i.next();
-				if (thisAlarm.getPointDesc().equals(point)){
-					res = thisAlarm;
-					break;
-				}
-			}
+		  return theirAlarms.get(point);
 		}
-		return res;
 	}
 
 	/**

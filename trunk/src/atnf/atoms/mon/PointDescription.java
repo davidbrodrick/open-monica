@@ -914,16 +914,19 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
         AlarmManager.setAlarm(this, data);
       }
 
-      // Send any required notifications
+      // Send any required notifications, unless acknowledged or shelved
       if (itsNotifications != null && itsNotifications.length > 0) {
-        for (int i = 0; i < itsNotifications.length; i++) {
-          try {
-            if (itsNotifications[i] != null) {
-              itsNotifications[i].checkNotify(data);
+        Alarm alarm = AlarmManager.getAlarm(this);
+        if (alarm == null || (!alarm.isAcknowledged() && !alarm.isShelved())) {
+          for (int i = 0; i < itsNotifications.length; i++) {
+            try {
+              if (itsNotifications[i] != null) {
+                itsNotifications[i].checkNotify(data);
+              }
+            } catch (Exception e) {
+              theirLogger.error("(" + getFullName() + ") Error on Notification " + (i + 1) + "/" + itsNotifications.length + ": " + e);
+              e.printStackTrace();
             }
-          } catch (Exception e) {
-            theirLogger.error("(" + getFullName() + ") Error on Notification " + (i + 1) + "/" + itsNotifications.length + ": " + e);
-            e.printStackTrace();
           }
         }
       }
@@ -1090,7 +1093,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       return false;
     }
   }
-  
+
   /** Check if the point if the given name if an alias, rather than a primary point name. */
   public static boolean checkPointAlias(String name) {
     if (theirPoints.containsKey(name) && !theirUniquePoints.containsKey(name)) {
@@ -1099,7 +1102,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       return false;
     }
   }
-  
+
   /** Check if the point is a valid primary name (0), a valid alias (1) or doesn't exist (-1). */
   public static int checkPointNameType(String name) {
     if (!theirPoints.containsKey(name)) {
@@ -1113,7 +1116,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
       return 0;
     }
   }
-  
+
   /**
    * Flag that initialisation of statically defined points has been completed.
    */
