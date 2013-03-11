@@ -51,7 +51,9 @@ Alarms with a priority include a "guidance" message which will be presented to t
 
 == Acknowledgement ==
 
-An active alarm may be acknowledged, which means that it has been noted by the operator and corrective action will be undertaken (or perhaps that the alarm may be safely ignored).
+An active alarm may be acknowledged, which means that it has been noted by a duly authorised operator and corrective action will be undertaken (or perhaps that the alarm may be safely ignored).
+
+The action of acknowledging an alarm implies that the operator is taking responsibility for the alarm, as the alarm will no longer be in an active alarming state to alert other users of the system.
 
 An alarm will remain acknowledged until the underlying alarm condition is resolved. If the alarm is triggered again in the future it will again be presented to the operator as an active alarm.
 
@@ -59,7 +61,9 @@ Note that acknowledging an alarm will prevent any Notifications that belong to t
 
 == Shelving ==
 
-An alarm may be shelved preemptively, for instance if maintenance work is going to be carried out on a system which is going to trigger an alarm condition.
+An alarm may be shelved when in an active alarm state or preemptively, for instance if maintenance work is going to be carried out on a system which is going to trigger an alarm condition.
+
+The action of shelving an active alarm implies that the operator is taking responsibility for the alarm.
 
 A shelved alarm will remain shelved until such time that it is explicitly unshelved, even if it goes in and out of an alarm state during this time.
 
