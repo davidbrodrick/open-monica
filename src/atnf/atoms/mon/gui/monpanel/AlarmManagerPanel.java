@@ -1057,6 +1057,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				updateLists();
 			}
 			this.updateListModel();
+			if (this.plist.getModel().getSize() == 1){
+				plist.setSelectedIndex(0);
+				return;
+			}
 			JPanel newPanel = new JPanel();
 			newPanel.setOpaque(true);
 			newPanel.setBackground(Color.WHITE);
