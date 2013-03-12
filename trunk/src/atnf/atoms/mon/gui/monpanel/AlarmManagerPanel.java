@@ -1392,21 +1392,23 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		public void keyReleased(KeyEvent arg0) {
 			if (arg0.getKeyCode() == KeyEvent.VK_CONTROL || arg0.getKeyCode() == KeyEvent.VK_SHIFT){
 				controlShiftIsDown = false;
-				int[] indices = new int[panelSelections.size()];
-				for (int i = 0,j = 0; i < localListModel.size(); i++){
-					for (AlarmPanel s : panelSelections){
-						if (s.getPointName().equals(localListModel.get(i))){
-							indices[j] = i;
-							j++;
-							break;
+				if (panelSelections.size() > 0){
+					int[] indices = new int[panelSelections.size()];
+					for (int i = 0,j = 0; i < localListModel.size(); i++){
+						for (AlarmPanel s : panelSelections){
+							if (s.getPointName().equals(localListModel.get(i))){
+								indices[j] = i;
+								j++;
+								break;
+							}
 						}
 					}
+					plist.clearSelection();
+					for (AlarmPanel ap : panelSelections){
+						ap.highlight(Color.WHITE);
+					}
+					plist.setSelectedIndices(indices);
 				}
-				plist.clearSelection();
-				for (AlarmPanel ap : panelSelections){
-					ap.highlight(Color.WHITE);
-				}
-				plist.setSelectedIndices(indices);
 				panelSelections.clear();
 				AlarmManagerPanel.this.multiSelectLabel.setText("Multi-Select: OFF");
 				AlarmManagerPanel.this.multiSelectLabel.setBackground(null);
