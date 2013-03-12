@@ -1266,7 +1266,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 						newList.add(s);
 					}
 				}
-				newList = alphaSortByPriority(newList.toArray(new String[0]));
+				if (this.getType() == AlarmDisplayPanel.ALL){
+					Collections.sort(newList);
+				} else {
+					newList = alphaSortByPriority(newList.toArray(new String[0]));
+				}
 				localListModel = new DefaultListModel();
 				localListModel.setSize(newList.size());
 				for (int i = 0; i < newList.size(); i++){
@@ -1846,6 +1850,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		// Don't do anything, we don't handle single alarm events
 	}
 
+	//boolean used to check if this is down - manually set after a KeyEvent or a MouseEvent
+	// Not particularly elegant, but it fits the bill for the moment.
 	private boolean controlShiftIsDown = false;
 
 	@Override
