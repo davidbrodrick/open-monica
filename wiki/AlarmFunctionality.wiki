@@ -6,14 +6,14 @@ This document describes the functionality within MoniCA for dealing with alarms 
 
 = Defining Alarm Criteria =
 
-Any point in MoniCA may [MonitorPointsFileFormat define] zero or more !AlarmCheck classes which will evaluate the value of the point and may flag abnormal conditions. A simple example would be checking if a numeric value (eg. a pressure) is within an expected range or not.
+Any point in MoniCA may [MonitorPointsFileFormat define] zero or more !AlarmCheck classes which examine the value of the point and may flag abnormal conditions. A simple example would be checking if a numeric value (eg. a pressure) is within an expected range or not.
 
 The following table contains information about the different kinds of !AlarmCheck classes available in MoniCA, their function, and what arguments they take.
 
 || *Class* || *Description* || *Arguments* ||
 || Boolean || Flags an alarm if the point's value matches the specified boolean state. || *State:* "true" to flag a true boolean input as an alarm condition, "false" if a false condition represents an alarm.<br/> *Num Cycles:* An optional argument which specifies how many consecutive updates must be in the state before flagging the alarm (default is one). ||
 || Range || Checks if a numeric value is within a given range. || *Lower:* The lower bound for the numeric range. <br/>*Upper:* The upper bound. <br/>*In/Out:* Optional argument can be "true" to specify that a value outside of the range is the alarm condition (the default), or "false" if the input being inside the range is the alarm condition. <br/>*Num Cycles:* An optional argument which specifies how many consecutive updates must be in the state before flagging the alarm (default is one). || 
-|| !StringMatch || Checks if the input matches any of a given set of strings. || *Mode:* If set to "true" then a matched string indicates the value is okay while a negative match indicates an alarm, if "false" then a matched string indicates an alarm. <br/>*Strings:* Any other arguments specified are interpreted as the strings to check the value against. ||
+|| !StringMatch || Checks if the input matches any of a given set of strings. || *Num Cycles:* An optional argument which specifies how many consecutive updates must be in the state before flagging the alarm (default is one). This argument may be completely omitted. <br/>*Mode:* If set to "true" then a matched string indicates the value is okay while a negative match indicates an alarm, if "false" then a matched string indicates an alarm. <br/>*Strings:* Any other arguments specified are interpreted as the strings to check the value against. ||
 || !ValueMatch || Checks if the numeric input is an exact match for the given value. || *Value:* A value (interpreted as a double) to be checked against. <br/>*Mode:* If "true" then any value except the one specified is taken as an alarm, if "false" then a match is deemed to be an alarm. <br/>*Num Cycles:* An optional argument which specifies how many consecutive updates must be in the state before flagging the alarm (default is one). ||
 
 = Notifications =
