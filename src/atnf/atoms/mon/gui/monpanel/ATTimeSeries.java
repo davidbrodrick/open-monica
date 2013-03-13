@@ -656,6 +656,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       scroller.setPreferredSize(new Dimension(500, 350));
       scroller.setMaximumSize(new Dimension(2000, 350));
       scroller.setBorder(BorderFactory.createLoweredBevelBorder());
+      scroller.getVerticalScrollBar().setUnitIncrement(16);
       itsSetupPanel.add(scroller, BorderLayout.CENTER);
 
       itsAxis.add(new AxisSetup());
