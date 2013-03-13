@@ -684,11 +684,18 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
    * Populate all point fields and manipulate any perform any other operations to make the point active on the server.
    */
   public void populateServerFields() {
+    // Populate fields
     makeTransactions();
     makeTranslations();
     makeArchivePolicies();
     makeAlarmChecks();
     makeNotifications();
+    
+    // Register with the alarm manager
+    if (itsPriority>-1) {
+      AlarmManager.setAlarm(this, new PointData(getFullName()));
+    }
+    
     // Assign to appropriate ExternalSystem(s) for data collection
     for (int i = 0; i < itsInputTransactions.length; i++) {
       Transaction thistrans = itsInputTransactions[i];
