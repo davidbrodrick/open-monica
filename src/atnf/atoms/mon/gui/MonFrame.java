@@ -38,10 +38,10 @@ public class MonFrame extends JFrame implements ActionListener {
    */
   public static class WindowManager implements ActionListener {
     /** Holds reference to all currently open MonFrames. */
-    static Vector itsWindows = new Vector();
+    Vector<MonFrame> itsWindows = new Vector<MonFrame>();
 
     /** Menus for each of the windows, in same order as <i>itsWindows</i>. */
-    static Vector itsMenus = new Vector();
+    Vector<JMenu> itsMenus = new Vector<JMenu>();
     
     /**
      * Called when a window is selected from the menu. The window which was
@@ -295,12 +295,12 @@ public class MonFrame extends JFrame implements ActionListener {
   private int itsNumber = -1;
 
   /** Vector which hold all the MonPanels being displayed in this frame. */
-  private Vector<MonPanel> itsPanels = new Vector();
+  private Vector<MonPanel> itsPanels = new Vector<MonPanel>();
 
   /**
    * Vector holds reference to the setup configuration panels for each MonPanel.
    */
-  private Vector itsSetupPanels = new Vector();
+  private Vector<JPanel> itsSetupPanels = new Vector<JPanel>();
 
   /** Main tabbed pane. */
   private JTabbedPane itsTabs = new JTabbedPane();
@@ -320,9 +320,6 @@ public class MonFrame extends JFrame implements ActionListener {
   /** The <i>Navigator</i> menu. */
   private JMenu itsDisplayMenu = new JMenu("Navigator");
 
-  /** RCS version. */
-  private static final String theirRCS = "$Id: MonFrame.java,v 1.4 2006/09/13 23:53:43 bro764 Exp bro764 $";
-
   /** Name of file to autodump screenshots to. */
   private String itsDumpFile = "foo.png";
 
@@ -338,9 +335,7 @@ public class MonFrame extends JFrame implements ActionListener {
    */
   public SavedSetup itsSetup = null;
 
-  private static int itsWindowWidth = 0;
-  private static int itsWindowHeight = 0;
-  private Dimension defaultDim = new Dimension(600,700);
+  private static Dimension theirDefaultDim = new Dimension(600,700);
 
   /** C'tor. */
   public MonFrame() {
@@ -418,7 +413,7 @@ public class MonFrame extends JFrame implements ActionListener {
         }
       }
     });
-    setSize(defaultDim);
+    setSize(theirDefaultDim);
     setVisible(true);
   }
 
@@ -430,6 +425,11 @@ public class MonFrame extends JFrame implements ActionListener {
   /** Get a unique identification number for this MonFrame. */
   public int getNumber() {
     return itsNumber;
+  }
+  
+  /** Get the default size for a MonFrame. */
+  public static Dimension getDefaultSize() {
+    return theirDefaultDim;
   }
 
   /**
@@ -588,9 +588,6 @@ public class MonFrame extends JFrame implements ActionListener {
    * Setup the MiGLayout
    */
   protected void setUpML() {
-    itsWindowWidth = itsMainPanel.getWidth();
-    itsWindowHeight = itsMainPanel.getHeight();
-
     // Creating a MigLayout with 10 columns and 10 rows
     MigLayout ml = new MigLayout();
     itsMainPanel.setLayout(ml);
@@ -826,8 +823,8 @@ public class MonFrame extends JFrame implements ActionListener {
       String title = (String) setup.get("title");
       // Get the number of panels to display in this window
       int numpanels = Integer.parseInt((String) setup.get("numpanels"));
-      Vector<MonPanel> newpanels = new Vector(numpanels);
-      Vector<SavedSetup> newsetups = new Vector(numpanels);
+      Vector<MonPanel> newpanels = new Vector<MonPanel>(numpanels);
+      Vector<SavedSetup> newsetups = new Vector<SavedSetup>(numpanels);
 
       // FIRST, create all the right panels, with right setups
       for (int i = 0; i < numpanels; i++) {
@@ -1048,8 +1045,8 @@ public class MonFrame extends JFrame implements ActionListener {
     try {
       FileWriter fw = new FileWriter(filename, false);
       PrintWriter p = new PrintWriter(fw);
-      for (int i = 0; i < WindowManager.itsWindows.size(); i++) {
-        MonFrame frame = (MonFrame) WindowManager.itsWindows.get(i);
+      for (int i = 0; i < theirWindowManager.itsWindows.size(); i++) {
+        MonFrame frame = (MonFrame) theirWindowManager.itsWindows.get(i);
         String thissetup = frame.getSetup().getName();
         if (thissetup.equals("temp")) {
           JOptionPane
@@ -1087,7 +1084,6 @@ public class MonFrame extends JFrame implements ActionListener {
   public static void main(String[] argv) {
     ClockErrorMonitor.start();
 
-    boolean autodump;
     int autodumpperiod = 60000;
     int numframes = 0;
     String outputdir = "";
@@ -1101,7 +1097,6 @@ public class MonFrame extends JFrame implements ActionListener {
             System.err.print("ERROR: \"" + argv[i] + "\" must be the first argument");
             System.exit(1);
           }
-          autodump = true;
           if (argv.length == i + 1) {
             System.err.print("ERROR: You must specify an interval in " + "seconds for autodump mode! ");
             System.err.println("eg, " + argv[i] + " 60");
@@ -1114,7 +1109,6 @@ public class MonFrame extends JFrame implements ActionListener {
             System.err.println("\teg, " + argv[i] + " 60");
             System.exit(1);
           }
-          autodump = true;
           i++;
         } else if (argv[i].equals("-o")) {
           // Output directory for autodumping
