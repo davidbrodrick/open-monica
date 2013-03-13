@@ -69,6 +69,7 @@ import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.mon.client.AlarmMaintainer;
 import atnf.atoms.mon.client.MonClientUtil;
 import atnf.atoms.mon.gui.AlarmPanel;
+import atnf.atoms.mon.gui.MonFrame;
 import atnf.atoms.mon.gui.MonPanel;
 import atnf.atoms.mon.gui.MonPanelSetupPanel;
 import atnf.atoms.mon.gui.PointSourceSelector;
@@ -1795,6 +1796,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 			stateTabs.setSelectedComponent(alarming);
 			alarming.requestFocusInWindow();
+			
+			setPreferredSize(MonFrame.getDefaultSize());
 
 		} catch (final Exception e) {
 			e.printStackTrace();
