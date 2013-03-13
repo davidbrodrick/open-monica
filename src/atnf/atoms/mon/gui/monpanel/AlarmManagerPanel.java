@@ -51,6 +51,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToggleButton;
+import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -706,7 +707,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			alarmPanels.setOpaque(true);
 			alarmDetailsScroller = new JScrollPane(alarmPanels);
 			alarmDetailsScroller.getVerticalScrollBar().setUnitIncrement(24);
-
+			alarmDetailsScroller.getViewport().setScrollMode(JViewport.BACKINGSTORE_SCROLL_MODE);
+			
 			// Let's add some stuff to the button panel!
 			notify.setToolTipText("Notify someone about these alarms through email.");
 			notify.setEnabled(false);
@@ -1015,7 +1017,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		}
 
 		/**
-		 * Updates, revalidates and repaints the AlarmPanels to match the selections in the JList
+		 * Updates and repaints the AlarmPanels to match the selections in the JList
 		 */
 		private void updateAlarmPanels(){
 			JPanel newPanel = new JPanel();
@@ -1283,7 +1285,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				}
 			}
 			plist.setModel(localListModel);
-			plist.revalidate();
+			//plist.revalidate();
 			plist.repaint();
 		}
 
@@ -1904,14 +1906,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		if (alarming.plist.getModel().getSize() == 0){
 			alarming.setFlashing(false);
 		}
-		if (AlarmMaintainer.autoAlarms){
-			allowAutoAlarms.setSelected(true);
-		} else {
-			allowAutoAlarms.setSelected(false);
-		}
 		SwingUtilities.invokeLater(new Runnable(){
 			@Override
 			public void run(){
+			  if (AlarmMaintainer.autoAlarms){
+	        allowAutoAlarms.setSelected(true);
+	      } else {
+	        allowAutoAlarms.setSelected(false);
+	      }
 				ignLabel.setText("IGN: " + ignoreList.size());
 				ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
 				shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
