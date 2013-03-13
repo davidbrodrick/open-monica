@@ -1070,9 +1070,11 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			String title = itsSetup.get("title");
 			
 			if (layout.equals(layoutOptions[0])){
-				this.setPreferredSize(new Dimension(numControls * 50, 180));
+				itsMainPanel.setPreferredSize(new Dimension(numControls * 50, 180));
+				//System.err.println("ControlPanel.loadSetup: Preferred size is " + (numControls * 50) + ", " + 180);
 			} else {
-				this.setPreferredSize(new Dimension(180, 50 + numControls * 30));
+				itsMainPanel.setPreferredSize(new Dimension(180, 50 + numControls * 30));
+				//System.err.println("ControlPanel.loadSetup: Preferred size is " + 180 + ", " + numControls*30);
 			}
 
 			String res = itsSetup.get("points");
