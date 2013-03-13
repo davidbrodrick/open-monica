@@ -1247,9 +1247,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			}
 			itsMainPanel.add(titleLabel, BorderLayout.NORTH);
 			itsMainPanel.add(itsPanel, BorderLayout.CENTER);
-
-			super.itsFrame.pack();
-
+      
 			itsMainPanel.revalidate();
 			itsMainPanel.repaint();
 			itsScrollPane.getVerticalScrollBar().setUnitIncrement(16);
