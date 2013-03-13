@@ -8,6 +8,7 @@
 
 package atnf.atoms.mon.comms;
 
+import java.net.PasswordAuthentication;
 import java.util.Vector;
 
 import Ice.Current;
@@ -191,7 +192,8 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
     // / Doesn't presently do anything with user's credentials
     String username = KeyKeeper.decrypt(encname);
     String password = KeyKeeper.decrypt(encpass);
-
+    PasswordAuthentication pa = new PasswordAuthentication(username, password.toCharArray());
+    
     // Process each of the control requests consecutively
     boolean result = true;
     Vector<PointData> values = MoniCAIceUtil.getPointDataFromIce(rawvalues);

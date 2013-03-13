@@ -493,7 +493,7 @@ public class MoniCAClientIce extends MoniCAClient {
           String pointname = icealarms[i].pointname;
           if (PointDescription.getPoint(pointname) == null) {
             // We need to fetch the point definition for this point
-            System.err.println("MoniCAClientIce.getAllAlarms: Fetching PointDescription for " + pointname);
+            //System.err.println("MoniCAClientIce.getAllAlarms: Fetching PointDescription for " + pointname);
             if (fetchpoints==null) {
               fetchpoints = new Vector<String>(icealarms.length);
             }

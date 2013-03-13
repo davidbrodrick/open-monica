@@ -494,7 +494,11 @@ public abstract class MonitorUtils {
 
 		if (data != null) {
 			// Substitute our value
-			res = res.replace("$V", data.getData().toString());
+		  if (data.getData()==null) {
+		    res = res.replace("$V", "null");
+		  } else {
+			  res = res.replace("$V", data.getData().toString());
+		  }
 			// Substitute time stamp
 			res = res.replace("$T", data.getTimestamp().toString(AbsTime.Format.UTC_STRING));
 			// Alarm status
