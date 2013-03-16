@@ -715,7 +715,7 @@ This method gets the MoniCA name for the `pointReference` object, along with the
   * `name`: the MoniCA point name.
   * `description`: the description for this point, from MoniCA.
   * `units`: the units for the values for this point, from MoniCA.
-  * 'serverName': the name of the MoniCA server that this point has come from.
+  * `serverName`: the name of the MoniCA server that this point has come from.
 
 Example:
 {{{
