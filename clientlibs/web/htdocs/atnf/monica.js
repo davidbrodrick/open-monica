@@ -1526,7 +1526,8 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       return ({
 	'name': constructor.pointName,
         'description': pointDescription,
-        'units': pointUnits
+        'units': pointUnits,
+	'serverName': serverObject.getServerName()
       });
     };
 
