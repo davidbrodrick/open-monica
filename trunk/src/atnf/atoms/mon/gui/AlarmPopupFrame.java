@@ -199,6 +199,7 @@ public class AlarmPopupFrame extends JFrame implements ActionListener, AlarmEven
 				return;
 			}
 		} else if (command.equals("dismiss")){
+			AlarmMaintainer.addIgnorePoint(itsName);
 			this.vaporise();
 		} else if (command.equals("ignore")){
 			AlarmMaintainer.autoAlarms = false;

@@ -12,6 +12,7 @@ package atnf.atoms.mon.client;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -51,6 +52,9 @@ public class AlarmMaintainer implements Runnable {
 
 	public static HashMap<String, AlarmPopupFrame> popupMap = new HashMap<String, AlarmPopupFrame>();
 	private static String lastMapped = "";
+	/** Centrally held list of ignored points*/
+	public static HashSet<String> ignoreList = new HashSet<String>();
+	private static HashSet<String> alarmingIgnores = new HashSet<String>();
 
 	/**
 	 * Registers the specified listener with the AlarmEvent source
@@ -73,21 +77,18 @@ public class AlarmMaintainer implements Runnable {
 	}
 
 	/**
-	 * For a given Alarm, creates a new AlarmEvent and distributes it to all the registered listeners
+	 * For a each given Alarm, creates a new AlarmEvent and distributes it to all the registered listeners
 	 * 
 	 * @param a
-	 *          The Alarm that the listeners are notified about
+	 *          The Collection of Alarm that the listeners are notified about
 	 */
-	private synchronized static void fireAlarmEvent(Alarm a) {
-		AlarmEvent ae = new AlarmEvent(a.getPointDesc(), a);
-		for (AlarmEventListener ael : theirListeners) {
-			ael.onAlarmEvent(ae);
-		}
-	}
-
 	private synchronized static void fireAlarmEvent(Collection<Alarm> a) {
 		Vector<AlarmEvent> alarms = new Vector<AlarmEvent>();
 		for (Alarm am : a){
+			String name = am.getPointDesc().getFullName();
+			if ((am.getAlarmStatus() != Alarm.ALARMING) && alarmingIgnores.contains(name)){
+				removeIgnorePoint(name);
+			}
 			AlarmEvent ae = new AlarmEvent(am.getPointDesc(), am);
 			alarms.add(ae);
 		}
@@ -107,19 +108,18 @@ public class AlarmMaintainer implements Runnable {
 		SwingUtilities.invokeLater(new Runnable(){
 			@Override
 			public void run() {
-				if (!popupMap.keySet().contains(a.getPointDesc().getFullName())){
-					AlarmPopupFrame apf = new AlarmPopupFrame(a);
-					apf.pack();
-					apf.setVisible(true);
-					if (popupMap.size() > 0) {
-						apf.setLocationRelativeTo(popupMap.get(lastMapped));
-					}
-					popupMap.put(apf.getPointName(), apf);
-					lastMapped = apf.getPointName();
+				AlarmPopupFrame apf = new AlarmPopupFrame(a);
+				apf.pack();
+				apf.setVisible(true);
+				if (popupMap.size() > 0) {
+					apf.setLocationRelativeTo(popupMap.get(lastMapped));
 				}
+				popupMap.put(apf.getPointName(), apf);
+				lastMapped = apf.getPointName();
 			}
 		});
 	}
+
 
 	@Override
 	public void run() {
@@ -137,18 +137,14 @@ public class AlarmMaintainer implements Runnable {
 							}
 						}
 						// Notify any listeners about the updates
-						if (newalarms.size() > 1){
+						if (newalarms.size() > 0){
 							fireAlarmEvent(newalarms);
 							for (Alarm a : newalarms) {
-								if (a.getAlarmStatus() == Alarm.ALARMING && a.getPriority() >= 1) displayAlarmNotification(a);
-							}
-						} else {
-							for (Alarm a : newalarms) {
-								if (a.getAlarmStatus() == Alarm.ALARMING && a.getPriority() >= 1) displayAlarmNotification(a);
-								fireAlarmEvent(a);
+								if (a.getAlarmStatus() == Alarm.ALARMING && a.getPriority() >= 1 && !ignoreList.contains(a.getPointDesc().getFullName())){
+									displayAlarmNotification(a);
+								}
 							}
 						}
-
 					}
 				} else if (theirListeners.size() > 0) { // if automatic alarms are not enabled,
 					// only update when there are registered listeners
@@ -162,12 +158,9 @@ public class AlarmMaintainer implements Runnable {
 								theirAlarms.put(a.getPointDesc(), a);
 							}
 						}
-
 						// Notify any listeners about the updates
-						if (newalarms.size() > 1){
+						if (newalarms.size() > 0){
 							fireAlarmEvent(newalarms);
-						} else {
-							fireAlarmEvent(newalarms.get(0));
 						}
 					}
 				}
@@ -275,6 +268,19 @@ public class AlarmMaintainer implements Runnable {
 			res = new Alarm(point);
 			theirAlarms.put(point, res);
 		}
+	}
+
+	public static void addIgnorePoint(String point){
+		Alarm a = getAlarm(point);
+		if (a.getAlarmStatus() == Alarm.ALARMING){
+			alarmingIgnores.add(point);
+		}
+		ignoreList.add(point);
+	}
+
+	private static void removeIgnorePoint(String point){
+		alarmingIgnores.remove(point);
+		ignoreList.remove(point);
 	}
 
 	/** Simple test method to start the polling engine. */
