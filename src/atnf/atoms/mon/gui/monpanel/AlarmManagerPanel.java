@@ -93,7 +93,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		MonPanel.registerMonPanel("Alarm Manager", AlarmManagerPanel.class);
 	}
 
-	public static HashSet<String> ignoreList = new HashSet<String>();
 	public static HashMap<String, Alarm> localAlarms = new HashMap<String, Alarm>();
 
 	private JCheckBox allowAutoAlarms = new JCheckBox("Allow Automatic Notifications");
@@ -708,7 +707,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			alarmDetailsScroller = new JScrollPane(alarmPanels);
 			alarmDetailsScroller.getVerticalScrollBar().setUnitIncrement(24);
 			alarmDetailsScroller.getViewport().setScrollMode(JViewport.BACKINGSTORE_SCROLL_MODE);
-			
+
 			// Let's add some stuff to the button panel!
 			notify.setToolTipText("Notify someone about these alarms through email.");
 			notify.setEnabled(false);
@@ -903,7 +902,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 			this.updateAlarmPanels();
 			AlarmManagerPanel.updateListModels();
-			ignLabel.setText("IGN: " + ignoreList.size());
+			ignLabel.setText("IGN: " + AlarmMaintainer.ignoreList.size());
 			ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
 			shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
 			almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
@@ -917,24 +916,24 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			if (this.getType() != AlarmDisplayPanel.ALL && this.getType() != AlarmDisplayPanel.IGNORED){ //regular tabs
 				Object[] listValues = plist.getSelectedValues();
 				for (int i = 0; i < listValues.length; i++){
-					ignoreList.add(listValues[i].toString());
+					AlarmMaintainer.ignoreList.add(listValues[i].toString());
 					localListModel.removeElement(listValues[i]);
 				}
 			} else if (this.getType() == AlarmDisplayPanel.ALL){ //All tab
 				Object[] listValues = plist.getSelectedValues();
-				if (ignoreList.contains(listValues[0].toString())){ //unignore
+				if (AlarmMaintainer.ignoreList.contains(listValues[0].toString())){ //unignore
 					for (int i = 0; i < listValues.length; i++){
-						ignoreList.remove(listValues[i].toString());
+						AlarmMaintainer.ignoreList.remove(listValues[i].toString());
 					}
 				} else {
 					for (int i = 0; i < listValues.length; i++){ //ignore
-						ignoreList.add(listValues[i].toString());
+						AlarmMaintainer.ignoreList.add(listValues[i].toString());
 					}
 				}
 			} else { //ignore tab
 				Object[] listValues = plist.getSelectedValues();
 				for (int i = 0; i < listValues.length; i++){
-					ignoreList.remove(listValues[i].toString());
+					AlarmMaintainer.ignoreList.remove(listValues[i].toString());
 				}
 			}
 		}
@@ -978,16 +977,16 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			AlarmPanel pan = (AlarmPanel) parent.getInvoker();
 			String point = pan.getPointName();
 			if (this.getType() != AlarmDisplayPanel.ALL && this.getType() != AlarmDisplayPanel.IGNORED){ //regular tabs
-				ignoreList.add(point);
+				AlarmMaintainer.ignoreList.add(point);
 				localListModel.removeElement(point);
 			} else if (this.getType() == AlarmDisplayPanel.ALL){ //All tab
-				if (ignoreList.contains(point)){ //unignore
-					ignoreList.remove(point);
+				if (AlarmMaintainer.ignoreList.contains(point)){ //unignore
+					AlarmMaintainer.ignoreList.remove(point);
 				} else {
-					ignoreList.add(point);
+					AlarmMaintainer.ignoreList.add(point);
 				}
 			} else { //ignore tab
-				ignoreList.remove(point);
+				AlarmMaintainer.ignoreList.remove(point);
 			}
 		}
 
@@ -1085,11 +1084,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 			for (Alarm a : alarms){ //put all the alarms in a locally maintained lookup table
 				if (itsPoints.contains(a.getPointDesc().getFullName())){
-					if (ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.IGNORED){ //case for ignored tab
+					if (AlarmMaintainer.ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.IGNORED){ //case for ignored tab
 						alarmingPoints.add(a.getPointDesc().getFullName());
-					} else if (!ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.ALL){ //case for all tab
+					} else if (!AlarmMaintainer.ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.ALL){ //case for all tab
 						alarmingPoints.add(a.getPointDesc().getFullName());
-					} else if (!ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == a.getAlarmStatus()){ //case for all tab
+					} else if (!AlarmMaintainer.ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == a.getAlarmStatus()){ //case for all tab
 						alarmingPoints.add(a.getPointDesc().getFullName());
 					}
 				}
@@ -1201,7 +1200,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					} catch (NullPointerException e1) {
 						selectionIsShelved = AlarmMaintainer.getAlarm(source.getSelectedValue().toString()).isShelved();
 					}
-					selectionIsIgnored = (ignoreList.contains(source.getSelectedValue().toString()));
+					selectionIsIgnored = (AlarmMaintainer.ignoreList.contains(source.getSelectedValue().toString()));
 					if (selectionIsShelved){
 						shelve.setText("UNSHELVE");
 					} else {
@@ -1251,13 +1250,13 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				ArrayList<String> al = new ArrayList<String>();
 				HashSet<String> newList = new HashSet<String>();
 				localListModel = new DefaultListModel();
-				for (String s : ignoreList){
-					if (!s.equals("") || s != null){
+				for (String s : AlarmMaintainer.ignoreList){
+					if (!s.equals("") && s != null && itsPoints.contains(s)){ //TODO try and eliminate ignored alarms showing that aren't in all list
 						al.add(s);
 						newList.add(s);
 					}
 				}
-				AlarmManagerPanel.ignoreList = newList;
+				AlarmMaintainer.ignoreList = newList;
 				al = alphaSortByPriority(al.toArray(new String[0]));
 				for (String s : al){
 					localListModel.addElement(s);
@@ -1268,7 +1267,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				for (int i = 0; i < localListModel.getSize(); i ++){
 					String s = (String) localListModel.get(i);
 					if (AlarmMaintainer.getAlarm(s).getAlarmStatus() == this.getType()){
-						if (!ignoreList.contains(s)) newList.add(s);
+						if (!AlarmMaintainer.ignoreList.contains(s)) newList.add(s);
 					} else if (this.getType() == AlarmDisplayPanel.ALL){
 						newList.add(s);
 					}
@@ -1798,7 +1797,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 			stateTabs.setSelectedComponent(alarming);
 			alarming.requestFocusInWindow();
-			
+
 			setPreferredSize(MonFrame.getDefaultSize());
 
 		} catch (final Exception e) {
@@ -1872,7 +1871,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		for (AlarmEvent event : events){
 			if (!event.getAlarm().isSameAs(localAlarms.get(event.getAlarm().getPointDesc().getFullName()))){
 				Alarm thisAlarm = event.getAlarm();
-				if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
+				if (!thisAlarm.isShelved() && !thisAlarm.isAcknowledged() && thisAlarm.isAlarming() && !AlarmMaintainer.ignoreList.contains(thisAlarm.getPointDesc().getFullName())){
 					if (select.getType() != Alarm.ALARMING){
 						alarming.setFlashing(true);
 					} else {
@@ -1909,12 +1908,12 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		SwingUtilities.invokeLater(new Runnable(){
 			@Override
 			public void run(){
-			  if (AlarmMaintainer.autoAlarms){
-	        allowAutoAlarms.setSelected(true);
-	      } else {
-	        allowAutoAlarms.setSelected(false);
-	      }
-				ignLabel.setText("IGN: " + ignoreList.size());
+				if (AlarmMaintainer.autoAlarms){
+					allowAutoAlarms.setSelected(true);
+				} else {
+					allowAutoAlarms.setSelected(false);
+				}
+				ignLabel.setText("IGN: " + AlarmMaintainer.ignoreList.size());
 				ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
 				shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
 				almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
