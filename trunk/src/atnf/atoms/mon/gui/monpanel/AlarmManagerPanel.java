@@ -689,7 +689,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			plist.addListSelectionListener(this);
 			JScrollPane plistScroller = new JScrollPane(plist);
 			listPanel.setPreferredSize(new Dimension(200, 200));
-			listPanel.setMinimumSize(new Dimension(140, 100));
+			listPanel.setMinimumSize(new Dimension(200, 200));
 			listPanel.setMaximumSize(new Dimension(200, Integer.MAX_VALUE));
 
 			reset.setFont(new Font("Sans Serif", Font.ITALIC, reset.getFont().getSize()));
