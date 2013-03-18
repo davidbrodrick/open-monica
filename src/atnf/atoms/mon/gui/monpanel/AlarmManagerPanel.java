@@ -701,7 +701,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			listPanel.add(plistScroller, BorderLayout.CENTER);
 
 			// Alarm Details Panel
-			alarmPanels.add(new AlarmPanel(t));
+			alarmPanels.add(new JPanel());
 			alarmPanels.setBackground(Color.WHITE);
 			alarmPanels.setOpaque(true);
 			alarmDetailsScroller = new JScrollPane(alarmPanels);
@@ -1074,26 +1074,30 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.anchor = GridBagConstraints.NORTH;
 
-			Collection<String> alarmingPoints = new ArrayList<String>();
-			Collection<Alarm> alarms = new Vector<Alarm>();
+			Collection<Alarm> alarms;
 			if (this.getType() == AlarmDisplayPanel.ALL || this.getType() == AlarmDisplayPanel.IGNORED){
 				alarms = AlarmMaintainer.getAllAlarms();
 			} else {
 				alarms = AlarmMaintainer.getAlarms();
 			}
 
+	    Collection<String> alarmingPoints = new ArrayList<String>();
 			for (Alarm a : alarms){ //put all the alarms in a locally maintained lookup table
-				if (itsPoints.contains(a.getPointDesc().getFullName())){
-					if (AlarmMaintainer.ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.IGNORED){ //case for ignored tab
-						alarmingPoints.add(a.getPointDesc().getFullName());
-					} else if (!AlarmMaintainer.ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == AlarmDisplayPanel.ALL){ //case for all tab
-						alarmingPoints.add(a.getPointDesc().getFullName());
-					} else if (!AlarmMaintainer.ignoreList.contains(a.getPointDesc().getFullName()) && this.getType() == a.getAlarmStatus()){ //case for all tab
-						alarmingPoints.add(a.getPointDesc().getFullName());
+			  String thisname = a.getPointDesc().getFullName();
+				if (itsPoints.contains(thisname)){
+					if (AlarmMaintainer.ignoreList.contains(thisname) && this.getType() == AlarmDisplayPanel.IGNORED){
+					  //case for ignored tab
+						alarmingPoints.add(thisname);
+					} else if (!AlarmMaintainer.ignoreList.contains(thisname) && this.getType() == AlarmDisplayPanel.ALL){ 
+					  //case for all tab
+						alarmingPoints.add(thisname);
+					} else if (!AlarmMaintainer.ignoreList.contains(thisname) && this.getType() == a.getAlarmStatus()){ 
+					  //case for other tabs
+						alarmingPoints.add(thisname);
 					}
 				}
 			}
-			if (alarmingPoints.size() > 0){
+			if (!alarmingPoints.isEmpty()){
 				alarmingPoints = alphaSortByPriority(alarmingPoints.toArray(new String[0]));
 				int i = 0;
 				for (String o : alarmingPoints){
