@@ -902,6 +902,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 			this.updateAlarmPanels();
 			AlarmManagerPanel.updateListModels();
+			allLabel.setText("ALL: " + AlarmMaintainer.getAllAlarms().size());
 			ignLabel.setText("IGN: " + AlarmMaintainer.ignoreList.size());
 			ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
 			shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
@@ -1483,7 +1484,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	private static AlarmDisplayPanel shelved;
 	private static AlarmDisplayPanel alarming;
 
-	private JPanel statusPanel = new JPanel(new GridLayout(1,5));
+	private JPanel statusPanel = new JPanel(new GridLayout(1,6));
+	private JLabel allLabel = new JLabel("ALL: 0");
 	private JLabel ignLabel = new JLabel("IGN: 0");
 	private JLabel ackLabel = new JLabel("ACK: 0");
 	private JLabel shvLabel = new JLabel("SHV: 0");
@@ -1548,7 +1550,8 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		});
 
 		multiSelectLabel.setOpaque(true);
-
+		
+		statusPanel.add(allLabel);
 		statusPanel.add(ignLabel);
 		statusPanel.add(ackLabel);
 		statusPanel.add(shvLabel);
@@ -1908,6 +1911,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				} else {
 					allowAutoAlarms.setSelected(false);
 				}
+				allLabel.setText("ALL: " + AlarmMaintainer.getAllAlarms().size());
 				ignLabel.setText("IGN: " + AlarmMaintainer.ignoreList.size());
 				ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
 				shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
