@@ -167,13 +167,16 @@ public class AlarmPanel extends JPanel {
 		alarmStatus.add(statusString);
 		alarmStatus.add(status);
 
-		guidance = new JTextArea(itsAlarm.getGuidance(), 2, 10);
+		
+		guidance = new JTextArea(2, 10);
+		DefaultCaret caret = (DefaultCaret)guidance.getCaret();
+		caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+		guidance.setText(itsAlarm.getGuidance());
 		guidance.setFont(new Font("Sans Serif", Font.PLAIN, 14));
 		guidance.setEditable(false);
 		guidance.setWrapStyleWord(true);
 		guidance.setLineWrap(true);
-		DefaultCaret caret = (DefaultCaret)guidance.getCaret();
-		caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+		guidance.setEditable(false);
 
 		pointString.setBackground(Color.WHITE);
 		pointDesc.setBackground(Color.WHITE);
