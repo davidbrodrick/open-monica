@@ -1053,7 +1053,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		/**
 		 * Shows all alarm points that are currently in an alarming or shelved state
 		 */
-		private void showDefaultAlarmPanels(){
+		private void showDefaultAlarmPanels(){		  
 			scrollBarPos = alarmDetailsScroller.getVerticalScrollBar().getValue();
 			if (all.plist.getModel().getSize() == 0){
 				updateLists();
@@ -1114,13 +1114,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			plist.revalidate();
 			plist.repaint();
 			alarmDetailsScroller.setViewportView(newPanel);
+			alarmDetailsScroller.revalidate();
 			alarmDetailsScroller.repaint();
-			SwingUtilities.invokeLater(new Runnable(){
-				@Override
-				public void run() { 
-					alarmDetailsScroller.getVerticalScrollBar().setValue(scrollBarPos);
-				}
-			});
+			alarmDetailsScroller.getVerticalScrollBar().setValue(scrollBarPos);
 			this.requestFocusInWindow();
 		}
 
@@ -1461,12 +1457,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 						}
 					}
 					this.plist.setSelectedIndices(res);
-					SwingUtilities.invokeLater(new Runnable(){
-						@Override
-						public void run(){
-							alarmDetailsScroller.getVerticalScrollBar().setValue(scrollBarPos);
-						}
-					});
+					alarmDetailsScroller.getVerticalScrollBar().setValue(scrollBarPos);
 				} catch (Exception e){
 					this.showDefaultAlarmPanels();
 				}
