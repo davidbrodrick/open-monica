@@ -605,10 +605,10 @@ public class MonClientUtil {
 	 */
 	public static class SiteChooser extends JFrame implements ActionListener {
 		/** The server host name that will be returned. */
-		Vector itsServer = null;
+		Vector<String> itsServer = null;
 
 		/** The default server to return. */
-		Vector itsDefault = null;
+		Vector<String> itsDefault = null;
 
 		/** Number of seconds for timeout. */
 		int itsTimeout = 7;
@@ -617,12 +617,12 @@ public class MonClientUtil {
 		JLabel itsCounter = null;
 
 		/** The available server. */
-		Vector itsServers = null;
+		Vector<Vector<String>> itsServers = null;
 
 		/** The countdown Timer. */
 		Timer itsTimer = null;
 
-		public SiteChooser(Vector servers, Vector def) {
+		public SiteChooser(Vector<Vector<String>> servers, Vector<String> def) {
 			itsServers = servers;
 			itsDefault = def;
 
@@ -633,7 +633,7 @@ public class MonClientUtil {
 			temppanel.add(new JLabel("Monitor which site?"));
 
 			for (int i = 0; i < itsServers.size(); i++) {
-				Vector thisserver = (Vector) itsServers.get(i);
+				Vector<String> thisserver = itsServers.get(i);
 				JButton tempbutton = new JButton((String) thisserver.get(0));
 				tempbutton.addActionListener(this);
 				tempbutton.setActionCommand("" + i);
@@ -655,21 +655,14 @@ public class MonClientUtil {
 			getContentPane().add(temppanel);
 
 			// Do this on the AWT threads time to avoid deadlocks
-			final SiteChooser realthis = this;
+			final SiteChooser chooser = this;
 			final Runnable choosenow = new Runnable() {
 				public void run() {
-					realthis.pack();
+				  chooser.validate();
+					chooser.pack();
+					chooser.setVisible(true);
 					if (itsDefault != null) {
-						realthis.setSize(new Dimension(240, 74 + 28 * itsServers.size()));
-					} else {
-						realthis.setSize(new Dimension(240, 46 + 28 * itsServers.size()));
-					}
-					synchronized (getTreeLock()) {
-						realthis.validateTree();
-					}
-					realthis.setVisible(true);
-					if (itsDefault != null) {
-						itsTimer = new Timer(1000, realthis);
+						itsTimer = new Timer(1000, chooser);
 						itsTimer.start();
 					}
 				}
@@ -697,7 +690,7 @@ public class MonClientUtil {
 				}
 			} else {
 				// user server selection
-				itsServer = (Vector) itsServers.get(Integer.parseInt(e.getActionCommand()));
+				itsServer = itsServers.get(Integer.parseInt(e.getActionCommand()));
 				setVisible(false);
 				synchronized (this) {
 					notifyAll();
@@ -705,7 +698,7 @@ public class MonClientUtil {
 			}
 		}
 
-		public Vector getSite() {
+		public Vector<String> getSite() {
 			try {
 				synchronized (this) {
 					wait();
