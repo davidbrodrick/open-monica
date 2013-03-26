@@ -33,6 +33,15 @@ EncryptionStrength 512
 KeyLife 3600000
 
 ##############################
+# OPTIONS FOR AUTHENTICATION
+# Name of the RADIUS server
+RADIUSHost 127.0.0.1
+# Port to contact the RADIUS server
+RADIUSPort 1645
+# Shared secret for the RADIUS server
+RADIUSSecret testing123
+
+##############################
 # NETWORK INTERFACE OPTIONS
 # Port the ASCII text Server will use
 ASCIIPort 8051
