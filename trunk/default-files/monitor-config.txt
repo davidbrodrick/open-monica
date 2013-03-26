@@ -34,12 +34,13 @@ KeyLife 3600000
 
 ##############################
 # OPTIONS FOR AUTHENTICATION
+# Comment the options out to disable authentication
 # Name of the RADIUS server
-RADIUSHost 127.0.0.1
+#RADIUSHost 127.0.0.1
 # Port to contact the RADIUS server
-RADIUSPort 1645
+#RADIUSPort 1645
 # Shared secret for the RADIUS server
-RADIUSSecret testing123
+#RADIUSSecret testing123
 
 ##############################
 # NETWORK INTERFACE OPTIONS
