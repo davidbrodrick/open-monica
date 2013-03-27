@@ -338,8 +338,8 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   private String getRemoteHost(Ice.Current __current) {
     String temp = __current.con.toString();
     temp = temp.substring(temp.indexOf('\n') + 1);
-    temp = temp.substring(temp.indexOf('=') + 1).trim();
-    temp = temp.substring(temp.indexOf(':') + 1).trim();
+    temp = temp.substring(temp.indexOf('=') + 1);
+    temp = temp.substring(0, temp.indexOf(':')).trim();
     return temp;
   }
 
