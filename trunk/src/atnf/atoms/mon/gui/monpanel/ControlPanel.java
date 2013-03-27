@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -43,6 +44,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -52,7 +54,10 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
 import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointEvent;
+import atnf.atoms.mon.PointListener;
 import atnf.atoms.mon.SavedSetup;
+import atnf.atoms.mon.client.DataMaintainer;
 import atnf.atoms.mon.client.MonClientUtil;
 import atnf.atoms.mon.comms.MoniCAClient;
 import atnf.atoms.mon.gui.MonPanel;
@@ -69,7 +74,7 @@ import atnf.atoms.time.AbsTime;
  * @author Kalinga Hulugalle
  * @see MonPanel
  */
-public class ControlPanel extends MonPanel implements ActionListener{
+public class ControlPanel extends MonPanel implements ActionListener, PointListener{
 
 	private static final long serialVersionUID = -5900630541567847520L;
 
@@ -97,11 +102,11 @@ public class ControlPanel extends MonPanel implements ActionListener{
 	 */
 	private final String[] dataOptions2 = {"Text", "Number"};
 
-	/** Array holding the values "Horizontal" and "Vertical".
+	/** Array holding the values "Horizontal", "Vertical", "H-Readback" and "V-Readback".
 	 *  Used for constant references to these Strings, and also
 	 *	for the values in the "Layout" type JComboBox.
 	 */
-	private final String[] layoutOptions = {"Horizontal", "Vertical"};
+	private final String[] layoutOptions = {"Horizontal", "Vertical", "H-Readback", "V-Readback"};
 
 	private String username = "";
 	private String passwd = "";
@@ -565,6 +570,8 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 	JPanel itsMainPanel = new JPanel();
 	JScrollPane itsScrollPane = new JScrollPane();
+	Vector<String> components = new Vector<String>();
+	boolean readback = false;
 	/** Constructor. */
 	public ControlPanel() {
 		super();
@@ -847,6 +854,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		private String dataType;
 		private Object buttonValue;
 		private int controlType;
+		private JLabel readbackLb;
 
 		private String name;
 		private String label;
@@ -858,7 +866,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		 * @param bv The value that should be committed on each button press
 		 * @param dt The data type of this component
 		 */
-		public ControlPanelDisplayComponent(String n, String pt, JButton jb, String bv, String dt){
+		public ControlPanelDisplayComponent(String n, String pt, JButton jb, String bv, String dt, JLabel rb){
 			this.point = pt;
 			this.button = jb; 
 			this.dataType = dt;
@@ -883,6 +891,10 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 			this.name = n;
 			this.label = button.getText();
+
+			if (rb != null){
+				readbackLb = rb;
+			}
 		}
 
 		/**
@@ -892,7 +904,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		 * @param dt The data type of this component
 		 * @param conf The button used to confirm the checkbox selection
 		 */
-		public ControlPanelDisplayComponent(String n, String pt, String lb, JCheckBox jc, String dt, JButton conf){
+		public ControlPanelDisplayComponent(String n, String pt, String lb, JCheckBox jc, String dt, JButton conf, JLabel rb){
 			this.point = pt;
 			this.check = jc; 
 			this.controlType = CHECKBOX_TYPE;
@@ -901,6 +913,10 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 			this.name = n;
 			this.label = lb;
+
+			if (rb != null){
+				readbackLb = rb;
+			}
 		}
 
 		/**
@@ -910,7 +926,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		 * @param conf The button used to confirm the text field entry
 		 * @param dt The data type of this component
 		 */
-		public ControlPanelDisplayComponent(String n, String pt, JTextField v, JButton conf, String dt){
+		public ControlPanelDisplayComponent(String n, String pt, JTextField v, JButton conf, String dt, JLabel rb){
 			this.point = pt;
 			this.value = v; 
 			this.controlType = TEXT_TYPE;
@@ -919,6 +935,10 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 			this.name = n;
 			this.label = confirm.getText();
+
+			if (rb != null){
+				readbackLb = rb;
+			}
 		}
 
 		/**
@@ -1038,6 +1058,20 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		}
 
 		/**
+		 * if there is a readback JLabel assigned, set the text to the specified value
+		 * @param text The String that the JLabel should say
+		 */
+		public void setReadbackText(final String text){
+			if (readbackLb != null){
+				SwingUtilities.invokeLater(new Runnable(){
+					public void run(){
+						readbackLb.setText(text);
+					}
+				});
+			}
+		}
+
+		/**
 		 * Removes the listeners associated with the buttons in this ControlPanelDisplayComponent
 		 * @param cp the parent ControlPanel that implements the ActionListener interface
 		 * @see ActionListener
@@ -1068,8 +1102,8 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			numControls = Integer.parseInt(itsSetup.get("controls number"));
 			String layout = itsSetup.get("layout");
 			String title = itsSetup.get("title");
-			
-			if (layout.equals(layoutOptions[0])){
+
+			if (layout.equals(layoutOptions[0]) || layout.equals(layoutOptions[2])){
 				itsMainPanel.setPreferredSize(new Dimension(numControls * 50, 180));
 				//System.err.println("ControlPanel.loadSetup: Preferred size is " + (numControls * 50) + ", " + 180);
 			} else {
@@ -1079,10 +1113,11 @@ public class ControlPanel extends MonPanel implements ActionListener{
 
 			String res = itsSetup.get("points");
 			StringTokenizer st = new StringTokenizer(res, ";");
-			Vector<String> components = new Vector<String>();
+			components = new Vector<String>();
 			while (st.hasMoreTokens()){
 				components.add(st.nextToken());
 			}
+
 			GridBagConstraints gbc = new GridBagConstraints();
 			itsMainPanel = new JPanel(new BorderLayout());
 			JPanel itsPanel = new JPanel(new GridBagLayout());
@@ -1091,10 +1126,14 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			Map<TextAttribute, Integer> fontAttributes = new HashMap<TextAttribute, Integer>();
 			fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_TWO_PIXEL);
 			titleLabel.setFont(new Font("Sans Serif", Font.BOLD | Font.ITALIC, 24).deriveFont(fontAttributes));
+			readback = false;
+			if (layout.equals(layoutOptions[2]) || layout.equals(layoutOptions[3])){
+				readback = true;
+			}
 
 			gbc.gridx = 0;
 			gbc.gridy = 0;
-			if (layout.equals(layoutOptions[1])){ // how to appear if vertical layout is selected
+			if (layout.equals(layoutOptions[1]) || layout.equals(layoutOptions[3])){ // how to appear if vertical layout is selected
 				for (String s : components){ 
 					if (gbc.gridy == components.size()-1){// fixes alignment for last line of grid, so it isn't massively spread out
 						gbc.weighty = 1.0;
@@ -1118,6 +1157,11 @@ public class ControlPanel extends MonPanel implements ActionListener{
 					String labelText = st.nextToken();
 					String bValue = st.nextToken();
 					String inputValue = null;
+
+					if (readback){
+						DataMaintainer.subscribe(point, this);
+					}
+
 					try {
 						inputValue = st.nextToken();
 					} catch (Exception e){
@@ -1129,26 +1173,38 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_DOTTED);
 						itsName.setFont(new Font("Sans Serif", Font.BOLD | Font.ITALIC, 14).deriveFont(fontAttributes));
 						itsPanel.add(itsName, gbc);
+						
+						JLabel readbackValue = null;
+						if (readback){
+							gbc.insets = new Insets(13,10,0,0);
+							gbc.gridx = 1;
+							JPanel readbackPanel = new JPanel(new GridLayout(1,2));
+							JLabel readbackLabel = new JLabel("Value: ");
+							readbackValue = new JLabel("N/D");
+							readbackPanel.add(readbackLabel);
+							readbackPanel.add(readbackValue);
+							itsPanel.add(readbackPanel, gbc);
+						}
 						gbc.insets = new Insets(5,10,0,0);
 
 						if (controlType.equals("Button")){
 							JButton jb = new JButton(labelText);
 							jb.addActionListener(this);
-							gbc.gridx = 3;
+							gbc.gridx += 3;
 							gbc.insets = new Insets(5,10,0,30);
 							itsPanel.add(jb, gbc);
-							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, jb, bValue, dataType);
+							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, jb, bValue, dataType, readbackValue);
 						} else if (controlType.equals("Checkbox")){
 							JCheckBox jc = new JCheckBox(labelText);
 							JButton send = new JButton("Send");
 							jc.setSelected(Boolean.parseBoolean(inputValue));
 							send.addActionListener(this);
-							gbc.gridx = 2;
+							gbc.gridx += 2;
 							itsPanel.add(jc, gbc);
-							gbc.gridx = 3;
+							gbc.gridx += 1;;
 							gbc.insets = new Insets(5,10,0,30);
 							itsPanel.add(send, gbc);
-							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, labelText, jc, dataType, send);
+							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, labelText, jc, dataType, send, readbackValue);
 						} else {
 							JButton send = new JButton("Send");
 							send.addActionListener(this);
@@ -1159,12 +1215,12 @@ public class ControlPanel extends MonPanel implements ActionListener{
 							JTextField tf = new JTextField(10);
 							tf.setEditable(true);
 							tf.setText(inputValue);
-							gbc.gridx = 2;
+							gbc.gridx += 2;
 							itsPanel.add(tf, gbc);
-							gbc.gridx = 3;
+							gbc.gridx += 1;
 							gbc.insets = new Insets(5,10,0,30);
 							itsPanel.add(send, gbc);
-							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, tf, send, dataType);
+							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, tf, send, dataType, readbackValue);
 						}
 						panelList.add(cpdc);
 						gbc.gridy += 1;
@@ -1189,6 +1245,11 @@ public class ControlPanel extends MonPanel implements ActionListener{
 					String labelText = st.nextToken();
 					String bValue = st.nextToken();
 					String inputValue = null;
+					
+					if (readback){
+						DataMaintainer.subscribe(point, this);
+					}
+					
 					try {
 						inputValue = st.nextToken();
 					} catch (Exception e){
@@ -1201,27 +1262,37 @@ public class ControlPanel extends MonPanel implements ActionListener{
 						fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_DOTTED);
 						itsName.setFont(new Font("Sans Serif", Font.BOLD, 14).deriveFont(fontAttributes));
 						itsPanel.add(itsName, gbc);
+						JLabel readbackValue = null;
+						if (readback){
+							gbc.gridy = 1;
+							JPanel readbackPanel = new JPanel(new GridLayout(1,2));
+							JLabel readbackLabel = new JLabel("Value: ");
+							readbackValue = new JLabel("N/D");
+							readbackPanel.add(readbackLabel);
+							readbackPanel.add(readbackValue);
+							itsPanel.add(readbackPanel, gbc);
+						}
 
 						if (controlType.equals("Button")){
 							JButton jb = new JButton(labelText);
 							jb.addActionListener(this);
-							gbc.gridy = 3;
+							gbc.gridy += 3;
 							gbc.weighty = 1.0;
 							gbc.anchor = GridBagConstraints.NORTH;
 							itsPanel.add(jb, gbc);
-							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, jb, bValue, dataType);
+							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, jb, bValue, dataType, readbackValue);
 						} else if (controlType.equals("Checkbox")){
 							JCheckBox jc = new JCheckBox(labelText);
 							JButton send = new JButton("Send");
 							jc.setSelected(Boolean.parseBoolean(inputValue));
 							send.addActionListener(this);
-							gbc.gridy = 2;
+							gbc.gridy += 2;
 							itsPanel.add(jc, gbc);
 							gbc.weighty = 1.0;
-							gbc.gridy = 3;
+							gbc.gridy += 1;
 							gbc.anchor = GridBagConstraints.NORTH;
 							itsPanel.add(send, gbc);
-							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, labelText, jc, dataType, send);
+							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, labelText, jc, dataType, send, readbackValue);
 						} else {
 							JButton send = new JButton("Send");
 							send.addActionListener(this);
@@ -1232,13 +1303,13 @@ public class ControlPanel extends MonPanel implements ActionListener{
 							send.addActionListener(this);
 							tf.setEditable(true);
 							tf.setText(inputValue);
-							gbc.gridy = 2;
+							gbc.gridy += 2;
 							itsPanel.add(tf, gbc);
-							gbc.gridy = 3;
+							gbc.gridy += 1;
 							gbc.weighty = 1.0;
 							gbc.anchor = GridBagConstraints.NORTH;
 							itsPanel.add(send, gbc);
-							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, tf, send, dataType);
+							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, tf, send, dataType, readbackValue);
 						}
 						panelList.add(cpdc);
 						gbc.gridx += 1;
@@ -1247,7 +1318,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 			}
 			itsMainPanel.add(titleLabel, BorderLayout.NORTH);
 			itsMainPanel.add(itsPanel, BorderLayout.CENTER);
-      
+
 			itsMainPanel.revalidate();
 			itsMainPanel.repaint();
 			itsScrollPane.getVerticalScrollBar().setUnitIncrement(16);
@@ -1328,6 +1399,7 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		for (ControlPanelDisplayComponent c : panelList){
 			c.removeListeners(this);
 		}
+		DataMaintainer.unsubscribe(components, this);
 		panelList = new ArrayList<ControlPanelDisplayComponent>();
 		itsMainPanel.removeAll();
 		itsMainPanel.revalidate();
@@ -1490,4 +1562,17 @@ public class ControlPanel extends MonPanel implements ActionListener{
 		}
 	}
 	// ///// END NESTED CLASS ///////
+
+	@Override
+	public void onPointEvent(Object source, PointEvent evt) {
+		if (readback){
+			PointData pd = evt.getPointData();
+			for (ControlPanelDisplayComponent c: panelList){
+				if (pd.getName().equals(c.getPoint())){
+					c.setReadbackText(pd.getData().toString());
+				}
+			}
+		}
+
+	}
 }
