@@ -34,10 +34,9 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   /** Add the new points to the system. */
   public boolean addPoints(PointDescriptionIce[] newpoints, String encname, String encpass, Ice.Current __current) {
     // Check user's credentials
-    String clienthost = getRemoteInfo(__current);
-    String authuser = checkAuth(encname, encpass, clienthost);
+    String authuser = checkAuth(encname, encpass, getRemoteHost(__current));
     if (authuser == null) {
-      theirLogger.warn("addPoints: Failed authentication attempt from " + clienthost);
+      theirLogger.warn("addPoints: Failed authentication attempt from " + getRemoteInfo(__current));
       return false;
     }
 
@@ -89,10 +88,9 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   /** Add the new setup to the system. */
   public boolean addSetup(String setup, String encname, String encpass, Ice.Current __current) {
     // Check user's credentials
-    String clienthost = getRemoteInfo(__current);
-    String authuser = checkAuth(encname, encpass, clienthost);
+    String authuser = checkAuth(encname, encpass, getRemoteHost(__current));
     if (authuser == null) {
-      theirLogger.warn("addSetup: Failed authentication attempt from " + clienthost);
+      theirLogger.warn("addSetup: Failed authentication attempt from " + getRemoteInfo(__current));
       return false;
     }
 
@@ -198,12 +196,12 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
       return false;
     }
     int numpoints = names.length;
+    String reminfo = getRemoteInfo(__current);
 
     // Check user's credentials
-    String clienthost = getRemoteInfo(__current);
-    String authuser = checkAuth(encname, encpass, clienthost);
+    String authuser = checkAuth(encname, encpass, getRemoteHost(__current));
     if (authuser == null) {
-      theirLogger.warn("setData: Failed authentication attempt from " + clienthost);
+      theirLogger.warn("setData: Failed authentication attempt from " + reminfo);
       return false;
     }
 
@@ -222,7 +220,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
         }
         // Act on the new data value
         PointData newval = values.get(i);
-        theirLogger.trace("Assigning value " + newval + " for \"" + authuser + "@" + clienthost + "\"");
+        theirLogger.trace("Assigning value " + newval + " for \"" + authuser + "@" + reminfo + "\"");
         // AbsTime start = AbsTime.factory();
         thispoint.firePointEvent(new PointEvent(this, newval, true));
         // theirLogger.debug("Call took " + Time.diff(AbsTime.factory(), start).toString(RelTime.Format.SECS_BAT));
@@ -253,11 +251,10 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   public boolean acknowledgeAlarms(String[] names, boolean ack, String encname, String encpass, Current __current) {
     boolean res = true;
     // Check user's credentials
-    String clienthost = getRemoteInfo(__current);
-    String authuser = checkAuth(encname, encpass, clienthost);
+    String authuser = checkAuth(encname, encpass, getRemoteHost(__current));
 
     if (authuser == null) {
-      theirLogger.warn("acknowledgeAlarms: Failed authentication attempt from " + clienthost);
+      theirLogger.warn("acknowledgeAlarms: Failed authentication attempt from " + getRemoteInfo(__current));
       res = false;
     } else {
       for (int i = 0; i < names.length; i++) {
@@ -265,7 +262,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
         PointDescription thispoint = PointDescription.getPoint(names[i]);
         if (thispoint != null) {
           AlarmManager.setAcknowledged(thispoint, ack, authuser);
-          theirLogger.debug("Point \"" + names[i] + "\" acknowledged=" + ack + " by \"" + authuser + "@" + clienthost + "\"");
+          theirLogger.debug("Point \"" + names[i] + "\" acknowledged=" + ack + " by \"" + authuser + "@" + getRemoteInfo(__current) + "\"");
         } else {
           res = false;
         }
@@ -278,11 +275,10 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   public boolean shelveAlarms(String[] names, boolean shelve, String encname, String encpass, Current __current) {
     boolean res = true;
     // Check user's credentials
-    String clienthost = getRemoteInfo(__current);
-    String authuser = checkAuth(encname, encpass, clienthost);
+    String authuser = checkAuth(encname, encpass, getRemoteHost(__current));
 
     if (authuser == null) {
-      theirLogger.warn("shelveAlarms: Failed authentication attempt from " + clienthost);
+      theirLogger.warn("shelveAlarms: Failed authentication attempt from " + getRemoteInfo(__current));
       res = false;
     } else {
       // User is authenticated, so shelve the alarms
@@ -291,7 +287,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
         PointDescription thispoint = PointDescription.getPoint(names[i]);
         if (thispoint != null) {
           AlarmManager.setShelved(thispoint, shelve, authuser);
-          theirLogger.debug("Point \"" + names[i] + "\" shelved=" + shelve + " by \"" + authuser + "@" + clienthost + "\"");
+          theirLogger.debug("Point \"" + names[i] + "\" shelved=" + shelve + " by \"" + authuser + "@" + getRemoteInfo(__current) + "\"");
         } else {
           res = false;
         }
@@ -336,6 +332,15 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
     } else if (type > 0) {
       theirLogger.debug("Request for alias name \"" + name + "\" from " + getRemoteInfo(__current));
     }
+  }
+
+  /** Get the remote clients IP. */
+  private String getRemoteHost(Ice.Current __current) {
+    String temp = __current.con.toString();
+    temp = temp.substring(temp.indexOf('\n') + 1);
+    temp = temp.substring(temp.indexOf('=') + 1).trim();
+    temp = temp.substring(temp.indexOf(':') + 1).trim();
+    return temp;
   }
 
   /** Get the remote clients IP/port. */
