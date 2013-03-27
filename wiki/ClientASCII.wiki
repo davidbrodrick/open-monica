@@ -238,6 +238,8 @@ site.environment.weather.Temperature 10.0 "C" "Temperature"
 
 The set command allows new values to be assigned to a specified set of points.
 
+The username and password may be plaintext (bad idea) or both encrypted using the RSA keys available from the "rsa" or "rsapersist" calls.
+
 You need to send:
 {{{
 set
@@ -311,9 +313,11 @@ The fields are as follows:
 This returns the complete list of alarms regardless of their state. The returned data is identical to the alarms call above.
 
 ==ack==
-This is used to acknowledge or deacknowledge an alarm. The alarm will remain acknowledged or deacknowledged until the underlieing alarm condition clears at which time the acknowledgement status is cleared.
+This is used to acknowledge or deacknowledge an alarm. The alarm will remain acknowledged or deacknowledged until the underlying alarm condition clears at which time the acknowledgement status is cleared.
 
 To use this command you must authenticate and then specify the number of alarms that are being acknowledged and then specify the acknowledgement state for each (true for acknowledged, false for deacknowledged).
+
+The username and password may be plaintext (bad idea) or both encrypted using the RSA keys available from the "rsa" or "rsapersist" calls.
 
 {{{
 ack
@@ -336,7 +340,7 @@ The server will respond with the name of each point and OK, unless the authentic
 If the server doesn't recognise one of the monitor point names you specified, it will respond with a line beginning with a question mark "?" in place of the line for that monitor point.
 
 ==shelve==
-The syntax for the shelve command is exactly as per ack, except that the command is called 'shelve'. The difference is that a point will remain shelved until it is later unshelved, even if the underlieing alarm condition clears.
+The syntax for the shelve command is exactly as per ack, except that the command is called 'shelve'. The difference is that a point will remain shelved until it is later unshelved, even if the underlying alarm condition clears.
 
 ==rsa==
 Return the exponent and modulus of the servers RSA keys on separate lines. These keys will only persist as long as this particular ASCII socket session.
