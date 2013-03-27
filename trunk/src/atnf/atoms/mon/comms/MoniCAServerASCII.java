@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 
 import atnf.atoms.mon.Alarm;
 import atnf.atoms.mon.AlarmManager;
+import atnf.atoms.mon.KeyKeeper;
 import atnf.atoms.mon.PointBuffer;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
@@ -158,6 +159,8 @@ public class MoniCAServerASCII extends Thread {
             alarms();
           } else if (line.equalsIgnoreCase("allalarms")) {
             allalarms();
+          } else if (line.equalsIgnoreCase("rsa")) {
+            rsa();
           } else if (line.equalsIgnoreCase("exit")) {
             itsRunning = false;
           }
@@ -390,7 +393,7 @@ public class MoniCAServerASCII extends Thread {
           itsWriter.println("? Expect name, type code and value. Tab delimited.");
           continue;
         }
-        
+
         checkPoint(tokens[0]);
         PointDescription thispoint = PointDescription.getPoint(tokens[0]);
         if (thispoint != null) {
@@ -478,7 +481,7 @@ public class MoniCAServerASCII extends Thread {
           itsWriter.println("? Expect name, and acknowledgement value. Tab delimited.");
           continue;
         }
-        
+
         checkPoint(tokens[0]);
         PointDescription thispoint = PointDescription.getPoint(tokens[0]);
         if (thispoint != null) {
@@ -516,7 +519,7 @@ public class MoniCAServerASCII extends Thread {
           itsWriter.println("? Expect name, and acknowledgement value. Tab delimited.");
           continue;
         }
-        
+
         checkPoint(tokens[0]);
         PointDescription thispoint = PointDescription.getPoint(tokens[0]);
         if (thispoint != null) {
@@ -671,6 +674,20 @@ public class MoniCAServerASCII extends Thread {
     }
   }
 
+  /**
+   * Return the public key and modulus for the server's RSA key.
+   */
+  protected void rsa() {
+    try {
+      itsWriter.println(KeyKeeper.getExponent());
+      itsWriter.println(KeyKeeper.getModulus());
+      itsWriter.flush();
+    } catch (Exception e) {
+      theirLogger.error("Problem in rsa request from " + itsClientName + ": " + e);
+      itsRunning = false;
+    }
+  }
+
   /** Check if the point is valid and log appropriate messages if it is not. */
   private void checkPoint(String name) {
     int type = PointDescription.checkPointNameType(name);
@@ -680,7 +697,7 @@ public class MoniCAServerASCII extends Thread {
       theirLogger.debug("Request for alias name \"" + name + "\" from \"" + itsClientName + "\"");
     }
   }
-  
+
   /**
    * Starting point for threads. If this object was created without a specified socket then we start a server thread which awaits
    * client connections and spawns new instances to service new clients. If a socket was specified at construction then we know that

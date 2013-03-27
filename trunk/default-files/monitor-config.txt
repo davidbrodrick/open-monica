@@ -26,13 +26,6 @@ MaxBufferSize 50
 MaxBufferAge 90
 
 ##############################
-# OPTIONS FOR ENCRYPTION ENGINE
-# How Strong to encrypt the username/passwords
-EncryptionStrength 512
-# How often to change keys
-KeyLife 3600000
-
-##############################
 # OPTIONS FOR AUTHENTICATION
 # Comment the options out to disable authentication
 # Name of the RADIUS server

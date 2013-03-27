@@ -281,7 +281,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   /** Return the key and modulus required to send encrypted data to the server. */
   public String[] getEncryptionInfo(Ice.Current __current) {
     String[] a = new String[2];
-    a[0] = KeyKeeper.getPublicKey();
+    a[0] = KeyKeeper.getExponent();
     a[1] = KeyKeeper.getModulus();
     return a;
   }

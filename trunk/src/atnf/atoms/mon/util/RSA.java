@@ -97,7 +97,7 @@ public class RSA
     return n;
   }
 
-  /** Return the public key. */
+  /** Return the exponent. */
   public synchronized
   BigInteger
   getE()

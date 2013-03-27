@@ -12,32 +12,26 @@ import org.apache.log4j.Logger;
 import atnf.atoms.mon.util.*;
 
 /**
- * Encapsulates a thread which periodically changes the encryption keys. The period at which the encryption keys are changed is
- * determined by the property <tt>KeyLife</tt>.
+ * Holds an RSA instance for encryption of passwords etc.
  * 
  * @author Le Cuong Nguyen
  * @author David Brodrick
  */
-public class KeyKeeper implements Runnable
+public class KeyKeeper
 {
-  /** Should the thread keep running <tt>True</tt> or stop <tt>False</tt>. */
-  protected boolean itsRunning = true;
-
   /** Logger. */
-  protected Logger itsLogger = Logger.getLogger(this.getClass().getName());
+  private static Logger theirLogger = Logger.getLogger(KeyKeeper.class.getName());
 
   /** Handles RSA encryption. */
-  private static RSA theirRSA = new RSA(1024);
+  private static RSA theirRSA;
 
-  /** Create a new KeyKeeper thread. */
-  public KeyKeeper()
-  {
-    Thread t = new Thread(this, "Encryption Key Keeper");
-    t.start();
+  static {
+    theirRSA = new RSA(1024);
+    theirRSA.generateKeys();
   }
 
-  /** Return the public RSA key. */
-  public static String getPublicKey()
+  /** Return the exponent. */
+  public static String getExponent()
   {
     return new String(theirRSA.getE().toString());
   }
@@ -52,21 +46,5 @@ public class KeyKeeper implements Runnable
   public static String decrypt(String ciphertext)
   {
     return theirRSA.decrypt(ciphertext);
-  }
-
-  /** Main loop for KeyKeeper thread. */
-  public void run()
-  {
-    while (itsRunning) {
-      itsLogger.trace("Generating new encryption keys");
-      theirRSA.generateKeys();
-      try {
-        synchronized (this) {
-          this.wait(Long.parseLong(MonitorConfig.getProperty("KeyLife")));
-        }
-      } catch (Exception e) {
-        itsLogger.error(e);
-      }
-    }
   }
 }
