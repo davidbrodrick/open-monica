@@ -324,7 +324,7 @@ ack
 [pointnameN]\t[ack_flagN]
 }}}
 
-The server will respond with the name of each point and OK.
+The server will respond with the name of each point and OK, unless the authentication failed in which case the response will contain the point name and then ERROR for each point.
 
 {{{
 [pointname1]\tOK
