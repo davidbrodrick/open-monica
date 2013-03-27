@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 
 import atnf.atoms.mon.Alarm;
 import atnf.atoms.mon.AlarmManager;
+import atnf.atoms.mon.KeyKeeper;
 import atnf.atoms.mon.PointBuffer;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
@@ -172,6 +173,8 @@ public class MoniCAServerASCII extends Thread {
             allalarms();
           } else if (line.equalsIgnoreCase("rsa")) {
             rsa();
+          } else if (line.equalsIgnoreCase("rsapersist")) {
+            rsapersist();
           } else if (line.equalsIgnoreCase("exit")) {
             itsRunning = false;
           }
@@ -709,7 +712,7 @@ public class MoniCAServerASCII extends Thread {
   }
 
   /**
-   * Return the public key and modulus for the server's RSA key.
+   * Return the public key and modulus for this session's RSA key.
    */
   protected void rsa() {
     try {
@@ -722,19 +725,37 @@ public class MoniCAServerASCII extends Thread {
     }
   }
 
+  /**
+   * Return the public key and modulus for the server's RSA key.
+   */
+  protected void rsapersist() {
+    try {
+      itsWriter.println(KeyKeeper.getExponent());
+      itsWriter.println(KeyKeeper.getModulus());
+      itsWriter.flush();
+    } catch (Exception e) {
+      theirLogger.error("Problem in rsapersist request from " + itsClientName + ": " + e);
+      itsRunning = false;
+    }
+  }
+
   /** Check the clients credentials. */
   protected boolean checkAuth(String username, String rawpass, String host) {
     // Try to decrypt password
-    String cryptpass = null;
+    String cryptpass1 = null;
+    String cryptpass2 = null;
     try {
-      cryptpass = itsRSA.decrypt(rawpass);
+      cryptpass1 = itsRSA.decrypt(rawpass);
+      cryptpass2 = KeyKeeper.decrypt(rawpass);
     } catch (NumberFormatException f) {
       // Clearly not encrypted
-      cryptpass = null;
+      cryptpass1 = null;
+      cryptpass2 = null;
     }
     boolean authokay;
     // Password might be encrypted, or might not, so try both possibilities
-    if ((cryptpass != null && RADIUSAuthenticator.authenticate(username, cryptpass, itsClientHost))
+    if ((cryptpass1 != null && RADIUSAuthenticator.authenticate(username, cryptpass1, itsClientHost))
+        || (cryptpass2 != null && RADIUSAuthenticator.authenticate(username, cryptpass2, itsClientHost))
         || RADIUSAuthenticator.authenticate(username, rawpass, itsClientHost)) {
       authokay = true;
     } else {
