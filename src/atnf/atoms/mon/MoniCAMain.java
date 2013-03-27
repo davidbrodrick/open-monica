@@ -102,8 +102,8 @@ public class MoniCAMain {
     // If no RADIUS server is defined then approve all auth requests (for backwards compatibility)
     RADIUSAuthenticator.setDefaultAuthMode(true);
 
-    // Create a thread to update the encryption key occasionally
-    new KeyKeeper();
+    // Set the encryption keys
+    KeyKeeper.getExponent();
 
     // Recover all the SavedSetups from the file
     InputStream setupfile = MoniCAMain.class.getClassLoader().getResourceAsStream("monitor-setups.txt");
