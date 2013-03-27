@@ -31,7 +31,7 @@ MaxBufferAge 90
 # Name of the RADIUS server
 #RADIUSHost 127.0.0.1
 # Port to contact the RADIUS server
-#RADIUSPort 1645
+#RADIUSPort 1812
 # Shared secret for the RADIUS server
 #RADIUSSecret testing123
 
