@@ -22,14 +22,16 @@ import org.apache.log4j.Logger;
 
 import atnf.atoms.mon.Alarm;
 import atnf.atoms.mon.AlarmManager;
-import atnf.atoms.mon.KeyKeeper;
 import atnf.atoms.mon.PointBuffer;
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.PointEvent;
 import atnf.atoms.mon.util.MonitorConfig;
 import atnf.atoms.mon.util.MonitorUtils;
+import atnf.atoms.mon.util.RADIUSAuthenticator;
+import atnf.atoms.mon.util.RSA;
 import atnf.atoms.time.AbsTime;
+import atnf.atoms.time.RelTime;
 
 /**
  * Provides a simple ASCII interface for clients to obtain monitor data.
@@ -49,14 +51,20 @@ public class MoniCAServerASCII extends Thread {
   /** The socket used to listen for requests from our client. */
   protected Socket itsSocket = null;
 
-  /** The name of the client. */
+  /** The name of the client, including host and port number. */
   protected String itsClientName = null;
+
+  /** The host name of the client. */
+  protected String itsClientHost = null;
 
   /** For writing data to the client. */
   protected PrintWriter itsWriter = null;
 
   /** For reading instructions from the client. */
   protected BufferedReader itsReader = null;
+
+  /** Handles RSA encryption. */
+  private RSA itsRSA;
 
   /** List of all currently running servers. */
   protected static Vector<MoniCAServerASCII> theirServers = new Vector<MoniCAServerASCII>();
@@ -84,7 +92,10 @@ public class MoniCAServerASCII extends Thread {
     synchronized (theirServers) {
       theirServers.add(this);
     }
+    itsRSA = new RSA(1024);
+    itsRSA.generateKeys();
     theirNumClients++;
+    itsClientHost = socket.getInetAddress().getHostAddress();
     itsClientName = socket.getInetAddress().getHostAddress() + ":" + socket.getPort();
     // System.out.println("MonitorServerASCII: New Connection from " +
     // itsClientName);
@@ -379,10 +390,13 @@ public class MoniCAServerASCII extends Thread {
   /** Specify new values for the given points. */
   protected void set() {
     try {
-      // Read users credentials. These should be encrypted. TODO: Currently not
-      // used.
+      // Check users credentials.
       String username = itsReader.readLine().trim();
-      String password = itsReader.readLine().trim();
+      String rawpass = itsReader.readLine().trim();
+      boolean authokay = checkAuth(username, rawpass, itsClientHost);
+      if (!authokay) {
+        theirLogger.warn("set(): Authentication failed for " + username + " from " + itsClientName);
+      }
 
       // First line tells us how many points are going to be specified
       String tempstr = itsReader.readLine().trim();
@@ -408,9 +422,15 @@ public class MoniCAServerASCII extends Thread {
             continue;
           }
 
-          theirLogger.trace("Assigning value " + newval + " to point " + thispoint.getFullName() + " as requested by " + username + " from " + itsClientName);
-          thispoint.firePointEvent(new PointEvent(this, newval, true));
-          itsWriter.println(thispoint.getFullName() + "\tOK");
+          if (authokay) {
+            // User is authorised for this operations
+            theirLogger.trace("Assigning value " + newval + " to point " + thispoint.getFullName() + " as requested by " + username + " from " + itsClientName);
+            thispoint.firePointEvent(new PointEvent(this, newval, true));
+            itsWriter.println(thispoint.getFullName() + "\tOK");
+          } else {
+            // Unauthenticated user, return error message
+            itsWriter.println(thispoint.getFullName() + "\tERROR");
+          }
         } else {
           itsWriter.println("? Named point doesn't exist");
         }
@@ -465,10 +485,13 @@ public class MoniCAServerASCII extends Thread {
   /** Set the acknowledge state for an alarm. */
   protected void ack() {
     try {
-      // Read users credentials. These should be encrypted. TODO: Currently not
-      // used.
+      // Check users credentials.
       String username = itsReader.readLine().trim();
-      String password = itsReader.readLine().trim();
+      String rawpass = itsReader.readLine().trim();
+      boolean authokay = checkAuth(username, rawpass, itsClientHost);
+      if (!authokay) {
+        theirLogger.warn("ack(): Authentication failed for " + username + " from " + itsClientName);
+      }
 
       AbsTime now = AbsTime.factory();
 
@@ -486,9 +509,13 @@ public class MoniCAServerASCII extends Thread {
         PointDescription thispoint = PointDescription.getPoint(tokens[0]);
         if (thispoint != null) {
           boolean ackval = Boolean.parseBoolean(tokens[1]);
-          AlarmManager.setAcknowledged(thispoint, ackval, username, now);
-          theirLogger.debug("Point \"" + tokens[0] + "\" acknowledged=" + ackval + " by \"" + username + "@" + itsClientName + "\"");
-          itsWriter.println(thispoint.getFullName() + "\tOK");
+          if (authokay) {
+            AlarmManager.setAcknowledged(thispoint, ackval, username, now);
+            theirLogger.debug("Point \"" + tokens[0] + "\" acknowledged=" + ackval + " by \"" + username + "@" + itsClientName + "\"");
+            itsWriter.println(thispoint.getFullName() + "\tOK");
+          } else {
+            itsWriter.println(thispoint.getFullName() + "\tERROR");
+          }
         } else {
           itsWriter.println("? Named point doesn't exist");
         }
@@ -503,10 +530,13 @@ public class MoniCAServerASCII extends Thread {
   /** Set the shelf state for an alarm. */
   protected void shelve() {
     try {
-      // Read users credentials. These should be encrypted. TODO: Currently not
-      // used.
+      // Check users credentials.
       String username = itsReader.readLine().trim();
-      String password = itsReader.readLine().trim();
+      String rawpass = itsReader.readLine().trim();
+      boolean authokay = checkAuth(username, rawpass, itsClientHost);
+      if (!authokay) {
+        theirLogger.warn("shelve(): Authentication failed for " + username + " from " + itsClientName);
+      }
 
       AbsTime now = AbsTime.factory();
 
@@ -523,10 +553,14 @@ public class MoniCAServerASCII extends Thread {
         checkPoint(tokens[0]);
         PointDescription thispoint = PointDescription.getPoint(tokens[0]);
         if (thispoint != null) {
-          boolean ackval = Boolean.parseBoolean(tokens[1]);
-          AlarmManager.setShelved(thispoint, ackval, username, now);
-          theirLogger.debug("Point \"" + tokens[0] + "\" shelved=" + ackval + " by \"" + username + "@" + itsClientName + "\"");
-          itsWriter.println(thispoint.getFullName() + "\tOK");
+          if (authokay) {
+            boolean ackval = Boolean.parseBoolean(tokens[1]);
+            AlarmManager.setShelved(thispoint, ackval, username, now);
+            theirLogger.debug("Point \"" + tokens[0] + "\" shelved=" + ackval + " by \"" + username + "@" + itsClientName + "\"");
+            itsWriter.println(thispoint.getFullName() + "\tOK");
+          } else {
+            itsWriter.println(thispoint.getFullName() + "\tERROR");
+          }
         } else {
           itsWriter.println("? Named point doesn't exist");
         }
@@ -679,13 +713,39 @@ public class MoniCAServerASCII extends Thread {
    */
   protected void rsa() {
     try {
-      itsWriter.println(KeyKeeper.getExponent());
-      itsWriter.println(KeyKeeper.getModulus());
+      itsWriter.println(itsRSA.getE());
+      itsWriter.println(itsRSA.getN());
       itsWriter.flush();
     } catch (Exception e) {
       theirLogger.error("Problem in rsa request from " + itsClientName + ": " + e);
       itsRunning = false;
     }
+  }
+
+  /** Check the clients credentials. */
+  protected boolean checkAuth(String username, String rawpass, String host) {
+    // Try to decrypt password
+    String cryptpass = null;
+    try {
+      cryptpass = itsRSA.decrypt(rawpass);
+    } catch (NumberFormatException f) {
+      // Clearly not encrypted
+      cryptpass = null;
+    }
+    boolean authokay;
+    // Password might be encrypted, or might not, so try both possibilities
+    if ((cryptpass != null && RADIUSAuthenticator.authenticate(username, cryptpass, itsClientHost))
+        || RADIUSAuthenticator.authenticate(username, rawpass, itsClientHost)) {
+      authokay = true;
+    } else {
+      authokay = false;
+      // Add a delay if auth failed
+      try {
+        RelTime.factory(1000000).sleep();
+      } catch (Exception e) {
+      }
+    }
+    return authokay;
   }
 
   /** Check if the point is valid and log appropriate messages if it is not. */

@@ -17,8 +17,7 @@ import atnf.atoms.mon.util.*;
  * @author Le Cuong Nguyen
  * @author David Brodrick
  */
-public class KeyKeeper
-{
+public class KeyKeeper {
   /** Logger. */
   private static Logger theirLogger = Logger.getLogger(KeyKeeper.class.getName());
 
@@ -31,20 +30,22 @@ public class KeyKeeper
   }
 
   /** Return the exponent. */
-  public static String getExponent()
-  {
+  public static String getExponent() {
     return new String(theirRSA.getE().toString());
   }
 
   /** Return the RSA modulus. */
-  public static String getModulus()
-  {
+  public static String getModulus() {
     return new String(theirRSA.getN().toString());
   }
 
   /** Decrypt the given ciphertext. */
-  public static String decrypt(String ciphertext)
-  {
+  public static String decrypt(String ciphertext) {
     return theirRSA.decrypt(ciphertext);
+  }
+
+  /** Encrypt the given plaintext. */
+  public static String encrypt(String plaintext) {
+    return theirRSA.encrypt(plaintext);
   }
 }
