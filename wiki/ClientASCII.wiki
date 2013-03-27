@@ -338,7 +338,7 @@ If the server doesn't recognise one of the monitor point names you specified, it
 The syntax for the shelve command is exactly as per ack, except that the command is called 'shelve'. The difference is that a point will remain shelved until it is later unshelved, even if the underlieing alarm condition clears.
 
 ==rsa==
-Return the exponent and modulus of the servers RSA keys on separate lines.
+Return the exponent and modulus of the servers RSA keys on separate lines. These keys will only persist as long as this particular ASCII socket session.
 
 {{{
 rsa
@@ -350,3 +350,6 @@ The server will respond with the key information.
 3
 64129427761184638068388211256513602701384755910053899609298359337859142182951474380186002214620110237483193407149019925665073596329465725365471939240275962604740323716199200201521284138192577069039566456866361990394928007375249864591359258001438102226579595169048222257001072845121797740923277078837026245439
 }}}
+
+==rsapersist==
+As with the "rsa" call, except the returned keys will persist for longer than the particular ASCII socket session.
