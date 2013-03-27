@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import Ice.Current;
 import atnf.atoms.mon.*;
+import atnf.atoms.mon.util.RADIUSAuthenticator;
 import atnf.atoms.time.*;
 import org.apache.log4j.Logger;
 
@@ -32,11 +33,16 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
 
   /** Add the new points to the system. */
   public boolean addPoints(PointDescriptionIce[] newpoints, String encname, String encpass, Ice.Current __current) {
-    // Decrypt the user's credentials
-    String username = KeyKeeper.decrypt(encname);
-    String password = KeyKeeper.decrypt(encpass);
+    // Check user's credentials
+    String clienthost = getRemoteInfo(__current);
+    String authuser = checkAuth(encname, encpass, clienthost);
+    if (authuser == null) {
+      theirLogger.warn("addPoints: Failed authentication attempt from " + clienthost);
+      return false;
+    }
+
     // TODO: Currently does nothing
-    theirLogger.warn("addPoints method called by " + username + " but is currently unimplemented");
+    theirLogger.warn("addPoints method called by " + authuser + " but is currently unimplemented");
     return false;
   }
 
@@ -82,11 +88,16 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
 
   /** Add the new setup to the system. */
   public boolean addSetup(String setup, String encname, String encpass, Ice.Current __current) {
-    // Decrypt the user's credentials
-    String username = KeyKeeper.decrypt(encname);
-    String password = KeyKeeper.decrypt(encpass);
+    // Check user's credentials
+    String clienthost = getRemoteInfo(__current);
+    String authuser = checkAuth(encname, encpass, clienthost);
+    if (authuser == null) {
+      theirLogger.warn("addSetup: Failed authentication attempt from " + clienthost);
+      return false;
+    }
+
     // TODO: Currently does nothing
-    theirLogger.warn("addSetup method called by " + username + " but is currently unimplemented");
+    theirLogger.warn("addSetup method called by " + authuser + " but is currently unimplemented");
     return false;
   }
 
@@ -188,12 +199,14 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
     }
     int numpoints = names.length;
 
-    // Decrypt the user's credentials
-    // / Doesn't presently do anything with user's credentials
-    String username = KeyKeeper.decrypt(encname);
-    String password = KeyKeeper.decrypt(encpass);
-    PasswordAuthentication pa = new PasswordAuthentication(username, password.toCharArray());
-    
+    // Check user's credentials
+    String clienthost = getRemoteInfo(__current);
+    String authuser = checkAuth(encname, encpass, clienthost);
+    if (authuser == null) {
+      theirLogger.warn("setData: Failed authentication attempt from " + clienthost);
+      return false;
+    }
+
     // Process each of the control requests consecutively
     boolean result = true;
     Vector<PointData> values = MoniCAIceUtil.getPointDataFromIce(rawvalues);
@@ -209,7 +222,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
         }
         // Act on the new data value
         PointData newval = values.get(i);
-        theirLogger.trace("Assigning value " + newval + " for \"" + username + "@" + getRemoteInfo(__current) + "\"");
+        theirLogger.trace("Assigning value " + newval + " for \"" + authuser + "@" + clienthost + "\"");
         // AbsTime start = AbsTime.factory();
         thispoint.firePointEvent(new PointEvent(this, newval, true));
         // theirLogger.debug("Call took " + Time.diff(AbsTime.factory(), start).toString(RelTime.Format.SECS_BAT));
@@ -238,20 +251,24 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
 
   /** Acknowledge (ack=true) or deacknowledge (ack=false) the specified alarms. */
   public boolean acknowledgeAlarms(String[] names, boolean ack, String encname, String encpass, Current __current) {
-    // TODO: Authentication/authorisation not currently checked
-    // Decrypt the user's credentials
-    String username = KeyKeeper.decrypt(encname);
-    String password = KeyKeeper.decrypt(encpass);
-
     boolean res = true;
-    for (int i = 0; i < names.length; i++) {
-      checkPoint(names[i], __current);
-      PointDescription thispoint = PointDescription.getPoint(names[i]);
-      if (thispoint != null) {
-        AlarmManager.setAcknowledged(thispoint, ack, username);
-        theirLogger.debug("Point \"" + names[i] + "\" acknowledged=" + ack + " by \"" + username + "@" + getRemoteInfo(__current) + "\"");
-      } else {
-        res = false;
+    // Check user's credentials
+    String clienthost = getRemoteInfo(__current);
+    String authuser = checkAuth(encname, encpass, clienthost);
+
+    if (authuser == null) {
+      theirLogger.warn("acknowledgeAlarms: Failed authentication attempt from " + clienthost);
+      res = false;
+    } else {
+      for (int i = 0; i < names.length; i++) {
+        checkPoint(names[i], __current);
+        PointDescription thispoint = PointDescription.getPoint(names[i]);
+        if (thispoint != null) {
+          AlarmManager.setAcknowledged(thispoint, ack, authuser);
+          theirLogger.debug("Point \"" + names[i] + "\" acknowledged=" + ack + " by \"" + authuser + "@" + clienthost + "\"");
+        } else {
+          res = false;
+        }
       }
     }
     return res;
@@ -259,20 +276,25 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
 
   /** Shelve (shelve=true) or deshelve (shelve=false) the specified alarms. */
   public boolean shelveAlarms(String[] names, boolean shelve, String encname, String encpass, Current __current) {
-    // TODO: Authentication/authorisation not currently checked
-    // Decrypt the user's credentials
-    String username = KeyKeeper.decrypt(encname);
-    String password = KeyKeeper.decrypt(encpass);
-
     boolean res = true;
-    for (int i = 0; i < names.length; i++) {
-      checkPoint(names[i], __current);
-      PointDescription thispoint = PointDescription.getPoint(names[i]);
-      if (thispoint != null) {
-        AlarmManager.setShelved(thispoint, shelve, username);
-        theirLogger.debug("Point \"" + names[i] + "\" shelved=" + shelve + " by \"" + username + "@" + getRemoteInfo(__current) + "\"");
-      } else {
-        res = false;
+    // Check user's credentials
+    String clienthost = getRemoteInfo(__current);
+    String authuser = checkAuth(encname, encpass, clienthost);
+
+    if (authuser == null) {
+      theirLogger.warn("shelveAlarms: Failed authentication attempt from " + clienthost);
+      res = false;
+    } else {
+      // User is authenticated, so shelve the alarms
+      for (int i = 0; i < names.length; i++) {
+        checkPoint(names[i], __current);
+        PointDescription thispoint = PointDescription.getPoint(names[i]);
+        if (thispoint != null) {
+          AlarmManager.setShelved(thispoint, shelve, authuser);
+          theirLogger.debug("Point \"" + names[i] + "\" shelved=" + shelve + " by \"" + authuser + "@" + clienthost + "\"");
+        } else {
+          res = false;
+        }
       }
     }
     return res;
@@ -289,6 +311,21 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   /** Return the current time on the server. */
   public long getCurrentTime(Ice.Current __current) {
     return (new AbsTime()).getValue();
+  }
+
+  /** Return validated username if credentials are valid or else return null. */
+  private String checkAuth(String encname, String encpass, String host) {
+    String username = KeyKeeper.decrypt(encname);
+    String password = KeyKeeper.decrypt(encpass);
+    if (!RADIUSAuthenticator.authenticate(username, password, host)) {
+      // Authentication failed, add a delay
+      username = null;
+      try {
+        RelTime.factory(1000000).sleep();
+      } catch (Exception e) {
+      }
+    }
+    return username;
   }
 
   /** Check if the point is valid and log appropriate messages if it is not. */

@@ -394,11 +394,11 @@ public class MoniCAServerASCII extends Thread {
   protected void set() {
     try {
       // Check users credentials.
-      String username = itsReader.readLine().trim();
+      String rawuser = itsReader.readLine().trim();
       String rawpass = itsReader.readLine().trim();
-      boolean authokay = checkAuth(username, rawpass, itsClientHost);
-      if (!authokay) {
-        theirLogger.warn("set(): Authentication failed for " + username + " from " + itsClientName);
+      String authuser = checkAuth(rawuser, rawpass, itsClientHost);
+      if (authuser == null) {
+        theirLogger.warn("set(): Failed authentication attempt from " + itsClientName);
       }
 
       // First line tells us how many points are going to be specified
@@ -425,9 +425,9 @@ public class MoniCAServerASCII extends Thread {
             continue;
           }
 
-          if (authokay) {
+          if (authuser != null) {
             // User is authorised for this operations
-            theirLogger.trace("Assigning value " + newval + " to point " + thispoint.getFullName() + " as requested by " + username + " from " + itsClientName);
+            theirLogger.trace("Assigning value " + newval + " to point " + thispoint.getFullName() + " as requested by " + authuser + " from " + itsClientName);
             thispoint.firePointEvent(new PointEvent(this, newval, true));
             itsWriter.println(thispoint.getFullName() + "\tOK");
           } else {
@@ -489,11 +489,11 @@ public class MoniCAServerASCII extends Thread {
   protected void ack() {
     try {
       // Check users credentials.
-      String username = itsReader.readLine().trim();
+      String rawuser = itsReader.readLine().trim();
       String rawpass = itsReader.readLine().trim();
-      boolean authokay = checkAuth(username, rawpass, itsClientHost);
-      if (!authokay) {
-        theirLogger.warn("ack(): Authentication failed for " + username + " from " + itsClientName);
+      String authuser = checkAuth(rawuser, rawpass, itsClientHost);
+      if (authuser == null) {
+        theirLogger.warn("ack(): Failed authentication attempt from " + itsClientName);
       }
 
       AbsTime now = AbsTime.factory();
@@ -512,9 +512,9 @@ public class MoniCAServerASCII extends Thread {
         PointDescription thispoint = PointDescription.getPoint(tokens[0]);
         if (thispoint != null) {
           boolean ackval = Boolean.parseBoolean(tokens[1]);
-          if (authokay) {
-            AlarmManager.setAcknowledged(thispoint, ackval, username, now);
-            theirLogger.debug("Point \"" + tokens[0] + "\" acknowledged=" + ackval + " by \"" + username + "@" + itsClientName + "\"");
+          if (authuser != null) {
+            AlarmManager.setAcknowledged(thispoint, ackval, authuser, now);
+            theirLogger.debug("Point \"" + tokens[0] + "\" acknowledged=" + ackval + " by \"" + authuser + "@" + itsClientName + "\"");
             itsWriter.println(thispoint.getFullName() + "\tOK");
           } else {
             itsWriter.println(thispoint.getFullName() + "\tERROR");
@@ -534,11 +534,11 @@ public class MoniCAServerASCII extends Thread {
   protected void shelve() {
     try {
       // Check users credentials.
-      String username = itsReader.readLine().trim();
+      String rawuser = itsReader.readLine().trim();
       String rawpass = itsReader.readLine().trim();
-      boolean authokay = checkAuth(username, rawpass, itsClientHost);
-      if (!authokay) {
-        theirLogger.warn("shelve(): Authentication failed for " + username + " from " + itsClientName);
+      String authuser = checkAuth(rawuser, rawpass, itsClientHost);
+      if (authuser == null) {
+        theirLogger.warn("shelve(): Failed authentication attempt from " + itsClientName);
       }
 
       AbsTime now = AbsTime.factory();
@@ -556,10 +556,10 @@ public class MoniCAServerASCII extends Thread {
         checkPoint(tokens[0]);
         PointDescription thispoint = PointDescription.getPoint(tokens[0]);
         if (thispoint != null) {
-          if (authokay) {
+          if (authuser != null) {
             boolean ackval = Boolean.parseBoolean(tokens[1]);
-            AlarmManager.setShelved(thispoint, ackval, username, now);
-            theirLogger.debug("Point \"" + tokens[0] + "\" shelved=" + ackval + " by \"" + username + "@" + itsClientName + "\"");
+            AlarmManager.setShelved(thispoint, ackval, rawuser, now);
+            theirLogger.debug("Point \"" + tokens[0] + "\" shelved=" + ackval + " by \"" + rawuser + "@" + itsClientName + "\"");
             itsWriter.println(thispoint.getFullName() + "\tOK");
           } else {
             itsWriter.println(thispoint.getFullName() + "\tERROR");
@@ -739,34 +739,40 @@ public class MoniCAServerASCII extends Thread {
     }
   }
 
-  /** Check the clients credentials. */
-  protected boolean checkAuth(String username, String rawpass, String host) {
-    // Try to decrypt password
-    String cryptpass1 = null;
-    String cryptpass2 = null;
+  /** Check the clients credentials. Return verified user name or null if can't be verified. */
+  protected String checkAuth(String rawuser, String rawpass, String host) {
+    // Socket session keys
     try {
-      cryptpass1 = itsRSA.decrypt(rawpass);
-      cryptpass2 = KeyKeeper.decrypt(rawpass);
-    } catch (NumberFormatException f) {
-      // Clearly not encrypted
-      cryptpass1 = null;
-      cryptpass2 = null;
-    }
-    boolean authokay;
-    // Password might be encrypted, or might not, so try both possibilities
-    if ((cryptpass1 != null && RADIUSAuthenticator.authenticate(username, cryptpass1, itsClientHost))
-        || (cryptpass2 != null && RADIUSAuthenticator.authenticate(username, cryptpass2, itsClientHost))
-        || RADIUSAuthenticator.authenticate(username, rawpass, itsClientHost)) {
-      authokay = true;
-    } else {
-      authokay = false;
-      // Add a delay if auth failed
-      try {
-        RelTime.factory(1000000).sleep();
-      } catch (Exception e) {
+      String username = itsRSA.decrypt(rawuser);
+      String password = itsRSA.decrypt(rawpass);
+      if (RADIUSAuthenticator.authenticate(username, password, host)) {
+        return username;
       }
+    } catch (NumberFormatException f) {
     }
-    return authokay;
+
+    // Server persistent keys
+    try {
+      String username = KeyKeeper.decrypt(rawuser);
+      String password = KeyKeeper.decrypt(rawpass);
+      if (RADIUSAuthenticator.authenticate(username, password, host)) {
+        return username;
+      }
+    } catch (NumberFormatException f) {
+    }
+
+    // Plaintext
+    if (RADIUSAuthenticator.authenticate(rawuser, rawpass, host)) {
+      return rawuser;
+    }
+
+    // We failed to authenticate the client, add a delay here
+    try {
+      RelTime.factory(1000000).sleep();
+    } catch (Exception e) {
+    }
+
+    return null;
   }
 
   /** Check if the point is valid and log appropriate messages if it is not. */
