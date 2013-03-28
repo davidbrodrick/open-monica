@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import javax.naming.AuthenticationException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -2006,20 +2007,27 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		 */
 		@Override
 		public void run(){
+			boolean res = false;
 			try{
 				if (action.equals("shelve")){
-					AlarmMaintainer.setShelved(point, state, username, password);
+					res = AlarmMaintainer.setShelved(point, state, username, password);
 					updateListModels();
 				} else if (action.equals("ack")){
-					AlarmMaintainer.setAcknowledged(point, state, username, password);
+					 res = AlarmMaintainer.setAcknowledged(point, state, username, password);
 					updateListModels();
 				} else {
 					throw (new IllegalArgumentException());
 				}
+				if (!res) throw (new AuthenticationException());
 			} catch (IllegalArgumentException i){
 				password = "";
 				JOptionPane.showMessageDialog(AlarmManagerPanel.this, "You somehow sent an invalid command to the server - check the source code!", 
 						"Invalid command Error", JOptionPane.ERROR_MESSAGE);
+
+			} catch (AuthenticationException ae){
+				password = "";
+				JOptionPane.showMessageDialog(AlarmManagerPanel.this, "Data transmission failed.\nPlease check your username and password.", 
+						"Authentication Failure", JOptionPane.ERROR_MESSAGE);
 
 			} catch (Exception e){
 				password = "";
