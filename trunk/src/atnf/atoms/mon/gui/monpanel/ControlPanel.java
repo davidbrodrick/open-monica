@@ -17,8 +17,11 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.font.TextAttribute;
 import java.io.PrintStream;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -28,6 +31,7 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.naming.AuthenticationException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -74,7 +78,7 @@ import atnf.atoms.time.AbsTime;
  * @author Kalinga Hulugalle
  * @see MonPanel
  */
-public class ControlPanel extends MonPanel implements ActionListener, PointListener{
+public class ControlPanel extends MonPanel implements ActionListener, KeyListener, PointListener{
 
 	private static final long serialVersionUID = -5900630541567847520L;
 
@@ -489,18 +493,26 @@ public class ControlPanel extends MonPanel implements ActionListener, PointListe
 					itsMainPanel.repaint();
 				} else {
 					if (componentList.size() == 0){
-						JOptionPane.showMessageDialog(this, 
-								"You do not have an input panel allocated.\n" +
-								"Please set the spinner at the top of the Setup Panel to at least 1.",
-								"No Input Panels Error", JOptionPane.ERROR_MESSAGE);
+						SwingUtilities.invokeLater(new Runnable(){
+							public void run(){
+								JOptionPane.showMessageDialog(ControlSetupPanel.this, 
+										"You do not have an input panel allocated.\n" +
+										"Please set the spinner at the top of the Setup Panel to at least 1.",
+										"No Input Panels Error", JOptionPane.ERROR_MESSAGE);
+							}
+						});
 						return;
 					} else {
 						for (ControlPanelSetupComponent c : componentList){
 							if (c.getTreeSelection() == null){
-								JOptionPane.showMessageDialog(this, 
-										"One or more of your Controls does not have a point selected.\n" +
-										"Please select a data point to control, or remove a control input panel.", 
-										"Missing Point Selection", JOptionPane.ERROR_MESSAGE);
+								SwingUtilities.invokeLater(new Runnable(){
+									public void run(){
+										JOptionPane.showMessageDialog(ControlSetupPanel.this, 
+												"One or more of your Controls does not have a point selected.\n" +
+												"Please select a data point to control, or remove a control input panel.", 
+												"Missing Point Selection", JOptionPane.ERROR_MESSAGE);
+									}
+								});
 								return;
 							}
 						}
@@ -510,10 +522,14 @@ public class ControlPanel extends MonPanel implements ActionListener, PointListe
 							Pattern pattern = Pattern.compile("[0-9]*|\\.|[0-9]*\\.[0-9]*");
 							Matcher matcher = pattern.matcher(c.getValueText());
 							if (!matcher.matches() || c.getValueText().equals("")){
-								JOptionPane.showMessageDialog(this, 
-										"The data value set in the \"Value\" field is incompatible with the Data type you have selected.\n" +
-										"Please set a valid value for the selected data type.",
-										"Invalid Data Error", JOptionPane.ERROR_MESSAGE);
+								SwingUtilities.invokeLater(new Runnable(){
+									public void run(){
+										JOptionPane.showMessageDialog(ControlSetupPanel.this, 
+												"The data value set in the \"Value\" field is incompatible with the Data type you have selected.\n" +
+												"Please set a valid value for the selected data type.",
+												"Invalid Data Error", JOptionPane.ERROR_MESSAGE);
+									}
+								});
 								return;
 							}
 						}
@@ -1042,6 +1058,18 @@ public class ControlPanel extends MonPanel implements ActionListener, PointListe
 		}
 
 		/**
+		 * Returns the actual JTextField used in TEXT_TYPE components
+		 * @return The JTextField associated with this ControlPanelDisplayComponent
+		 */
+		public JTextField getTextField() {
+			if (controlType == TEXT_TYPE){
+				return this.value;
+			} else {
+				return null; //if this ever gets returned, we need to do a null check befor using it.
+			}
+		}
+
+		/**
 		 * Returns the name of this Control
 		 * @return String name of this control
 		 */
@@ -1173,7 +1201,7 @@ public class ControlPanel extends MonPanel implements ActionListener, PointListe
 						fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_DOTTED);
 						itsName.setFont(new Font("Sans Serif", Font.BOLD | Font.ITALIC, 14).deriveFont(fontAttributes));
 						itsPanel.add(itsName, gbc);
-						
+
 						JLabel readbackValue = null;
 						if (readback){
 							gbc.insets = new Insets(13,10,0,0);
@@ -1215,6 +1243,7 @@ public class ControlPanel extends MonPanel implements ActionListener, PointListe
 							JTextField tf = new JTextField(10);
 							tf.setEditable(true);
 							tf.setText(inputValue);
+							tf.addKeyListener(this);
 							gbc.gridx += 2;
 							itsPanel.add(tf, gbc);
 							gbc.gridx += 1;
@@ -1245,11 +1274,11 @@ public class ControlPanel extends MonPanel implements ActionListener, PointListe
 					String labelText = st.nextToken();
 					String bValue = st.nextToken();
 					String inputValue = null;
-					
+
 					if (readback){
 						DataMaintainer.subscribe(point, this);
 					}
-					
+
 					try {
 						inputValue = st.nextToken();
 					} catch (Exception e){
@@ -1295,7 +1324,6 @@ public class ControlPanel extends MonPanel implements ActionListener, PointListe
 							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, labelText, jc, dataType, send, readbackValue);
 						} else {
 							JButton send = new JButton("Send");
-							send.addActionListener(this);
 							if (!labelText.equals("\t")){
 								send.setText(labelText);
 							}
@@ -1303,6 +1331,7 @@ public class ControlPanel extends MonPanel implements ActionListener, PointListe
 							send.addActionListener(this);
 							tf.setEditable(true);
 							tf.setText(inputValue);
+							tf.addKeyListener(this);
 							gbc.gridy += 2;
 							itsPanel.add(tf, gbc);
 							gbc.gridy += 1;
@@ -1431,14 +1460,16 @@ public class ControlPanel extends MonPanel implements ActionListener, PointListe
 			for (ControlPanelDisplayComponent c : panelList){
 				if (source.equals(c.getConfirmButton())){
 					String[] creds = MonClientUtil.showLogin(this, username, passwd);
-					username = creds[0];
-					passwd = creds[1];
-					if (username.isEmpty() || passwd.isEmpty()){
-						passwd = ""; 
+					if (creds != null){
+						username = creds[0];
+						passwd = creds[1];
+						if (username.isEmpty() || username == null || passwd.isEmpty() || passwd == null){
+							passwd = ""; 
+							return;
+						}
+						new DataSender(c).start(); // Start sending thread
 						return;
 					}
-					new DataSender(c).start(); // Start sending thread
-					break;
 				}
 			}
 		}
@@ -1472,7 +1503,6 @@ public class ControlPanel extends MonPanel implements ActionListener, PointListe
 						data = new PointData(c.getPoint(), AbsTime.factory(), value);
 					}
 				} else if (c.getControlType() == ControlPanelDisplayComponent.CHECKBOX_TYPE){
-
 					JCheckBox cb = c.getCheckBox();
 					if (cb != null){
 						boolean state = cb.isSelected();
@@ -1493,7 +1523,7 @@ public class ControlPanel extends MonPanel implements ActionListener, PointListe
 							if (matcher.matches()){
 								data = new PointData(c.getPoint(), AbsTime.factory(), new Double(value));
 							} else {
-								throw (new Exception());
+								throw (new InvalidParameterException());
 							}
 						} else if (c.getDataType().equals(dataOptions[2])){
 							value = value.toLowerCase(Locale.ENGLISH);
@@ -1502,20 +1532,25 @@ public class ControlPanel extends MonPanel implements ActionListener, PointListe
 							if (matcher.matches()){
 								data = new PointData(c.getPoint(), AbsTime.factory(), new Boolean(value));
 							} else {
-								throw (new Exception());
+								throw (new InvalidParameterException());
 							}
 						} else {
 							data = new PointData(c.getPoint(), AbsTime.factory(), value);
 						}
 					}
 				}
-				server.setData(c.getPoint(), data, username, passwd);
+				boolean res = server.setData(c.getPoint(), data, username, passwd);
+				if (!res) throw (new AuthenticationException());
 			} catch (Exception e){
 				passwd = "";
-				JOptionPane.showMessageDialog(ControlPanel.this, "Something went wrong with the sending of data. " +
-						"\nPlease ensure that you're properly connected to the network, you are attempting to \n" +
-						"write to a valid data-type to the point and your username and password are correct.", 
-						"Data Sending Error", JOptionPane.ERROR_MESSAGE);
+				SwingUtilities.invokeLater(new Runnable(){
+					public void run(){
+						JOptionPane.showMessageDialog(ControlPanel.this, "Something went wrong with the sending of data. " +
+								"\nPlease ensure that you're properly connected to the network, you are attempting to \n" +
+								"write to a valid data-type to the point and your username and password are correct.", 
+								"Data Sending Error", JOptionPane.ERROR_MESSAGE);
+					}
+				});
 				return;
 			}
 		}
@@ -1575,4 +1610,25 @@ public class ControlPanel extends MonPanel implements ActionListener, PointListe
 		}
 
 	}
+
+	@Override
+	public void keyPressed(KeyEvent arg0) {
+		if (arg0.getKeyCode() == KeyEvent.VK_ENTER){
+			if (arg0.getSource() instanceof JTextField){
+				JTextField source = (JTextField) arg0.getSource();
+				for (ControlPanelDisplayComponent c : panelList){
+					if (source.equals(c.getTextField())){
+						c.getConfirmButton().doClick();
+						return;
+					}
+				}
+			}
+		}
+
+	}
+
+	@Override
+	public void keyReleased(KeyEvent arg0) {}
+	@Override
+	public void keyTyped(KeyEvent arg0) {}
 }

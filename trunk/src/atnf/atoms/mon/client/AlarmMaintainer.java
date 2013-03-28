@@ -176,39 +176,47 @@ public class AlarmMaintainer implements Runnable {
 	}
 
 	/** Write the specified alarm acknowledgement change to the server. */
-	public static void setAcknowledged(String point, boolean ack, String username, String password) {
+	public static boolean setAcknowledged(String point, boolean ack, String username, String password) {
 		Vector<String> pointname = new Vector<String>(1);
 		pointname.add(point);
-		setAcknowledged(pointname, ack, username, password);
+		boolean res = setAcknowledged(pointname, ack, username, password);
+		return res;
 	}
 
 	/** Write the specified alarm acknowledgement change to the server, and also temporarily to the local list until it gets updated */
-	public static void setAcknowledged(Vector<String> pointnames, boolean ack, String username, String password) {
+	public static boolean setAcknowledged(Vector<String> pointnames, boolean ack, String username, String password) {
+		boolean res = false;
 		try {
-			MonClientUtil.getServer().acknowledgeAlarms(pointnames, ack, username, password);
-			for (String s : pointnames) {
-				theirAlarms.get(PointDescription.getPoint(s)).setAcknowledged(ack);
+			res = MonClientUtil.getServer().acknowledgeAlarms(pointnames, ack, username, password);
+			if (res){
+				for (String s : pointnames) {
+					theirAlarms.get(PointDescription.getPoint(s)).setAcknowledged(ack);
+				}
 			}
-		} catch (Exception e) {
-		}
+		} catch (Exception e) {}
+		return res;
 	}
 
 	/** Write the specified alarm shelving change to the server. */
-	public static void setShelved(String point, boolean shelve, String username, String password) {
+	public static boolean setShelved(String point, boolean shelve, String username, String password) {
 		Vector<String> pointname = new Vector<String>(1);
 		pointname.add(point);
-		setShelved(pointname, shelve, username, password);
+		boolean res = setShelved(pointname, shelve, username, password);
+		return res;
 	}
 
 	/** Write the specified alarm shelving change to the server, and also temporarily to the local list until it gets updated */
-	public static void setShelved(Vector<String> pointnames, boolean shelve, String username, String password) {
+	public static boolean setShelved(Vector<String> pointnames, boolean shelve, String username, String password) {
+		boolean res = false;
 		try {
-			MonClientUtil.getServer().shelveAlarms(pointnames, shelve, username, password);
-			for (String s : pointnames) {
-				theirAlarms.get(PointDescription.getPoint(s)).setShelved(shelve);
+			res = MonClientUtil.getServer().shelveAlarms(pointnames, shelve, username, password);
+			if (res){
+				for (String s : pointnames) {
+					theirAlarms.get(PointDescription.getPoint(s)).setShelved(shelve);
+				}
 			}
-		} catch (Exception e) {
-		}
+		} catch (Exception e) {}
+		return res;
 	}
 
 	/** Get the list of priority alarms currently in an alarm state (acknowledged or not) or not in an alarm but shelved. */

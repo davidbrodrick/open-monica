@@ -141,14 +141,14 @@ public class AlarmPanel extends JPanel {
 			status.setForeground(AlarmManagerPanel.SHELVED_COLOUR);
 		}
 		ackedBy = new JLabel("Acknowledged by: " + itsAlarm.getAckedBy());
-		ackedAt = new JLabel("Acknowledged at: " + itsAlarm.getAckedAt().toString(Format.UTC_STRING) + "(UTC)");
+		ackedAt = new JLabel("Acknowledged at: " + itsAlarm.getAckedAt().toString(Format.UTC_STRING) + " (UTC)");
 		// displayed time is always in UTC
 		if (itsAlarm.getAckedBy().equals("null")) {
 			ackedBy.setText("Acknowledged by: ");
 			ackedAt.setText("Acknowledged at: ");
 		}
 		shelvedBy = new JLabel("Shelved by: " + itsAlarm.getShelvedBy());
-		shelvedAt = new JLabel("Shelved at " + itsAlarm.getShelvedAt().toString(Format.UTC_STRING) + "(UTC)");
+		shelvedAt = new JLabel("Shelved at " + itsAlarm.getShelvedAt().toString(Format.UTC_STRING) + " (UTC)");
 		// displayed time is always in UTC
 		if (itsAlarm.getShelvedBy().equals("null")) {
 			shelvedBy.setText("Shelved by: ");
