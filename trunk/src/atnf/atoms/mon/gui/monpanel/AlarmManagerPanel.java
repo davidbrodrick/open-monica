@@ -236,13 +236,23 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				allCb.setSelected(true);
 			}
 
+			long startTime = System.currentTimeMillis();
+			while (AlarmMaintainer.getAllAlarms().size() == 0){
+				//loop forever
+				if ((System.currentTimeMillis() - startTime) > 5000){
+					JOptionPane.showMessageDialog(AlarmManagerPanel.this, "Error retrieving alarms from the server", "Alarm Retrieval Error", JOptionPane.ERROR_MESSAGE);
+					return null;
+				}
+				continue;
+			}
+
 			if (selectAllPointCb.isSelected()){
 				selectAllPointCb.doClick();
 				selectAllPointCb.doClick();
 				selectAllPointCb.setSelected(true);
 				//weird hack to get the default settings to work
 
-				String[] points = PointDescription.getAllPointNames();
+				String[] points = MonClientUtil.getAllPointNames();
 				if (points.length > 0) {
 					HashSet<String> selections = new HashSet<String>();
 					HashSet<String> allPoints = new HashSet<String>();
@@ -568,6 +578,22 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					AlarmMaintainer.autoAlarms = false;
 				}
 			}
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e){
+			if (e.getActionCommand().equals("OK")){
+				long startTime = System.currentTimeMillis();
+				while (AlarmMaintainer.getAllAlarms().size() == 0){
+					//loop for 5 seconds
+					if ((System.currentTimeMillis() - startTime) > 5000){
+						JOptionPane.showMessageDialog(AlarmManagerPanel.this, "Error retrieving alarms from the server", "Alarm Retrieval Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+					continue;
+				}
+			}
+			super.actionPerformed(e);
 		}
 
 		// /////////////////////// NESTED NESTED CLASS ///////////////////////////////
@@ -903,11 +929,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 			this.updateAlarmPanels();
 			AlarmManagerPanel.updateListModels();
-			allLabel.setText("ALL: " + AlarmMaintainer.getAllAlarms().size());
-			ignLabel.setText("IGN: " + AlarmMaintainer.ignoreList.size());
-			ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
-			shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
-			almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
+			AlarmManagerPanel.this.updateInfoBar();
 		}
 
 		/**
@@ -1083,18 +1105,18 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				alarms = AlarmMaintainer.getAlarms();
 			}
 
-	    Collection<String> alarmingPoints = new ArrayList<String>();
+			Collection<String> alarmingPoints = new ArrayList<String>();
 			for (Alarm a : alarms){ //put all the alarms in a locally maintained lookup table
-			  String thisname = a.getPointDesc().getFullName();
+				String thisname = a.getPointDesc().getFullName();
 				if (itsPoints.contains(thisname)){
 					if (AlarmMaintainer.ignoreList.contains(thisname) && this.getType() == AlarmDisplayPanel.IGNORED){
-					  //case for ignored tab
+						//case for ignored tab
 						alarmingPoints.add(thisname);
 					} else if (!AlarmMaintainer.ignoreList.contains(thisname) && this.getType() == AlarmDisplayPanel.ALL){ 
-					  //case for all tab
+						//case for all tab
 						alarmingPoints.add(thisname);
 					} else if (!AlarmMaintainer.ignoreList.contains(thisname) && this.getType() == a.getAlarmStatus()){ 
-					  //case for other tabs
+						//case for other tabs
 						alarmingPoints.add(thisname);
 					}
 				}
@@ -1253,7 +1275,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				HashSet<String> newList = new HashSet<String>();
 				localListModel = new DefaultListModel();
 				for (String s : AlarmMaintainer.ignoreList){
-					if (!s.equals("") && s != null && itsPoints.contains(s)){ //TODO try and eliminate ignored alarms showing that aren't in all list
+					if (!s.equals("") && s != null && itsPoints.contains(s)){
 						al.add(s);
 						newList.add(s);
 					}
@@ -1485,7 +1507,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	private static AlarmDisplayPanel shelved;
 	private static AlarmDisplayPanel alarming;
 
-	private JPanel statusPanel = new JPanel(new GridLayout(1,6));
+	private JPanel statusPanel = new JPanel();
 	private JLabel allLabel = new JLabel("ALL: 0");
 	private JLabel ignLabel = new JLabel("IGN: 0");
 	private JLabel ackLabel = new JLabel("ACK: 0");
@@ -1500,9 +1522,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	 * C'tor
 	 */
 	public AlarmManagerPanel() {
+		AlarmMaintainer.addListener(this);
 		// Set layout
 		this.setLayout(new BorderLayout());
-		AlarmMaintainer.addListener(this);
 
 		stateTabs = new JTabbedPane(JTabbedPane.TOP);
 		all = new AlarmDisplayPanel("all");
@@ -1551,12 +1573,17 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		});
 
 		multiSelectLabel.setOpaque(true);
-		
+		statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.X_AXIS));
 		statusPanel.add(allLabel);
+		statusPanel.add(Box.createHorizontalGlue());
 		statusPanel.add(ignLabel);
+		statusPanel.add(Box.createHorizontalGlue());
 		statusPanel.add(ackLabel);
+		statusPanel.add(Box.createHorizontalGlue());
 		statusPanel.add(shvLabel);
+		statusPanel.add(Box.createHorizontalGlue());
 		statusPanel.add(almLabel);
+		statusPanel.add(Box.createHorizontalGlue());
 		statusPanel.add(multiSelectLabel);
 
 		this.add(stateTabs, BorderLayout.CENTER);
@@ -1686,6 +1713,15 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				return false;
 			}
 
+			long startTime = System.currentTimeMillis();
+			while (AlarmMaintainer.getAllAlarms().size() == 0){
+				//loop for 5 seconds
+				if ((System.currentTimeMillis() - startTime) > 5000){
+					JOptionPane.showMessageDialog(AlarmManagerPanel.this, "Error connecting to server", "Alarm Retrieval Error", JOptionPane.ERROR_MESSAGE);
+					return false;
+				}
+				continue;
+			}
 			/* Decoding the pruned values - this should be backwards compatible
 			 * with old Setups. This should be relatively quick compared to parsing
 			 * the Strings of (potentially) thousands of points using the StringTokenizer
@@ -1702,7 +1738,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			while (stp.hasMoreTokens()) {
 				depruned.add(stp.nextToken());
 			}
-			String[] names = PointDescription.getAllPointNames();
+			String[] names = MonClientUtil.getAllPointNames();
 			for (int i = 0; i < names.length; i++){
 				allPoints.add(names[i]);
 			}
@@ -1711,6 +1747,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			for (String s : depruned){
 				itsPoints.add(s);
 			}
+
 
 			// Get which categories of alarms to monitor
 			String str;
@@ -1799,6 +1836,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 
 			setPreferredSize(MonFrame.getDefaultSize());
 
+			this.updateInfoBar();
 		} catch (final Exception e) {
 			e.printStackTrace();
 			if (itsFrame != null) {
@@ -1830,6 +1868,22 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		acknowledged.updateListModel();
 		shelved.updateListModel();
 		alarming.updateListModel();
+	}
+
+	/**
+	 * Shorthand method to update the information bar at the bottom of the AlarmManagerPanel
+	 */
+	private void updateInfoBar(){
+		SwingUtilities.invokeLater(new Runnable(){
+			@Override
+			public void run(){
+				allLabel.setText("ALL: " + all.plist.getModel().getSize());
+				ignLabel.setText("IGN: " + AlarmMaintainer.ignoreList.size());
+				ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
+				shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
+				almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
+			}
+		});
 	}
 
 	/**
@@ -1912,13 +1966,9 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 				} else {
 					allowAutoAlarms.setSelected(false);
 				}
-				allLabel.setText("ALL: " + AlarmMaintainer.getAllAlarms().size());
-				ignLabel.setText("IGN: " + AlarmMaintainer.ignoreList.size());
-				ackLabel.setText("ACK: " + acknowledged.plist.getModel().getSize());
-				shvLabel.setText("SHV: " + shelved.plist.getModel().getSize());
-				almLabel.setText("ALM: " + alarming.plist.getModel().getSize());
 			}
 		});
+		this.updateInfoBar();
 	}
 
 	// /////////////////////// NESTED CLASS ///////////////////////////////
@@ -2013,7 +2063,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					res = AlarmMaintainer.setShelved(point, state, username, password);
 					updateListModels();
 				} else if (action.equals("ack")){
-					 res = AlarmMaintainer.setAcknowledged(point, state, username, password);
+					res = AlarmMaintainer.setAcknowledged(point, state, username, password);
 					updateListModels();
 				} else {
 					throw (new IllegalArgumentException());
