@@ -495,28 +495,28 @@ public class ModbusInterface extends ExternalSystem {
 					// Read Coils
 					ReadCoilsResponse rc_response = mbi.readCoils(UnitID, StartAddress, numberToRead);
 					if (useArray) for (int i = 0; i < numberToRead; i++) {
-						System.out.print(new Boolean(rc_response.getCoilStatus(i)).toString()+" ");
+						System.out.print(new Boolean(rc_response.getCoilStatus(i)).toString()+",");
 					}
 					break;
 				case 2:
 					// Read Discrete Inputs
 					ReadInputDiscretesResponse di_response = mbi.readDiscreteInputs(UnitID, StartAddress, numberToRead);
 					if (useArray) for (int i = 0; i < numberToRead; i++) {
-						System.out.print(new Boolean(di_response.getDiscreteStatus(i)).toString()+" ");
+						System.out.print(new Boolean(di_response.getDiscreteStatus(i)).toString()+",");
 					}
 					break;
 				case 3:
 					// Read Holding Registers (jamod library terminology uses multiple instead of holding)
 					ReadMultipleRegistersResponse rhr_response = mbi.readHoldingRegisters(UnitID, StartAddress, numberToRead);
 					if (useArray) for (int i = 0; i < numberToRead; i++) {
-						System.out.print(new Integer(rhr_response.getRegisterValue(i)).toString()+" ");
+						System.out.print(new Integer(rhr_response.getRegisterValue(i)).toString()+",");
 					}
 					break;
 				case 4:
 					// Read Input Registers
 					ReadInputRegistersResponse rir_response = mbi.readInputRegisters(UnitID, StartAddress, numberToRead);
 					if (useArray) for (int i = 0; i < numberToRead; i++) {
-						System.out.print(new Integer(rir_response.getRegisterValue(i)).toString()+" ");
+						System.out.print(new Integer(rir_response.getRegisterValue(i)).toString()+",");
 					}
 					break;
 				default:
