@@ -339,7 +339,7 @@ public abstract class MonitorUtils {
 			} else if (instr.equalsIgnoreCase("false")) {
 				res = false;
 			} else {
-				throw new IllegalArgumentException("String could not be parsed as a boolean");
+				throw new IllegalArgumentException("String \"" + instr + "\" could not be parsed as a boolean: expect \"true\" or \"false\"");
 			}
 		} else {
 			throw new IllegalArgumentException("Could not interpret input as a boolean");
