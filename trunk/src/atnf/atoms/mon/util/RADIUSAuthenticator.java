@@ -148,7 +148,7 @@ public class RADIUSAuthenticator {
     if (theirRadiusClient != null) {
       try {
         AccessRequest ar = new AccessRequest(username, password);
-        ar.setAuthProtocol(AccessRequest.AUTH_CHAP); // or AUTH_PAP
+        ar.setAuthProtocol(AccessRequest.AUTH_PAP);
         ar.addAttribute("NAS-IP-Address", host);
         RadiusPacket response = theirRadiusClient.authenticate(ar);
         if (response.getPacketType() == RadiusPacket.ACCESS_ACCEPT) {
