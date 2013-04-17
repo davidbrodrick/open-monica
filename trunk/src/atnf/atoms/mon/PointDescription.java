@@ -649,7 +649,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
   public void setShortDesc(String desc) {
     itsShortDesc = desc.replace('\"', '\0');
     if (itsShortDesc.length() > theirMaxShortDescLen) {
-      itsShortDesc = itsShortDesc.substring(theirMaxShortDescLen);
+      itsShortDesc = itsShortDesc.substring(0, theirMaxShortDescLen);
     }
   }
 
