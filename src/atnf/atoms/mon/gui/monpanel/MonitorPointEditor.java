@@ -173,9 +173,9 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			String comp = "";
 			for (MPEditorSetupComponent m : components){
 				if (m.getType() == MPEditorSetupComponent.ADD_POINT){
-					comp += "add, null;";
+					comp += "add,null;";
 				} else {
-					comp += "edit, " + m.getTreeSelection() + ";";
+					comp += "edit," + m.getTreeSelection() + ";";
 				}
 			}
 			ss.put("values", comp);
@@ -550,7 +550,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 	 * with setting up the layout for some of the panels
 	 */
 	public MonitorPointEditor() {
-		lfdf = new LimitFieldDocumentFilter(10);
+		lfdf = new LimitFieldDocumentFilter(30);
 		ndf = new NumDocumentFilter();
 		help.setToolTipText("Help");
 		help.setBackground(new Color(0x0066CC));
@@ -757,6 +757,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				}
 				n++;
 			}
+			new DataSender("update").start();
 			itsScrollPane.setViewportView(itsMainPanel);
 			itsScrollPane.revalidate();
 			itsScrollPane.repaint();
@@ -1025,7 +1026,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 						if (!v) valid = v;
 					}
 					if (valid && noDupes()){
-						new DataSender().start();
+						new DataSender("commit").start();
 					} else {
 						JOptionPane.showMessageDialog(this, "Writing point failed. Please ensure that all data points are uniquely named and filled in correctly.", "Data Validation Error", JOptionPane.ERROR_MESSAGE);
 						return;
@@ -1064,10 +1065,10 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		private MPEditorComponent reference;
 		private JPanel itsCardPanel;
 		private CardLayout cl;
-		
+
 		String[] itsCards = {"metadata", "input transactions", "output transactions", "translations", "update data", "alarm data"};
 		int curr = 0;
-		
+
 		//Nav Panel
 		JButton back = new JButton("<< Back <<");
 		JButton next = new JButton(">> Next >>");
@@ -1097,7 +1098,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 			this.addNavPanel(navPanel, itsPanel);
 			this.addMetaDataPanel(metaDataCard, itsCardPanel);
-			
+
 			itsCardPanel.add(metaDataCard, itsCards[0]);
 			itsCardPanel.add(inTransCard, itsCards[1]);
 			itsCardPanel.add(outTransCard, itsCards[2]);
@@ -1143,7 +1144,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			mdc.setLayout(new BorderLayout());
 			JPanel desc = new JPanel(new GridLayout(2,1));
 			JPanel content = new JPanel(new GridLayout(6,2));
-			
+
 			JLabel title = new JLabel("MetaData");
 			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
 			title.setHorizontalAlignment(SwingConstants.CENTER);
@@ -1152,21 +1153,23 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			DefaultCaret caret = (DefaultCaret)description.getCaret();
 			caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
 			description.setText("Basic details about this data point. Edit information such as the data point's name, " +
-					"description of the point and other metadata.");
+			"description of the point and other metadata.");
 			description.setBackground(null);
 			description.setWrapStyleWord(true);
 			description.setLineWrap(true);
 			description.setEditable(false);
-			
+
 			desc.add(title);
 			desc.add(description);
-			
+
 			JLabel nameLb = new JLabel("Point Name: ");
 			name = new JTextField(10);
 			JLabel lDescLb = new JLabel("Long Description: ");
 			longDesc = new JTextField(10);
 			JLabel sDescLb = new JLabel("Short Description: ");
 			shortDesc = new JTextField(5);
+			AbstractDocument ad = (AbstractDocument)shortDesc.getDocument();
+			ad.setDocumentFilter(lfdf);
 			JLabel untLb = new JLabel("Units: ");
 			units = new JTextField(5);
 			JLabel srcLb = new JLabel("Source: ");
@@ -1177,6 +1180,9 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 			if (reference.isNewPoint()){
 				name.setEditable(true);
+				if (reference.getNames().length > 0){
+					name.setText(reference.getNames()[0]);//prepopulate with first entry
+				}
 			} else {
 				name.setText(reference.getNames()[0]);//prepopulate with first entry
 				name.setEditable(false);
@@ -1186,7 +1192,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			units.setText(reference.getUnits());
 			source.setText(reference.getSource());
 			enabled.setSelectedItem(reference.getEnabledState());
-			
+
 			content.add(nameLb);
 			content.add(name);
 			content.add(lDescLb);
@@ -1246,40 +1252,72 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 	 * Worker class for sending data to the server, so the UI doesn't hang waiting for a server
 	 * response.
 	 */
-	public class DataSender extends Thread implements Runnable{
+	public class DataSender extends Thread{
+
+		String purpose;
 
 		/**
 		 * Constructs a new DataSender thread
 		 */
-		public DataSender(){
+		public DataSender(String p){
+			super();
+			purpose = p;
 		}
 
 		@Override
 		public void run(){
-			try{
-				MoniCAClient mc = MonClientUtil.getServer();
-				boolean allfine = true;
-				if (mc != null){
-					//write all points 
-					for (MPEditorComponent m : components){
-						PointDescription pd = PointDescription.factory(m.getNames(), m.getLongDesc(), m.getShortDesc(), m.getUnits(), m.getSource(), m.getInTransactions(), m.getOutTransactions(), m.getTranslations(), m.getAlarmCriteria(), m.getArchivePolicies(), m.getNotifications(), m.getPeriod(), m.getArchiveLongevity(), m.getGuidance(), m.getPriority(), m.getEnabled());
-						String monPointTxt = pd.getStringEquiv();
-						boolean result = false;
-						//	result = mc.writePoint(monPointTxt, username, password); TODO
-						if (!result){
-							allfine = false;
+			if (purpose.equals("commit")){
+				try{
+					MoniCAClient mc = MonClientUtil.getServer();
+					boolean allfine = true;
+					if (mc != null){
+						//write all points 
+						for (MPEditorComponent m : components){
+							PointDescription pd = PointDescription.factory(m.getNames(), m.getLongDesc(), m.getShortDesc(), m.getUnits(), m.getSource(), m.getInTransactions(), m.getOutTransactions(), m.getTranslations(), m.getAlarmCriteria(), m.getArchivePolicies(), m.getNotifications(), m.getPeriod(), m.getArchiveLongevity(), m.getGuidance(), m.getPriority(), m.getEnabled());
+							String monPointTxt = pd.getStringEquiv();
+							boolean result = false;
+							//	result = mc.writePoint(monPointTxt, username, password); TODO
+							if (!result){
+								allfine = false;
+							}
 						}
 					}
-				}
-				if (!allfine){
+					if (!allfine){
+						password = "";
+						JOptionPane.showMessageDialog(MonitorPointEditor.this, "Writing points failed. Please ensure your login details are correct and try writing again.", "Authentication Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+				} catch (Exception e){
 					password = "";
 					JOptionPane.showMessageDialog(MonitorPointEditor.this, "Writing points failed. Please ensure your login details are correct and try writing again.", "Authentication Error", JOptionPane.ERROR_MESSAGE);
-					return;
 				}
-			} catch (Exception e){
-				password = "";
-				JOptionPane.showMessageDialog(MonitorPointEditor.this, "Writing points failed. Please ensure your login details are correct and try writing again.", "Authentication Error", JOptionPane.ERROR_MESSAGE);
-			}
+			} else if (purpose.equals("update")){
+				try {
+					MoniCAClient mc = MonClientUtil.getServer();
+					Vector<String> needData = new Vector<String>();
+					for (MPEditorComponent m : components){
+						if (!m.isNewPoint()){
+							needData.add(m.getNames()[0]);
+						}
+					}
+					Vector<PointDescription> pointDescs = mc.getPoints(needData);
+					for (PointDescription pd : pointDescs){
+						for (MPEditorComponent m : components){//TODO fill in the rest as I go along
+							if (!m.newPoint && m.getNames()[0].equals(pd.getFullName())){
+								m.setNameText(pd.getName());
+								m.setLongDescText(pd.getLongDesc());
+								m.setShortDescText(pd.getShortDesc());
+								m.setUnitsText(pd.getUnits());
+								m.setSourceText(pd.getSource());
+								m.setEnabledState(Boolean.toString(pd.getEnabled()));
+							}
+						}
+					}
+				} catch (Exception e){
+					System.err.println("Unable to prepopulate editor fields");
+					e.printStackTrace();
+				}
+			}	
 		}
 	}
 	// ///// END NESTED CLASS ///////
@@ -1364,6 +1402,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		public void setNameText(String s){
 			if (newPoint){
 				newPointField.setText(s);
+			} else {
+				editPointLabel.setText(s);
 			}
 		}
 
@@ -1389,9 +1429,9 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getNames(){
 			String names = "";
-			if (newPointField != null){
+			if (newPoint){
 				names =  newPointField.getText();
-			} else if (editPointLabel != null){
+			} else {
 				names =  editPointLabel.getText();
 			}
 
@@ -1403,6 +1443,12 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				res[i] = st.nextToken();
 			}
 			return res;
+		}
+
+		public String getFullName(){
+			String name = getNames()[0];
+			name = getSource() + "." + name;
+			return name;
 		}
 
 		public String getLongDesc(){
@@ -1429,7 +1475,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				return false;
 			}
 		}
-		
+
 		public Object getEnabledState(){
 			return enabledState.getSelectedItem();
 		}
@@ -1581,6 +1627,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			String oldText = doc.getText(0, doc.getLength());
 			if (oldText.length() + text.length() <= charLimit){
 				super.insertString(fb, offset, text, attr);
+			} else {
+				super.insertString(fb, offset, text.substring(0, charLimit - oldText.length()), attr);
 			}
 		}
 
@@ -1590,6 +1638,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			String oldText = doc.getText(0, doc.getLength());
 			if (oldText.length() + text.length() <= charLimit){
 				super.replace(fb, offset, length, text, attrs);
+			} else {
+				super.replace(fb, offset, length, text.substring(0, charLimit + length - oldText.length()), attrs);
 			}
 		}
 	}
