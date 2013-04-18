@@ -31,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -40,9 +41,12 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -550,7 +554,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 	 * with setting up the layout for some of the panels
 	 */
 	public MonitorPointEditor() {
-		lfdf = new LimitFieldDocumentFilter(30);
+		lfdf = new LimitFieldDocumentFilter(10);
 		ndf = new NumDocumentFilter();
 		help.setToolTipText("Help");
 		help.setBackground(new Color(0x0066CC));
@@ -630,11 +634,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			JLabel inTrans = new JLabel("Input Transactions");
 			JLabel outTrans = new JLabel("Output Transactions");
 			JLabel translats = new JLabel("Translations");
-			JLabel alCrit = new JLabel("Alarm Criteria");
 			JLabel archPol = new JLabel("Archive Policies");
 			JLabel updInt = new JLabel("Update Interval");
 			JLabel archLong = new JLabel("Archive Longevity");
 			JLabel notifs = new JLabel("Notifications");
+			JLabel alCrit = new JLabel("Alarm Criteria");
 			JLabel priority = new JLabel("Priority");
 			JLabel guidance = new JLabel("Guidance");
 
@@ -678,8 +682,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				gbc.gridx ++;
 				itsMainPanel.add(translats, gbc);
 				gbc.gridx ++;
-				itsMainPanel.add(alCrit, gbc);
-				gbc.gridx ++;
 				itsMainPanel.add(archPol, gbc);
 				gbc.gridx ++;
 				itsMainPanel.add(updInt, gbc);
@@ -687,6 +689,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				itsMainPanel.add(archLong, gbc);
 				gbc.gridx ++;
 				itsMainPanel.add(notifs, gbc);
+				gbc.gridx ++;
+				itsMainPanel.add(alCrit, gbc);
 				gbc.gridx ++;
 				itsMainPanel.add(priority, gbc);
 				gbc.gridx ++;
@@ -711,8 +715,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				gbc.gridy ++;
 				itsMainPanel.add(translats, gbc);
 				gbc.gridy ++;
-				itsMainPanel.add(alCrit, gbc);
-				gbc.gridy ++;
 				itsMainPanel.add(archPol, gbc);
 				gbc.gridy ++;
 				itsMainPanel.add(updInt, gbc);
@@ -720,6 +722,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				itsMainPanel.add(archLong, gbc);
 				gbc.gridy ++;
 				itsMainPanel.add(notifs, gbc);
+				gbc.gridy ++;
+				itsMainPanel.add(alCrit, gbc);
 				gbc.gridy ++;
 				itsMainPanel.add(priority, gbc);
 				gbc.gridy ++;
@@ -826,8 +830,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			gbc.gridx ++;
 			itsMainPanel.add(t, gbc);
 			gbc.gridx ++;
-			itsMainPanel.add(ac, gbc);
-			gbc.gridx ++;
 			itsMainPanel.add(ap, gbc);
 			gbc.gridx ++;
 			itsMainPanel.add(ui, gbc);
@@ -835,6 +837,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			itsMainPanel.add(al, gbc);
 			gbc.gridx ++;
 			itsMainPanel.add(n, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(ac, gbc);
 			gbc.gridx ++;
 			itsMainPanel.add(p, gbc);
 			gbc.gridx ++;
@@ -859,8 +863,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			gbc.gridy ++;
 			itsMainPanel.add(t, gbc);
 			gbc.gridy ++;
-			itsMainPanel.add(ac, gbc);
-			gbc.gridy ++;
 			itsMainPanel.add(ap, gbc);
 			gbc.gridy ++;
 			itsMainPanel.add(ui, gbc);
@@ -868,6 +870,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			itsMainPanel.add(al, gbc);
 			gbc.gridy ++;
 			itsMainPanel.add(n, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(ac, gbc);
 			gbc.gridy ++;
 			itsMainPanel.add(p, gbc);
 			gbc.gridy ++;
@@ -927,8 +931,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			gbc.gridx ++;
 			itsMainPanel.add(t, gbc);
 			gbc.gridx ++;
-			itsMainPanel.add(ac, gbc);
-			gbc.gridx ++;
 			itsMainPanel.add(ap, gbc);
 			gbc.gridx ++;
 			itsMainPanel.add(ui, gbc);
@@ -936,6 +938,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			itsMainPanel.add(al, gbc);
 			gbc.gridx ++;
 			itsMainPanel.add(n, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(ac, gbc);
 			gbc.gridx ++;
 			itsMainPanel.add(p, gbc);
 			gbc.gridx ++;
@@ -960,8 +964,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			gbc.gridy ++;
 			itsMainPanel.add(t, gbc);
 			gbc.gridy ++;
-			itsMainPanel.add(ac, gbc);
-			gbc.gridy ++;
 			itsMainPanel.add(ap, gbc);
 			gbc.gridy ++;
 			itsMainPanel.add(ui, gbc);
@@ -969,6 +971,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			itsMainPanel.add(al, gbc);
 			gbc.gridy ++;
 			itsMainPanel.add(n, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(ac, gbc);
 			gbc.gridy ++;
 			itsMainPanel.add(p, gbc);
 			gbc.gridy ++;
@@ -1058,7 +1062,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 	}
 	// ///// NESTED CLASS: WizardFrame //////
 
-	public class WizardFrame extends JFrame implements ActionListener{
+	public class WizardFrame extends JFrame implements ActionListener, ChangeListener{
 
 		private static final long serialVersionUID = -7680339339902552985L;
 
@@ -1067,6 +1071,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		private CardLayout cl;
 
 		String[] itsCards = {"metadata", "input transactions", "output transactions", "translations", "update data", "alarm data"};
+		String[] transactionOpts = {"EPICS", "EPICS Monitor", "Generic", "Initial Value", "Limit Check", "Listen", "Strings", "Timer"};
 		int curr = 0;
 
 		//Nav Panel
@@ -1081,6 +1086,18 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		JTextField units;
 		JTextField source;
 		JComboBox enabled;
+
+		//Input Transactions Card
+		HashMap<JComboBox, JTextField[]> inFieldRefs = new HashMap<JComboBox, JTextField[]>();
+		JPanel inTransMainPanel;
+		JComboBox inTransType;
+		JSpinner inSpinner;
+		GridBagConstraints itgbc;
+		JLabel arg0;
+		JLabel arg1;
+		JLabel arg2;
+		JLabel arg3;
+		JLabel arg4;
 
 		public WizardFrame(MPEditorComponent m){
 			super();
@@ -1097,7 +1114,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			JPanel alarmCard = new JPanel(); //notifications, alarm criteria, alarm priority, guidance message
 
 			this.addNavPanel(navPanel, itsPanel);
-			this.addMetaDataPanel(metaDataCard, itsCardPanel);
+			this.setupMetaDataPanel(metaDataCard);
+			this.setupInputTransactionPanel(inTransCard);
 
 			itsCardPanel.add(metaDataCard, itsCards[0]);
 			itsCardPanel.add(inTransCard, itsCards[1]);
@@ -1119,6 +1137,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		private void addNavPanel(JPanel nav, JComponent container){
 			back.setActionCommand("back");
 			back.addActionListener(this);
+			back.setEnabled(false);
 			next.setActionCommand("next");
 			next.addActionListener(this);
 			finish.setActionCommand("finish");
@@ -1140,10 +1159,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			container.add(nav);
 		}
 
-		private void addMetaDataPanel(JPanel mdc, JComponent container){
+		private void setupMetaDataPanel(JPanel mdc){
 			mdc.setLayout(new BorderLayout());
 			JPanel desc = new JPanel(new GridLayout(2,1));
 			JPanel content = new JPanel(new GridLayout(6,2));
+			JScrollPane scroller = new JScrollPane();
 
 			JLabel title = new JLabel("MetaData");
 			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
@@ -1205,10 +1225,117 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			content.add(source);
 			content.add(enbldLb);
 			content.add(enabled);
+			scroller.setViewportView(content);
+
+			mdc.add(desc, BorderLayout.NORTH);
+			mdc.add(scroller, BorderLayout.CENTER);
+		}
+
+		private void setupInputTransactionPanel(JPanel mdc){
+			mdc.setLayout(new BorderLayout());
+			JPanel desc = new JPanel(new GridLayout(2,1));
+			JPanel content = new JPanel(new BorderLayout());
+			inTransMainPanel = new JPanel(new GridBagLayout());
+			itgbc = new GridBagConstraints();
+			itgbc.fill = GridBagConstraints.HORIZONTAL;
+			itgbc.weightx = 0.5;
+			itgbc.weighty = 0.5;
+			itgbc.gridheight = 1;
+			itgbc.gridwidth = 1;
+			itgbc.gridx = 0;
+			itgbc.gridy = 0;
+
+			JLabel title = new JLabel("Input Transactions");
+			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
+			title.setHorizontalAlignment(SwingConstants.CENTER);
+			title.setHorizontalTextPosition(SwingConstants.CENTER);
+			JTextArea description = new JTextArea(2,5);
+			DefaultCaret caret = (DefaultCaret)description.getCaret();
+			caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+			description.setText("The types of input transactions that will occur when this point's " +
+			"data is added into MoniCA. This can take the form of 8 different types.");
+			description.setBackground(null);
+			description.setWrapStyleWord(true);
+			description.setLineWrap(true);
+			description.setEditable(false);
+			JLabel type = new JLabel("Type");
+			arg0 = new JLabel("Arg 1");
+			arg1 = new JLabel("Arg 2");
+			arg2 = new JLabel("Arg 3");
+			arg3 = new JLabel("Arg 4");
+			arg4 = new JLabel("Arg 5");
+
+			inTransMainPanel.add(type, itgbc);
+			itgbc.gridx++;
+			inTransMainPanel.add(arg0, itgbc);
+			itgbc.gridx++;
+			inTransMainPanel.add(arg1, itgbc);
+			itgbc.gridx++;
+			inTransMainPanel.add(arg2, itgbc);
+			itgbc.gridx++;
+			inTransMainPanel.add(arg3, itgbc);
+			itgbc.gridx++;
+			inTransMainPanel.add(arg4, itgbc);
+
+			desc.add(title);
+			desc.add(description);
+
+			JPanel counter =  new JPanel();
+			counter.setLayout(new BoxLayout(counter, BoxLayout.X_AXIS));
+			JLabel counterLabel = new JLabel("Number of Input Transactions");
+			inSpinner = new JSpinner();
+			SpinnerNumberModel spinModel = new SpinnerNumberModel(0, 0, null, 1);
+			inSpinner.setModel(spinModel);
+			inSpinner.addChangeListener(this);
+
+			counter.add(Box.createHorizontalGlue());
+			counter.add(counterLabel);
+			counter.add(inSpinner);
+			counter.add(Box.createHorizontalGlue());
+			content.add(counter, BorderLayout.NORTH);
+			content.add(inTransMainPanel, BorderLayout.CENTER);
 
 			mdc.add(desc, BorderLayout.NORTH);
 			mdc.add(content, BorderLayout.CENTER);
-			container.add(mdc, "metadata");
+		}
+
+		private void addTransactionRow(HashMap<JComboBox, JTextField[]> hm, JPanel pan, GridBagConstraints g){
+			JComboBox transBox = new JComboBox(transactionOpts);
+			transBox.setEditable(false);
+			transBox.addActionListener(this);
+			transBox.setActionCommand("inTrans");
+
+			JTextField arg0 = new JTextField(3);
+			JTextField arg1 = new JTextField(3);
+			JTextField arg2 = new JTextField(3);
+			JTextField arg3 = new JTextField(3);
+			JTextField arg4 = new JTextField(3);
+
+			JTextField[] fields = {arg0, arg1, arg2, arg3, arg4};
+
+			//Set up for and EPICS type transaction by default
+			transBox.setSelectedIndex(0);
+			arg0.setEnabled(true);
+			arg1.setEnabled(false);
+			arg2.setEnabled(false);
+			arg3.setEnabled(false);
+			arg4.setEnabled(false);
+
+			g.gridx = 0;
+			g.gridy ++;
+			pan.add(transBox, g);
+			g.gridx++;
+			pan.add(arg0, g);
+			g.gridx++;
+			pan.add(arg1, g);
+			g.gridx++;
+			pan.add(arg2, g);
+			g.gridx++;
+			pan.add(arg3, g);
+			g.gridx++;
+			pan.add(arg4, g);
+
+			hm.put(transBox, fields);
 		}
 
 		private void populateFields(){
@@ -1222,8 +1349,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public void actionPerformed(ActionEvent e){
 			//do stuff
+			String cmd = e.getActionCommand();
 			if (e.getSource() instanceof JButton){
-				String cmd = e.getActionCommand();
 				if (cmd.equals("next")){
 					cl.show(itsCardPanel, itsCards[++curr]);
 					if (curr == itsCards.length-1){
@@ -1240,9 +1367,180 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 					this.populateFields();
 					this.dispose();
 				}
+			} else if (e.getSource() instanceof JComboBox){
+				JComboBox src = (JComboBox)e.getSource();
+				if (cmd.equals("inTrans")){
+					String type = src.getSelectedItem().toString();
+					final JTextField[] refs = inFieldRefs.get(src);
+					if (refs == null) return;
+					if (type.equals(transactionOpts[0])){//EPICS
+						SwingUtilities.invokeLater(new SwingRunnable(refs){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[2].setEnabled(false);
+								refs[3].setEnabled(false);
+								refs[4].setEnabled(false);
+								arg0.setText("Process Variable");
+								arg1.setText(null);
+								arg2.setText(null);
+								arg3.setText(null);
+								arg4.setText(null);
+							}
+						});
+					} else if (type.equals(transactionOpts[1])){//EPICS Monitor
+						SwingUtilities.invokeLater(new SwingRunnable(refs){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[3].setEnabled(false);
+								refs[4].setEnabled(false);
+								arg0.setText("Process Variable");
+								arg1.setText("DBR Type (Optional)");
+								arg2.setText(null);
+								arg3.setText(null);
+								arg4.setText(null);
+								if (refs[1].getText().isEmpty()) refs[1].setText("-");
+							}
+						});
+					} else if (type.equals(transactionOpts[2])){//Generic
+						SwingUtilities.invokeLater(new SwingRunnable(refs){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[2].setEnabled(false);
+								refs[3].setEnabled(false);
+								refs[4].setEnabled(false);
+								arg0.setText("Channel");
+								arg1.setText(null);
+								arg2.setText(null);
+								arg3.setText(null);
+								arg4.setText(null);
+							}
+						});
+					} else if (type.equals(transactionOpts[3])){//Initial Value
+						SwingUtilities.invokeLater(new SwingRunnable(refs){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[3].setEnabled(false);
+								refs[4].setEnabled(false);
+								arg0.setText("Type");
+								arg1.setText("Value");
+								arg2.setText(null);
+								arg3.setText(null);
+								arg4.setText(null);
+							}
+						});
+					} else if (type.equals(transactionOpts[4])){//Limit Check
+						SwingUtilities.invokeLater(new SwingRunnable(refs){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(true);
+								refs[4].setEnabled(true);
+								arg0.setText("Update Frequency");
+								arg1.setText("History");
+								arg2.setText("OK Output String");
+								arg3.setText("Bad Output String");
+								arg4.setText("Monitor Point");
+							}
+						});
+					} else if (type.equals(transactionOpts[5])){//Listen
+						SwingUtilities.invokeLater(new SwingRunnable(refs){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(true);
+								refs[4].setEnabled(true);
+								arg0.setText("Monitor Point");
+								arg1.setText("Monitor Point (Optional)");
+								arg2.setText("Monitor Point (Optional)");
+								arg3.setText("Monitor Point (Optional)");
+								arg4.setText("Monitor Point (Optional)");
+							}
+						});
+					} else if (type.equals(transactionOpts[6])){//Strings
+						SwingUtilities.invokeLater(new SwingRunnable(refs){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(true);
+								refs[4].setEnabled(false);
+								arg0.setText("Monitor Point");
+								arg1.setText("Monitor Point (Optional)");
+								arg2.setText("Monitor Point (Optional)");
+								arg3.setText("Monitor Point (Optional)");
+								arg4.setText(null);
+							}
+						});
+					} else if (type.equals(transactionOpts[7])){//Timer
+						SwingUtilities.invokeLater(new SwingRunnable(refs){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(false);
+								refs[4].setEnabled(false);
+								arg0.setText("Period (seconds)");
+								arg1.setText("Type");
+								arg2.setText("Value");
+								arg3.setText(null);
+								arg4.setText(null);
+							}
+						});
+					}
+				}
 			}
 		}
 
+		@Override
+		public void stateChanged(ChangeEvent arg0) {
+			if (arg0.getSource() instanceof JSpinner){
+				if (arg0.getSource().equals(inSpinner)){
+					//inTransaction
+					SwingUtilities.invokeLater(new Runnable(){
+						@Override
+						public void run(){
+							addTransactionRow(inFieldRefs, inTransMainPanel, itgbc);
+						}
+					});
+				}
+			}
+
+		}
+	}
+
+	/**
+	 * Reusable Runnable for when a Runnable is needed with references.
+	 * Need to override run() to be useful
+	 * @author Kalinga Hulugalle
+	 *
+	 */
+	public class SwingRunnable implements Runnable{
+		Object important;
+		public SwingRunnable(Object o){
+			important  = o;
+		}
+
+		public Object getImportant(){
+			return important;
+		}
+
+		public void run(){}
 	}
 
 	// ///// END NESTED CLASS //////
@@ -1272,15 +1570,12 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 					boolean allfine = true;
 					if (mc != null){
 						//write all points 
+						Vector<PointDescription> pointsToWrite = new Vector<PointDescription>();
 						for (MPEditorComponent m : components){
 							PointDescription pd = PointDescription.factory(m.getNames(), m.getLongDesc(), m.getShortDesc(), m.getUnits(), m.getSource(), m.getInTransactions(), m.getOutTransactions(), m.getTranslations(), m.getAlarmCriteria(), m.getArchivePolicies(), m.getNotifications(), m.getPeriod(), m.getArchiveLongevity(), m.getGuidance(), m.getPriority(), m.getEnabled());
-							String monPointTxt = pd.getStringEquiv();
-							boolean result = false;
-							//	result = mc.writePoint(monPointTxt, username, password); TODO
-							if (!result){
-								allfine = false;
-							}
+							pointsToWrite.add(pd);
 						}
+						allfine = mc.addPoints(pointsToWrite, username, password);
 					}
 					if (!allfine){
 						password = "";
