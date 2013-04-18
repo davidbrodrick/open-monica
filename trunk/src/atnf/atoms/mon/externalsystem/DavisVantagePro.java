@@ -196,7 +196,7 @@ public class DavisVantagePro extends DataSocket {
 
     // UV
     temp = rawbytes[43];
-    res.put("UV", new Integer(temp)); // In UV Index
+    res.put("UV", new Float(temp / 10.0)); // In UV Index
 
     return res;
   }
