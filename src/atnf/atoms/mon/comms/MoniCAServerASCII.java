@@ -65,7 +65,7 @@ public class MoniCAServerASCII extends Thread {
   protected BufferedReader itsReader = null;
 
   /** Handles RSA encryption. */
-  private RSA itsRSA;
+  private RSA itsRSA = null;
 
   /** List of all currently running servers. */
   protected static Vector<MoniCAServerASCII> theirServers = new Vector<MoniCAServerASCII>();
@@ -93,8 +93,6 @@ public class MoniCAServerASCII extends Thread {
     synchronized (theirServers) {
       theirServers.add(this);
     }
-    itsRSA = new RSA(1024);
-    itsRSA.generateKeys();
     theirNumClients++;
     itsClientHost = socket.getInetAddress().getHostAddress();
     itsClientName = socket.getInetAddress().getHostAddress() + ":" + socket.getPort();
@@ -716,6 +714,10 @@ public class MoniCAServerASCII extends Thread {
    */
   protected void rsa() {
     try {
+      if (itsRSA == null) {
+        itsRSA = new RSA(1024);
+        itsRSA.generateKeys();
+      }
       itsWriter.println(itsRSA.getE());
       itsWriter.println(itsRSA.getN());
       itsWriter.flush();
@@ -742,14 +744,16 @@ public class MoniCAServerASCII extends Thread {
   /** Check the clients credentials. Return verified user name or null if can't be verified. */
   protected String checkAuth(String rawuser, String rawpass, String host) {
     // Socket session keys
-    try {
-      String username = itsRSA.decrypt(rawuser);
-      String password = itsRSA.decrypt(rawpass);
-      if (RADIUSAuthenticator.authenticate(username, password, host)) {
-        return username;
+		if (itsRSA != null) {
+      try {
+        String username = itsRSA.decrypt(rawuser);
+        String password = itsRSA.decrypt(rawpass);
+        if (RADIUSAuthenticator.authenticate(username, password, host)) {
+          return username;
+        }
+      } catch (NumberFormatException f) {
       }
-    } catch (NumberFormatException f) {
-    }
+		}
 
     // Server persistent keys
     try {
