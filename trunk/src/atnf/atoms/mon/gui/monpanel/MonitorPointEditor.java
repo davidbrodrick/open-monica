@@ -1088,16 +1088,20 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		JComboBox enabled;
 
 		//Input Transactions Card
-		HashMap<JComboBox, JTextField[]> inFieldRefs = new HashMap<JComboBox, JTextField[]>();
+		HashMap<JComboBox, JTextField[]> inFieldRefs;
+		ArrayList<JComboBox> inFieldBoxes;
 		JPanel inTransMainPanel;
-		JComboBox inTransType;
 		JSpinner inSpinner;
+		int inSpinnerVal = 0;
 		GridBagConstraints itgbc;
-		JLabel arg0;
-		JLabel arg1;
-		JLabel arg2;
-		JLabel arg3;
-		JLabel arg4;
+
+		//Output Transactions Card
+		HashMap<JComboBox, JTextField[]> outFieldRefs;
+		ArrayList<JComboBox> outFieldBoxes;
+		JPanel outTransMainPanel;
+		JSpinner outSpinner;
+		int outSpinnerVal = 0;
+		GridBagConstraints otgbc;
 
 		public WizardFrame(MPEditorComponent m){
 			super();
@@ -1116,6 +1120,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			this.addNavPanel(navPanel, itsPanel);
 			this.setupMetaDataPanel(metaDataCard);
 			this.setupInputTransactionPanel(inTransCard);
+			this.setupOutputTransactionPanel(outTransCard);
 
 			itsCardPanel.add(metaDataCard, itsCards[0]);
 			itsCardPanel.add(inTransCard, itsCards[1]);
@@ -1235,15 +1240,20 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			mdc.setLayout(new BorderLayout());
 			JPanel desc = new JPanel(new GridLayout(2,1));
 			JPanel content = new JPanel(new BorderLayout());
+			JScrollPane scroller = new JScrollPane();
 			inTransMainPanel = new JPanel(new GridBagLayout());
+			inFieldRefs = new HashMap<JComboBox, JTextField[]>();
+			inFieldBoxes = new ArrayList<JComboBox>();
 			itgbc = new GridBagConstraints();
 			itgbc.fill = GridBagConstraints.HORIZONTAL;
+			itgbc.anchor = GridBagConstraints.NORTH;
 			itgbc.weightx = 0.5;
 			itgbc.weighty = 0.5;
 			itgbc.gridheight = 1;
 			itgbc.gridwidth = 1;
 			itgbc.gridx = 0;
 			itgbc.gridy = 0;
+			itgbc.insets = new Insets(5, 5, 0, 0);
 
 			JLabel title = new JLabel("Input Transactions");
 			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
@@ -1259,11 +1269,18 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			description.setLineWrap(true);
 			description.setEditable(false);
 			JLabel type = new JLabel("Type");
-			arg0 = new JLabel("Arg 1");
-			arg1 = new JLabel("Arg 2");
-			arg2 = new JLabel("Arg 3");
-			arg3 = new JLabel("Arg 4");
-			arg4 = new JLabel("Arg 5");
+			JLabel arg0 = new JLabel("Arg 1");;
+			JLabel arg1 = new JLabel("Arg 2");
+			JLabel arg2 = new JLabel("Arg 3");
+			JLabel arg3 = new JLabel("Arg 4");
+			JLabel arg4 = new JLabel("Arg 5");
+
+			type.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg0.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg1.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg2.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg3.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg4.setFont(new Font("Sans Serif", Font.BOLD, 14));
 
 			inTransMainPanel.add(type, itgbc);
 			itgbc.gridx++;
@@ -1294,16 +1311,96 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			counter.add(Box.createHorizontalGlue());
 			content.add(counter, BorderLayout.NORTH);
 			content.add(inTransMainPanel, BorderLayout.CENTER);
+			scroller.setViewportView(content);
 
 			mdc.add(desc, BorderLayout.NORTH);
-			mdc.add(content, BorderLayout.CENTER);
+			mdc.add(scroller, BorderLayout.CENTER);
 		}
 
-		private void addTransactionRow(HashMap<JComboBox, JTextField[]> hm, JPanel pan, GridBagConstraints g){
+		private void setupOutputTransactionPanel(JPanel mdc){
+			mdc.setLayout(new BorderLayout());
+			JPanel desc = new JPanel(new GridLayout(2,1));
+			JPanel content = new JPanel(new BorderLayout());
+			JScrollPane scroller = new JScrollPane();
+			outTransMainPanel = new JPanel(new GridBagLayout());
+			outFieldRefs = new HashMap<JComboBox, JTextField[]>();
+			outFieldBoxes = new ArrayList<JComboBox>();
+			otgbc = new GridBagConstraints();
+			otgbc.fill = GridBagConstraints.HORIZONTAL;
+			otgbc.anchor = GridBagConstraints.NORTH;
+			otgbc.weightx = 0.5;
+			otgbc.weighty = 0.5;
+			otgbc.gridheight = 1;
+			otgbc.gridwidth = 1;
+			otgbc.gridx = 0;
+			otgbc.gridy = 0;
+			otgbc.insets = new Insets(5, 5, 0, 0);
+
+			JLabel title = new JLabel("Output Transactions");
+			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
+			title.setHorizontalAlignment(SwingConstants.CENTER);
+			title.setHorizontalTextPosition(SwingConstants.CENTER);
+			JTextArea description = new JTextArea(2,5);
+			DefaultCaret caret = (DefaultCaret)description.getCaret();
+			caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+			description.setText("The types of output transactions that will occur when this point's " +
+			"data is exported from MoniCA. This can take the form of 8 different types.");
+			description.setBackground(null);
+			description.setWrapStyleWord(true);
+			description.setLineWrap(true);
+			description.setEditable(false);
+			JLabel type = new JLabel("Type");
+			JLabel arg0 = new JLabel("Arg 1");;
+			JLabel arg1 = new JLabel("Arg 2");
+			JLabel arg2 = new JLabel("Arg 3");
+			JLabel arg3 = new JLabel("Arg 4");
+			JLabel arg4 = new JLabel("Arg 5");
+
+			type.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg0.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg1.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg2.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg3.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg4.setFont(new Font("Sans Serif", Font.BOLD, 14));
+
+			outTransMainPanel.add(type, itgbc);
+			otgbc.gridx++;
+			outTransMainPanel.add(arg0, itgbc);
+			otgbc.gridx++;
+			outTransMainPanel.add(arg1, itgbc);
+			otgbc.gridx++;
+			outTransMainPanel.add(arg2, itgbc);
+			otgbc.gridx++;
+			outTransMainPanel.add(arg3, itgbc);
+			otgbc.gridx++;
+			outTransMainPanel.add(arg4, itgbc);
+
+			desc.add(title);
+			desc.add(description);
+
+			JPanel counter =  new JPanel();
+			counter.setLayout(new BoxLayout(counter, BoxLayout.X_AXIS));
+			JLabel counterLabel = new JLabel("Number of Output Transactions");
+			outSpinner = new JSpinner();
+			SpinnerNumberModel spinModel = new SpinnerNumberModel(0, 0, null, 1);
+			outSpinner.setModel(spinModel);
+			outSpinner.addChangeListener(this);
+
+			counter.add(Box.createHorizontalGlue());
+			counter.add(counterLabel);
+			counter.add(outSpinner);
+			counter.add(Box.createHorizontalGlue());
+			content.add(counter, BorderLayout.NORTH);
+			content.add(outTransMainPanel, BorderLayout.CENTER);
+			scroller.setViewportView(content);
+
+			mdc.add(desc, BorderLayout.NORTH);
+			mdc.add(scroller, BorderLayout.CENTER);
+		}
+
+		private void addTransactionRow(ArrayList<JComboBox> al, HashMap<JComboBox, JTextField[]> hm, JPanel pan, GridBagConstraints g, String actionCommand){
 			JComboBox transBox = new JComboBox(transactionOpts);
 			transBox.setEditable(false);
-			transBox.addActionListener(this);
-			transBox.setActionCommand("inTrans");
 
 			JTextField arg0 = new JTextField(3);
 			JTextField arg1 = new JTextField(3);
@@ -1335,7 +1432,28 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			g.gridx++;
 			pan.add(arg4, g);
 
+			pan.revalidate();
+			pan.repaint();
+
+			transBox.addActionListener(this);
+			transBox.setActionCommand(actionCommand);
+			al.add(transBox);
 			hm.put(transBox, fields);
+		}
+
+		private void remTransactionRow(ArrayList<JComboBox> al, HashMap<JComboBox, JTextField[]> hm, JPanel pan, GridBagConstraints g){
+			pan.remove(al.get(al.size()-1));
+			for (JTextField j : hm.get(al.get(al.size()-1))){
+				pan.remove(j);
+			}
+			hm.remove(al.get(al.size()-1));
+			al.remove(al.size()-1);
+
+			g.gridx = 0;
+			g.gridy--;
+
+			pan.revalidate();
+			pan.repaint();
 		}
 
 		private void populateFields(){
@@ -1369,24 +1487,27 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				}
 			} else if (e.getSource() instanceof JComboBox){
 				JComboBox src = (JComboBox)e.getSource();
-				if (cmd.equals("inTrans")){
+				if (cmd.endsWith("Trans")){
+					final JTextField[] refs;
+					if (cmd.equals("inTrans")){
+						refs = inFieldRefs.get(src);
+					} else {
+						refs = outFieldRefs.get(src);
+					}
 					String type = src.getSelectedItem().toString();
-					final JTextField[] refs = inFieldRefs.get(src);
-					if (refs == null) return;
 					if (type.equals(transactionOpts[0])){//EPICS
 						SwingUtilities.invokeLater(new SwingRunnable(refs){
 							@Override
 							public void run(){
 								refs[0].setEnabled(true);
 								refs[1].setEnabled(false);
+								refs[1].setText(null);
 								refs[2].setEnabled(false);
+								refs[2].setText(null);
 								refs[3].setEnabled(false);
+								refs[3].setText(null);
 								refs[4].setEnabled(false);
-								arg0.setText("Process Variable");
-								arg1.setText(null);
-								arg2.setText(null);
-								arg3.setText(null);
-								arg4.setText(null);
+								refs[4].setText(null);
 							}
 						});
 					} else if (type.equals(transactionOpts[1])){//EPICS Monitor
@@ -1396,14 +1517,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 								refs[0].setEnabled(true);
 								refs[1].setEnabled(true);
 								refs[2].setEnabled(false);
+								refs[2].setText(null);
 								refs[3].setEnabled(false);
+								refs[3].setText(null);
 								refs[4].setEnabled(false);
-								arg0.setText("Process Variable");
-								arg1.setText("DBR Type (Optional)");
-								arg2.setText(null);
-								arg3.setText(null);
-								arg4.setText(null);
-								if (refs[1].getText().isEmpty()) refs[1].setText("-");
+								refs[4].setText(null);
 							}
 						});
 					} else if (type.equals(transactionOpts[2])){//Generic
@@ -1412,14 +1530,13 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							public void run(){
 								refs[0].setEnabled(true);
 								refs[1].setEnabled(false);
+								refs[1].setText(null);
 								refs[2].setEnabled(false);
+								refs[2].setText(null);
 								refs[3].setEnabled(false);
+								refs[3].setText(null);
 								refs[4].setEnabled(false);
-								arg0.setText("Channel");
-								arg1.setText(null);
-								arg2.setText(null);
-								arg3.setText(null);
-								arg4.setText(null);
+								refs[4].setText(null);
 							}
 						});
 					} else if (type.equals(transactionOpts[3])){//Initial Value
@@ -1429,13 +1546,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 								refs[0].setEnabled(true);
 								refs[1].setEnabled(true);
 								refs[2].setEnabled(false);
+								refs[2].setText(null);
 								refs[3].setEnabled(false);
+								refs[3].setText(null);
 								refs[4].setEnabled(false);
-								arg0.setText("Type");
-								arg1.setText("Value");
-								arg2.setText(null);
-								arg3.setText(null);
-								arg4.setText(null);
+								refs[4].setText(null);
 							}
 						});
 					} else if (type.equals(transactionOpts[4])){//Limit Check
@@ -1447,11 +1562,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 								refs[2].setEnabled(true);
 								refs[3].setEnabled(true);
 								refs[4].setEnabled(true);
-								arg0.setText("Update Frequency");
-								arg1.setText("History");
-								arg2.setText("OK Output String");
-								arg3.setText("Bad Output String");
-								arg4.setText("Monitor Point");
 							}
 						});
 					} else if (type.equals(transactionOpts[5])){//Listen
@@ -1463,11 +1573,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 								refs[2].setEnabled(true);
 								refs[3].setEnabled(true);
 								refs[4].setEnabled(true);
-								arg0.setText("Monitor Point");
-								arg1.setText("Monitor Point (Optional)");
-								arg2.setText("Monitor Point (Optional)");
-								arg3.setText("Monitor Point (Optional)");
-								arg4.setText("Monitor Point (Optional)");
 							}
 						});
 					} else if (type.equals(transactionOpts[6])){//Strings
@@ -1479,11 +1584,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 								refs[2].setEnabled(true);
 								refs[3].setEnabled(true);
 								refs[4].setEnabled(false);
-								arg0.setText("Monitor Point");
-								arg1.setText("Monitor Point (Optional)");
-								arg2.setText("Monitor Point (Optional)");
-								arg3.setText("Monitor Point (Optional)");
-								arg4.setText(null);
+								refs[4].setText(null);
 							}
 						});
 					} else if (type.equals(transactionOpts[7])){//Timer
@@ -1494,12 +1595,9 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 								refs[1].setEnabled(true);
 								refs[2].setEnabled(true);
 								refs[3].setEnabled(false);
+								refs[3].setText(null);
 								refs[4].setEnabled(false);
-								arg0.setText("Period (seconds)");
-								arg1.setText("Type");
-								arg2.setText("Value");
-								arg3.setText(null);
-								arg4.setText(null);
+								refs[4].setText(null);
 							}
 						});
 					}
@@ -1511,13 +1609,49 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		public void stateChanged(ChangeEvent arg0) {
 			if (arg0.getSource() instanceof JSpinner){
 				if (arg0.getSource().equals(inSpinner)){
-					//inTransaction
-					SwingUtilities.invokeLater(new Runnable(){
-						@Override
-						public void run(){
-							addTransactionRow(inFieldRefs, inTransMainPanel, itgbc);
+					if ((Integer)inSpinner.getValue() > inSpinnerVal){
+						for (int i = inSpinnerVal; i < (Integer)inSpinner.getValue(); i++){
+							SwingUtilities.invokeLater(new Runnable(){
+								@Override
+								public void run(){
+									addTransactionRow(inFieldBoxes, inFieldRefs, inTransMainPanel, itgbc, "inTrans");
+								}
+							});
 						}
-					});
+						inSpinnerVal = (Integer)inSpinner.getValue();
+					} else if ((Integer)inSpinner.getValue() < inSpinnerVal){
+						for (int i = inSpinnerVal; i > (Integer)inSpinner.getValue(); i--){
+							SwingUtilities.invokeLater(new Runnable(){
+								@Override
+								public void run(){
+									remTransactionRow(inFieldBoxes, inFieldRefs, inTransMainPanel, itgbc);
+								}
+							});
+						}
+						inSpinnerVal = (Integer)inSpinner.getValue();
+					}
+				} else if (arg0.getSource().equals(outSpinner)){
+					if ((Integer)inSpinner.getValue() > inSpinnerVal){
+						for (int i = outSpinnerVal; i < (Integer)outSpinner.getValue(); i++){
+							SwingUtilities.invokeLater(new Runnable(){
+								@Override
+								public void run(){
+									addTransactionRow(outFieldBoxes, outFieldRefs, outTransMainPanel, otgbc, "outTrans");
+								}
+							});
+						}
+						outSpinnerVal = (Integer)outSpinner.getValue();
+					} else if ((Integer)outSpinner.getValue() < outSpinnerVal){
+						for (int i = outSpinnerVal; i > (Integer)outSpinner.getValue(); i--){
+							SwingUtilities.invokeLater(new Runnable(){
+								@Override
+								public void run(){
+									remTransactionRow(outFieldBoxes, outFieldRefs, outTransMainPanel, otgbc);
+								}
+							});
+						}
+						outSpinnerVal = (Integer)outSpinner.getValue();
+					}
 				}
 			}
 
@@ -1597,6 +1731,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 					}
 					Vector<PointDescription> pointDescs = mc.getPoints(needData);
 					for (PointDescription pd : pointDescs){
+						if (pd == null) continue;
 						for (MPEditorComponent m : components){//TODO fill in the rest as I go along
 							if (!m.newPoint && m.getNames()[0].equals(pd.getFullName())){
 								m.setNameText(pd.getName());
@@ -1610,7 +1745,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 					}
 				} catch (Exception e){
 					System.err.println("Unable to prepopulate editor fields");
-					e.printStackTrace();
 				}
 			}	
 		}
