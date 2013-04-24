@@ -21,6 +21,7 @@ import java.awt.event.ActionListener;
 import java.awt.font.TextAttribute;
 import java.io.PrintStream;
 import java.net.URI;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1071,7 +1072,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		private CardLayout cl;
 
 		String[] itsCards = {"metadata", "input transactions", "output transactions", "translations", "update data", "alarm data"};
-		String[] transactionOpts = {"EPICS", "EPICS Monitor", "Generic", "Initial Value", "Limit Check", "Listen", "Strings", "Timer"};
+		String[] transactionOpts = {"EPICS", "EPICSMonitor", "Generic", "InitialValue", "LimitCheck", "Listen", "Strings", "Timer"};
 		int curr = 0;
 
 		//Nav Panel
@@ -1315,6 +1316,58 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 			mdc.add(desc, BorderLayout.NORTH);
 			mdc.add(scroller, BorderLayout.CENTER);
+
+			try {
+				final String[] inTrans = reference.getInTransactions();
+				int numTrans = inTrans.length;
+				inSpinner.setValue(numTrans);
+				SwingUtilities.invokeLater(new Runnable(){// ensure that this section is called after the boxes are created
+					public void run(){
+						populateTransactionPanel(inFieldBoxes, inFieldRefs, inTrans);
+					}
+				});
+			} catch (InvalidParameterException ipe){
+				System.err.println("Input Transactions could not be parsed.");
+			}
+		}
+
+		private void populateTransactionPanel(ArrayList<JComboBox> boxes, HashMap<JComboBox, JTextField[]> args, String[] inputs){
+			for (int i = 0; i < inputs.length; i++){
+				String type = inputs[i].substring(0, inputs[i].indexOf('-'));
+				if (type.equals(transactionOpts[0])){
+					boxes.get(i).setSelectedItem(transactionOpts[0]);
+				} else if (type.equals(transactionOpts[1])){
+					boxes.get(i).setSelectedItem(transactionOpts[1]);
+				} else if (type.equals(transactionOpts[2])){
+					boxes.get(i).setSelectedItem(transactionOpts[2]);
+				} else if (type.equals(transactionOpts[3])){
+					boxes.get(i).setSelectedItem(transactionOpts[3]);
+				} else if (type.equals(transactionOpts[4])){
+					boxes.get(i).setSelectedItem(transactionOpts[4]);
+				} else if (type.equals(transactionOpts[5])){
+					boxes.get(i).setSelectedItem(transactionOpts[5]);
+				} else if (type.equals(transactionOpts[6])){
+					boxes.get(i).setSelectedItem(transactionOpts[6]);
+				} else if (type.equals(transactionOpts[7])){
+					boxes.get(i).setSelectedItem(transactionOpts[7]);
+				}
+				inputs[i] = inputs[i].substring(inputs[i].indexOf('-')+1); //strip off type
+				inputs[i] = inputs[i].trim();
+			}
+			int i = 0;
+			for (String s : inputs){//TODO needs checking
+				JTextField [] refs = args.get(boxes.get(i));
+				StringTokenizer st = new StringTokenizer(s, "\"\"");
+				int j = 0;
+				while (st.hasMoreTokens()){
+					String opts = st.nextToken();
+					opts = opts.replace("\"", ""); //get rid of any orphaned quote marks
+					refs[j].setText(opts);
+					j++;
+				}
+				j = 0;
+				i++;
+			}
 		}
 
 		private void setupOutputTransactionPanel(JPanel mdc){
@@ -1363,17 +1416,17 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			arg3.setFont(new Font("Sans Serif", Font.BOLD, 14));
 			arg4.setFont(new Font("Sans Serif", Font.BOLD, 14));
 
-			outTransMainPanel.add(type, itgbc);
+			outTransMainPanel.add(type, otgbc);
 			otgbc.gridx++;
-			outTransMainPanel.add(arg0, itgbc);
+			outTransMainPanel.add(arg0, otgbc);
 			otgbc.gridx++;
-			outTransMainPanel.add(arg1, itgbc);
+			outTransMainPanel.add(arg1, otgbc);
 			otgbc.gridx++;
-			outTransMainPanel.add(arg2, itgbc);
+			outTransMainPanel.add(arg2, otgbc);
 			otgbc.gridx++;
-			outTransMainPanel.add(arg3, itgbc);
+			outTransMainPanel.add(arg3, otgbc);
 			otgbc.gridx++;
-			outTransMainPanel.add(arg4, itgbc);
+			outTransMainPanel.add(arg4, otgbc);
 
 			desc.add(title);
 			desc.add(description);
@@ -1396,6 +1449,18 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 			mdc.add(desc, BorderLayout.NORTH);
 			mdc.add(scroller, BorderLayout.CENTER);
+			try {
+				final String[] outTrans = reference.getOutTransactions();
+				int numTrans = outTrans.length;
+				outSpinner.setValue(numTrans);
+				SwingUtilities.invokeLater(new Runnable(){// ensure that this section is called after the boxes are created
+					public void run(){
+						populateTransactionPanel(outFieldBoxes, outFieldRefs, outTrans);
+					}
+				});
+			} catch (InvalidParameterException ipe){
+				System.err.println("Output Transactions could not be parsed.");
+			}
 		}
 
 		private void addTransactionRow(ArrayList<JComboBox> al, HashMap<JComboBox, JTextField[]> hm, JPanel pan, GridBagConstraints g, String actionCommand){
@@ -1456,13 +1521,54 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			pan.repaint();
 		}
 
-		private void populateFields(){
+		private String formatTransString(ArrayList<JComboBox> fieldBoxes, HashMap<JComboBox, JTextField[]> refs){
+			ArrayList<String> separateTypes = new ArrayList<String>();
+			String inTransStr = "";
+			for (JComboBox jc : fieldBoxes){
+				ArrayList<String> fields = new ArrayList<String>();
+				for (JTextField j : refs.get(jc)){
+					fields.add(j.getText());
+				}
+				String res = jc.getSelectedItem().toString();
+				res += "-";
+				for (String arg : fields){
+					if (arg != null && !arg.isEmpty()){
+						res += "\"";
+						res += arg;
+						res += "\"";
+					}
+				}
+				separateTypes.add(res);
+			}
+			int i = 1;
+			int size = separateTypes.size();
+			if (size > 1){
+				inTransStr += "{";
+				for (String in : separateTypes){
+					inTransStr += in;
+					if (i != size){
+						inTransStr += ","; 
+						i++;
+					}
+				}
+				inTransStr += "}";
+			} else if (size == 1){
+				inTransStr = separateTypes.get(0);
+			}
+			return inTransStr;
+		}
+
+		private void populateFields(){//TODO
+			//Metadata 
 			reference.setNameText(name.getText());
 			reference.setLongDescText(longDesc.getText());
 			reference.setShortDescText(shortDesc.getText());
 			reference.setSourceText(source.getText());
 			reference.setUnitsText(units.getText());
 			reference.setEnabledState(enabled.getSelectedItem().toString());
+			//Transactions
+			reference.setInputTransactionString(this.formatTransString(inFieldBoxes, inFieldRefs));
+			reference.setOutputTransactionString(this.formatTransString(outFieldBoxes, outFieldRefs));
 		}
 
 		public void actionPerformed(ActionEvent e){
@@ -1496,7 +1602,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 					}
 					String type = src.getSelectedItem().toString();
 					if (type.equals(transactionOpts[0])){//EPICS
-						SwingUtilities.invokeLater(new SwingRunnable(refs){
+						SwingUtilities.invokeLater(new Runnable(){
 							@Override
 							public void run(){
 								refs[0].setEnabled(true);
@@ -1511,7 +1617,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							}
 						});
 					} else if (type.equals(transactionOpts[1])){//EPICS Monitor
-						SwingUtilities.invokeLater(new SwingRunnable(refs){
+						SwingUtilities.invokeLater(new Runnable(){
 							@Override
 							public void run(){
 								refs[0].setEnabled(true);
@@ -1525,7 +1631,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							}
 						});
 					} else if (type.equals(transactionOpts[2])){//Generic
-						SwingUtilities.invokeLater(new SwingRunnable(refs){
+						SwingUtilities.invokeLater(new Runnable(){
 							@Override
 							public void run(){
 								refs[0].setEnabled(true);
@@ -1540,7 +1646,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							}
 						});
 					} else if (type.equals(transactionOpts[3])){//Initial Value
-						SwingUtilities.invokeLater(new SwingRunnable(refs){
+						SwingUtilities.invokeLater(new Runnable(){
 							@Override
 							public void run(){
 								refs[0].setEnabled(true);
@@ -1554,7 +1660,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							}
 						});
 					} else if (type.equals(transactionOpts[4])){//Limit Check
-						SwingUtilities.invokeLater(new SwingRunnable(refs){
+						SwingUtilities.invokeLater(new Runnable(){
 							@Override
 							public void run(){
 								refs[0].setEnabled(true);
@@ -1565,7 +1671,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							}
 						});
 					} else if (type.equals(transactionOpts[5])){//Listen
-						SwingUtilities.invokeLater(new SwingRunnable(refs){
+						SwingUtilities.invokeLater(new Runnable(){
 							@Override
 							public void run(){
 								refs[0].setEnabled(true);
@@ -1576,7 +1682,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							}
 						});
 					} else if (type.equals(transactionOpts[6])){//Strings
-						SwingUtilities.invokeLater(new SwingRunnable(refs){
+						SwingUtilities.invokeLater(new Runnable(){
 							@Override
 							public void run(){
 								refs[0].setEnabled(true);
@@ -1588,7 +1694,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							}
 						});
 					} else if (type.equals(transactionOpts[7])){//Timer
-						SwingUtilities.invokeLater(new SwingRunnable(refs){
+						SwingUtilities.invokeLater(new Runnable(){
 							@Override
 							public void run(){
 								refs[0].setEnabled(true);
@@ -1631,7 +1737,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 						inSpinnerVal = (Integer)inSpinner.getValue();
 					}
 				} else if (arg0.getSource().equals(outSpinner)){
-					if ((Integer)inSpinner.getValue() > inSpinnerVal){
+					if ((Integer)outSpinner.getValue() > outSpinnerVal){
 						for (int i = outSpinnerVal; i < (Integer)outSpinner.getValue(); i++){
 							SwingUtilities.invokeLater(new Runnable(){
 								@Override
@@ -1657,27 +1763,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		}
 	}
-
-	/**
-	 * Reusable Runnable for when a Runnable is needed with references.
-	 * Need to override run() to be useful
-	 * @author Kalinga Hulugalle
-	 *
-	 */
-	public class SwingRunnable implements Runnable{
-		Object important;
-		public SwingRunnable(Object o){
-			important  = o;
-		}
-
-		public Object getImportant(){
-			return important;
-		}
-
-		public void run(){}
-	}
-
-	// ///// END NESTED CLASS //////
 
 	// ///// NESTED CLASS: DataSender ///////
 	/**
@@ -1740,9 +1825,13 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 								m.setUnitsText(pd.getUnits());
 								m.setSourceText(pd.getSource());
 								m.setEnabledState(Boolean.toString(pd.getEnabled()));
+								m.setInputTransactionString(pd.getInputTransactionString());
+								m.setOutputTransactionString(pd.getOutputTransactionString());
 							}
 						}
 					}
+				} catch (NullPointerException n){
+					// Add-type point
 				} catch (Exception e){
 					System.err.println("Unable to prepopulate editor fields");
 				}
@@ -1856,6 +1945,14 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			enabledState.setSelectedItem(state);
 		}
 
+		public void setInputTransactionString(String string) {
+			inputTransacts.setText(string);
+		}
+
+		public void setOutputTransactionString(String string) {
+			outputTransacts.setText(string);
+		}
+
 		public String[] getNames(){
 			String names = "";
 			if (newPoint){
@@ -1910,7 +2007,13 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 
 		public String[] getInTransactions(){
-			String names = inputTransacts.getText();			
+			String names = inputTransacts.getText();
+			Pattern pat = Pattern.compile("\\{{0,1}(([a-zA-Z0-9]+\\-(\\\"[a-zA-Z0-9]+\\\")*),{0,1})+\\}{0,1}||");
+			Matcher mat = pat.matcher(names);
+			if (!mat.matches()) throw (new InvalidParameterException());
+			names = names.replace("{", "");
+			names = names.replace("}", "");
+			names = names.trim();
 			st = new StringTokenizer(names, ",");
 			int numToks = st.countTokens();
 			String[] res = new String[numToks];
@@ -1922,7 +2025,13 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 
 		public String[] getOutTransactions(){
-			String names = outputTransacts.getText();			
+			String names = outputTransacts.getText();
+			Pattern pat = Pattern.compile("\\{{0,1}(([a-zA-Z0-9]+\\-(\\\"[a-zA-Z0-9]+\\\")*),{0,1})+\\}{0,1}||");
+			Matcher mat = pat.matcher(names);
+			if (!mat.matches()) throw (new InvalidParameterException());
+			names = names.replace("{", "");
+			names = names.replace("}", "");
+			names = names.trim();
 			st = new StringTokenizer(names, ",");
 			int numToks = st.countTokens();
 			String[] res = new String[numToks];
@@ -1934,7 +2043,10 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 
 		public String[] getTranslations(){
-			String names = translations.getText();			
+			String names = translations.getText();
+			names = names.replace("{", "");
+			names = names.replace("}", "");
+			names = names.trim();
 			st = new StringTokenizer(names, ",");
 			int numToks = st.countTokens();
 			String[] res = new String[numToks];
