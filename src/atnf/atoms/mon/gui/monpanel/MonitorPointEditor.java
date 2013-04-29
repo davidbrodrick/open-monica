@@ -1070,9 +1070,89 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		private MPEditorComponent reference;
 		private JPanel itsCardPanel;
 		private CardLayout cl;
-
-		String[] itsCards = {"metadata", "input transactions", "output transactions", "translations", "update data", "alarm data"};
-		String[] transactionOpts = {"EPICS", "EPICSMonitor", "Generic", "InitialValue", "LimitCheck", "Listen", "Strings", "Timer"};
+		
+		final String[] itsCards = {"metadata", "input transactions", "output transactions", "translations", "update data", "alarm data"};
+		final String[] transactionOpts = {
+				"EPICS",
+				"EPICSMonitor",
+				"Generic",
+				"InitialValue",
+				"LimitCheck",
+				"Listen",
+				"Strings",
+				"Timer"
+				};
+		final String[] translationOpts = {
+				"Add16",
+				"AngleToNumber",
+				"Array",
+				"AvailabilityMask",
+				"BCDToInteger",
+				"BitShift",
+				"BoolMap",
+				"Calculation",
+				"CalculationTimed",
+				"CopyTimestamp",
+				"CronPulse",
+				"DailyIntegrator",
+				"DailyIntegratorPosOn",
+				"DailyPulse",
+				"DailyWindow",
+				"Delta",
+				"DewPoint",
+				"EmailOnChange",
+				"EmailOnFallingEdge",
+				"EmailOnRisingEdge",
+				"EnumMap",
+				"EQ",
+				"Failover",
+				"HexString",
+				"HighTimer",
+				"LimitCheck",
+				"Listener",
+				"LowTimer",
+				"Mean",
+				"MonthlyPulse",
+				"None",
+				"NumberToAngle",
+				"NumberToBool",
+				"NumDecimals",
+				"NV",
+				"PeakDetect",
+				"Polar2X",
+				"Polar2Y",
+				"Preceding",
+				"PrecipitableWater",
+				"PrecipitableWaterMMA",
+				"Pulse",
+				"RelTimeToSeconds",
+				"RessetableIntegrator",
+				"ResettablePeakDetect",
+				"ResettablePulse",
+				"RoundToInt",
+				"RunCmd",
+				"Shorts2Double",
+				"Shorts2Float",
+				"SinceHighTimer",
+				"SpecificHumidity",
+				"Squelch",
+				"StopIfNoChange",
+				"StopIfNull",
+				"StringMap",
+				"StringReplace",
+				"StringToArray",
+				"StringToNumber",
+				"StringTrim",
+				"StuckValue",
+				"Substring",
+				"Synch",
+				"ThyconAlarm",
+				"TimedSubstitution",
+				"VapourPressure",
+				"Variance",
+				"XY2Angle",
+				"XY2Mag"
+		};
 		int curr = 0;
 
 		//Nav Panel
@@ -1103,7 +1183,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		JSpinner outSpinner;
 		int outSpinnerVal = 0;
 		GridBagConstraints otgbc;
-
+		
+		//Translations Card
+		HashMap<JComboBox, JTextField[]> transFieldRefs;
+		ArrayList<JComboBox> transFieldBoxes;
+		JPanel translateMainPanel;
+		JSpinner transSpinner;
+		int transSpinnerVal = 0;
+		GridBagConstraints trgbc;
+		
 		public WizardFrame(MPEditorComponent m){
 			super();
 			reference = m;
@@ -1122,6 +1210,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			this.setupMetaDataPanel(metaDataCard);
 			this.setupInputTransactionPanel(inTransCard);
 			this.setupOutputTransactionPanel(outTransCard);
+			this.setupTranslationPanel(translateCard);
 
 			itsCardPanel.add(metaDataCard, itsCards[0]);
 			itsCardPanel.add(inTransCard, itsCards[1]);
@@ -1462,9 +1551,103 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				System.err.println("Output Transactions could not be parsed.");
 			}
 		}
+		
+		private void setupTranslationPanel(JPanel mdc){
+			mdc.setLayout(new BorderLayout());
+			JPanel desc = new JPanel(new GridLayout(2,1));
+			JPanel content = new JPanel(new BorderLayout());
+			JScrollPane scroller = new JScrollPane();
+			translateMainPanel = new JPanel(new GridBagLayout());
+			transFieldRefs = new HashMap<JComboBox, JTextField[]>();
+			transFieldBoxes = new ArrayList<JComboBox>();
+			trgbc = new GridBagConstraints();
+			trgbc.fill = GridBagConstraints.HORIZONTAL;
+			trgbc.anchor = GridBagConstraints.NORTH;
+			trgbc.weightx = 0.5;
+			trgbc.weighty = 0.5;
+			trgbc.gridheight = 1;
+			trgbc.gridwidth = 1;
+			trgbc.gridx = 0;
+			trgbc.gridy = 0;
+			trgbc.insets = new Insets(5, 5, 0, 0);
 
-		private void addTransactionRow(ArrayList<JComboBox> al, HashMap<JComboBox, JTextField[]> hm, JPanel pan, GridBagConstraints g, String actionCommand){
-			JComboBox transBox = new JComboBox(transactionOpts);
+			JLabel title = new JLabel("Translations");
+			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
+			title.setHorizontalAlignment(SwingConstants.CENTER);
+			title.setHorizontalTextPosition(SwingConstants.CENTER);
+			JTextArea description = new JTextArea(2,5);
+			DefaultCaret caret = (DefaultCaret)description.getCaret();
+			caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+			description.setText("Translations are used to convert data into a higher-level or more " +
+					"meaningful form. More information can be found on the wiki.");
+			description.setBackground(null);
+			description.setWrapStyleWord(true);
+			description.setLineWrap(true);
+			description.setEditable(false);
+			JLabel type = new JLabel("Type");
+			JLabel arg0 = new JLabel("Arg 1");;
+			JLabel arg1 = new JLabel("Arg 2");
+			JLabel arg2 = new JLabel("Arg 3");
+			JLabel arg3 = new JLabel("Arg 4");
+			JLabel arg4 = new JLabel("Arg 5");
+
+			type.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg0.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg1.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg2.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg3.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg4.setFont(new Font("Sans Serif", Font.BOLD, 14));
+
+			translateMainPanel.add(type, trgbc);
+			trgbc.gridx++;
+			translateMainPanel.add(arg0, trgbc);
+			trgbc.gridx++;
+			translateMainPanel.add(arg1, trgbc);
+			trgbc.gridx++;
+			translateMainPanel.add(arg2, trgbc);
+			trgbc.gridx++;
+			translateMainPanel.add(arg3, trgbc);
+			trgbc.gridx++;
+			translateMainPanel.add(arg4, trgbc);
+
+			desc.add(title);
+			desc.add(description);
+
+			JPanel counter =  new JPanel();
+			counter.setLayout(new BoxLayout(counter, BoxLayout.X_AXIS));
+			JLabel counterLabel = new JLabel("Number of Translations");
+			transSpinner = new JSpinner();
+			SpinnerNumberModel spinModel = new SpinnerNumberModel(0, 0, null, 1);
+			transSpinner.setModel(spinModel);
+			transSpinner.addChangeListener(this);
+
+			counter.add(Box.createHorizontalGlue());
+			counter.add(counterLabel);
+			counter.add(transSpinner);
+			counter.add(Box.createHorizontalGlue());
+			content.add(counter, BorderLayout.NORTH);
+			content.add(translateMainPanel, BorderLayout.CENTER);
+			scroller.setViewportView(content);
+
+			mdc.add(desc, BorderLayout.NORTH);
+			mdc.add(scroller, BorderLayout.CENTER);
+
+			try {
+				final String[] translations = reference.getTranslations();
+				int numTrans = translations.length;
+				transSpinner.setValue(numTrans);
+				SwingUtilities.invokeLater(new Runnable(){// ensure that this section is called after the boxes are created
+					public void run(){
+						populateTransactionPanel(transFieldBoxes, transFieldRefs, translations);
+					}
+				});
+			} catch (InvalidParameterException ipe){
+				System.err.println("Translations could not be parsed.");
+			}
+		}
+
+		private void addRow(String[] options, ArrayList<JComboBox> al, HashMap<JComboBox, JTextField[]> hm, JPanel pan, GridBagConstraints g, String actionCommand){
+			JComboBox transBox = new JComboBox(options);
 			transBox.setEditable(false);
 
 			JTextField arg0 = new JTextField(3);
@@ -1506,7 +1689,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			hm.put(transBox, fields);
 		}
 
-		private void remTransactionRow(ArrayList<JComboBox> al, HashMap<JComboBox, JTextField[]> hm, JPanel pan, GridBagConstraints g){
+		private void remRow(ArrayList<JComboBox> al, HashMap<JComboBox, JTextField[]> hm, JPanel pan, GridBagConstraints g){
 			pan.remove(al.get(al.size()-1));
 			for (JTextField j : hm.get(al.get(al.size()-1))){
 				pan.remove(j);
@@ -1521,7 +1704,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			pan.repaint();
 		}
 
-		private String formatTransString(ArrayList<JComboBox> fieldBoxes, HashMap<JComboBox, JTextField[]> refs){
+		private String formatCompoundString(ArrayList<JComboBox> fieldBoxes, HashMap<JComboBox, JTextField[]> refs){
 			ArrayList<String> separateTypes = new ArrayList<String>();
 			String inTransStr = "";
 			for (JComboBox jc : fieldBoxes){
@@ -1567,12 +1750,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			reference.setUnitsText(units.getText());
 			reference.setEnabledState(enabled.getSelectedItem().toString());
 			//Transactions
-			reference.setInputTransactionString(this.formatTransString(inFieldBoxes, inFieldRefs));
-			reference.setOutputTransactionString(this.formatTransString(outFieldBoxes, outFieldRefs));
+			reference.setInputTransactionString(this.formatCompoundString(inFieldBoxes, inFieldRefs));
+			reference.setOutputTransactionString(this.formatCompoundString(outFieldBoxes, outFieldRefs));
 		}
 
 		public void actionPerformed(ActionEvent e){
-			//do stuff
 			String cmd = e.getActionCommand();
 			if (e.getSource() instanceof JButton){
 				if (cmd.equals("next")){
@@ -1707,6 +1889,1010 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							}
 						});
 					}
+				} else if (cmd.equals("translate")){
+					final JTextField[] refs = transFieldRefs.get(src);
+					String type = src.getSelectedItem().toString();
+					if (type.equals(translationOpts[0])){//Add16
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[1])){//AngleToNumber
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[2])){//Array
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[3])){//AvailabilityMask
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[4])){//BCDToInteger
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[5])){//BitShift
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[6])){//BoolMap
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[7])){//Calculation
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[8])){//CalculationTimed
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(true);
+								refs[4].setEnabled(true);
+							}
+						});
+					} else if (type.equals(translationOpts[9])){//CopyTimestamp
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[10])){//CronPulse
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[11])){//DailyIntegrator
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[12])){//DailyIntegratorPosOnly
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[13])){//DailyPulse
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[14])){//DailyWindow TODO: Needs wiki entry
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[15])){//Delta
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[16])){//DewPoint
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[17])){//EmailOnChange
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(true);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[18])){//EmailOnFallingEdge
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(true);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[19])){//EmailOnRisingEdge
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(true);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[20])){//EnumMap
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[21])){//EQ
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[22])){//Failover
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(true);
+								refs[4].setEnabled(true);
+							}
+						});
+					} else if (type.equals(translationOpts[23])){//HexString
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[24])){//HighTimer
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[25])){//LimitCheck
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[26])){//Listener
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[27])){//LowTimer
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[28])){//Mean
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[29])){//MonthlyPulse
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[30])){//None
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[31])){//NumberToAngle
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[32])){//NumberToBool
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[33])){//NumDecimals
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[34])){//NV
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[35])){//PeakDetect
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[36])){//Polar2X
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[37])){//Polar2Y
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[38])){//Preceding
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[39])){//PrecipitableWater
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[40])){//PreciptableWaterMMA TODO: Needs Wiki entry
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[41])){//Pulse
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[42])){//RelTimeToSeconds
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[43])){//ResettableIntegrator
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[44])){//ResettablePeakDetector TODO: Needs Wiki Entry
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[45])){//ResettablePulse
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[46])){//RetriggerablePulse
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[47])){//RoundToInt
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[48])){//RunCmd
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(true);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[49])){//Shorts2Double TODO: Needs wiki entry
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[50])){//Shorts2Float TODO: Needs wiki entry
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[51])){//SinceHighTimer
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[52])){//SpecificHumidity
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[53])){//Squelch
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[54])){//StopIfNoChange
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[55])){//StopIfNull
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[1].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[56])){//StringMap
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[57])){//StringReplace
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[58])){//StringToArray
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[59])){//StringToNumber
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[60])){//StringTrim
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[61])){//StuckValue
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[62])){//Substring
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[63])){//Synch
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[64])){//ThyconAlarm
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[65])){//TimedSubstitution
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[66])){//VapourPressure
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[67])){//Variance
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[68])){//XY2Angle
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(translationOpts[69])){//XY2Mag
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					}
 				}
 			}
 		}
@@ -1720,7 +2906,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							SwingUtilities.invokeLater(new Runnable(){
 								@Override
 								public void run(){
-									addTransactionRow(inFieldBoxes, inFieldRefs, inTransMainPanel, itgbc, "inTrans");
+									addRow(transactionOpts, inFieldBoxes, inFieldRefs, inTransMainPanel, itgbc, "inTrans");
 								}
 							});
 						}
@@ -1730,7 +2916,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							SwingUtilities.invokeLater(new Runnable(){
 								@Override
 								public void run(){
-									remTransactionRow(inFieldBoxes, inFieldRefs, inTransMainPanel, itgbc);
+									remRow(inFieldBoxes, inFieldRefs, inTransMainPanel, itgbc);
 								}
 							});
 						}
@@ -1742,7 +2928,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							SwingUtilities.invokeLater(new Runnable(){
 								@Override
 								public void run(){
-									addTransactionRow(outFieldBoxes, outFieldRefs, outTransMainPanel, otgbc, "outTrans");
+									addRow(transactionOpts, outFieldBoxes, outFieldRefs, outTransMainPanel, otgbc, "outTrans");
 								}
 							});
 						}
@@ -1752,11 +2938,33 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							SwingUtilities.invokeLater(new Runnable(){
 								@Override
 								public void run(){
-									remTransactionRow(outFieldBoxes, outFieldRefs, outTransMainPanel, otgbc);
+									remRow(outFieldBoxes, outFieldRefs, outTransMainPanel, otgbc);
 								}
 							});
 						}
 						outSpinnerVal = (Integer)outSpinner.getValue();
+					}
+				} else if (arg0.getSource().equals(transSpinner)){
+					if ((Integer)transSpinner.getValue() > transSpinnerVal){
+						for (int i = transSpinnerVal; i < (Integer)transSpinner.getValue(); i++){
+							SwingUtilities.invokeLater(new Runnable(){
+								@Override
+								public void run(){
+									addRow(translationOpts, transFieldBoxes, transFieldRefs, translateMainPanel, trgbc, "translate");
+								}
+							});
+						}
+						transSpinnerVal = (Integer)transSpinner.getValue();
+					} else if ((Integer)transSpinner.getValue() < transSpinnerVal){
+						for (int i = transSpinnerVal; i > (Integer)transSpinner.getValue(); i--){
+							SwingUtilities.invokeLater(new Runnable(){
+								@Override
+								public void run(){
+									remRow(transFieldBoxes, transFieldRefs, translateMainPanel, trgbc);
+								}
+							});
+						}
+						transSpinnerVal = (Integer)transSpinner.getValue();
 					}
 				}
 			}
@@ -1842,6 +3050,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 	// NESTED CLASS: MPEditorComponent ///////
 	public class MPEditorComponent{
+		
+		final String compoundRegexStr = "\\{{0,1}(([a-zA-Z0-9]+\\-(\\\"[a-zA-Z0-9]+\\\")*),{0,1})+\\}{0,1}||";
 
 		private JTextField newPointField = null;
 		private JLabel editPointLabel = null;
@@ -2008,7 +3218,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getInTransactions(){
 			String names = inputTransacts.getText();
-			Pattern pat = Pattern.compile("\\{{0,1}(([a-zA-Z0-9]+\\-(\\\"[a-zA-Z0-9]+\\\")*),{0,1})+\\}{0,1}||");
+			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
 			if (!mat.matches()) throw (new InvalidParameterException());
 			names = names.replace("{", "");
@@ -2026,7 +3236,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getOutTransactions(){
 			String names = outputTransacts.getText();
-			Pattern pat = Pattern.compile("\\{{0,1}(([a-zA-Z0-9]+\\-(\\\"[a-zA-Z0-9]+\\\")*),{0,1})+\\}{0,1}||");
+			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
 			if (!mat.matches()) throw (new InvalidParameterException());
 			names = names.replace("{", "");
