@@ -1071,7 +1071,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		private JPanel itsCardPanel;
 		private CardLayout cl;
 
-		final String[] itsCards = {"metadata", "input transactions", "output transactions", "translations", "update data", "alarm data"};
+		final String[] itsCards = {"metadata", "input transactions", "output transactions", "translations", "update data", "notifications", "alarm data"};
 		final String[] transactionOpts = {
 				"EPICS",
 				"EPICSMonitor",
@@ -1162,6 +1162,16 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				"OnIncrease",
 				"Timer"
 		};
+		String[] notifOpts = {
+				"EmailOnAlarm",
+				"EmailOnAlarmChange"
+		};
+		String[] alarmOpts = {
+				"Boolean",
+				"Range",
+				"StringMatch",
+				"ValueMatch"
+		};
 		int curr = 0;
 
 		//Nav Panel
@@ -1210,6 +1220,24 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		GridBagConstraints updgbc;
 		JTextField updIntFld;
 		JTextField archLongFld;
+		
+		//Notification Card
+		HashMap<JComboBox, JTextField[]> notifFieldRefs;
+		ArrayList<JComboBox> notifFieldBoxes;
+		JPanel notifMainPanel;
+		JSpinner notifSpinner;
+		int notifSpinnerVal = 0;
+		GridBagConstraints ntgbc;
+		
+		//Alarm Policies Card
+		HashMap<JComboBox, JTextField[]> almFieldRefs;
+		ArrayList<JComboBox> almFieldBoxes;
+		JPanel almMainPanel;
+		JSpinner almSpinner;
+		int almSpinnerVal = 0;
+		GridBagConstraints almgbc;
+		JComboBox almPriority;
+		JTextArea almGuidance;
 
 		public WizardFrame(MPEditorComponent m){
 			super();
@@ -1222,8 +1250,9 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			JPanel inTransCard = new JPanel(); //input transactions
 			JPanel outTransCard = new JPanel(); //output transactions
 			JPanel translateCard = new JPanel(); // translations
-			JPanel updateCard = new JPanel(); // update interval, achive policy, archive longevity
-			JPanel alarmCard = new JPanel(); //notifications, alarm criteria, alarm priority, guidance message
+			JPanel updateCard = new JPanel(); // update interval, archive policy, archive longevity
+			JPanel notifCard = new JPanel(); // notifications
+			JPanel alarmCard = new JPanel(); //alarm criteria, alarm priority, guidance message
 
 			this.addNavPanel(navPanel, itsPanel);
 			this.setupMetaDataPanel(metaDataCard);
@@ -1231,13 +1260,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			this.setupOutputTransactionPanel(outTransCard);
 			this.setupTranslationPanel(translateCard);
 			this.setupUpdateDataPanel(updateCard);
+			this.setupNotificationPanel(notifCard);
 
 			itsCardPanel.add(metaDataCard, itsCards[0]);
 			itsCardPanel.add(inTransCard, itsCards[1]);
 			itsCardPanel.add(outTransCard, itsCards[2]);
 			itsCardPanel.add(translateCard, itsCards[3]);
 			itsCardPanel.add(updateCard, itsCards[4]);
-			itsCardPanel.add(alarmCard, itsCards[5]);
+			itsCardPanel.add(notifCard, itsCards[5]);
+			itsCardPanel.add(alarmCard, itsCards[6]);
 
 			itsPanel.setLayout(new BorderLayout());
 			itsPanel.add(itsCardPanel, BorderLayout.CENTER);
@@ -1703,7 +1734,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 			JPanel counter =  new JPanel();
 			counter.setLayout(new BoxLayout(counter, BoxLayout.X_AXIS));
-			JLabel counterLabel = new JLabel("Number of Input Transactions");
+			JLabel counterLabel = new JLabel("Number of Archive Policies");
 			updSpinner = new JSpinner();
 			SpinnerNumberModel spinModel = new SpinnerNumberModel(0, 0, null, 1);
 			updSpinner.setModel(spinModel);
@@ -1725,22 +1756,115 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			mdc.add(scroller, BorderLayout.CENTER);
 
 			try {
-				final String[] updTrans = reference.getInTransactions();
-				int numTrans = updTrans.length;
+				final String[] archPols = reference.getInTransactions();
+				int numTrans = archPols.length;
 				updSpinner.setValue(numTrans);
 				SwingUtilities.invokeLater(new Runnable(){// ensure that this section is called after the boxes are created
 					public void run(){
-						populatePanel(updFieldBoxes, updFieldRefs, updTrans);
+						populatePanel(updFieldBoxes, updFieldRefs, archPols);
 					}
 				});
 			} catch (InvalidParameterException ipe){
 				System.err.println("Archive Policies could not be parsed.");
 			}
 		}
+		
+		private void setupNotificationPanel(JPanel mdc){
+			mdc.setLayout(new BorderLayout());
+			JPanel desc = new JPanel(new GridLayout(2,1));
+			JPanel content = new JPanel(new BorderLayout());
+			JScrollPane scroller = new JScrollPane();
+			notifMainPanel = new JPanel(new GridBagLayout());
+			notifFieldRefs = new HashMap<JComboBox, JTextField[]>();
+			notifFieldBoxes = new ArrayList<JComboBox>();
+			ntgbc = new GridBagConstraints();
+			ntgbc.fill = GridBagConstraints.HORIZONTAL;
+			ntgbc.anchor = GridBagConstraints.NORTH;
+			ntgbc.weightx = 0.5;
+			ntgbc.weighty = 0.5;
+			ntgbc.gridheight = 1;
+			ntgbc.gridwidth = 1;
+			ntgbc.gridx = 0;
+			ntgbc.gridy = 0;
+			ntgbc.insets = new Insets(5, 5, 0, 0);
+
+			JLabel title = new JLabel("Notifications");
+			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
+			title.setHorizontalAlignment(SwingConstants.CENTER);
+			title.setHorizontalTextPosition(SwingConstants.CENTER);
+			JTextArea description = new JTextArea(2,5);
+			DefaultCaret caret = (DefaultCaret)description.getCaret();
+			caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+			description.setText("Notifications that will trigger under the set conditions.");
+			description.setBackground(null);
+			description.setWrapStyleWord(true);
+			description.setLineWrap(true);
+			description.setEditable(false);
+			JLabel type = new JLabel("Type");
+			JLabel arg0 = new JLabel("Arg 1");;
+			JLabel arg1 = new JLabel("Arg 2");
+			JLabel arg2 = new JLabel("Arg 3");
+			JLabel arg3 = new JLabel("Arg 4");
+			JLabel arg4 = new JLabel("Arg 5");
+
+			type.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg0.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg1.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg2.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg3.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg4.setFont(new Font("Sans Serif", Font.BOLD, 14));
+
+			notifMainPanel.add(type, ntgbc);
+			ntgbc.gridx++;
+			notifMainPanel.add(arg0, ntgbc);
+			ntgbc.gridx++;
+			notifMainPanel.add(arg1, ntgbc);
+			ntgbc.gridx++;
+			notifMainPanel.add(arg2, ntgbc);
+			ntgbc.gridx++;
+			notifMainPanel.add(arg3, ntgbc);
+			ntgbc.gridx++;
+			notifMainPanel.add(arg4, ntgbc);
+
+			desc.add(title);
+			desc.add(description);
+
+			JPanel counter =  new JPanel();
+			counter.setLayout(new BoxLayout(counter, BoxLayout.X_AXIS));
+			JLabel counterLabel = new JLabel("Number of Notifications");
+			notifSpinner = new JSpinner();
+			SpinnerNumberModel spinModel = new SpinnerNumberModel(0, 0, null, 1);
+			notifSpinner.setModel(spinModel);
+			notifSpinner.addChangeListener(this);
+
+			counter.add(Box.createHorizontalGlue());
+			counter.add(counterLabel);
+			counter.add(notifSpinner);
+			counter.add(Box.createHorizontalGlue());
+			content.add(counter, BorderLayout.NORTH);
+			content.add(notifMainPanel, BorderLayout.CENTER);
+			scroller.setViewportView(content);
+
+			mdc.add(desc, BorderLayout.NORTH);
+			mdc.add(scroller, BorderLayout.CENTER);
+
+			try {
+				final String[] notifs = reference.getNotifications();
+				int numTrans = notifs.length;
+				notifSpinner.setValue(numTrans);
+				SwingUtilities.invokeLater(new Runnable(){// ensure that this section is called after the boxes are created
+					public void run(){
+						populatePanel(notifFieldBoxes, notifFieldRefs, notifs);
+					}
+				});
+			} catch (InvalidParameterException ipe){
+				System.err.println("Notifications could not be parsed.");
+			}
+		}
 
 		private void addRow(String[] options, ArrayList<JComboBox> al, HashMap<JComboBox, JTextField[]> hm, JPanel pan, GridBagConstraints g, String actionCommand){
-			JComboBox transBox = new JComboBox(options);
-			transBox.setEditable(false);
+			JComboBox optBox = new JComboBox(options);
+			optBox.setEditable(false);
 
 			JTextField arg0 = new JTextField(3);
 			JTextField arg1 = new JTextField(3);
@@ -1750,8 +1874,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 			JTextField[] fields = {arg0, arg1, arg2, arg3, arg4};
 
-			transBox.setSelectedIndex(0);
-			if (actionCommand.equals("archPol")){
+			optBox.setSelectedIndex(0);
+			if (actionCommand.equals("archPol") || actionCommand.equals("notification")){
 				arg0.setEnabled(false);
 			} else {
 				arg0.setEnabled(true);
@@ -1763,7 +1887,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 			g.gridx = 0;
 			g.gridy ++;
-			pan.add(transBox, g);
+			pan.add(optBox, g);
 			g.gridx++;
 			pan.add(arg0, g);
 			g.gridx++;
@@ -1778,10 +1902,10 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			pan.revalidate();
 			pan.repaint();
 
-			transBox.addActionListener(this);
-			transBox.setActionCommand(actionCommand);
-			al.add(transBox);
-			hm.put(transBox, fields);
+			optBox.addActionListener(this);
+			optBox.setActionCommand(actionCommand);
+			al.add(optBox);
+			hm.put(optBox, fields);
 		}
 
 		private void remRow(ArrayList<JComboBox> al, HashMap<JComboBox, JTextField[]> hm, JPanel pan, GridBagConstraints g){
@@ -1859,7 +1983,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 		}
 
-		private void populateFields(){//TODO
+		private void populateFields(){//TODO Update as required
 			//Metadata 
 			reference.setNameText(name.getText());
 			reference.setLongDescText(longDesc.getText());
@@ -1876,6 +2000,9 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			reference.setArchiveLongevity(archLongFld.getText());
 			reference.setUpdateInterval(updIntFld.getText());
 			reference.setArchivePolicyString(this.formatCompoundString(updFieldBoxes, updFieldRefs));
+			reference.setAlarmPriority(almPriority.getSelectedItem());
+			reference.setAlarmGuidance(almGuidance.getText());
+			reference.setAlarmCriteria(this.formatCompoundString(almFieldBoxes, almFieldRefs));
 		}
 
 		public void actionPerformed(ActionEvent e){
@@ -3034,6 +3161,40 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							refs[4].setText(null);
 						}
 					});
+				} else if (cmd.equals("notification")){
+					final JTextField[] refs = notifFieldRefs.get(src);
+					SwingUtilities.invokeLater(new Runnable(){
+						@Override
+						public void run(){
+							refs[0].setEnabled(false);
+							refs[0].setText(null);
+							refs[1].setEnabled(false);
+							refs[1].setText(null);
+							refs[2].setEnabled(false);
+							refs[2].setText(null);
+							refs[3].setEnabled(false);
+							refs[3].setText(null);
+							refs[4].setEnabled(false);
+							refs[4].setText(null);
+						}
+					});
+				} else if (cmd.equals("alarm")){
+					final JTextField[] refs = notifFieldRefs.get(src);
+					SwingUtilities.invokeLater(new Runnable(){
+						@Override
+						public void run(){
+							refs[0].setEnabled(false);
+							refs[0].setText(null);
+							refs[1].setEnabled(false);
+							refs[1].setText(null);
+							refs[2].setEnabled(false);
+							refs[2].setText(null);
+							refs[3].setEnabled(false);
+							refs[3].setText(null);
+							refs[4].setEnabled(false);
+							refs[4].setText(null);
+						}
+					});
 				}
 			} 
 		}
@@ -3129,6 +3290,50 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 						}
 						updSpinnerVal = (Integer)updSpinner.getValue();
 					}
+				} else if (arg0.getSource().equals(updSpinner)){
+					if ((Integer)notifSpinner.getValue() > notifSpinnerVal){
+						for (int i = notifSpinnerVal; i < (Integer)notifSpinner.getValue(); i++){
+							SwingUtilities.invokeLater(new Runnable(){
+								@Override
+								public void run(){
+									addRow(notifOpts, notifFieldBoxes, notifFieldRefs, notifMainPanel, ntgbc, "notification");
+								}
+							});
+						}
+						notifSpinnerVal = (Integer)notifSpinner.getValue();
+					} else if ((Integer)updSpinner.getValue() < updSpinnerVal){
+						for (int i = updSpinnerVal; i > (Integer)updSpinner.getValue(); i--){
+							SwingUtilities.invokeLater(new Runnable(){
+								@Override
+								public void run(){
+									remRow(notifFieldBoxes, notifFieldRefs, notifMainPanel, ntgbc);
+								}
+							});
+						}
+						notifSpinnerVal = (Integer)notifSpinner.getValue();
+					}
+				} else if (arg0.getSource().equals(almSpinner)){
+					if ((Integer)almSpinner.getValue() > almSpinnerVal){
+						for (int i = almSpinnerVal; i < (Integer)almSpinner.getValue(); i++){
+							SwingUtilities.invokeLater(new Runnable(){
+								@Override
+								public void run(){
+									addRow(alarmOpts, almFieldBoxes, almFieldRefs, almMainPanel, almgbc, "alarm");
+								}
+							});
+						}
+						almSpinnerVal = (Integer)almSpinner.getValue();
+					} else if ((Integer)almSpinner.getValue() < almSpinnerVal){
+						for (int i = almSpinnerVal; i > (Integer)almSpinner.getValue(); i--){
+							SwingUtilities.invokeLater(new Runnable(){
+								@Override
+								public void run(){
+									remRow(almFieldBoxes, almFieldRefs, almMainPanel, almgbc);
+								}
+							});
+						}
+						almSpinnerVal = (Integer)almSpinner.getValue();
+					}
 				}
 			}
 
@@ -3199,6 +3404,9 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 								m.setInputTransactionString(pd.getInputTransactionString());
 								m.setOutputTransactionString(pd.getOutputTransactionString());
 								m.setTranslationString(pd.getTranslationString());
+								m.setArchiveLongevity(String.valueOf(pd.getArchiveLongevity()));
+								m.setArchivePolicyString(pd.getArchivePolicyString());
+								m.setUpdateInterval(String.valueOf(pd.getPeriod()));								
 							}
 						}
 					}
@@ -3215,7 +3423,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 	// NESTED CLASS: MPEditorComponent ///////
 	public class MPEditorComponent{
 
-		final String compoundRegexStr = "\\{{0,1}(([a-zA-Z0-9]+\\-(\\\"[a-zA-Z0-9]+\\\")*),{0,1})+\\}{0,1}||";
+		final String compoundRegexStr = "\\{{0,1}(([a-zA-Z0-9]+\\-(\\\"[a-zA-Z0-9]+\\\")*),{0,1})+\\}{0,1}||\\-||";
 
 		private JTextField newPointField = null;
 		private JLabel editPointLabel = null;
@@ -3344,6 +3552,18 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			archiveLongevity.setText(text);
 		}
 
+		public void setAlarmCriteria(String string) {
+			alarmCriteria.setText(string);
+		}
+
+		public void setAlarmGuidance(String text) {
+			guidance.setText(text);
+		}
+
+		public void setAlarmPriority(Object selectedItem) {
+			priority.setSelectedItem(selectedItem);			
+		}
+		
 		public String[] getNames(){
 			String names = "";
 			if (newPoint){
