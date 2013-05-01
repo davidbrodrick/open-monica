@@ -11,6 +11,7 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Desktop;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -1220,7 +1221,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		GridBagConstraints updgbc;
 		JTextField updIntFld;
 		JTextField archLongFld;
-		
+
 		//Notification Card
 		HashMap<JComboBox, JTextField[]> notifFieldRefs;
 		ArrayList<JComboBox> notifFieldBoxes;
@@ -1228,7 +1229,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		JSpinner notifSpinner;
 		int notifSpinnerVal = 0;
 		GridBagConstraints ntgbc;
-		
+
 		//Alarm Policies Card
 		HashMap<JComboBox, JTextField[]> almFieldRefs;
 		ArrayList<JComboBox> almFieldBoxes;
@@ -1261,6 +1262,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			this.setupTranslationPanel(translateCard);
 			this.setupUpdateDataPanel(updateCard);
 			this.setupNotificationPanel(notifCard);
+			this.setupAlarmDetailsPanel(alarmCard);
 
 			itsCardPanel.add(metaDataCard, itsCards[0]);
 			itsCardPanel.add(inTransCard, itsCards[1]);
@@ -1442,6 +1444,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			JLabel counterLabel = new JLabel("Number of Input Transactions");
 			inSpinner = new JSpinner();
 			SpinnerNumberModel spinModel = new SpinnerNumberModel(0, 0, null, 1);
+			inSpinner.setMaximumSize(new Dimension(45, 25));
 			inSpinner.setModel(spinModel);
 			inSpinner.addChangeListener(this);
 
@@ -1536,6 +1539,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			JLabel counterLabel = new JLabel("Number of Output Transactions");
 			outSpinner = new JSpinner();
 			SpinnerNumberModel spinModel = new SpinnerNumberModel(0, 0, null, 1);
+			outSpinner.setMaximumSize(new Dimension(45, 25));
 			outSpinner.setModel(spinModel);
 			outSpinner.addChangeListener(this);
 
@@ -1629,6 +1633,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			JLabel counterLabel = new JLabel("Number of Translations");
 			transSpinner = new JSpinner();
 			SpinnerNumberModel spinModel = new SpinnerNumberModel(0, 0, null, 1);
+			transSpinner.setMaximumSize(new Dimension(45, 25));
 			transSpinner.setModel(spinModel);
 			transSpinner.addChangeListener(this);
 
@@ -1695,8 +1700,12 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 			JLabel updIntLb = new JLabel("Update Interval: ");
 			updIntFld = new JTextField(10);
+			AbstractDocument updIntFldDoc = (AbstractDocument) updIntFld.getDocument();
+			updIntFldDoc.setDocumentFilter(ndf);
 			JLabel archLongLb = new JLabel("Archive Longevity: ");
 			archLongFld = new JTextField(10);
+			AbstractDocument archLongFldDoc = (AbstractDocument) archLongFld.getDocument();
+			archLongFldDoc.setDocumentFilter(ndf);
 
 			updateDataMisc.add(updIntLb);
 			updateDataMisc.add(updIntFld);
@@ -1737,6 +1746,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			JLabel counterLabel = new JLabel("Number of Archive Policies");
 			updSpinner = new JSpinner();
 			SpinnerNumberModel spinModel = new SpinnerNumberModel(0, 0, null, 1);
+			updSpinner.setMaximumSize(new Dimension(45, 25));
 			updSpinner.setModel(spinModel);
 			updSpinner.addChangeListener(this);
 
@@ -1756,11 +1766,13 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			mdc.add(scroller, BorderLayout.CENTER);
 
 			try {
-				final String[] archPols = reference.getInTransactions();
-				int numTrans = archPols.length;
-				updSpinner.setValue(numTrans);
+				final String[] archPols = reference.getArchivePolicies();
+				int numPols = archPols.length;
+				updSpinner.setValue(numPols);
 				SwingUtilities.invokeLater(new Runnable(){// ensure that this section is called after the boxes are created
 					public void run(){
+						updIntFld.setText(reference.getPeriod());
+						archLongFld.setText(reference.getArchiveLongevity());
 						populatePanel(updFieldBoxes, updFieldRefs, archPols);
 					}
 				});
@@ -1768,7 +1780,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				System.err.println("Archive Policies could not be parsed.");
 			}
 		}
-		
+
 		private void setupNotificationPanel(JPanel mdc){
 			mdc.setLayout(new BorderLayout());
 			JPanel desc = new JPanel(new GridLayout(2,1));
@@ -1834,6 +1846,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			JLabel counterLabel = new JLabel("Number of Notifications");
 			notifSpinner = new JSpinner();
 			SpinnerNumberModel spinModel = new SpinnerNumberModel(0, 0, null, 1);
+			notifSpinner.setMaximumSize(new Dimension(45, 25));
 			notifSpinner.setModel(spinModel);
 			notifSpinner.addChangeListener(this);
 
@@ -1850,8 +1863,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 			try {
 				final String[] notifs = reference.getNotifications();
-				int numTrans = notifs.length;
-				notifSpinner.setValue(numTrans);
+				int numNotifs = notifs.length;
+				notifSpinner.setValue(numNotifs);
 				SwingUtilities.invokeLater(new Runnable(){// ensure that this section is called after the boxes are created
 					public void run(){
 						populatePanel(notifFieldBoxes, notifFieldRefs, notifs);
@@ -1859,6 +1872,121 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				});
 			} catch (InvalidParameterException ipe){
 				System.err.println("Notifications could not be parsed.");
+			}
+		}
+
+		private void setupAlarmDetailsPanel(JPanel mdc){
+			mdc.setLayout(new BorderLayout());
+			JPanel desc = new JPanel(new GridLayout(2,1));
+			JPanel content = new JPanel(new BorderLayout());
+			JScrollPane scroller = new JScrollPane();
+			JPanel alarmCriteriaPanel = new JPanel(new BorderLayout());
+			JScrollPane alarmCriteriaScroller = new JScrollPane();
+			JPanel updateDataMisc = new JPanel(new GridLayout(2,2));
+			almMainPanel = new JPanel(new GridBagLayout());
+			almFieldRefs = new HashMap<JComboBox, JTextField[]>();
+			almFieldBoxes = new ArrayList<JComboBox>();
+			almgbc = new GridBagConstraints();
+			almgbc.fill = GridBagConstraints.HORIZONTAL;
+			almgbc.anchor = GridBagConstraints.NORTH;
+			almgbc.weightx = 0.5;
+			almgbc.weighty = 0.5;
+			almgbc.gridheight = 1;
+			almgbc.gridwidth = 1;
+			almgbc.gridx = 0;
+			almgbc.gridy = 0;
+			almgbc.insets = new Insets(5, 5, 0, 0);
+
+			JLabel title = new JLabel("Alarm Details");
+			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
+			title.setHorizontalAlignment(SwingConstants.CENTER);
+			title.setHorizontalTextPosition(SwingConstants.CENTER);
+			JTextArea description = new JTextArea(2,5);
+			DefaultCaret caret = (DefaultCaret)description.getCaret();
+			caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+			description.setText("These policies determine when alarms should be triggered for this point");
+			description.setBackground(null);
+			description.setWrapStyleWord(true);
+			description.setLineWrap(true);
+			description.setEditable(false);
+
+			JLabel almPriorityLb = new JLabel("Alarm Priority: ");
+			almPriority = new JComboBox(priorities);
+			JLabel almGuidanceLb = new JLabel("Alarm Guidance: ");
+			almGuidance = new JTextArea(2,5);
+			almGuidance.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+			updateDataMisc.add(almPriorityLb);
+			updateDataMisc.add(almPriority);
+			updateDataMisc.add(almGuidanceLb);
+			updateDataMisc.add(almGuidance);
+
+			JLabel type = new JLabel("Type");
+			JLabel arg0 = new JLabel("Arg 1");;
+			JLabel arg1 = new JLabel("Arg 2");
+			JLabel arg2 = new JLabel("Arg 3");
+			JLabel arg3 = new JLabel("Arg 4");
+			JLabel arg4 = new JLabel("Arg 5");
+
+			type.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg0.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg1.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg2.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg3.setFont(new Font("Sans Serif", Font.BOLD, 14));
+			arg4.setFont(new Font("Sans Serif", Font.BOLD, 14));
+
+			almMainPanel.add(type, almgbc);
+			almgbc.gridx++;
+			almMainPanel.add(arg0, almgbc);
+			almgbc.gridx++;
+			almMainPanel.add(arg1, almgbc);
+			almgbc.gridx++;
+			almMainPanel.add(arg2, almgbc);
+			almgbc.gridx++;
+			almMainPanel.add(arg3, almgbc);
+			almgbc.gridx++;
+			almMainPanel.add(arg4, almgbc);
+
+			desc.add(title);
+			desc.add(description);
+
+			JPanel counter =  new JPanel();
+			counter.setLayout(new BoxLayout(counter, BoxLayout.X_AXIS));
+			JLabel counterLabel = new JLabel("Number of Alarm Checks");
+			almSpinner = new JSpinner();
+			SpinnerNumberModel spinModel = new SpinnerNumberModel(0, 0, null, 1);
+			almSpinner.setMaximumSize(new Dimension(45, 25));
+			almSpinner.setModel(spinModel);
+			almSpinner.addChangeListener(this);
+
+			counter.add(Box.createHorizontalGlue());
+			counter.add(counterLabel);
+			counter.add(almSpinner);
+			counter.add(Box.createHorizontalGlue());
+			alarmCriteriaPanel.add(counter, BorderLayout.NORTH);
+			alarmCriteriaPanel.add(almMainPanel, BorderLayout.CENTER);
+			alarmCriteriaScroller.setViewportView(alarmCriteriaPanel);
+
+			content.add(updateDataMisc, BorderLayout.NORTH);
+			content.add(alarmCriteriaScroller, BorderLayout.CENTER);
+			scroller.setViewportView(content);
+
+			mdc.add(desc, BorderLayout.NORTH);
+			mdc.add(scroller, BorderLayout.CENTER);
+
+			try {
+				final String[] alarms = reference.getAlarmCriteria();
+				int numTrans = alarms.length;
+				almSpinner.setValue(numTrans);
+				SwingUtilities.invokeLater(new Runnable(){// ensure that this section is called after the boxes are created
+					public void run(){
+						almPriority.setSelectedItem(reference.getPriority());
+						almGuidance.setText(reference.getGuidance());
+						populatePanel(almFieldBoxes, almFieldRefs, alarms);
+					}
+				});
+			} catch (InvalidParameterException ipe){
+				System.err.println("Alarm Details could not be parsed.");
 			}
 		}
 
@@ -1877,13 +2005,35 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			optBox.setSelectedIndex(0);
 			if (actionCommand.equals("archPol") || actionCommand.equals("notification")){
 				arg0.setEnabled(false);
+				arg0.setText(null);
+				arg1.setEnabled(false);
+				arg1.setText(null);
+				arg2.setEnabled(false);
+				arg2.setText(null);
+				arg3.setEnabled(false);
+				arg3.setText(null);
+				arg4.setEnabled(false);
+				arg4.setText(null);
+			} else if (actionCommand.equals("alarm")){
+				arg0.setEnabled(true);
+				arg1.setEnabled(true);
+				arg2.setEnabled(false);
+				arg2.setText(null);
+				arg3.setEnabled(false);
+				arg3.setText(null);
+				arg4.setEnabled(false);
+				arg4.setText(null);
 			} else {
 				arg0.setEnabled(true);
+				arg1.setEnabled(false);
+				arg1.setText(null);
+				arg2.setEnabled(false);
+				arg2.setText(null);
+				arg3.setEnabled(false);
+				arg3.setText(null);
+				arg4.setEnabled(false);
+				arg4.setText(null);
 			}
-			arg1.setEnabled(false);
-			arg2.setEnabled(false);
-			arg3.setEnabled(false);
-			arg4.setEnabled(false);
 
 			g.gridx = 0;
 			g.gridy ++;
@@ -2000,6 +2150,9 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			reference.setArchiveLongevity(archLongFld.getText());
 			reference.setUpdateInterval(updIntFld.getText());
 			reference.setArchivePolicyString(this.formatCompoundString(updFieldBoxes, updFieldRefs));
+			//Notifications
+			reference.setNotificationString(this.formatCompoundString(notifFieldBoxes, notifFieldRefs));
+			//Alarms
 			reference.setAlarmPriority(almPriority.getSelectedItem());
 			reference.setAlarmGuidance(almGuidance.getText());
 			reference.setAlarmCriteria(this.formatCompoundString(almFieldBoxes, almFieldRefs));
@@ -3146,21 +3299,117 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 					}
 				} else if (cmd.equals("archPol")){
 					final JTextField[] refs = updFieldRefs.get(src);
-					SwingUtilities.invokeLater(new Runnable(){
-						@Override
-						public void run(){
-							refs[0].setEnabled(false);
-							refs[0].setText(null);
-							refs[1].setEnabled(false);
-							refs[1].setText(null);
-							refs[2].setEnabled(false);
-							refs[2].setText(null);
-							refs[3].setEnabled(false);
-							refs[3].setText(null);
-							refs[4].setEnabled(false);
-							refs[4].setText(null);
-						}
-					});
+					String type = src.getSelectedItem().toString();
+					if (type.equals(archPolOpts[0])){//Alarm
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(archPolOpts[1])){//All
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(archPolOpts[2])){//Change
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(archPolOpts[3])){//Counter
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(archPolOpts[4])){//OnDecrease
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(archPolOpts[5])){//OnIncrease
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(false);
+								refs[0].setText(null);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(archPolOpts[6])){//Timer
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(false);
+								refs[1].setText(null);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					}
 				} else if (cmd.equals("notification")){
 					final JTextField[] refs = notifFieldRefs.get(src);
 					SwingUtilities.invokeLater(new Runnable(){
@@ -3179,22 +3428,60 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 						}
 					});
 				} else if (cmd.equals("alarm")){
-					final JTextField[] refs = notifFieldRefs.get(src);
-					SwingUtilities.invokeLater(new Runnable(){
-						@Override
-						public void run(){
-							refs[0].setEnabled(false);
-							refs[0].setText(null);
-							refs[1].setEnabled(false);
-							refs[1].setText(null);
-							refs[2].setEnabled(false);
-							refs[2].setText(null);
-							refs[3].setEnabled(false);
-							refs[3].setText(null);
-							refs[4].setEnabled(false);
-							refs[4].setText(null);
-						}
-					});
+					final JTextField[] refs = almFieldRefs.get(src);
+					String type = src.getSelectedItem().toString();
+					if (type.equals(alarmOpts[0])){//Boolean
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(false);
+								refs[2].setText(null);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(alarmOpts[1])){//Range
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					} else if (type.equals(alarmOpts[2])){//StringMatch
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(true);
+								refs[4].setEnabled(true);
+							}
+						});
+					} else if (type.equals(alarmOpts[3])){//ValueMatch
+						SwingUtilities.invokeLater(new Runnable(){
+							@Override
+							public void run(){
+								refs[0].setEnabled(true);
+								refs[1].setEnabled(true);
+								refs[2].setEnabled(true);
+								refs[3].setEnabled(false);
+								refs[3].setText(null);
+								refs[4].setEnabled(false);
+								refs[4].setText(null);
+							}
+						});
+					}
 				}
 			} 
 		}
@@ -3290,7 +3577,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 						}
 						updSpinnerVal = (Integer)updSpinner.getValue();
 					}
-				} else if (arg0.getSource().equals(updSpinner)){
+				} else if (arg0.getSource().equals(notifSpinner)){
 					if ((Integer)notifSpinner.getValue() > notifSpinnerVal){
 						for (int i = notifSpinnerVal; i < (Integer)notifSpinner.getValue(); i++){
 							SwingUtilities.invokeLater(new Runnable(){
@@ -3301,8 +3588,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							});
 						}
 						notifSpinnerVal = (Integer)notifSpinner.getValue();
-					} else if ((Integer)updSpinner.getValue() < updSpinnerVal){
-						for (int i = updSpinnerVal; i > (Integer)updSpinner.getValue(); i--){
+					} else if ((Integer)notifSpinner.getValue() < notifSpinnerVal){
+						for (int i = notifSpinnerVal; i > (Integer)notifSpinner.getValue(); i--){
 							SwingUtilities.invokeLater(new Runnable(){
 								@Override
 								public void run(){
@@ -3406,7 +3693,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 								m.setTranslationString(pd.getTranslationString());
 								m.setArchiveLongevity(String.valueOf(pd.getArchiveLongevity()));
 								m.setArchivePolicyString(pd.getArchivePolicyString());
-								m.setUpdateInterval(String.valueOf(pd.getPeriod()));								
+								m.setUpdateInterval(String.valueOf(pd.getPeriod()));	
+								m.setNotificationString(pd.getNotificationString());
+								m.setAlarmCriteria(pd.getAlarmCheckString());
+								m.setAlarmGuidance(pd.getGuidance());
+								try {
+									m.setAlarmPriority(priorities[pd.getPriority()]);
+								} catch (IndexOutOfBoundsException e){
+									m.setAlarmPriority(priorities[0]);
+								}
 							}
 						}
 					}
@@ -3563,7 +3858,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		public void setAlarmPriority(Object selectedItem) {
 			priority.setSelectedItem(selectedItem);			
 		}
-		
+
+		public void setNotificationString(String string) {
+			notifications.setText(string);
+		}
+
 		public String[] getNames(){
 			String names = "";
 			if (newPoint){
@@ -3619,6 +3918,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getInTransactions(){
 			String names = inputTransacts.getText();
+			if (names.equals("-")) return new String[]{"-"};
 			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
 			if (!mat.matches()) throw (new InvalidParameterException());
@@ -3637,6 +3937,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getOutTransactions(){
 			String names = outputTransacts.getText();
+			if (names.equals("-")) return new String[]{"-"};
 			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
 			if (!mat.matches()) throw (new InvalidParameterException());
@@ -3655,6 +3956,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getTranslations(){
 			String names = translations.getText();
+			if (names.equals("-")) return new String[]{"-"};
 			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
 			if (!mat.matches()) throw (new InvalidParameterException());
@@ -3673,6 +3975,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getAlarmCriteria(){
 			String names = alarmCriteria.getText();	
+			if (names.equals("-")) return new String[]{"-"};
 			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
 			if (!mat.matches()) throw (new InvalidParameterException());
@@ -3687,7 +3990,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 
 		public String[] getArchivePolicies(){
-			String names = archivePolicy.getText();		
+			String names = archivePolicy.getText();
+			if (names.equals("-")) return new String[]{"-"};
 			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
 			if (!mat.matches()) throw (new InvalidParameterException());
@@ -3703,6 +4007,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getNotifications(){
 			String names = notifications.getText();	
+			if (names.equals("-")) return new String[]{"-"};
 			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
 			if (!mat.matches()) throw (new InvalidParameterException());
@@ -3755,6 +4060,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			if (updateInterval.getText().equals(""))updateInterval.setText("-");
 			if (archiveLongevity.getText().equals(""))archiveLongevity.setText("-");
 			if (notifications.getText().equals(""))notifications.setText("-");
+			if (guidance.getText().equals(""))guidance.setText("-");
 
 			return res;
 		}
