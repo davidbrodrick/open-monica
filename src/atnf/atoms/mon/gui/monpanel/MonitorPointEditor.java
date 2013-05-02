@@ -784,6 +784,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 	public void addEditorPanel(){
 		JButton wiz = new JButton("Wizard");
 		wiz.addActionListener(this);
+		JButton writer = new JButton("Write");
+		writer.addActionListener(this);
 		JTextField npf = new JTextField(10);
 		JTextField ld = new JTextField(7);
 		JTextField sd = new JTextField(5);
@@ -845,6 +847,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			itsMainPanel.add(p, gbc);
 			gbc.gridx ++;
 			itsMainPanel.add(g, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(writer, gbc);
 		} else  if (layout.equals(layouts[1])){
 			gbc.gridy = 1;
 			itsMainPanel.add(npf, gbc);
@@ -878,13 +882,19 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			itsMainPanel.add(p, gbc);
 			gbc.gridy ++;
 			itsMainPanel.add(g, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(wiz, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(writer, gbc);
 		}
-		components.add(new MPEditorComponent(npf, ld, sd, u, s, es, it, ot, t, ac, ap, ui, al, n, p, g, wiz));
+		components.add(new MPEditorComponent(npf, ld, sd, u, s, es, it, ot, t, ac, ap, ui, al, n, p, g, wiz, writer));
 	}
 
 	public void addEditorPanel(String point){
 		JButton wiz = new JButton("Wizard");
 		wiz.addActionListener(this);
+		JButton writer = new JButton("Write");
+		writer.addActionListener(this);
 		JLabel l = new JLabel(point);
 		JTextField ld = new JTextField(5);
 		JTextField sd = new JTextField(10);
@@ -946,6 +956,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			itsMainPanel.add(p, gbc);
 			gbc.gridx ++;
 			itsMainPanel.add(g, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(writer, gbc);
 		} else if (layout.equals(layouts[1])){
 			gbc.gridy = 1;
 			itsMainPanel.add(l, gbc);
@@ -979,8 +991,12 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			itsMainPanel.add(p, gbc);
 			gbc.gridy ++;
 			itsMainPanel.add(g, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(wiz, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(writer, gbc);
 		}
-		components.add(new MPEditorComponent(l, ld, sd, u, s, es, it, ot, t, ac, ap, ui, al, n, p, g, wiz));
+		components.add(new MPEditorComponent(l, ld, sd, u, s, es, it, ot, t, ac, ap, ui, al, n, p, g, wiz, writer));
 	}
 
 	@Override
@@ -1026,23 +1042,27 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 					username = res[0];
 					password = res[1];
 
+					if (password.isEmpty()) return; //user hit cancel
+
 					boolean valid = true;
 					for (MPEditorComponent m : components){
 						boolean v = m.validate();
 						if (!v) valid = v;
 					}
 					if (valid && noDupes()){
-						new DataSender("commit").start();
+						new DataSender("commitAll").start();
 					} else {
 						JOptionPane.showMessageDialog(this, "Writing point failed. Please ensure that all data points are uniquely named and filled in correctly.", "Data Validation Error", JOptionPane.ERROR_MESSAGE);
 						return;
 					}
 				}
 			} else {
-				//wizard button instance
+				//wizard or writer button instance
 				for (MPEditorComponent m : this.components){
 					if (source.equals(m.getWizBtn())){
 						this.showWizard(m);
+					} else if (source.equals(m.getWriterBtn())){
+						new DataSender("commit", m);
 					}
 				}
 			}
@@ -1178,6 +1198,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		//Nav Panel
 		JButton back = new JButton("<< Back <<");
 		JButton next = new JButton(">> Next >>");
+		JButton cancel = new JButton("Cancel");
 		JButton finish = new JButton("Finish");
 
 		//Metadata card
@@ -1275,6 +1296,10 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			itsPanel.setLayout(new BorderLayout());
 			itsPanel.add(itsCardPanel, BorderLayout.CENTER);
 			itsPanel.add(navPanel, BorderLayout.SOUTH);
+			
+			this.setMinimumSize(new Dimension(400, 260));
+			this.setPreferredSize(new Dimension(600, 400));
+			this.setLocationRelativeTo(MonitorPointEditor.this);
 			this.setTitle("Point Setup Wizard");
 			this.add(itsPanel);
 			this.pack();
@@ -1287,6 +1312,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			back.setEnabled(false);
 			next.setActionCommand("next");
 			next.addActionListener(this);
+			cancel.setActionCommand("cancel");
+			cancel.addActionListener(this);
 			finish.setActionCommand("finish");
 			finish.addActionListener(this);
 
@@ -1299,6 +1326,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			nav.add(back, gbc);
 			gbc.gridx ++;
 			nav.add(next, gbc);
+			gbc.gridx ++;
+			nav.add(cancel, gbc);
 			gbc.gridx ++;
 			nav.add(finish, gbc);
 			gbc.gridx ++;
@@ -1666,7 +1695,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			mdc.setLayout(new BorderLayout());
 			JPanel desc = new JPanel(new GridLayout(2,1));
 			JPanel content = new JPanel(new BorderLayout());
-			JScrollPane scroller = new JScrollPane();
 			JPanel archivePolicyPanel = new JPanel(new BorderLayout());
 			JScrollPane archivePolicyScroller = new JScrollPane();
 			JPanel updateDataMisc = new JPanel(new GridLayout(2,2));
@@ -1760,10 +1788,9 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 			content.add(updateDataMisc, BorderLayout.NORTH);
 			content.add(archivePolicyScroller, BorderLayout.CENTER);
-			scroller.setViewportView(content);
 
 			mdc.add(desc, BorderLayout.NORTH);
-			mdc.add(scroller, BorderLayout.CENTER);
+			mdc.add(content, BorderLayout.CENTER);
 
 			try {
 				final String[] archPols = reference.getArchivePolicies();
@@ -1771,8 +1798,16 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				updSpinner.setValue(numPols);
 				SwingUtilities.invokeLater(new Runnable(){// ensure that this section is called after the boxes are created
 					public void run(){
-						updIntFld.setText(reference.getPeriod());
-						archLongFld.setText(reference.getArchiveLongevity());
+						if (reference.getPeriod().isEmpty()){
+							updIntFld.setText("-");
+						} else {
+							updIntFld.setText(reference.getPeriod());
+						}
+						if (reference.getArchiveLongevity().isEmpty()){
+							archLongFld.setText("-");
+						} else {
+							archLongFld.setText(reference.getArchiveLongevity());
+						}
 						populatePanel(updFieldBoxes, updFieldRefs, archPols);
 					}
 				});
@@ -1879,7 +1914,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			mdc.setLayout(new BorderLayout());
 			JPanel desc = new JPanel(new GridLayout(2,1));
 			JPanel content = new JPanel(new BorderLayout());
-			JScrollPane scroller = new JScrollPane();
 			JPanel alarmCriteriaPanel = new JPanel(new BorderLayout());
 			JScrollPane alarmCriteriaScroller = new JScrollPane();
 			JPanel updateDataMisc = new JPanel(new GridLayout(2,2));
@@ -1969,10 +2003,9 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 			content.add(updateDataMisc, BorderLayout.NORTH);
 			content.add(alarmCriteriaScroller, BorderLayout.CENTER);
-			scroller.setViewportView(content);
 
 			mdc.add(desc, BorderLayout.NORTH);
-			mdc.add(scroller, BorderLayout.CENTER);
+			mdc.add(content, BorderLayout.CENTER);
 
 			try {
 				final String[] alarms = reference.getAlarmCriteria();
@@ -1981,7 +2014,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				SwingUtilities.invokeLater(new Runnable(){// ensure that this section is called after the boxes are created
 					public void run(){
 						almPriority.setSelectedItem(reference.getPriority());
-						almGuidance.setText(reference.getGuidance());
+						if (reference.getGuidance().isEmpty()){
+							almGuidance.setText("-");
+						} else {
+							almGuidance.setText(reference.getGuidance());
+						}
 						populatePanel(almFieldBoxes, almFieldRefs, alarms);
 					}
 				});
@@ -2106,6 +2143,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				compoundString += "}";
 			} else if (size == 1){
 				compoundString = separateTypes.get(0);
+			} else {
+				compoundString = "-";
 			}
 			return compoundString;
 		}
@@ -2173,6 +2212,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 						back.setEnabled(false);
 					}
 					next.setEnabled(true);
+				} else if (cmd.equals("cancel")){
+					this.dispose();
 				} else if (cmd.equals("finish")){
 					this.populateFields();
 					this.dispose();
@@ -3635,6 +3676,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 	public class DataSender extends Thread{
 
 		String purpose;
+		MPEditorComponent reference;
 
 		/**
 		 * Constructs a new DataSender thread
@@ -3644,9 +3686,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			purpose = p;
 		}
 
+		public DataSender(String p, MPEditorComponent ref){
+			super();
+			purpose = p;
+			reference = ref;
+		}
+
 		@Override
 		public void run(){
-			if (purpose.equals("commit")){
+			if (purpose.equals("commitAll")){
 				try{
 					MoniCAClient mc = MonClientUtil.getServer();
 					boolean allfine = true;
@@ -3668,6 +3716,23 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 					password = "";
 					JOptionPane.showMessageDialog(MonitorPointEditor.this, "Writing points failed. Please ensure your login details are correct and try writing again.", "Authentication Error", JOptionPane.ERROR_MESSAGE);
 				}
+			} else if (purpose.equals("commit")){
+				try{
+					MoniCAClient mc = MonClientUtil.getServer();
+					boolean succ = false;
+					if (mc != null){
+						PointDescription pd = PointDescription.factory(reference.getNames(), reference.getLongDesc(), reference.getShortDesc(), reference.getUnits(), reference.getSource(), reference.getInTransactions(), reference.getOutTransactions(), reference.getTranslations(), reference.getAlarmCriteria(), reference.getArchivePolicies(), reference.getNotifications(), reference.getPeriod(), reference.getArchiveLongevity(), reference.getGuidance(), reference.getPriority(), reference.getEnabled());
+						succ = mc.addPoint(pd, username, password);
+					}
+					if (!succ){
+						password = "";
+						JOptionPane.showMessageDialog(MonitorPointEditor.this, "Writing point failed. Please ensure your login details are correct and try writing again.", "Authentication Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+				} catch (Exception e){
+					password = "";
+					JOptionPane.showMessageDialog(MonitorPointEditor.this, "Writing point failed. Please ensure your login details are correct and try writing again.", "Authentication Error", JOptionPane.ERROR_MESSAGE);
+				}
 			} else if (purpose.equals("update")){
 				try {
 					MoniCAClient mc = MonClientUtil.getServer();
@@ -3682,25 +3747,30 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 						if (pd == null) continue;
 						for (MPEditorComponent m : components){//TODO fill in the rest as I go along
 							if (!m.newPoint && m.getNames()[0].equals(pd.getFullName())){
-								m.setNameText(pd.getName());
-								m.setLongDescText(pd.getLongDesc());
-								m.setShortDescText(pd.getShortDesc());
-								m.setUnitsText(pd.getUnits());
-								m.setSourceText(pd.getSource());
-								m.setEnabledState(Boolean.toString(pd.getEnabled()));
-								m.setInputTransactionString(pd.getInputTransactionString());
-								m.setOutputTransactionString(pd.getOutputTransactionString());
-								m.setTranslationString(pd.getTranslationString());
-								m.setArchiveLongevity(String.valueOf(pd.getArchiveLongevity()));
-								m.setArchivePolicyString(pd.getArchivePolicyString());
-								m.setUpdateInterval(String.valueOf(pd.getPeriod()));	
-								m.setNotificationString(pd.getNotificationString());
-								m.setAlarmCriteria(pd.getAlarmCheckString());
-								m.setAlarmGuidance(pd.getGuidance());
 								try {
-									m.setAlarmPriority(priorities[pd.getPriority()]);
-								} catch (IndexOutOfBoundsException e){
-									m.setAlarmPriority(priorities[0]);
+									m.setNameText(pd.getName());
+									m.setLongDescText(pd.getLongDesc());
+									m.setShortDescText(pd.getShortDesc());
+									m.setUnitsText(pd.getUnits());
+									m.setSourceText(pd.getSource());
+									m.setEnabledState(Boolean.toString(pd.getEnabled()));
+									m.setInputTransactionString(pd.getInputTransactionString());
+									m.setOutputTransactionString(pd.getOutputTransactionString());
+									m.setTranslationString(pd.getTranslationString());
+									m.setArchiveLongevity(String.valueOf(pd.getArchiveLongevity()));
+									m.setArchivePolicyString(pd.getArchivePolicyString());
+									m.setUpdateInterval(String.valueOf(pd.getPeriod()));	
+									m.setNotificationString(pd.getNotificationString());
+									m.setAlarmCriteria(pd.getAlarmCheckString());
+									m.setAlarmGuidance(pd.getGuidance());
+									try {
+										m.setAlarmPriority(priorities[pd.getPriority()]);
+									} catch (IndexOutOfBoundsException e){
+										m.setAlarmPriority(priorities[0]);
+									}
+								} catch (NullPointerException npe){
+									System.err.println("NullPointerException when populating"
+											+ "fields for point " + m.getSource() + "." + m.getNames()[0]);
 								}
 							}
 						}
@@ -3718,7 +3788,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 	// NESTED CLASS: MPEditorComponent ///////
 	public class MPEditorComponent{
 
-		final String compoundRegexStr = "\\{{0,1}(([a-zA-Z0-9]+\\-(\\\"[a-zA-Z0-9]+\\\")*),{0,1})+\\}{0,1}||\\-||";
+		final String compoundRegexStr = "\\{{0,1}(([a-zA-Z0-9]+\\-(\\\"[\\S]+\\\")*),{0,1})+\\}{0,1}||\\-||";
 
 		private JTextField newPointField = null;
 		private JLabel editPointLabel = null;
@@ -3738,6 +3808,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		private JComboBox priority = null;
 		private JTextField guidance = null;
 		private JButton wizardBtn = null;
+		private JButton writerBtn = null;
 
 		private StringTokenizer st;
 		private boolean newPoint;
@@ -3745,7 +3816,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		public MPEditorComponent(JTextField npf, JTextField ld, JTextField sd, JTextField u, 
 				JTextField s, JComboBox es, JTextField it, JTextField ot, JTextField t,
 				JTextField ac, JTextField ap, JTextField ui, JTextField al, JTextField n,
-				JComboBox p, JTextField g, JButton wiz){
+				JComboBox p, JTextField g, JButton wiz, JButton writer){
 			newPointField = npf;
 			longDesc = ld;
 			shortDesc = sd;
@@ -3763,13 +3834,14 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			priority = p;
 			guidance = g;	
 			wizardBtn = wiz;
+			writerBtn = writer;
 			newPoint = true;
 		}
 
 		public MPEditorComponent(JLabel epl, JTextField ld, JTextField sd, JTextField u, 
 				JTextField s, JComboBox es, JTextField it, JTextField ot, JTextField t,
 				JTextField ac, JTextField ap, JTextField ui, JTextField al, JTextField n,
-				JComboBox p, JTextField g, JButton wiz){
+				JComboBox p, JTextField g, JButton wiz, JButton writer){
 			editPointLabel = epl;
 			longDesc = ld;
 			shortDesc = sd;
@@ -3787,6 +3859,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			priority = p;
 			guidance = g;
 			wizardBtn = wiz;
+			writerBtn = writer;
 			newPoint = false;
 		}
 
@@ -3918,10 +3991,13 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getInTransactions(){
 			String names = inputTransacts.getText();
-			if (names.equals("-")) return new String[]{"-"};
+			if (names.equals("-")) return new String[0];
 			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
-			if (!mat.matches()) throw (new InvalidParameterException());
+			if (!mat.matches()){
+				System.err.println("Pattern didn't match");
+				throw (new InvalidParameterException());
+			}
 			names = names.replace("{", "");
 			names = names.replace("}", "");
 			names = names.trim();
@@ -3937,7 +4013,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getOutTransactions(){
 			String names = outputTransacts.getText();
-			if (names.equals("-")) return new String[]{"-"};
+			if (names.equals("-")) return new String[0];
 			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
 			if (!mat.matches()) throw (new InvalidParameterException());
@@ -3956,7 +4032,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getTranslations(){
 			String names = translations.getText();
-			if (names.equals("-")) return new String[]{"-"};
+			if (names.equals("-")) return new String[0];
 			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
 			if (!mat.matches()) throw (new InvalidParameterException());
@@ -3975,7 +4051,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getAlarmCriteria(){
 			String names = alarmCriteria.getText();	
-			if (names.equals("-")) return new String[]{"-"};
+			if (names.equals("-")) return new String[0];
 			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
 			if (!mat.matches()) throw (new InvalidParameterException());
@@ -3991,7 +4067,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getArchivePolicies(){
 			String names = archivePolicy.getText();
-			if (names.equals("-")) return new String[]{"-"};
+			if (names.equals("-")) return new String[0];
 			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
 			if (!mat.matches()) throw (new InvalidParameterException());
@@ -4007,7 +4083,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getNotifications(){
 			String names = notifications.getText();	
-			if (names.equals("-")) return new String[]{"-"};
+			if (names.equals("-")) return new String[0];
 			Pattern pat = Pattern.compile(compoundRegexStr);
 			Matcher mat = pat.matcher(names);
 			if (!mat.matches()) throw (new InvalidParameterException());
@@ -4039,6 +4115,10 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public JButton getWizBtn(){
 			return wizardBtn;
+		}
+
+		public JButton getWriterBtn(){
+			return writerBtn;
 		}
 
 		/**
@@ -4117,7 +4197,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 	// NESTED CLASS: LimitFieldDocumentFilter ///////
 	/**
-	 * DocumentFilter that only allows the insertion of integers into the Document
+	 * DocumentFilter that only allows the insertion of numbers, floats or a single "-" into the Document
 	 */
 	public class NumDocumentFilter extends DocumentFilter{
 
@@ -4130,7 +4210,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		@Override
 		public void insertString(FilterBypass fb, int offset, String text, AttributeSet attr) throws BadLocationException {
-			Pattern pattern = Pattern.compile("[0-9]+");
+			Pattern pattern = Pattern.compile("\\-{0,1}[0-9]*\\.{0,1}[0-9]*");
 			Matcher matcher = pattern.matcher(text);
 			if (matcher.matches()){
 				super.insertString(fb, offset, text, attr);
@@ -4139,7 +4219,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		@Override
 		public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
-			Pattern pattern = Pattern.compile("[0-9]+");
+			Pattern pattern = Pattern.compile("\\-{0,1}[0-9]*\\.{0,1}[0-9]*");
 			Matcher matcher = pattern.matcher(text);
 			if (matcher.matches()){
 				super.replace(fb, offset, length, text, attrs);
