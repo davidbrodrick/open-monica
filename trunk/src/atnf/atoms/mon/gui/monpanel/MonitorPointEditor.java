@@ -86,7 +86,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		MonPanel.registerMonPanel("Monitor Point Editor", MonitorPointEditor.class);
 	}
 
-	// //// NESTED CLASS: ControlSetupPanel ///////
+	// //// NESTED CLASS: MonitorPointEditorSetupPanel ///////
 	protected class MonitorPointEditorSetupPanel extends MonPanelSetupPanel implements ActionListener, ChangeListener{
 
 		private static final long serialVersionUID = -7475845517269885679L;
@@ -96,14 +96,18 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		private JScrollPane itsMainScroller = new JScrollPane();
 		private JButton addPoint = new JButton("Add new Point");
 		private JButton editPoint = new JButton("Edit a Point");
+		private JButton clonePoint = new JButton("Clone a Point");
 		private JLabel addDesc = new JLabel("Added points:");
 		private JLabel addTotal = new JLabel("0");
 		private JLabel editDesc = new JLabel("Edited points:");
 		private JLabel editTotal = new JLabel("0");
+		private JLabel cloneDesc = new JLabel("Cloned points:");
+		private JLabel cloneTotal = new JLabel("0");
 		private JComboBox layout = new JComboBox(layouts);
 
 		int numNew = 0;
 		int numEdit = 0;
+		int numClone = 0;
 		/** ArrayList holding references to all the small panels so they can be easily modified or notify this panel of changes */
 		private ArrayList<MPEditorSetupComponent> components = new ArrayList<MPEditorSetupComponent>();
 
@@ -133,36 +137,36 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			// Add stuff to the Top panel (not used at the moment, but maybe later)
 			addPoint.addActionListener(this);
 			editPoint.addActionListener(this);
+			clonePoint.addActionListener(this);
 			JLabel layoutLabel = new JLabel("Layout: ");
 			gbct.gridx = 2;
-			layoutLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-			gbct.anchor = GridBagConstraints.EAST;
 			topPanel.add(layoutLabel, gbct);
 			gbct.gridx = 3;
-			gbct.anchor = GridBagConstraints.WEST;
 			topPanel.add(layout, gbct);
-			gbct.anchor = GridBagConstraints.CENTER;
 			gbct.fill = GridBagConstraints.HORIZONTAL;
-			gbct.gridx = 1;
+			gbct.gridx = 0;
 			gbct.gridwidth = 2;
 			gbct.gridy ++;
 			topPanel.add(addPoint, gbct);
-			gbct.gridx = 3;
+			gbct.gridx = 2;
 			topPanel.add(editPoint, gbct);
-			gbct.gridx = 1;
+			gbct.gridx = 4;
+			topPanel.add(clonePoint, gbct);
+			gbct.gridx = 0;
 			gbct.gridy ++;
 			gbct.gridwidth = 1;
-			addDesc.setHorizontalAlignment(SwingConstants.RIGHT);
 			topPanel.add(addDesc, gbct);
 			gbct.gridx += 1;
-			addTotal.setHorizontalAlignment(SwingConstants.LEFT);
 			topPanel.add(addTotal, gbct);
 			gbct.gridx += 1;
-			editDesc.setHorizontalAlignment(SwingConstants.RIGHT);
 			topPanel.add(editDesc, gbct);
 			gbct.gridx += 1;
-			editTotal.setHorizontalAlignment(SwingConstants.LEFT);
 			topPanel.add(editTotal, gbct);
+			gbct.gridx += 1;
+			topPanel.add(cloneDesc, gbct);
+			gbct.gridx += 1;
+			topPanel.add(cloneTotal, gbct);
+
 
 			//Add stuff to this SetupPanel
 			this.add(topPanel, BorderLayout.NORTH);
@@ -180,8 +184,10 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			for (MPEditorSetupComponent m : components){
 				if (m.getType() == MPEditorSetupComponent.ADD_POINT){
 					comp += "add,null;";
-				} else {
+				} else if (m.getType() == MPEditorSetupComponent.EDIT_POINT){
 					comp += "edit," + m.getTreeSelection() + ";";
+				} else if (m.getType() == MPEditorSetupComponent.CLONE_POINT){
+					comp += "clone," + m.getTreeSelection() + ";";
 				}
 			}
 			ss.put("values", comp);
@@ -201,7 +207,12 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 					this.addNewPointPanel();
 					continue;
 				} else if (type.equals("edit")){
-					this.addEditPointPanel();
+					this.addEditPointPanel(MPEditorSetupComponent.EDIT_POINT);
+					Vector<String> selection = new Vector<String>();
+					selection.add(s.nextToken());
+					components.get(n).getTree().setSelections(selection);		
+				} else if (type.equals("clone")){
+					this.addEditPointPanel(MPEditorSetupComponent.CLONE_POINT);
 					Vector<String> selection = new Vector<String>();
 					selection.add(s.nextToken());
 					components.get(n).getTree().setSelections(selection);		
@@ -218,13 +229,14 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				if (source.equals(addPoint)){
 					this.addNewPointPanel();
 				} else if (source.equals(editPoint)){
-
-					this.addEditPointPanel();
+					this.addEditPointPanel(MPEditorSetupComponent.EDIT_POINT);
+				} else if (source.equals(clonePoint)){
+					this.addEditPointPanel(MPEditorSetupComponent.CLONE_POINT);
 				}
 				if (source.getActionCommand().equals("OK")){
 
 					for (MPEditorSetupComponent c : components){
-						if (c.getTreeSelection() == null && c.getType() == MPEditorSetupComponent.EDIT_POINT){
+						if (c.getTreeSelection() == null && c.getType() != MPEditorSetupComponent.ADD_POINT){
 							JOptionPane.showMessageDialog(this, 
 									"One or more of your Controls does not have a point selected.\n" +
 									"Please select a data point to control, or remove a control input panel.", 
@@ -250,8 +262,10 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 							removed = m;
 							if (m.getType() == MPEditorSetupComponent.ADD_POINT) {
 								this.decrementAdd();
-							} else {
+							} else if (m.getType() == MPEditorSetupComponent.EDIT_POINT){
 								this.decrementEdit();
+							} else {
+								this.decrementClone();
 							}
 							break;
 						}
@@ -298,6 +312,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 
 		/**
+		 * Small method to subtract 1 to the total of new point panels, and parse it to 
+		 * a String for display in a JLabel.
+		 */
+		public void incrementClone(){
+			numClone+= 1;
+			cloneTotal.setText(Integer.toString(numClone));
+		}
+
+		/**
 		 * Small method to add 1 to the total of edit point panels, and parse it to 
 		 * a String for display in a JLabel.
 		 */
@@ -316,11 +339,20 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 
 		/**
+		 * Small method to subtract 1 to the total of edit point panels, and parse it to 
+		 * a String for display in a JLabel.
+		 */
+		public void decrementClone(){
+			numClone -= 1;
+			cloneTotal.setText(Integer.toString(numClone));
+		}
+
+		/**
 		 * Method to add a new "Edit" type setup panel to the main setup panel.<br/>
 		 * It adds all the required elements, registers listeners and updates the running
 		 * totals.
 		 */
-		private void addEditPointPanel() {
+		private void addEditPointPanel(int type) {
 			JPanel newPanel = new JPanel(new GridBagLayout());
 			GridBagConstraints gbc = new GridBagConstraints();
 			gbc.fill = GridBagConstraints.BOTH;
@@ -365,9 +397,13 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			newPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
 
 			itsMainPanel.add(newPanel);
-			components.add(new MPEditorSetupComponent(newPanel, tree, selectedPoint, close));
+			components.add(new MPEditorSetupComponent(newPanel, tree, selectedPoint, close, type));
 
-			this.incrementEdit();
+			if (type == MPEditorSetupComponent.EDIT_POINT){
+				this.incrementEdit();
+			} else {
+				this.incrementClone();
+			}
 		}
 
 		/**
@@ -408,7 +444,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			if (e.getSource() instanceof SimpleTreeUtil){
 				SimpleTreeUtil source = (SimpleTreeUtil) e.getSource();
 				for (MPEditorSetupComponent c: components){
-					if(c.getType() == MPEditorSetupComponent.EDIT_POINT && source.equals(c.getTree().getTreeUtil())){
+					if(c.getType() != MPEditorSetupComponent.ADD_POINT && source.equals(c.getTree().getTreeUtil())){
 						c.setPointString();
 						break;
 					}
@@ -426,6 +462,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public final static int ADD_POINT = 0x01;
 		public final static int EDIT_POINT = 0x02;
+		public final static int CLONE_POINT = 0x03;
 
 		private JPanel panel = null;
 		private int type;
@@ -451,9 +488,9 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		 * @param p The JLabel that gets updated when the tree's selection changes
 		 * @param c The button that closes this panel
 		 */
-		public MPEditorSetupComponent(JPanel j, SimpleTreeSelector t, JLabel p, JButton c){
+		public MPEditorSetupComponent(JPanel j, SimpleTreeSelector t, JLabel p, JButton c, int ty){
 			panel = j;
-			type = EDIT_POINT;
+			type = ty;
 			tree = t;
 			point = p;
 			close = c;
@@ -526,7 +563,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		 */
 		public void removeListeners(MonitorPointEditorSetupPanel m){
 			close.removeActionListener(m);
-			if (this.getType() == MPEditorSetupComponent.EDIT_POINT) tree.removeChangeListener(m);
+			if (this.getType() != MPEditorSetupComponent.ADD_POINT) tree.removeChangeListener(m);
 		}
 
 	}
@@ -755,6 +792,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 					this.addEditorPanel();
 				} else if (type.equals("edit")){
 					this.addEditorPanel(s.nextToken());
+				} else {
+					this.addClonePanel(s.nextToken());
 				}
 				if (layout.equals(layouts[0])){
 					gbc.gridy ++;
@@ -997,6 +1036,115 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			itsMainPanel.add(writer, gbc);
 		}
 		components.add(new MPEditorComponent(l, ld, sd, u, s, es, it, ot, t, ac, ap, ui, al, n, p, g, wiz, writer));
+	}
+	
+	public void addClonePanel(String point){
+		JButton wiz = new JButton("Wizard");
+		wiz.addActionListener(this);
+		JButton writer = new JButton("Write");
+		writer.addActionListener(this);
+		JTextField npf = new JTextField(10);
+		JTextField ld = new JTextField(7);
+		JTextField sd = new JTextField(5);
+		JTextField u = new JTextField(2);
+		JTextField s = new JTextField(5);
+		JComboBox es = new JComboBox(bools);
+		JTextField it = new JTextField(10);
+		JTextField ot = new JTextField(10);
+		JTextField t = new JTextField(10);
+		JTextField ac = new JTextField(10);
+		JTextField ap = new JTextField(5);
+		JTextField ui = new JTextField(3);
+		JTextField al = new JTextField(3);
+		JTextField n = new JTextField(4);
+		JComboBox p = new JComboBox(priorities);
+		JTextField g = new JTextField(15);
+
+		AbstractDocument adsd = (AbstractDocument) sd.getDocument();
+		adsd.setDocumentFilter(lfdf);
+		AbstractDocument adui = (AbstractDocument) ui.getDocument();
+		adui.setDocumentFilter(ndf);
+		AbstractDocument adal = (AbstractDocument) al.getDocument();
+		adal.setDocumentFilter(ndf);
+		es.setEditable(false);
+		p.setEditable(false);
+
+		if (layout.equals(layouts[0])){
+			gbc.gridx = 0;
+			itsMainPanel.add(wiz, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(npf, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(ld, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(sd, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(u, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(s, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(es, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(it, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(ot, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(t, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(ap, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(ui, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(al, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(n, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(ac, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(p, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(g, gbc);
+			gbc.gridx ++;
+			itsMainPanel.add(writer, gbc);
+		} else  if (layout.equals(layouts[1])){
+			gbc.gridy = 1;
+			itsMainPanel.add(npf, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(ld, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(sd, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(u, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(s, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(es, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(it, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(ot, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(t, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(ap, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(ui, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(al, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(n, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(ac, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(p, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(g, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(wiz, gbc);
+			gbc.gridy ++;
+			itsMainPanel.add(writer, gbc);
+		}
+		components.add(new MPEditorComponent(point, npf, ld, sd, u, s, es, it, ot, t, ac, ap, ui, al, n, p, g, wiz, writer));
 	}
 
 	@Override
@@ -1296,7 +1444,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			itsPanel.setLayout(new BorderLayout());
 			itsPanel.add(itsCardPanel, BorderLayout.CENTER);
 			itsPanel.add(navPanel, BorderLayout.SOUTH);
-			
+
 			this.setMinimumSize(new Dimension(400, 260));
 			this.setPreferredSize(new Dimension(600, 400));
 			this.setLocationRelativeTo(MonitorPointEditor.this);
@@ -1374,7 +1522,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			enabled = new JComboBox(MonitorPointEditor.this.bools);
 			enabled.setEditable(false);
 
-			if (reference.isNewPoint()){
+			if (reference.isAddPoint() || reference.isClonePoint()){
 				name.setEditable(true);
 				if (reference.getNames().length > 0){
 					name.setText(reference.getNames()[0]);//prepopulate with first entry
@@ -3738,17 +3886,17 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 					MoniCAClient mc = MonClientUtil.getServer();
 					Vector<String> needData = new Vector<String>();
 					for (MPEditorComponent m : components){
-						if (!m.isNewPoint()){
-							needData.add(m.getNames()[0]);
+						if (!m.isAddPoint()){
+							needData.add(m.getOrigPointName());
 						}
 					}
 					Vector<PointDescription> pointDescs = mc.getPoints(needData);
 					for (PointDescription pd : pointDescs){
 						if (pd == null) continue;
 						for (MPEditorComponent m : components){//TODO fill in the rest as I go along
-							if (!m.newPoint && m.getNames()[0].equals(pd.getFullName())){
+							if (!m.isAddPoint() && m.getOrigPointName().equals(pd.getFullName())){
 								try {
-									m.setNameText(pd.getName());
+									if (m.isEditPoint()) m.setNameText(pd.getName());
 									m.setLongDescText(pd.getLongDesc());
 									m.setShortDescText(pd.getShortDesc());
 									m.setUnitsText(pd.getUnits());
@@ -3790,6 +3938,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		final String compoundRegexStr = "\\{{0,1}(([a-zA-Z0-9]+\\-(\\\"[\\S]+\\\")*),{0,1})+\\}{0,1}||\\-||";
 
+		private String pointName = "";
 		private JTextField newPointField = null;
 		private JLabel editPointLabel = null;
 		private JTextField longDesc = null;
@@ -3811,12 +3960,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		private JButton writerBtn = null;
 
 		private StringTokenizer st;
-		private boolean newPoint;
+		private boolean addPoint = false;
+		private boolean clonePoint = false;
+		private boolean editPoint = false;
 
 		public MPEditorComponent(JTextField npf, JTextField ld, JTextField sd, JTextField u, 
 				JTextField s, JComboBox es, JTextField it, JTextField ot, JTextField t,
 				JTextField ac, JTextField ap, JTextField ui, JTextField al, JTextField n,
 				JComboBox p, JTextField g, JButton wiz, JButton writer){
+			pointName = null;
 			newPointField = npf;
 			longDesc = ld;
 			shortDesc = sd;
@@ -3835,13 +3987,14 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			guidance = g;	
 			wizardBtn = wiz;
 			writerBtn = writer;
-			newPoint = true;
+			addPoint = true;
 		}
 
 		public MPEditorComponent(JLabel epl, JTextField ld, JTextField sd, JTextField u, 
 				JTextField s, JComboBox es, JTextField it, JTextField ot, JTextField t,
 				JTextField ac, JTextField ap, JTextField ui, JTextField al, JTextField n,
 				JComboBox p, JTextField g, JButton wiz, JButton writer){
+			pointName = epl.getText();
 			editPointLabel = epl;
 			longDesc = ld;
 			shortDesc = sd;
@@ -3860,15 +4013,50 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			guidance = g;
 			wizardBtn = wiz;
 			writerBtn = writer;
-			newPoint = false;
+			editPoint = false;
 		}
 
-		public boolean isNewPoint(){
-			return newPoint;
+		public MPEditorComponent(String point, JTextField npf, JTextField ld,
+				JTextField sd, JTextField u, JTextField s, JComboBox es,
+				JTextField it, JTextField ot, JTextField t, JTextField ac,
+				JTextField ap, JTextField ui, JTextField al, JTextField n,
+				JComboBox p, JTextField g, JButton wiz, JButton writer) {
+			pointName = point;
+			newPointField = npf;
+			longDesc = ld;
+			shortDesc = sd;
+			units = u;
+			source = s;
+			enabledState = es;
+			inputTransacts = it;
+			outputTransacts = ot;
+			translations = t;
+			alarmCriteria = ac;
+			archivePolicy = ap;
+			updateInterval = ui;
+			archiveLongevity = al;
+			notifications = n;
+			priority = p;
+			guidance = g;	
+			wizardBtn = wiz;
+			writerBtn = writer;
+			clonePoint = true;
+		}
+
+		public boolean isAddPoint(){
+			return addPoint;
+		}
+		
+		public boolean isEditPoint(){
+			return editPoint;
+		}
+		
+		public boolean isClonePoint(){
+			return clonePoint;
 		}
 
 		public void setNameText(String s){
-			if (newPoint){
+			if (isAddPoint() || isClonePoint()){
 				newPointField.setText(s);
 			} else {
 				editPointLabel.setText(s);
@@ -3938,7 +4126,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String[] getNames(){
 			String names = "";
-			if (newPoint){
+			if (!isEditPoint()){
 				names =  newPointField.getText();
 			} else {
 				names =  editPointLabel.getText();
@@ -4111,6 +4299,10 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 		public String getGuidance(){
 			return guidance.getText();
+		}
+		
+		public String getOrigPointName(){
+			return pointName;
 		}
 
 		public JButton getWizBtn(){
