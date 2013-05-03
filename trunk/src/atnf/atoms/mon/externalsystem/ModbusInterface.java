@@ -466,7 +466,7 @@ public class ModbusInterface extends ExternalSystem {
 
 	}
 
-	public static void main(String[] args){
+	private static void DoMainWork(String[] args){
 		ModbusInterface mbi = new ModbusInterface(args);
 		String[] transStrArr = {args[2], args[3], args[4], args[5]};
 
@@ -533,5 +533,22 @@ public class ModbusInterface extends ExternalSystem {
 			e.printStackTrace();
 		}
 	}
-	
+
+	// Print usage.
+	private static void usage()
+	{
+		System.err.println("usage:");
+		System.err.println("  ??? hostname port id type start count");
+		System.exit(1);
+	}
+
+	public static void main(String[] args){
+		// Check for no arguments.
+		if (args.length !=6) {
+			usage();
+		}
+
+		DoMainWork(args);
+	}
+
 }
