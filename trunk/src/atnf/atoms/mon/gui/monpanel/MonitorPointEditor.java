@@ -960,7 +960,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 		wiz.addActionListener(this);
 		JButton writer = new JButton("Write");
 		writer.addActionListener(this);
-		JLabel l = new JLabel(point);
+		JLabel l = new JLabel(point.substring(point.indexOf('.')+1));
 		JTextField ld = new JTextField(5);
 		JTextField sd = new JTextField(10);
 		JTextField u = new JTextField(2);
@@ -1061,7 +1061,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			gbc.gridy ++;
 			itsMainPanel.add(writer, gbc);
 		}
-		components.add(new MPEditorComponent(l, ld, sd, u, s, es, it, ot, t, ac, ap, ui, al, n, p, g, wiz, writer));
+		components.add(new MPEditorComponent(point, l, ld, sd, u, s, es, it, ot, t, ac, ap, ui, al, n, p, g, wiz, writer));
 	}
 
 	/**
@@ -4220,11 +4220,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 		 * @param wiz JButton to start the Wizard
 		 * @param writer JButton to send this point description to the server
 		 */
-		public MPEditorComponent(JLabel epl, JTextField ld, JTextField sd, JTextField u, 
+		public MPEditorComponent(String pt, JLabel epl, JTextField ld, JTextField sd, JTextField u, 
 				JTextField s, JComboBox es, JTextField it, JTextField ot, JTextField t,
 				JTextField ac, JTextField ap, JTextField ui, JTextField al, JTextField n,
 				JComboBox p, JTextField g, JButton wiz, JButton writer){
-			pointName = epl.getText();
+			pointName = pt;
 			editPointLabel = epl;
 			longDesc = ld;
 			shortDesc = sd;
@@ -4243,7 +4243,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			guidance = g;
 			wizardBtn = wiz;
 			writerBtn = writer;
-			editPoint = false;
+			editPoint = true;
 		}
 
 		/**
@@ -4453,19 +4453,12 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 				names =  editPointLabel.getText();
 			}
 			if (names.equals("-")) return new String[0];
-			Pattern pat = Pattern.compile(compoundRegexStr);
-			Matcher mat = pat.matcher(names);
-			if (!mat.matches()){
-				System.err.println("Pattern didn't match");
-				throw (new InvalidParameterException());
-			}
 			names = names.replace("{", "");
 			names = names.replace("}", "");
 			names = names.trim();
 			st = new StringTokenizer(names, ",");
 			int numToks = st.countTokens();
 			String[] res = new String[numToks];
-
 			for (int i = 0; i < numToks; i++){
 				res[i] = st.nextToken();
 			}
