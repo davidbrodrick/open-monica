@@ -24,6 +24,7 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -58,8 +59,12 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.DocumentFilter;
 
+import atnf.atoms.mon.Alarm;
+import atnf.atoms.mon.AlarmEvent;
+import atnf.atoms.mon.AlarmEventListener;
 import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.SavedSetup;
+import atnf.atoms.mon.client.AlarmMaintainer;
 import atnf.atoms.mon.client.MonClientUtil;
 import atnf.atoms.mon.comms.MoniCAClient;
 import atnf.atoms.mon.gui.MonPanel;
@@ -74,7 +79,7 @@ import atnf.atoms.mon.gui.SimpleTreeSelector.SimpleTreeUtil;
  * @author Kalinga Hulugalle
  *
  */
-public class MonitorPointEditor extends MonPanel implements ActionListener{
+public class MonitorPointEditor extends MonPanel implements ActionListener, AlarmEventListener{
 
 	private static final long serialVersionUID = 1030968805100512703L;
 	/** Array holding the layout values "Horizontal" and "Vertical" for use with the layout combo-box */
@@ -303,7 +308,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 
 		/**
-		 * Small method to subtract 1 to the total of new point panels, and parse it to 
+		 * Small method to subtract 1 to the total of edit point panels, and parse it to 
 		 * a String for display in a JLabel.
 		 */
 		public void incrementEdit(){
@@ -312,7 +317,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 
 		/**
-		 * Small method to subtract 1 to the total of new point panels, and parse it to 
+		 * Small method to subtract 1 to the total of clone point panels, and parse it to 
 		 * a String for display in a JLabel.
 		 */
 		public void incrementClone(){
@@ -339,7 +344,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 
 		/**
-		 * Small method to subtract 1 to the total of edit point panels, and parse it to 
+		 * Small method to subtract 1 to the total of clone point panels, and parse it to 
 		 * a String for display in a JLabel.
 		 */
 		public void decrementClone(){
@@ -348,7 +353,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 
 		/**
-		 * Method to add a new "Edit" type setup panel to the main setup panel.<br/>
+		 * Method to add a new "Edit" or "Clone" type setup panel to the main setup panel.<br/>
 		 * It adds all the required elements, registers listeners and updates the running
 		 * totals.
 		 */
@@ -587,12 +592,17 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 	JButton help = new JButton("?");
 	JButton write = new JButton("Write all points");
+	/** Private boolean indicating whether the <tt>loadSetup()</tt> method has completed yet.*/
+	private static boolean loaded = false;
+	/** Private boolean indicating whether the text fields have been populated yet.*/
+	private static boolean updated = false;
 
 	/**
 	 * Constructor, initialises some of the Document Filters and fonts for JLabels, along
 	 * with setting up the layout for some of the panels
 	 */
 	public MonitorPointEditor() {
+		AlarmMaintainer.addListener(this);
 		lfdf = new LimitFieldDocumentFilter(10);
 		ndf = new NumDocumentFilter();
 		help.setToolTipText("Help");
@@ -645,6 +655,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				System.err.println("MonitorPointEditor:loadSetup: setup not for " + this.getClass().getName());
 				return false;
 			}
+			AlarmMaintainer.addListener(this);
 			layout = setup.get("layout");
 
 			itsSetup = setup;
@@ -806,6 +817,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			itsScrollPane.setViewportView(itsMainPanel);
 			itsScrollPane.revalidate();
 			itsScrollPane.repaint();
+			loaded = true;
 			return true;
 		} catch (Exception e){
 			e.printStackTrace();
@@ -820,6 +832,12 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 	}
 
+	/**
+	 * Adds an Editor row or column to the main panel, with blank entries in the JTextFields.
+	 * Primarily used for new points rather than existing ones.
+	 * @see #addEditorPanel(String)
+	 * @see #addClonePanel(String)
+	 */
 	public void addEditorPanel(){
 		JButton wiz = new JButton("Wizard");
 		wiz.addActionListener(this);
@@ -929,6 +947,14 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		components.add(new MPEditorComponent(npf, ld, sd, u, s, es, it, ot, t, ac, ap, ui, al, n, p, g, wiz, writer));
 	}
 
+	/**
+	 * Adds a new Editor row or column to the main panel, for the given point. Used for
+	 * editing existing points, rather than adding new ones, hence the inability to alter the
+	 * point name.
+	 * @param point The name of the point to edit using these input fields
+	 * @see #addEditorPanel()
+	 * @see #addClonePanel(String)
+	 */
 	public void addEditorPanel(String point){
 		JButton wiz = new JButton("Wizard");
 		wiz.addActionListener(this);
@@ -1037,7 +1063,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 		components.add(new MPEditorComponent(l, ld, sd, u, s, es, it, ot, t, ac, ap, ui, al, n, p, g, wiz, writer));
 	}
-	
+
+	/**
+	 * Adds an Editor row or column to the main point panel, with the contents of the fields
+	 * populated by the values of the point specified. However, this is a convenience for new
+	 * points, hence the ability for the point name to be changed with this Editor row or column
+	 * @param point The point name of the point to be copied
+	 * @see #addEditorPanel()
+	 * @see #addEditorPanel(String)
+	 */
 	public void addClonePanel(String point){
 		JButton wiz = new JButton("Wizard");
 		wiz.addActionListener(this);
@@ -1149,8 +1183,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 	@Override
 	public void vaporise() {
-		// TODO Auto-generated method stub
-
+		AlarmMaintainer.removeListener(this);
 	}
 
 	@Override
@@ -1217,21 +1250,37 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 	}
 
+	/**
+	 * Creates a WizardFrame and displays it for a step-by-step wizard of adding and formatting 
+	 * monitor point entries
+	 * @param pointDetails A MPEditorComponent that holds all the references to
+	 * input fields for a given editor row or column
+	 * @see WizardFrame
+	 */
 	private void showWizard(MPEditorComponent pointDetails){
 		new WizardFrame(pointDetails);
 	}
 
+	/**
+	 * Method to detect whether the names of the points that are being edited are duplicated or
+	 * not, to ensure that there won't be multiple additions of the same point name.
+	 * @return boolean returns true if there are no duplicates, otherwise false
+	 */
 	public boolean noDupes(){
 		boolean ret = true;
-		HashSet<String[]> set = new HashSet<String[]>(); // Hashsets only allow adding of unique members
+		HashSet<String> set = new HashSet<String>(); // Hashsets only allow adding of unique members
 		for (MPEditorComponent c : components){
-			ret = set.add(c.getNames()); // returns false if it can't add a member
+			ret = set.add(c.getFullName()); // returns false if it can't add a member
 			if (!ret) return ret;
 		}
 		return ret;
 	}
 	// ///// NESTED CLASS: WizardFrame //////
 
+	/**
+	 * JFrame that shows a Step-by-step wizard to create a new monitor-point definition, which
+	 * automatically handles all formatting
+	 */
 	public class WizardFrame extends JFrame implements ActionListener, ChangeListener{
 
 		private static final long serialVersionUID = -7680339339902552985L;
@@ -1240,7 +1289,13 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		private JPanel itsCardPanel;
 		private CardLayout cl;
 
+		/** String array holding the names of each of the cards used in the CardLayout:<br/>
+		 *	"metadata", "input transactions", "output transactions", "translations", "update data", "notifications", "alarm data" 
+		 */
 		final String[] itsCards = {"metadata", "input transactions", "output transactions", "translations", "update data", "notifications", "alarm data"};
+		/** String array holding the possible options for the Transaction class:<br/>
+		 * "EPICS",	"EPICSMonitor", "Generic", "InitialValue", "LimitCheck", "Listen", "Strings", "Timer"
+		 */
 		final String[] transactionOpts = {
 				"EPICS",
 				"EPICSMonitor",
@@ -1251,6 +1306,19 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				"Strings",
 				"Timer"
 		};
+		/** String array holding the possible options for the Translation class:<br/>
+		 * "Add16","AngleToNumber","Array","AvailabilityMask","BCDToInteger","BitShift","BoolMap",
+		 * "Calculation","CalculationTimed","CopyTimestamp","CronPulse","DailyIntegrator",
+		 * "DailyIntegratorPosOn","DailyPulse","DailyWindow","Delta","DewPoint","EmailOnChange",
+		 * "EmailOnFallingEdge","EmailOnRisingEdge","EnumMap","EQ","Failover","HexString","HighTimer",
+		 * "LimitCheck","Listener","LowTimer","Mean","MonthlyPulse","None","NumberToAngle","NumberToBool",
+		 * "NumDecimals","NV","PeakDetect","Polar2X","Polar2Y","Preceding","PrecipitableWater",
+		 * "PrecipitableWaterMMA","Pulse","RelTimeToSeconds","RessetableIntegrator",
+		 * "ResettablePeakDetect","ResettablePulse","RoundToInt","RunCmd","Shorts2Double","Shorts2Float",
+		 * "SinceHighTimer","SpecificHumidity","Squelch","StopIfNoChange","StopIfNull","StringMap",
+		 * "StringReplace","StringToArray","StringToNumber","StringTrim","StuckValue","Substring","Synch",
+		 * "ThyconAlarm","TimedSubstitution","VapourPressure","Variance","XY2Angle","XY2Mag"
+		 */
 		final String[] translationOpts = {
 				"Add16",
 				"AngleToNumber",
@@ -1322,6 +1390,10 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				"XY2Angle",
 				"XY2Mag"
 		};
+
+		/** String array holding the possible options for the ArchivePolicy class:<br/>
+		 * "Alarm","All","Change","Counter","OnDecrease","OnIncrease","Timer"
+		 */
 		String[] archPolOpts = {
 				"Alarm",
 				"All",
@@ -1331,16 +1403,25 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				"OnIncrease",
 				"Timer"
 		};
+
+		/** String array holding the possible options for the Notification class:<br/>
+		 * "EmailOnAlarm", "EmailOnAlarmChange"
+		 */
 		String[] notifOpts = {
 				"EmailOnAlarm",
 				"EmailOnAlarmChange"
 		};
+		/** String array holding the possible options for the AlarmCheck class:<br/>
+		 * "Boolean","Range","StringMatch","ValueMatch"
+		 */
 		String[] alarmOpts = {
 				"Boolean",
 				"Range",
 				"StringMatch",
 				"ValueMatch"
 		};
+
+		/** int indicating the index of the card the CardLayout is currently displaying*/
 		int curr = 0;
 
 		//Nav Panel
@@ -1409,6 +1490,12 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		JComboBox almPriority;
 		JTextArea almGuidance;
 
+		/**
+		 * Constructor for a new WizardFrame. It preloads all the panels and calls their relevant
+		 * setup methods, then adds them to the CardLayout 
+		 * @param m The MPEditorComponent that is used as a reference for what point is being
+		 * edited and what fields it needs
+		 */
 		public WizardFrame(MPEditorComponent m){
 			super();
 			reference = m;
@@ -1425,6 +1512,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			JPanel alarmCard = new JPanel(); //alarm criteria, alarm priority, guidance message
 
 			this.addNavPanel(navPanel, itsPanel);
+
 			this.setupMetaDataPanel(metaDataCard);
 			this.setupInputTransactionPanel(inTransCard);
 			this.setupOutputTransactionPanel(outTransCard);
@@ -1454,6 +1542,12 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			this.setVisible(true);
 		}
 
+		/**
+		 * Alters the specified JPanel to contain navigational buttons, and adds it to the specified
+		 * JComponent container.
+		 * @param nav The JPanel that will contain the navigational components
+		 * @param container The JComponent that will hold the nav JPanel
+		 */
 		private void addNavPanel(JPanel nav, JComponent container){
 			back.setActionCommand("back");
 			back.addActionListener(this);
@@ -1483,6 +1577,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			container.add(nav);
 		}
 
+		/**
+		 * Sets up the given panel with various JComponents that facilitate textual input
+		 * of the required metadata for this JPanel, e.g. JTextFields for entry of textual input
+		 * @param mdc The JPanel to add the components to
+		 */
 		private void setupMetaDataPanel(JPanel mdc){
 			mdc.setLayout(new BorderLayout());
 			JPanel desc = new JPanel(new GridLayout(2,1));
@@ -1555,6 +1654,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			mdc.add(scroller, BorderLayout.CENTER);
 		}
 
+		/**
+		 * Sets up the given panel with various JComponents that facilitate input of Input
+		 * Transactions in a simple manner, using JTextFields, JComboBoxes etc.
+		 * @param mdc The JPanel to add the components to
+		 */
 		private void setupInputTransactionPanel(JPanel mdc){
 			mdc.setLayout(new BorderLayout());
 			JPanel desc = new JPanel(new GridLayout(2,1));
@@ -1650,6 +1754,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 		}
 
+		/**
+		 * Sets up the given panel with various JComponents that facilitate input of Output
+		 * Transactions in a simple manner, using JTextFields, JComboBoxes etc.
+		 * @param mdc The JPanel to add the components to
+		 */
 		private void setupOutputTransactionPanel(JPanel mdc){
 			mdc.setLayout(new BorderLayout());
 			JPanel desc = new JPanel(new GridLayout(2,1));
@@ -1744,6 +1853,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 		}
 
+		/**
+		 * Sets up the given panel with various JComponents that facilitate input of Translations
+		 *  in a simple manner, using JTextFields, JComboBoxes etc.
+		 * @param mdc The JPanel to add the components to
+		 */
 		private void setupTranslationPanel(JPanel mdc){
 			mdc.setLayout(new BorderLayout());
 			JPanel desc = new JPanel(new GridLayout(2,1));
@@ -1839,6 +1953,12 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 		}
 
+		/**
+		 * Sets up the given panel with various JComponents that facilitate input of Archive Policies
+		 * , and other miscellaneous update data metadata in a simple manner, using 
+		 * JTextFields, JComboBoxes etc.
+		 * @param mdc The JPanel to add the components to
+		 */
 		private void setupUpdateDataPanel(JPanel mdc){
 			mdc.setLayout(new BorderLayout());
 			JPanel desc = new JPanel(new GridLayout(2,1));
@@ -1964,6 +2084,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 		}
 
+		/**
+		 * Sets up the given panel with various JComponents that facilitate input of Notifications
+		 * in a simple manner, using JTextFields, JComboBoxes etc.
+		 * @param mdc The JPanel to add the components to
+		 */
 		private void setupNotificationPanel(JPanel mdc){
 			mdc.setLayout(new BorderLayout());
 			JPanel desc = new JPanel(new GridLayout(2,1));
@@ -2058,6 +2183,12 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 		}
 
+		/**
+		 * Sets up the given panel with various JComponents that facilitate input of Alarm 
+		 * Criteria, as well as the Alarm Priority and guidance text in a simple manner, 
+		 * using JTextFields, JComboBoxes etc.
+		 * @param mdc The JPanel to add the components to
+		 */
 		private void setupAlarmDetailsPanel(JPanel mdc){
 			mdc.setLayout(new BorderLayout());
 			JPanel desc = new JPanel(new GridLayout(2,1));
@@ -2175,6 +2306,19 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 		}
 
+		/**
+		 * Convenience method used by many of the Cards to increase the number of input options
+		 * in the compound input capable fields.
+		 * @param options The String array defining what the options in the JComboBox are
+		 * @param al ArrayList of JComboBoxes that stores references to the JComboBoxes used 
+		 * in this Card
+		 * @param hm HashMap mapping the JComboBox to a JTextField[] where the arguments for
+		 * the type argument are supplied by the user
+		 * @param pan The JPanel to add this row to
+		 * @param g The GridBagConstraints reference to use for the layout of this panel
+		 * @param actionCommand A String defining the ActionCommand used to assign to the JComboBox for
+		 * use with ActionListeners
+		 */
 		private void addRow(String[] options, ArrayList<JComboBox> al, HashMap<JComboBox, JTextField[]> hm, JPanel pan, GridBagConstraints g, String actionCommand){
 			JComboBox optBox = new JComboBox(options);
 			optBox.setEditable(false);
@@ -2243,6 +2387,14 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			hm.put(optBox, fields);
 		}
 
+		/**
+		 * Utility method used to remove a row from the given JPanel
+		 * @param al The ArrayList with references to the JComboBoxes this panel shows
+		 * @param hm The HashMap that maps the JComboBox to a JTextField[] where the arguments
+		 * for the type argument are supplied 
+		 * @param pan The JPanel the row is being removed from
+		 * @param g The GridBagConstraints reference that is being used on this JPanel
+		 */
 		private void remRow(ArrayList<JComboBox> al, HashMap<JComboBox, JTextField[]> hm, JPanel pan, GridBagConstraints g){
 			pan.remove(al.get(al.size()-1));
 			for (JTextField j : hm.get(al.get(al.size()-1))){
@@ -2258,6 +2410,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			pan.repaint();
 		}
 
+		/**
+		 * Utility method to format input from a number of JComboBoxes and JTextFields into a
+		 * single String mirroring that used in the monitor-points.txt config file
+		 * @param fieldBoxes ArrayList of JComboBoxes storing references to the selected type
+		 * argument for the panel
+		 * @param refs HashMap mapping a JComboBox to a JTextField[] that can be used to extract
+		 * the extra arguments for the selected type argument.
+		 * @return The formatted String
+		 */
 		private String formatCompoundString(ArrayList<JComboBox> fieldBoxes, HashMap<JComboBox, JTextField[]> refs){
 			ArrayList<String> separateTypes = new ArrayList<String>();
 			String compoundString = "";
@@ -2297,6 +2458,13 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			return compoundString;
 		}
 
+		/**
+		 * Utility method to populate the JComboBoxes and JTextFields used in the compound field
+		 * capable fields. Does the opposite task of the {@link #formatCompoundString(ArrayList, HashMap)} method.
+		 * @param boxes Reference to the ArrayList of JComboBoxes to populate
+		 * @param args Reference to the HashMap of &lt;JComboBox, JTextField[]&gt; to populate
+		 * @param inputs String[] that contains a String identifying each separate "type" of argument
+		 */
 		private void populatePanel(ArrayList<JComboBox> boxes, HashMap<JComboBox, JTextField[]> args, String[] inputs){
 			for (int i = 0; i < inputs.length; i++){
 				String type = inputs[i].substring(0, inputs[i].indexOf('-'));
@@ -2305,7 +2473,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				inputs[i] = inputs[i].trim();
 			}
 			int i = 0;
-			for (String s : inputs){//TODO needs checking
+			for (String s : inputs){
 				JTextField [] refs = args.get(boxes.get(i));
 				StringTokenizer st = new StringTokenizer(s, "\"\"");
 				int j = 0;
@@ -2320,7 +2488,10 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 		}
 
-		private void populateFields(){//TODO Update as required
+		/**
+		 * Utility method to populate the fields of the referenced {@link MPEditorComponent}
+		 */
+		private void populateFields(){
 			//Metadata 
 			reference.setNameText(name.getText());
 			reference.setLongDescText(longDesc.getText());
@@ -3827,13 +3998,19 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		MPEditorComponent reference;
 
 		/**
-		 * Constructs a new DataSender thread
+		 * Constructs a new DataSender thread with the given purpose
+		 * @param p The command String
 		 */
 		public DataSender(String p){
 			super();
 			purpose = p;
 		}
 
+		/**
+		 * Constructs a new DataSender thread for a given component
+		 * @param p The command String
+		 * @param ref The reference to send to the server
+		 */
 		public DataSender(String p, MPEditorComponent ref){
 			super();
 			purpose = p;
@@ -3893,7 +4070,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 					Vector<PointDescription> pointDescs = mc.getPoints(needData);
 					for (PointDescription pd : pointDescs){
 						if (pd == null) continue;
-						for (MPEditorComponent m : components){//TODO fill in the rest as I go along
+						for (MPEditorComponent m : components){
 							if (!m.isAddPoint() && m.getOrigPointName().equals(pd.getFullName())){
 								try {
 									if (m.isEditPoint()) m.setNameText(pd.getName());
@@ -3928,14 +4105,25 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				} catch (Exception e){
 					System.err.println("Unable to prepopulate editor fields");
 				}
+				updated = true;
 			}	
 		}
 	}
 	// ///// END NESTED CLASS ///////
 
 	// NESTED CLASS: MPEditorComponent ///////
+	/**
+	 * Inner class that is used exclusively for storing references to a collection of JTextFields,
+	 * JComboBoxes and other components used for inputting data to create a new Monitor Point
+	 * definition
+	 */
 	public class MPEditorComponent{
 
+		/** String used for a Regular Expression to ensure that fields used with compound syntax
+		 * are syntactically valid<br/>
+		 * The Java regex string is:<br/>
+		 * <tt>"\\{{0,1}(([a-zA-Z0-9]+\\-(\\\"[\\S]+\\\")*),{0,1})+\\}{0,1}||\\-||"</tt>
+		 */
 		final String compoundRegexStr = "\\{{0,1}(([a-zA-Z0-9]+\\-(\\\"[\\S]+\\\")*),{0,1})+\\}{0,1}||\\-||";
 
 		private String pointName = "";
@@ -3964,6 +4152,27 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		private boolean clonePoint = false;
 		private boolean editPoint = false;
 
+		/**
+		 * Constructor for an "add" point to be added to the system
+		 * @param npf JTextField with the name of the point
+		 * @param ld JTextField with the long description of the point
+		 * @param sd JTextField with the short description of the point
+		 * @param u JTextField with the units of the point
+		 * @param s JTextField with the source of the point
+		 * @param es JComboBox with the enabled state of the point
+		 * @param it JTextField with the input transactions of the point
+		 * @param ot JTextField with the output transactions of the point
+		 * @param t JTextField with the translations of the point
+		 * @param ac JTextField with the archive longevity of the point
+		 * @param ap JTextField with the archive policies of the point
+		 * @param ui JTextField with the update interval of the point
+		 * @param al JTextField with the alarm criteria of the point
+		 * @param n JTextField with the notifications of the point
+		 * @param p JComboBox with the alarm priority of the point
+		 * @param g JTextField with the alarm guidance text of the point
+		 * @param wiz JButton to start the Wizard
+		 * @param writer JButton to send this point description to the server
+		 */
 		public MPEditorComponent(JTextField npf, JTextField ld, JTextField sd, JTextField u, 
 				JTextField s, JComboBox es, JTextField it, JTextField ot, JTextField t,
 				JTextField ac, JTextField ap, JTextField ui, JTextField al, JTextField n,
@@ -3990,6 +4199,27 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			addPoint = true;
 		}
 
+		/**
+		 * Constructor for an "edit" point to be added to the system
+		 * @param epl JLabel with the name of the point
+		 * @param ld JTextField with the long description of the point
+		 * @param sd JTextField with the short description of the point
+		 * @param u JTextField with the units of the point
+		 * @param s JTextField with the source of the point
+		 * @param es JComboBox with the enabled state of the point
+		 * @param it JTextField with the input transactions of the point
+		 * @param ot JTextField with the output transactions of the point
+		 * @param t JTextField with the translations of the point
+		 * @param ac JTextField with the archive longevity of the point
+		 * @param ap JTextField with the archive policies of the point
+		 * @param ui JTextField with the update interval of the point
+		 * @param al JTextField with the alarm criteria of the point
+		 * @param n JTextField with the notifications of the point
+		 * @param p JComboBox with the alarm priority of the point
+		 * @param g JTextField with the alarm guidance text of the point
+		 * @param wiz JButton to start the Wizard
+		 * @param writer JButton to send this point description to the server
+		 */
 		public MPEditorComponent(JLabel epl, JTextField ld, JTextField sd, JTextField u, 
 				JTextField s, JComboBox es, JTextField it, JTextField ot, JTextField t,
 				JTextField ac, JTextField ap, JTextField ui, JTextField al, JTextField n,
@@ -4016,6 +4246,28 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			editPoint = false;
 		}
 
+		/**
+		 * Constructor for a "clone" point to be added to the system
+		 * @param point String of the full name of the point
+		 * @param npf JTextField with the name of the point
+		 * @param ld JTextField with the long description of the point
+		 * @param sd JTextField with the short description of the point
+		 * @param u JTextField with the units of the point
+		 * @param s JTextField with the source of the point
+		 * @param es JComboBox with the enabled state of the point
+		 * @param it JTextField with the input transactions of the point
+		 * @param ot JTextField with the output transactions of the point
+		 * @param t JTextField with the translations of the point
+		 * @param ac JTextField with the archive longevity of the point
+		 * @param ap JTextField with the archive policies of the point
+		 * @param ui JTextField with the update interval of the point
+		 * @param al JTextField with the alarm criteria of the point
+		 * @param n JTextField with the notifications of the point
+		 * @param p JComboBox with the alarm priority of the point
+		 * @param g JTextField with the alarm guidance text of the point
+		 * @param wiz JButton to start the Wizard
+		 * @param writer JButton to send this point description to the server
+		 */
 		public MPEditorComponent(String point, JTextField npf, JTextField ld,
 				JTextField sd, JTextField u, JTextField s, JComboBox es,
 				JTextField it, JTextField ot, JTextField t, JTextField ac,
@@ -4043,18 +4295,38 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			clonePoint = true;
 		}
 
+		/**
+		 * Indicates if this is an "add" type point, i.e. it is a new point to be added to
+		 * the system
+		 * @return boolean indicating if this is an "add" type point
+		 */
 		public boolean isAddPoint(){
 			return addPoint;
 		}
-		
+
+		/**
+		 * Indicates if this is an "edit" type point, i.e. it is an existing point that needs
+		 * to be altered within the system
+		 * @return boolean indicating if this is an "edit" type point
+		 */
 		public boolean isEditPoint(){
 			return editPoint;
 		}
-		
+
+		/**
+		 * Indicates if this is a "clone" type point, i.e. it is a new point to be added to
+		 * the system, but should be populated with data based on an existing one
+		 * @return boolean indicating if this is a "clone" type point
+		 */
 		public boolean isClonePoint(){
 			return clonePoint;
 		}
 
+		/**
+		 * Sets the contents of the name JTextField to s if it is an add point or clone point, 
+		 * otherwise alters the text of the JLabel in an edit point
+		 * @param s The new name to be set
+		 */
 		public void setNameText(String s){
 			if (isAddPoint() || isClonePoint()){
 				newPointField.setText(s);
@@ -4063,67 +4335,116 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 		}
 
+		/**
+		 * Sets the contents of the long description JTextField to s
+		 * @param s The String to change the Long Description to
+		 */
 		public void setLongDescText(String s){
 			longDesc.setText(s);
 		}
-
+		/**
+		 * Sets the contents of the short description JTextField to s
+		 * @param s The String to change the Short Description to
+		 */
 		public void setShortDescText(String s){
 			shortDesc.setText(s);
 		}
-
+		/**
+		 * Sets the contents of the units JTextField to s
+		 * @param s The String to change the units to
+		 */
 		public void setUnitsText(String s){
 			units.setText(s);
 		}
-
+		/**
+		 * Sets the contents of the source JTextField to s
+		 * @param s The String to change the source to
+		 */
 		public void setSourceText(String s){
 			source.setText(s);
 		}
-
+		/**
+		 * Sets the contents of the enabled state JComboBox to state
+		 * @param s The boolean to change the enabled state to
+		 */
 		public void setEnabledState(String state){
 			enabledState.setSelectedItem(state);
 		}
-
-		public void setInputTransactionString(String string) {
-			inputTransacts.setText(string);
+		/**
+		 * Sets the contents of the input transactions JTextField to s
+		 * @param s The String to change the input transactions to
+		 */
+		public void setInputTransactionString(String s) {
+			inputTransacts.setText(s);
 		}
-
-		public void setOutputTransactionString(String string) {
-			outputTransacts.setText(string);
+		/**
+		 * Sets the contents of the output transactions JTextField to s
+		 * @param s The String to change the output transactions to
+		 */
+		public void setOutputTransactionString(String s) {
+			outputTransacts.setText(s);
 		}
-
-
-		public void setTranslationString(String string) {
-			translations.setText(string);
+		/**
+		 * Sets the contents of the translations JTextField to s
+		 * @param s The String to change the translations to
+		 */
+		public void setTranslationString(String s) {
+			translations.setText(s);
 		}
-
-		public void setArchivePolicyString(String string) {
-			archivePolicy.setText(string);
+		/**
+		 * Sets the contents of the archive policies JTextField to s
+		 * @param s The String to change the archive policies to
+		 */
+		public void setArchivePolicyString(String s) {
+			archivePolicy.setText(s);
 		}
-
-		public void setUpdateInterval(String text) {
-			updateInterval.setText(text);
+		/**
+		 * Sets the contents of the update interval JTextField to s
+		 * @param s The String to change the update interval to
+		 */
+		public void setUpdateInterval(String s) {
+			updateInterval.setText(s);
 		}
-
-		public void setArchiveLongevity(String text) {
-			archiveLongevity.setText(text);
+		/**
+		 * Sets the contents of the archive longevity JTextField to s
+		 * @param s The String to change the archive longevity to
+		 */
+		public void setArchiveLongevity(String s) {
+			archiveLongevity.setText(s);
 		}
-
-		public void setAlarmCriteria(String string) {
-			alarmCriteria.setText(string);
+		/**
+		 * Sets the contents of the alarm criteria JTextField to s
+		 * @param s The String to change the alarm criteria to
+		 */
+		public void setAlarmCriteria(String s) {
+			alarmCriteria.setText(s);
 		}
-
-		public void setAlarmGuidance(String text) {
-			guidance.setText(text);
+		/**
+		 * Sets the contents of the alarm guidance JTextField to s
+		 * @param s The String to change the alarm guidance to
+		 */
+		public void setAlarmGuidance(String s) {
+			guidance.setText(s);
 		}
-
+		/**
+		 * Sets the contents of the alarm priority JComboBox to selectedItem
+		 * @param s The Object to change the JComboBox selection to
+		 */
 		public void setAlarmPriority(Object selectedItem) {
 			priority.setSelectedItem(selectedItem);			
 		}
-
-		public void setNotificationString(String string) {
-			notifications.setText(string);
+		/**
+		 * Sets the contents of the notifications JTextField to s
+		 * @param s The String to change the notifications to
+		 */
+		public void setNotificationString(String s) {
+			notifications.setText(s);
 		}
-
+		/**
+		 * Returns a String[] with all the names assigned to this point, properly parsing
+		 * correctly inputted compound syntax into each array entry.
+		 * @return A String[] with all the point's names
+		 */
 		public String[] getNames(){
 			String names = "";
 			if (!isEditPoint()){
@@ -4131,7 +4452,16 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			} else {
 				names =  editPointLabel.getText();
 			}
-
+			if (names.equals("-")) return new String[0];
+			Pattern pat = Pattern.compile(compoundRegexStr);
+			Matcher mat = pat.matcher(names);
+			if (!mat.matches()){
+				System.err.println("Pattern didn't match");
+				throw (new InvalidParameterException());
+			}
+			names = names.replace("{", "");
+			names = names.replace("}", "");
+			names = names.trim();
 			st = new StringTokenizer(names, ",");
 			int numToks = st.countTokens();
 			String[] res = new String[numToks];
@@ -4141,29 +4471,49 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 			return res;
 		}
-
+		/**
+		 * Returns the first name of this point, with the source prepended to it. Utilises the
+		 * first entry in the array returned from the {@link #getNames()} method.
+		 * @return The point's full point name.
+		 * @see #getNames()
+		 */
 		public String getFullName(){
 			String name = getNames()[0];
 			name = getSource() + "." + name;
 			return name;
 		}
-
+		/**
+		 * Returns the text in the long description JTextField
+		 * @return String that is the long description
+		 */
 		public String getLongDesc(){
 			return longDesc.getText();
 		}
-
+		/**
+		 * Returns the text in the short description JTextField
+		 * @return String that is the short description
+		 */
 		public String getShortDesc(){
 			return shortDesc.getText();
 		}
-
+		/**
+		 * Returns the text in the units JTextField
+		 * @return String that is the units
+		 */
 		public String getUnits(){
 			return units.getText();
 		}
-
+		/**
+		 * Returns the text in the source JTextField
+		 * @return String that is the source
+		 */
 		public String getSource(){
 			return source.getText();
 		}
-
+		/**
+		 * Returns a boolean indicating the enabled state of this point
+		 * @return Returns true if it is enabled, otherwise false.
+		 */
 		public boolean getEnabled(){
 			Object value = enabledState.getSelectedItem();
 			if (value.equals(bools[0])){
@@ -4172,11 +4522,18 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 				return false;
 			}
 		}
-
+		/**
+		 * Returns the object in the enabled state JComboBox
+		 * @return Object that is the selected item in the enabled state JComboBox
+		 */
 		public Object getEnabledState(){
 			return enabledState.getSelectedItem();
 		}
-
+		/**
+		 * Returns a String[] with each type of input transaction plus its arguments in a separate 
+		 * entry. Will parse both compound and singular inputs properly into the array.
+		 * @return A String[] with the input transactions as separate entries
+		 */
 		public String[] getInTransactions(){
 			String names = inputTransacts.getText();
 			if (names.equals("-")) return new String[0];
@@ -4198,7 +4555,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 			return res;
 		}
-
+		/**
+		 * Returns a String[] with each type of output transaction plus its arguments in a separate 
+		 * entry. Will parse both compound and singular inputs properly into the array.
+		 * @return A String[] with the output transactions as separate entries
+		 */
 		public String[] getOutTransactions(){
 			String names = outputTransacts.getText();
 			if (names.equals("-")) return new String[0];
@@ -4217,7 +4578,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 			return res;
 		}
-
+		/**
+		 * Returns a String[] with each type of translation plus its arguments in a separate 
+		 * entry. Will parse both compound and singular inputs properly into the array.
+		 * @return A String[] with the translations as separate entries
+		 */
 		public String[] getTranslations(){
 			String names = translations.getText();
 			if (names.equals("-")) return new String[0];
@@ -4236,7 +4601,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 			return res;
 		}
-
+		/**
+		 * Returns a String[] with each type of alarm criterion plus its arguments in a separate 
+		 * entry. Will parse both compound and singular inputs properly into the array.
+		 * @return A String[] with the alarm criteria as separate entries
+		 */
 		public String[] getAlarmCriteria(){
 			String names = alarmCriteria.getText();	
 			if (names.equals("-")) return new String[0];
@@ -4252,7 +4621,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 			return res;
 		}
-
+		/**
+		 * Returns a String[] with each type of archive policy plus its arguments in a separate 
+		 * entry. Will parse both compound and singular inputs properly into the array.
+		 * @return A String[] with the archive policies as separate entries
+		 */
 		public String[] getArchivePolicies(){
 			String names = archivePolicy.getText();
 			if (names.equals("-")) return new String[0];
@@ -4268,7 +4641,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 			return res;
 		}
-
+		/**
+		 * Returns a String[] with each type of notification plus its arguments in a separate 
+		 * entry. Will parse both compound and singular inputs properly into the array.
+		 * @return A String[] with the notifications as separate entries
+		 */
 		public String[] getNotifications(){
 			String names = notifications.getText();	
 			if (names.equals("-")) return new String[0];
@@ -4284,31 +4661,52 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 			}
 			return res;
 		}
-
+		/**
+		 * Returns the text in the update interval JTextField
+		 * @return String that is the update interval
+		 */
 		public String getPeriod(){
 			return updateInterval.getText();
 		}
-
+		/**
+		 * Returns the text in the archive longevity JTextField
+		 * @return String that is the archive longevity
+		 */
 		public String getArchiveLongevity(){
 			return archiveLongevity.getText();
 		}
-
+		/**
+		 * Returns a formatted String of the selected item in the priority JComboBox
+		 * @return String that is the String form of the selected item in the priority JComboBox
+		 */
 		public String getPriority(){
 			return priority.getSelectedItem().toString();
 		}
-
+		/**
+		 * Returns the text in the alarm guidance JTextField
+		 * @return String that is the alarm guidance
+		 */
 		public String getGuidance(){
 			return guidance.getText();
 		}
-		
+		/**
+		 * Returns the original pointname used for this point, if present
+		 * @return The original point name for this point
+		 */
 		public String getOrigPointName(){
 			return pointName;
 		}
-
+		/**
+		 * Returns a reference to the JButton used to start the Wizard
+		 * @return A reference to the "Wizard" JButton
+		 */
 		public JButton getWizBtn(){
 			return wizardBtn;
 		}
-
+		/**
+		 * Returns a reference to the JButton used to write this point to the server
+		 * @return A reference to the "Write" JButton
+		 */
 		public JButton getWriterBtn(){
 			return writerBtn;
 		}
@@ -4341,7 +4739,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 
 	// NESTED CLASS: LimitFieldDocumentFilter ///////
 	/**
-	 * DocumentFilter that only allows a restricted number of characters being added to a Document
+	 * DocumentFilter that only allows a restricted number of characters being added to a Document, 
+	 * and will automatically crop pasted text to the maximum number of characters if applicable
 	 */
 	public class LimitFieldDocumentFilter extends DocumentFilter{
 		private int charLimit;
@@ -4419,4 +4818,36 @@ public class MonitorPointEditor extends MonPanel implements ActionListener{
 		}
 	}
 	// END NESTED CLASS ///////
+
+	@Override
+	public void onAlarmEvent(AlarmEvent event) {}
+
+	@Override
+	public void onAlarmEvent(Collection<AlarmEvent> events) {
+		AlarmMaintainer.removeListener(this);
+		new Thread(){
+			@Override
+			public void run(){
+				while (!loaded || !updated){
+					Thread.yield();
+				}//loop until loadSetup finishes, and run just once
+				for (MPEditorComponent m : components){
+					try {
+						Alarm a = AlarmMaintainer.getAlarm(m.getOrigPointName());
+						m.setAlarmGuidance(a.getGuidance());
+						try {
+							m.setAlarmPriority(priorities[a.getPriority()]);
+						} catch (IndexOutOfBoundsException iobe){
+							m.setAlarmPriority(priorities[0]);
+						}
+					} catch (NullPointerException npe){
+						continue;
+					}
+				}
+				// Needs to reset these in case we use loadSetup() again to change appearance
+				loaded = false;
+				updated = false;
+			}
+		}.start();
+	}
 }

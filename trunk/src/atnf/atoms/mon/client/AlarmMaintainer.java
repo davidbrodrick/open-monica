@@ -63,7 +63,7 @@ public class AlarmMaintainer implements Runnable {
 	 *          - the listener to be registered
 	 */
 	public static void addListener(AlarmEventListener listener) {
-		theirListeners.add(listener);
+		if (!theirListeners.contains(listener))	theirListeners.add(listener); //Don't allow duplicates
 	}
 
 	/**
@@ -80,7 +80,7 @@ public class AlarmMaintainer implements Runnable {
 	 * For a each given Alarm, creates a new AlarmEvent and distributes it to all the registered listeners
 	 * 
 	 * @param a
-	 *          The Collection of Alarm that the listeners are notified about
+	 *          - The Collection of Alarm that the listeners are notified about
 	 */
 	private synchronized static void fireAlarmEvent(Collection<Alarm> a) {
 		Vector<AlarmEvent> alarms = new Vector<AlarmEvent>();
