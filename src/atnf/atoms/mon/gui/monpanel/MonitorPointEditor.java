@@ -232,11 +232,23 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			if (e.getSource() instanceof JButton){
 				JButton source = (JButton) e.getSource();
 				if (source.equals(addPoint)){
-					this.addNewPointPanel();
+					SwingUtilities.invokeLater(new Runnable(){
+						public void run(){
+							MonitorPointEditorSetupPanel.this.addNewPointPanel();
+						}
+					});
 				} else if (source.equals(editPoint)){
-					this.addEditPointPanel(MPEditorSetupComponent.EDIT_POINT);
+					SwingUtilities.invokeLater(new Runnable(){
+						public void run(){
+							MonitorPointEditorSetupPanel.this.addEditPointPanel(MPEditorSetupComponent.EDIT_POINT);
+						}
+					});
 				} else if (source.equals(clonePoint)){
-					this.addEditPointPanel(MPEditorSetupComponent.CLONE_POINT);
+					SwingUtilities.invokeLater(new Runnable(){
+						public void run(){
+							MonitorPointEditorSetupPanel.this.addEditPointPanel(MPEditorSetupComponent.CLONE_POINT);
+						}
+					});
 				}
 				if (source.getActionCommand().equals("OK")){
 
@@ -1588,6 +1600,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			JPanel content = new JPanel(new GridLayout(6,2));
 			JScrollPane scroller = new JScrollPane();
 
+			JButton minihelp = new JButton("?");
+			minihelp.addActionListener(this);
+			minihelp.setActionCommand("help-metadata");
+			minihelp.setBackground(Color.BLUE);
+			minihelp.setOpaque(true);
+			minihelp.setForeground(Color.WHITE);
+			minihelp.setPreferredSize(new Dimension(40,40));
+			minihelp.setToolTipText("Information about the metadata fields");
+
 			JLabel title = new JLabel("MetaData");
 			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
 			title.setHorizontalAlignment(SwingConstants.CENTER);
@@ -1602,7 +1623,14 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			description.setLineWrap(true);
 			description.setEditable(false);
 
-			desc.add(title);
+			JPanel titlePanel = new JPanel();
+			titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.X_AXIS));
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(title);
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(minihelp);
+
+			desc.add(titlePanel);
 			desc.add(description);
 
 			JLabel nameLb = new JLabel("Point Name: ");
@@ -2459,6 +2487,81 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 		}
 
 		/**
+		 * Simple utility method to create a useful title from the action command given.
+		 * Has specific cases for known options, and a catchall case for others that don't match
+		 * @param cmd The actioncommand used to figure out what the title should be
+		 * @return A String holding the useful title
+		 */
+		private String helpTitle(String cmd) {
+			String res = "";
+			if (cmd.endsWith("metadata")){
+				res = "Metadata Field Help";
+			} else {
+				res = cmd.substring(cmd.indexOf('-')+1).toUpperCase();
+			}
+			return res;
+		}
+
+		public final String[] metadataInfo = new String[]{
+				"The name of the point. Typically this is in a format such as \"branch.descriptor\" where \"branch\" refers to a larger subcategory and \"descriptor\" refers to some detail about the point.",
+				"A description of the point. This should be a short summary of what data this point represents, though not more than a few words.",
+				"A short description of the point. This cannot exceed 10 characters, therefore must be succinct",
+				"The source of this point's data. Ensure that this is properly located in the monitor-source.txt file on the server",
+				"The units that this point's data is read in, such as degrees celsius (for temperature) etc. May not be applicable, depending on the indidvidual point."
+		};
+
+		/**
+		 * Returns a JPanel that can be used for a help type panel. This is determined by the
+		 * cmd String given as a parameter.
+		 * @param cmd The actioncommand String given that determines what the panel will look like.
+		 * @return A JPanel that can be used in other JComponents, contents determined by cmd
+		 */
+		private Object createHelpPanel(String cmd) {
+			JPanel itsPanel = new JPanel();
+			itsPanel.setLayout(new GridBagLayout());
+			GridBagConstraints g = new GridBagConstraints();
+			g.fill = GridBagConstraints.NONE;
+			g.gridheight = 1;
+			g.gridwidth = 1;
+			g.gridx = 0;
+			g.gridy = 0;
+			g.weightx = 0.5;
+			g.weighty = 0.5;
+			if (cmd.endsWith("metadata")){
+				final JComboBox metaBox = new JComboBox(new String[]{
+						"Name",
+						"Long Description",
+						"Short Description",
+						"Source",
+						"Units"
+				});
+				final JTextArea summary = new JTextArea(5, 20);
+				DefaultCaret ct = (DefaultCaret) summary.getCaret();
+				ct.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+				summary.setWrapStyleWord(true);
+				summary.setLineWrap(true);
+				summary.setEditable(false);
+				summary.setOpaque(false);
+				summary.setText(metadataInfo[0]);
+				metaBox.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e){
+						summary.setText(metadataInfo[metaBox.getSelectedIndex()]);
+					}
+				});
+				itsPanel.add(metaBox, g);
+				g.weighty = 0.1;
+				g.gridy++;
+				g.insets = new Insets(5,0,15,0);
+				g.weighty = 1.0;
+				itsPanel.add(summary, g);
+			} else {
+				return cmd;
+			}
+			return itsPanel;
+		}
+
+		/**
 		 * Utility method to populate the JComboBoxes and JTextFields used in the compound field
 		 * capable fields. Does the opposite task of the {@link #formatCompoundString(ArrayList, HashMap)} method.
 		 * @param boxes Reference to the ArrayList of JComboBoxes to populate
@@ -2536,6 +2639,10 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 				} else if (cmd.equals("finish")){
 					this.populateFields();
 					this.dispose();
+				} else if (cmd.startsWith("help")){//card help box
+					if (cmd.endsWith("metadata")){
+						JOptionPane.showMessageDialog(this, this.createHelpPanel(cmd), this.helpTitle(cmd), JOptionPane.INFORMATION_MESSAGE);
+					}
 				}
 			} else if (e.getSource() instanceof JComboBox){
 				JComboBox src = (JComboBox)e.getSource();
