@@ -1012,15 +1012,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			} else { //ignore tab
 				AlarmMaintainer.ignoreList.remove(point);
 			}
-			SwingUtilities.invokeLater(new Runnable(){
-				public void run(){
-					DefaultListModel dlm = (DefaultListModel)plist.getModel();
-					dlm.removeElement(point);
-					plist.revalidate();
-					plist.repaint();
-					AlarmDisplayPanel.this.showDefaultAlarmPanels();
-				}
-			});
 		}
 
 		/**
@@ -1030,17 +1021,20 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		private void singlePanelShelve(ActionEvent e){
 			JMenuItem source = (JMenuItem) e.getSource();
 			JPopupMenu parent = (JPopupMenu) source.getParent();
-			AlarmPanel pan = (AlarmPanel) parent.getInvoker();
+			final AlarmPanel pan = (AlarmPanel) parent.getInvoker();
 			final String point = pan.getPointName();
 			selectionIsShelved = !pan.getAlarm().isShelved();
 			new DataSender(point, "shelve", selectionIsShelved).start();
+			final boolean tempSelection = selectionIsShelved;
 			SwingUtilities.invokeLater(new Runnable(){
 				public void run(){
-					DefaultListModel dlm = (DefaultListModel)plist.getModel();
-					dlm.removeElement(point);
-					plist.revalidate();
-					plist.repaint();
-					AlarmDisplayPanel.this.showDefaultAlarmPanels();
+					if (tempSelection && AlarmDisplayPanel.this.getType() != AlarmDisplayPanel.ALL){
+						DefaultListModel dlm = (DefaultListModel)plist.getModel();
+						dlm.removeElement(point);
+						plist.revalidate();
+						plist.repaint();
+						AlarmDisplayPanel.this.showDefaultAlarmPanels();
+					}
 				}
 			});
 		}
@@ -1057,11 +1051,13 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			new DataSender(point, "ack", true).start();
 			SwingUtilities.invokeLater(new Runnable(){
 				public void run(){
-					DefaultListModel dlm = (DefaultListModel)plist.getModel();
-					dlm.removeElement(point);
-					plist.revalidate();
-					plist.repaint();
-					AlarmDisplayPanel.this.showDefaultAlarmPanels();
+					if (AlarmDisplayPanel.this.getType() != AlarmDisplayPanel.ALL){
+						DefaultListModel dlm = (DefaultListModel)plist.getModel();
+						dlm.removeElement(point);
+						plist.revalidate();
+						plist.repaint();
+						AlarmDisplayPanel.this.showDefaultAlarmPanels();
+					}
 				}
 			});
 		}
