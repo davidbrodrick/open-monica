@@ -25,6 +25,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.font.TextAttribute;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1021,22 +1022,23 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		private void singlePanelShelve(ActionEvent e){
 			JMenuItem source = (JMenuItem) e.getSource();
 			JPopupMenu parent = (JPopupMenu) source.getParent();
-			final AlarmPanel pan = (AlarmPanel) parent.getInvoker();
+			AlarmPanel pan = (AlarmPanel) parent.getInvoker();
 			final String point = pan.getPointName();
 			selectionIsShelved = !pan.getAlarm().isShelved();
 			new DataSender(point, "shelve", selectionIsShelved).start();
-			final boolean tempSelection = selectionIsShelved;
-			SwingUtilities.invokeLater(new Runnable(){
+			new Thread(){
 				public void run(){
-					if (tempSelection && AlarmDisplayPanel.this.getType() != AlarmDisplayPanel.ALL){
-						DefaultListModel dlm = (DefaultListModel)plist.getModel();
-						dlm.removeElement(point);
-						plist.revalidate();
-						plist.repaint();
-						AlarmDisplayPanel.this.showDefaultAlarmPanels();
-					}
+					try {
+						SwingUtilities.invokeAndWait(new Runnable(){
+							public void run(){
+								plist.setSelectedValue(point, false);
+							}
+						});
+					} catch (InterruptedException e1) {
+					} catch (InvocationTargetException e1) {}
+					shelve.doClick();
 				}
-			});
+			}.start();
 		}
 
 		/**
@@ -1049,17 +1051,19 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			AlarmPanel pan = (AlarmPanel) parent.getInvoker();
 			final String point = pan.getPointName();
 			new DataSender(point, "ack", true).start();
-			SwingUtilities.invokeLater(new Runnable(){
+			new Thread(){
 				public void run(){
-					if (AlarmDisplayPanel.this.getType() != AlarmDisplayPanel.ALL){
-						DefaultListModel dlm = (DefaultListModel)plist.getModel();
-						dlm.removeElement(point);
-						plist.revalidate();
-						plist.repaint();
-						AlarmDisplayPanel.this.showDefaultAlarmPanels();
-					}
+					try {
+						SwingUtilities.invokeAndWait(new Runnable(){
+							public void run(){
+								plist.setSelectedValue(point, false);
+							}
+						});
+					} catch (InterruptedException e1) {
+					} catch (InvocationTargetException e1) {}
+					ack.doClick();
 				}
-			});
+			}.start();
 		}
 
 		/**
@@ -1243,20 +1247,29 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					shelve.setEnabled(true);
 					notify.setEnabled(true);
 					try {
-						selectionIsShelved = localAlarms.get(source.getSelectedValue().toString()).isShelved();
-					} catch (NullPointerException e1) {
-						selectionIsShelved = AlarmMaintainer.getAlarm(source.getSelectedValue().toString()).isShelved();
-					}
-					selectionIsIgnored = (AlarmMaintainer.ignoreList.contains(source.getSelectedValue().toString()));
-					if (selectionIsShelved){
-						shelve.setText("UNSHELVE");
-					} else {
-						shelve.setText("SHELVE");
-					}
-					if (selectionIsIgnored){
-						ignore.setText("Unignore");
-					} else {
-						ignore.setText("Ignore");
+						String src = source.getSelectedValue().toString();
+						try {
+							selectionIsShelved = localAlarms.get(src).isShelved();
+						} catch (NullPointerException e1) {
+							selectionIsShelved = AlarmMaintainer.getAlarm(src).isShelved();
+						}
+						selectionIsIgnored = (AlarmMaintainer.ignoreList.contains(src));
+						if (selectionIsShelved){
+							shelve.setText("UNSHELVE");
+						} else {
+							shelve.setText("SHELVE");
+						}
+						if (selectionIsIgnored){
+							ignore.setText("Unignore");
+						} else {
+							ignore.setText("Ignore");
+						}
+					} catch (NullPointerException npe){
+						SwingUtilities.invokeLater(new Runnable(){
+							public void run(){
+								reset.doClick();
+							}
+						});
 					}
 				} else {
 					ignore.setEnabled(false);
