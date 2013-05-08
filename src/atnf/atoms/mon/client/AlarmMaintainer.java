@@ -35,6 +35,9 @@ import atnf.atoms.time.RelTime;
 public class AlarmMaintainer implements Runnable {
 	/** The polling interval. */
 	private static final RelTime theirPollInterval = RelTime.factory(10000000);
+	
+	/** Sleep interval when there are no listeners. */
+	private static final RelTime theirWaitingInterval = RelTime.factory(2000000);
 
 	/** Record of points which are currently in a priority alarm state. */
 	private static HashMap<PointDescription, Alarm> theirAlarms = new HashMap<PointDescription, Alarm>(500, 1000);
@@ -164,14 +167,22 @@ public class AlarmMaintainer implements Runnable {
 						}
 					}
 				}
+				
 			} catch (Exception e) {
 			}
-
-			// Sleep awhile
-			try {
-				theirPollInterval.sleep();
-			} catch (Exception e) {
-			}
+			
+			// Sleep for a shorter period if we're waiting for subscribers
+      if (autoAlarms || theirListeners.size()>0) {
+        try {
+          theirPollInterval.sleep();
+        } catch (Exception e) {
+        }
+      } else {
+        try {
+          theirWaitingInterval.sleep();
+        } catch (Exception e) {
+        }
+      }
 		}
 	}
 
