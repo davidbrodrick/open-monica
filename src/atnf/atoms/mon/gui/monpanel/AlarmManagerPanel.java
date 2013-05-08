@@ -239,7 +239,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			long startTime = System.currentTimeMillis();
 			while (AlarmMaintainer.getAllAlarms().size() == 0){
 				//loop forever
-				if ((System.currentTimeMillis() - startTime) > 5000){
+				if ((System.currentTimeMillis() - startTime) > 10000){
 					JOptionPane.showMessageDialog(AlarmManagerPanel.this, "Error retrieving alarms from the server", "Alarm Retrieval Error", JOptionPane.ERROR_MESSAGE);
 					return null;
 				}
