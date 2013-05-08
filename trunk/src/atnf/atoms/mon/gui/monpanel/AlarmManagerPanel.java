@@ -999,7 +999,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			JMenuItem source = (JMenuItem) e.getSource();
 			JPopupMenu parent = (JPopupMenu) source.getParent();
 			AlarmPanel pan = (AlarmPanel) parent.getInvoker();
-			String point = pan.getPointName();
+			final String point = pan.getPointName();
 			if (this.getType() != AlarmDisplayPanel.ALL && this.getType() != AlarmDisplayPanel.IGNORED){ //regular tabs
 				AlarmMaintainer.ignoreList.add(point);
 				localListModel.removeElement(point);
@@ -1014,6 +1014,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			}
 			SwingUtilities.invokeLater(new Runnable(){
 				public void run(){
+					DefaultListModel dlm = (DefaultListModel)plist.getModel();
+					dlm.removeElement(point);
+					plist.revalidate();
+					plist.repaint();
 					AlarmDisplayPanel.this.showDefaultAlarmPanels();
 				}
 			});
@@ -1027,11 +1031,15 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			JMenuItem source = (JMenuItem) e.getSource();
 			JPopupMenu parent = (JPopupMenu) source.getParent();
 			AlarmPanel pan = (AlarmPanel) parent.getInvoker();
-			String point = pan.getPointName();
+			final String point = pan.getPointName();
 			selectionIsShelved = !pan.getAlarm().isShelved();
 			new DataSender(point, "shelve", selectionIsShelved).start();
 			SwingUtilities.invokeLater(new Runnable(){
 				public void run(){
+					DefaultListModel dlm = (DefaultListModel)plist.getModel();
+					dlm.removeElement(point);
+					plist.revalidate();
+					plist.repaint();
 					AlarmDisplayPanel.this.showDefaultAlarmPanels();
 				}
 			});
@@ -1045,10 +1053,14 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			JMenuItem source = (JMenuItem) e.getSource();
 			JPopupMenu parent = (JPopupMenu) source.getParent();
 			AlarmPanel pan = (AlarmPanel) parent.getInvoker();
-			String point = pan.getPointName();
+			final String point = pan.getPointName();
 			new DataSender(point, "ack", true).start();
 			SwingUtilities.invokeLater(new Runnable(){
 				public void run(){
+					DefaultListModel dlm = (DefaultListModel)plist.getModel();
+					dlm.removeElement(point);
+					plist.revalidate();
+					plist.repaint();
 					AlarmDisplayPanel.this.showDefaultAlarmPanels();
 				}
 			});
