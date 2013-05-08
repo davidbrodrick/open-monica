@@ -1012,6 +1012,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			} else { //ignore tab
 				AlarmMaintainer.ignoreList.remove(point);
 			}
+			SwingUtilities.invokeLater(new Runnable(){
+				public void run(){
+					AlarmDisplayPanel.this.showDefaultAlarmPanels();
+				}
+			});
 		}
 
 		/**
@@ -1025,6 +1030,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			String point = pan.getPointName();
 			selectionIsShelved = !pan.getAlarm().isShelved();
 			new DataSender(point, "shelve", selectionIsShelved).start();
+			SwingUtilities.invokeLater(new Runnable(){
+				public void run(){
+					AlarmDisplayPanel.this.showDefaultAlarmPanels();
+				}
+			});
 		}
 
 		/**
@@ -1037,6 +1047,11 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 			AlarmPanel pan = (AlarmPanel) parent.getInvoker();
 			String point = pan.getPointName();
 			new DataSender(point, "ack", true).start();
+			SwingUtilities.invokeLater(new Runnable(){
+				public void run(){
+					AlarmDisplayPanel.this.showDefaultAlarmPanels();
+				}
+			});
 		}
 
 		/**
