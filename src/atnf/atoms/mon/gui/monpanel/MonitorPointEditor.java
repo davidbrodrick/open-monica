@@ -251,7 +251,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 					});
 				}
 				if (source.getActionCommand().equals("OK")){
-
 					for (MPEditorSetupComponent c : components){
 						if (c.getTreeSelection() == null && c.getType() != MPEditorSetupComponent.ADD_POINT){
 							JOptionPane.showMessageDialog(this, 
@@ -267,6 +266,12 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 								"There are one or more duplicate points selected.\n" +
 								"Please ensure all selected points are unique.", 
 								"Duplicate Points Error ", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+					if (numClone + numEdit + numNew == 0){
+						JOptionPane.showMessageDialog(this, 
+								"Please select at least one type of point.", 
+								"No Points Selected Error", JOptionPane.ERROR_MESSAGE);
 						return;
 					}
 					super.actionPerformed(e);
@@ -1326,9 +1331,9 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 		 * "LimitCheck","Listener","LowTimer","Mean","MonthlyPulse","None","NumberToAngle","NumberToBool",
 		 * "NumDecimals","NV","PeakDetect","Polar2X","Polar2Y","Preceding","PrecipitableWater",
 		 * "PrecipitableWaterMMA","Pulse","RelTimeToSeconds","RessetableIntegrator",
-		 * "ResettablePeakDetect","ResettablePulse","RoundToInt","RunCmd","Shorts2Double","Shorts2Float",
+		 * "ResettablePeakDetect","ResettablePulse","RetriggerablePulse","RoundToInt","RunCmd","Shorts2Double","Shorts2Float",
 		 * "SinceHighTimer","SpecificHumidity","Squelch","StopIfNoChange","StopIfNull","StringMap",
-		 * "StringReplace","StringToArray","StringToNumber","StringTrim","StuckValue","Substring","Synch",
+		 * "StringReplace","StringToArray","StringToNumber","StringTrim","StuckValue","Substring",
 		 * "ThyconAlarm","TimedSubstitution","VapourPressure","Variance","XY2Angle","XY2Mag"
 		 */
 		final String[] translationOpts = {
@@ -1378,6 +1383,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 				"RessetableIntegrator",
 				"ResettablePeakDetect",
 				"ResettablePulse",
+				"RetriggerablePulse",
 				"RoundToInt",
 				"RunCmd",
 				"Shorts2Double",
@@ -1394,7 +1400,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 				"StringTrim",
 				"StuckValue",
 				"Substring",
-				"Synch",
 				"ThyconAlarm",
 				"TimedSubstitution",
 				"VapourPressure",
@@ -1706,6 +1711,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			itgbc.gridy = 0;
 			itgbc.insets = new Insets(5, 5, 0, 0);
 
+			JButton minihelp = new JButton("?");
+			minihelp.addActionListener(this);
+			minihelp.setActionCommand("help-transaction");
+			minihelp.setBackground(Color.BLUE);
+			minihelp.setOpaque(true);
+			minihelp.setForeground(Color.WHITE);
+			minihelp.setPreferredSize(new Dimension(40,40));
+			minihelp.setToolTipText("Information about the Transaction types");
+
 			JLabel title = new JLabel("Input Transactions");
 			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
 			title.setHorizontalAlignment(SwingConstants.CENTER);
@@ -1745,7 +1759,14 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			itgbc.gridx++;
 			inTransMainPanel.add(arg4, itgbc);
 
-			desc.add(title);
+			JPanel titlePanel = new JPanel();
+			titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.X_AXIS));
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(title);
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(minihelp);
+
+			desc.add(titlePanel);
 			desc.add(description);
 
 			JPanel counter =  new JPanel();
@@ -1806,6 +1827,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			otgbc.gridy = 0;
 			otgbc.insets = new Insets(5, 5, 0, 0);
 
+			JButton minihelp = new JButton("?");
+			minihelp.addActionListener(this);
+			minihelp.setActionCommand("help-transaction");
+			minihelp.setBackground(Color.BLUE);
+			minihelp.setOpaque(true);
+			minihelp.setForeground(Color.WHITE);
+			minihelp.setPreferredSize(new Dimension(40,40));
+			minihelp.setToolTipText("Information about the Transaction types");
+
 			JLabel title = new JLabel("Output Transactions");
 			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
 			title.setHorizontalAlignment(SwingConstants.CENTER);
@@ -1845,7 +1875,14 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			otgbc.gridx++;
 			outTransMainPanel.add(arg4, otgbc);
 
-			desc.add(title);
+			JPanel titlePanel = new JPanel();
+			titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.X_AXIS));
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(title);
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(minihelp);
+
+			desc.add(titlePanel);
 			desc.add(description);
 
 			JPanel counter =  new JPanel();
@@ -1905,6 +1942,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			trgbc.gridy = 0;
 			trgbc.insets = new Insets(5, 5, 0, 0);
 
+			JButton minihelp = new JButton("?");
+			minihelp.addActionListener(this);
+			minihelp.setActionCommand("help-translation");
+			minihelp.setBackground(Color.BLUE);
+			minihelp.setOpaque(true);
+			minihelp.setForeground(Color.WHITE);
+			minihelp.setPreferredSize(new Dimension(40,40));
+			minihelp.setToolTipText("Information about the Translation types");
+
 			JLabel title = new JLabel("Translations");
 			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
 			title.setHorizontalAlignment(SwingConstants.CENTER);
@@ -1944,7 +1990,14 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			trgbc.gridx++;
 			translateMainPanel.add(arg4, trgbc);
 
-			desc.add(title);
+			JPanel titlePanel = new JPanel();
+			titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.X_AXIS));
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(title);
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(minihelp);
+
+			desc.add(titlePanel);
 			desc.add(description);
 
 			JPanel counter =  new JPanel();
@@ -2496,18 +2549,104 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			String res = "";
 			if (cmd.endsWith("metadata")){
 				res = "Metadata Field Help";
+			} else if (cmd.endsWith("transaction")){ 
+				res = "Transaction Type Help";
 			} else {
 				res = cmd.substring(cmd.indexOf('-')+1).toUpperCase();
 			}
 			return res;
 		}
 
-		public final String[] metadataInfo = new String[]{
+		private final String[] metadataInfo = new String[]{
 				"The name of the point. Typically this is in a format such as \"branch.descriptor\" where \"branch\" refers to a larger subcategory and \"descriptor\" refers to some detail about the point.",
 				"A description of the point. This should be a short summary of what data this point represents, though not more than a few words.",
 				"A short description of the point. This cannot exceed 10 characters, therefore must be succinct",
 				"The source of this point's data. Ensure that this is properly located in the monitor-source.txt file on the server",
 				"The units that this point's data is read in, such as degrees celsius (for temperature) etc. May not be applicable, depending on the indidvidual point."
+		};
+
+		private final String[] transactionInfo = new String[]{
+				"Holds a process variable name for polling or pushing values over EPICS Channel access. It requires one argument, the process variable. It may also have an optional extra variable where the DBRType is specified",
+				"Subscribes to updates via the EPICS Channel access monitor mechanism. It requires one argument, the process variable to be monitored. It may also have an optional extra variable where the DBRType is specified",
+				"This is for generic transactions that don't have ExternalSystem specific fields. It requires one argument, the channel.",
+				"Provides an initial value to the point before it is assigned other values by external mechanisms. It requires two arguments; the MoniCA type that this value should be parsed as (int, flt, dbl, str or bool), and the value to be used.",
+				"Checks that a set of points are within specified limits. It requires at least 5 arguments; first is the check frequency specified in microseconds, and should match the overall update frequency specified for this point. Second is the number of sequential updates that must occur before an alert is raised. Third is an argument string indicating when the point is within its limits, and the fourth is the argument string used when it is not. All following points are the names of points to be monitored.",
+				"Listens to a number of points. Requires at least one argument, which is the name of the point(s) to be listened to.",
+				"Generic Transaction used for ExternalSystems that require String inputs. The first argument is the name of channel/protocol that corresponds to an ExternalSystem. The extra arguments are those that are used by the specified ExternalSystem.",
+				"Provides a periodic fixed-value update to a parent point. It requires three arguments - the period (int seconds) that it should update at, the MoniCA type to parse the value as (int, flt, dbl, str or bool) and finally the actual value to be used."
+		};
+
+		private final String[] translationInfo = new String[]{//TODO
+				"Adds a constant offset to a 16-bit number, which wraps around at 0 and 65535. It has one argument, the value of the number to offset the point's value by.",
+				"Converts an angle data type to a double. Has one argument, which is the format of the initial value - \"r\" if it is in radians (the default), or \"d\" if it is in degrees.",
+				"Returns a single value from an array. Has one argument, the index of the array entry that should be returned.",
+				"Blocks updates if the listened-to point(s) is unavailable, or if it is in an alarm state. Has multiple arguments - the first is a number with the number of points to be listened to. The others are the names of the points to listen to.",
+				"Converts BCD nibbles to equivalent decimal value integers.",
+				"Masks a bit field, and rotates it to the right. Requires two arguments - the mask to perform an \"AND\" operation on (may be given in hexadecimal if prefixed with \"0x\"), and secondly the number of bits to shift right.",
+				"Maps a boolean input to one of two strings. The first argument is the map from a \"true\" value, and the second argument is the map from a \"false\" value.",
+				"Arbitrary mathematical function of any number of listened-to points. Uses JEP for expression parsing. Uses multiple arguments - the first is the \"N\" number of points to listen to. The next N arguments are the names of the points to be used in the calculation. The final argument is the calculation to perfom, where \"a\" is the variable for the first point, \"b\" is for the second, and so on until \"z\" for the twenty-sixth.",
+				"Same as for calculation, however this performs the calculation at the period of the parent point, rather than on each update. The arguments are as for Calculation, however two optional arguments can be given to specify a default value if any of the other points are unavailable - a MoniCA type argument (int, flt, dbl, str or bool) and a value.",
+				"Sets the timestamp of this point to match that of another. Has one argument, the name of the other point's timestamp to copy.",
+				"Generates a single \"true\" pulse at a consistent time. Has two arguments - a time/date In cron format, but must use x instead of asterisk. Example: 0,30 x/2 x x Mon-Fri will trigger at 0 and 30 minutes past every other hour Mondays through Fridays. The cron format is minutes, hours, day of month, month, day of week. All times as specified in 24 hour format and day of week can be either literal Mon, Tue etc or 1, 2 etc with 0 being Sunday, and a timezone that should be interpreted (e.g. \"Australia/Sydney\".",
+				"Accumulate the input values and reset each day. Has three arguments - first, the time of day to reset, in the format \"HH:MM\" in 24-hour format. Secondly, the timezone to use (e.g. \"Australia/Sydney\") and third, a boolean to indicate whether to use the value from the previously archived integration value as the initial value each day.",
+				"Exactly the same as DailyIntegrator, however this will only integrate the positive values over the day.",
+				"Will generate a single \"true\" value once per day. Has two arguments - a time to generate the pulse in the format \"HH:MM\" in 24-hour format, and also a timezone to be interpreted.",
+				"Generates a \"true\" value between a certain time window during the day. Has three arguments - the first two are the start time and end time, in the format \"HH:MM\" in 24-hour format. The third arguement is the timezone to be interpreted.",
+				"Calculates the difference between successive values for this point.",
+				"Calculates the dew point in degrees Celsius from the water vapour pressure. Takes a single argument, the water vapour pressure measured in hectopascals.",
+				"Sends an email, using the hosts default mail transport, if the input changes. Supports three or four arguments. The first argument is the destination email address. The next is an optional argument, the sender's email address. The final two arguments are the email subject, and the email body contents. These fields support using MoniCA substitutions.",
+				"Sends an email, using the hosts default mail transport, when the input changes from true to false. Arguments are the same as for EmailOnChange.",
+				"Sends an email, using the hosts default mail transport, when the input changes from false to true. Arguments are the same as for EmailOnChange.",
+				"Maps numbers to strings. Can have multiple arguments - each a map of a number to a string in the format \"Num:Str\". Any input not formatted as such is treated as the default value to be used when there is no explicit map.",
+				"Apply an arbitrary equation to numerical input. Uses JEP for expression parsing. Has one input, the equation, using \"x\" to represent the input number.",
+				"Assume the value of the highest precedence listened-to point which has valid data. Has multiple arguments, where each is the name of a point in order of priority.",
+				"Map an integer input to a hex string output.",
+				"Reports the amount of time (as a RelTime) the (numeric or boolean) input has been in a high/mark state. Output will be zero while input is in a low/space state.",
+				"Output depends on whether other monitor points are in an alarm state. Used together with TransactionListen. Has three arguments - first is the String to output when all points are within their limits, second is the string to output when they are not, and finally are the names of the points that are being listened to.",
+				"Listen to updates from one or more other points. Has at least two arguments; first is the number of points to listen to, and all subsequent arguments are the names of the points to listen to.",
+				"Reports the amount of time (as a RelTime) the (numeric or boolean) input has been in a low/space state. Output will be zero while input is in a high/mark state.",
+				"Calculates the moving average of the input value. Has two arguments - the first is the buffer time, where the amount of time to collect values for is given in seconds. The second (optional) argument is the minimum number of samples that must be collected before an output value is produced.",
+				"Generates a single \"true\" pulse at a specified time on the given day of month. Takes three arguments - the day of the month between 0 and 31, the time in the format \"HH:MM\" in 24-hour time, and finally the timezone to be interpreted.",
+				"Just returns the input argument.",
+				"Convert a number to an Angle type. Takes one optional argument, the format - either \"r\" for radians, or \"d\" for degrees. The default is radians.",
+				"If Integer cast of input is zero, output will be False, otherwise output will be True. Takes an optional argument to invert the output - setting this to \"true\" will invert the normal behaviour (i.e. 0 = true, 1 = false).",
+				"Limit the number of decimals in a floating point number. Takes one argument, the number of non-zero decimal places to round the number to.",
+				"Retrieve one named element from a HashMap or NameValueList input object. Has one argument, the key for the value to be extracted.",
+				"Find the peak of the input over a time period. Takes one argument, the period to perform the peak detections over, in seconds.",
+				"Listen to two numeric inputs which represent a polar vector, and output the X cartesian component of the vector. Takes three arguments - the name of the vector magnitude point, the name of the vector angle point, and an optional argument to specify the format of the angle, \"d\" for degrees or \"r\" for radians. The default value is radians.",
+				"Listen to two numeric inputs which represent a polar vector, and output the Y cartesian component of the vector. Takes three arguments - the name of the vector magnitude point, the name of the vector angle point, and an optional argument to specify the format of the angle, \"d\" for degrees or \"r\" for radians. The default value is radians.",
+				"Use the timestamp of the input value to find the value of a different point at that time and assume that value/timestamp for ourself. Has one argument, the name of the point whose historical values are to be looked up.",
+				"Estimate the precipitable water from surface temperature and relative humidity. Takes two point name arguments - the first is the point that has the temperature in degrees celsius, and the second is the point that has the relative humidity as a percentage.",
+				"Estimate the precipitable water from surface temperature and relative humidity using the MMA method. Takes two point name arguments - the first is the point that has the temperature in degrees celsius, and the second is the point that has the relative humidity as a percentage.",
+				"Produce a mark/space pulse sequence of specified durations when the numeric/boolean input triggers. Takes two arguments - the mark period in seconds, and the space period in seconds",
+				"Get the value of a RelTime object as it's number of elapsed seconds expressed as a Double.",
+				"Integrates the normal input but resets the integral when a specified listened-to point is \"true\". Takes two arguments. The first is the name of the point to listen to which determines when to reset the integral. Integral will be reset when the value of this point is \"true\". Value must either be a boolean or number, which will be interpreted as a boolean. The second argument is whether or not to use archived data when the server starts for the first time. Set to \"true\" to enable this behaviour, \"false\" otherwise.",
+				"Reports the peak detected value from the input but forgets old data when a reset control point is high. Takes one argument, the name of the point that controls the reset behaviour.",
+				"Outputs a pulse once triggered, but the pulse can be reset to a low state by a listened-to point. Takes two arguments, the mark period in seconds, and the name of the point which can reset the point.",
+				"Basic pulse extender. Timer can be reset. Has one argument, the pulse period, in seconds.",
+				"Round the Number input to the nearest integer value.",
+				"Runs an external programme and persists the return value in the point. Has at least three arguments, firstly, the number of values that are being passed, then the remaining arguments bar two are the names of the points that are being used as arguments. Then is the actual command to be used, and finally is the arguments you're passing on the command line to the external programme. Similar to the Calculation translation, $a substitutes to the first point value you've passed, $b to the second etc. Note the difference though: Dollar ($) sign is required to mark the letter as a variable. Example passing two parameters: test.ExternalCall \"Ext Call\" \"\" \"\" mysrc T - - {RunCmd-\"2\"\"mysrc.param.x\"\"mysrc.param.y\"\"/full/path/runme\"\"--paramx $a --paramy $b\"} - {Change-} 5000000 - In order to retrieve output from an external programme that does not take any input, you still need to feed one parameter in order for updates to trigger, but you can ignore the parameter field.",
+				"Merges two 16 bit integers to reassemble a 32 bit double integer. Has two arguments, first is most significant bits, and second is least significant bits of a 32-bit double.",
+				"Merges two 16 bit integers to reassemble a IEEE754 32 bit float.Has two arguments, first is most significant bits, and second is least significant bits of a 32-bit float.",
+				"Measures the interval since the input was last 'high'. Input must be a Boolean or Number. Output is a RelTime.",
+				"Calculates specific humidity, in grams of water vapour per kilogram of air, from water vapour pressure in hPa and surface pressure in hPa. Takes two arguments - the name of the point that has the value of the water vapour pressure, and the name of the point that has the pressure",
+				"Applies thresholding function. Takes two arguments - the threshold, where values below this number are squelched, and also a value to output when the value is squelched.",
+				"Stops the point update process if the input value hasn't changed.",
+				"Stops the point update process if the input has a null data value.",
+				"Mapw input strings to corresponding output strings. Has multiple arguments, all the maps of strings to other strings in the format \"str1:str2\"",
+				"Replaces any instances of the first string with the text of the second string. Takes two argument Strings, the target string to be replaced, and the replacement string to replace the target with.",
+				"Breaks the input String into an array of tokens. Takes a string delimiter to use to split the string using the Java String.split() method. If no delimiter is given, a space character is used.",
+				"Maps the string representation of a number to an actual numeric class type. Takes two arguments - the type of number to output, i.e. Integer, Float, Double or Long. The second optional argument is a radix for integers. If it is omitted, base 10 is used by default.",
+				"Removes leading/trailing whitespace from a string.",
+				"Flag data with an alarm and empty value when it seems the value has become \"stuck\". Takes one argument, the number of successive updates that a point must have before it is deemed \"stuck\".",
+				"Returns a substring of the input. Takes two arguments - the start index, and an optional second argument, the end index.",
+				"Returns the alarm string corresponding to the alarm number for a Thycon UPS. Has one argument, the alarm number.",
+				"Periodically performs value substitution on the provided template string. The time is taken from the parent points given update interval. Has one argument, the template string to use. See the Substitutions wiki page for further details on using substitutions.",
+				"Calculates water vapour pressure in hPa from temperature and relative humidity. Takes two arguments, the name of the point that contains the temperature in degrees celsius, and the name of the point that contains the relative humidty as a percentage.",
+				"Calculates the variance of the input over a specified time range. Takes one argument, the interval in seconds over which to calculate the variance of the input.",
+				"Determines the wet bulb temperature given the inputs provided. Has four arguments - first is the number of points, which must be 3. Next is the name of the point that reads the pressure in hPa, next is the name of the point with the temperature in degrees celsius, and finally is the name of the point which contains the observed mixing ratio in g/g.",
+				"Listen to two numeric inputs which represent the X and Y cartesian components of a vector and output the vector angle. Takes three arguements, first is the name of the point representing the X dimension, second is the name of the point representing the Y dimension, and finally is an optional argument specifying whether the output angle is in  degrees (\"d\") or in radians (\"r\"). The default value is radians.",
+				"Listen to two numeric inputs which represent the X and Y cartesian components of a vector and output the magnitude of the vector. Has two arguments, the name of the point representing the X dimension, and the name of the point representing the Y dimension."
 		};
 
 		/**
@@ -2535,7 +2674,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 						"Source",
 						"Units"
 				});
-				final JTextArea summary = new JTextArea(5, 20);
+				final JTextArea summary = new JTextArea(4, 30);
 				DefaultCaret ct = (DefaultCaret) summary.getCaret();
 				ct.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
 				summary.setWrapStyleWord(true);
@@ -2546,7 +2685,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 				metaBox.addActionListener(new ActionListener(){
 					@Override
 					public void actionPerformed(ActionEvent e){
-						summary.setText(metadataInfo[metaBox.getSelectedIndex()]);
+						SwingUtilities.invokeLater(new Runnable(){
+							public void run(){
+								summary.setText(metadataInfo[metaBox.getSelectedIndex()]);
+							}
+						});
 					}
 				});
 				itsPanel.add(metaBox, g);
@@ -2554,10 +2697,66 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 				g.gridy++;
 				g.insets = new Insets(5,0,15,0);
 				g.weighty = 1.0;
+				g.fill = GridBagConstraints.HORIZONTAL;
+				itsPanel.add(summary, g);
+			} else if (cmd.endsWith("transaction")){
+				final JComboBox transactionBox = new JComboBox(transactionOpts);
+				final JTextArea summary = new JTextArea(4, 30);
+				DefaultCaret ct = (DefaultCaret) summary.getCaret();
+				ct.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+				summary.setWrapStyleWord(true);
+				summary.setLineWrap(true);
+				summary.setEditable(false);
+				summary.setOpaque(false);
+				summary.setText(transactionInfo[0]);
+				transactionBox.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e){
+						SwingUtilities.invokeLater(new Runnable(){
+							public void run(){
+								summary.setText(transactionInfo[transactionBox.getSelectedIndex()]);
+							}
+						});
+					}
+				});
+				itsPanel.add(transactionBox, g);
+				g.weighty = 0.1;
+				g.gridy++;
+				g.insets = new Insets(5,0,15,0);
+				g.weighty = 1.0;
+				g.fill = GridBagConstraints.HORIZONTAL;
+				itsPanel.add(summary, g);
+			} else if (cmd.endsWith("translation")){
+				final JComboBox translationBox = new JComboBox(translationOpts);
+				final JTextArea summary = new JTextArea(4, 30);
+				DefaultCaret ct = (DefaultCaret) summary.getCaret();
+				ct.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+				summary.setWrapStyleWord(true);
+				summary.setLineWrap(true);
+				summary.setEditable(false);
+				summary.setOpaque(false);
+				summary.setText(translationInfo[0]);
+				translationBox.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e){
+						SwingUtilities.invokeLater(new Runnable(){
+							public void run(){
+								summary.setText(translationInfo[translationBox.getSelectedIndex()]);
+							}
+						});
+					}
+				});
+				itsPanel.add(translationBox, g);
+				g.weighty = 0.1;
+				g.gridy++;
+				g.insets = new Insets(5,0,15,0);
+				g.weighty = 1.0;
+				g.fill = GridBagConstraints.HORIZONTAL;
 				itsPanel.add(summary, g);
 			} else {
 				return cmd;
 			}
+			itsPanel.setPreferredSize(new Dimension(400, 200));
 			return itsPanel;
 		}
 
@@ -2565,7 +2764,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 		 * Utility method to populate the JComboBoxes and JTextFields used in the compound field
 		 * capable fields. Does the opposite task of the {@link #formatCompoundString(ArrayList, HashMap)} method.
 		 * @param boxes Reference to the ArrayList of JComboBoxes to populate
-		 * @param args Reference to the HashMap of &lt;JComboBox, JTextField[]&gt; to populate
+		 * @param args Reference to the HashMap&lt;JComboBox, JTextField[]&gt; to populate
 		 * @param inputs String[] that contains a String identifying each separate "type" of argument
 		 */
 		private void populatePanel(ArrayList<JComboBox> boxes, HashMap<JComboBox, JTextField[]> args, String[] inputs){
@@ -2639,10 +2838,8 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 				} else if (cmd.equals("finish")){
 					this.populateFields();
 					this.dispose();
-				} else if (cmd.startsWith("help")){//card help box
-					if (cmd.endsWith("metadata")){
-						JOptionPane.showMessageDialog(this, this.createHelpPanel(cmd), this.helpTitle(cmd), JOptionPane.INFORMATION_MESSAGE);
-					}
+				} else if (cmd.startsWith("help-")){//card help box
+					JOptionPane.showMessageDialog(this, this.createHelpPanel(cmd), this.helpTitle(cmd), JOptionPane.INFORMATION_MESSAGE);
 				}
 			} else if (e.getSource() instanceof JComboBox){
 				JComboBox src = (JComboBox)e.getSource();
