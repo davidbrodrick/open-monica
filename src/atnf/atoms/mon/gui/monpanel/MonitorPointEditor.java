@@ -2061,6 +2061,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			updgbc.gridy = 0;
 			updgbc.insets = new Insets(5, 5, 0, 0);
 
+			JButton minihelp = new JButton("?");
+			minihelp.addActionListener(this);
+			minihelp.setActionCommand("help-archivepolicy");
+			minihelp.setBackground(Color.BLUE);
+			minihelp.setOpaque(true);
+			minihelp.setForeground(Color.WHITE);
+			minihelp.setPreferredSize(new Dimension(40,40));
+			minihelp.setToolTipText("Information about the Archive Policy types");
+
 			JLabel title = new JLabel("Archive Policies");
 			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
 			title.setHorizontalAlignment(SwingConstants.CENTER);
@@ -2115,7 +2124,14 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			updgbc.gridx++;
 			updMainPanel.add(arg4, updgbc);
 
-			desc.add(title);
+			JPanel titlePanel = new JPanel();
+			titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.X_AXIS));
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(title);
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(minihelp);
+
+			desc.add(titlePanel);
 			desc.add(description);
 
 			JPanel counter =  new JPanel();
@@ -2189,6 +2205,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			ntgbc.gridy = 0;
 			ntgbc.insets = new Insets(5, 5, 0, 0);
 
+			JButton minihelp = new JButton("?");
+			minihelp.addActionListener(this);
+			minihelp.setActionCommand("help-notification");
+			minihelp.setBackground(Color.BLUE);
+			minihelp.setOpaque(true);
+			minihelp.setForeground(Color.WHITE);
+			minihelp.setPreferredSize(new Dimension(40,40));
+			minihelp.setToolTipText("Information about the Notification types");
+
 			JLabel title = new JLabel("Notifications");
 			title.setFont(new Font("Sans Serif", Font.BOLD, 18));
 			title.setHorizontalAlignment(SwingConstants.CENTER);
@@ -2227,7 +2252,14 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			ntgbc.gridx++;
 			notifMainPanel.add(arg4, ntgbc);
 
-			desc.add(title);
+			JPanel titlePanel = new JPanel();
+			titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.X_AXIS));
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(title);
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(minihelp);
+
+			desc.add(titlePanel);
 			desc.add(description);
 
 			JPanel counter =  new JPanel();
@@ -2304,6 +2336,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			description.setLineWrap(true);
 			description.setEditable(false);
 
+			JButton minihelp = new JButton("?");
+			minihelp.addActionListener(this);
+			minihelp.setActionCommand("help-alarmcriteria");
+			minihelp.setBackground(Color.BLUE);
+			minihelp.setOpaque(true);
+			minihelp.setForeground(Color.WHITE);
+			minihelp.setPreferredSize(new Dimension(40,40));
+			minihelp.setToolTipText("Information about the Notification types");
+
 			JLabel almPriorityLb = new JLabel("Alarm Priority: ");
 			almPriority = new JComboBox(priorities);
 			JLabel almGuidanceLb = new JLabel("Alarm Guidance: ");
@@ -2341,7 +2382,14 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			almgbc.gridx++;
 			almMainPanel.add(arg4, almgbc);
 
-			desc.add(title);
+			JPanel titlePanel = new JPanel();
+			titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.X_AXIS));
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(title);
+			titlePanel.add(Box.createHorizontalGlue());
+			titlePanel.add(minihelp);
+
+			desc.add(titlePanel);
 			desc.add(description);
 
 			JPanel counter =  new JPanel();
@@ -2649,6 +2697,28 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 				"Listen to two numeric inputs which represent the X and Y cartesian components of a vector and output the magnitude of the vector. Has two arguments, the name of the point representing the X dimension, and the name of the point representing the Y dimension."
 		};
 
+		private final String[] archPolInfo = new String[]{
+				"Archives data when the alarm flag is set.",
+				"Archives every data update.",
+				"Archives data when the value changes.",
+				"Archives every \"Nth\n update. Has one argument, which specifies the value of \"N\"",
+				"Archives data when the numeric value decreases.",
+				"Archives data when the numeric value increases.",
+				"Periodic archiver. Argument must be the archive interval in integer seconds."
+		};
+
+		private final String[] notifInfo = new String[]{
+				"Sends an email when this point changes to an alarm state.",
+				"Sends an email when this point transitions into or out of an alarm state."
+		};
+
+		private final String[] almCritInfo = new String[]{
+				"Checks whether a boolean value will raise an alarm or not. Takes two arguments - the first is the boolean value that will raise the alarm; either \"true\" or \"false\". The second optional argument is a number indicating how many consecutive updates must occur before the alarm is raised.",
+				"Checks whether a value is within a given range, otherwise will raise the alarm. Takes four arguments - the first two are the lower bound and the upper bound respectively, and the third optional argument designates which range is considered \"nominal\"; either inside the given range (\"true\", the default) or outside (\"false\"). An optional fourth argument can be given to signify how many successive updates must occur before the alarm is raised. The default value for the fourth argument is 1.",
+				"Checks whether the String value matches an entry in a predefined set. The first argument may be an optional one that specifies the number of successive update cycles that must occur before an alarm is triggered. All successive arguments are the Strings that are part of the \"accepted\" set of Strings. All Strings are compared in a case-insensitive manner.",
+				"Checks whether a numeric value matches a specified value. The first argument is that of the value to be checked against. The second optional boolean argument specifies the behaviour - if set to \"true\" it specifies that the value must match the specified one, if \"false\" it specifies that it must not. The default value is \"true\". Finally, an optional third argument can specify the number of successive updates that must occur before an alarm is triggered."
+		};
+
 		/**
 		 * Returns a JPanel that can be used for a help type panel. This is determined by the
 		 * cmd String given as a parameter.
@@ -2747,6 +2817,87 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 					}
 				});
 				itsPanel.add(translationBox, g);
+				g.weighty = 0.1;
+				g.gridy++;
+				g.insets = new Insets(5,0,15,0);
+				g.weighty = 1.0;
+				g.fill = GridBagConstraints.HORIZONTAL;
+				itsPanel.add(summary, g);
+			} else if (cmd.endsWith("notification")){
+				final JComboBox notifBox = new JComboBox(notifOpts);
+				final JTextArea summary = new JTextArea(4, 30);
+				DefaultCaret ct = (DefaultCaret) summary.getCaret();
+				ct.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+				summary.setWrapStyleWord(true);
+				summary.setLineWrap(true);
+				summary.setEditable(false);
+				summary.setOpaque(false);
+				summary.setText(notifInfo[0]);
+				notifBox.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e){
+						SwingUtilities.invokeLater(new Runnable(){
+							public void run(){
+								summary.setText(notifInfo[notifBox.getSelectedIndex()]);
+							}
+						});
+					}
+				});
+				itsPanel.add(notifBox, g);
+				g.weighty = 0.1;
+				g.gridy++;
+				g.insets = new Insets(5,0,15,0);
+				g.weighty = 1.0;
+				g.fill = GridBagConstraints.HORIZONTAL;
+				itsPanel.add(summary, g);
+			} else if (cmd.endsWith("archivepolicy")){
+				final JComboBox archBox = new JComboBox(archPolOpts);
+				final JTextArea summary = new JTextArea(4, 30);
+				DefaultCaret ct = (DefaultCaret) summary.getCaret();
+				ct.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+				summary.setWrapStyleWord(true);
+				summary.setLineWrap(true);
+				summary.setEditable(false);
+				summary.setOpaque(false);
+				summary.setText(archPolInfo[0]);
+				archBox.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e){
+						SwingUtilities.invokeLater(new Runnable(){
+							public void run(){
+								summary.setText(archPolInfo[archBox.getSelectedIndex()]);
+							}
+						});
+					}
+				});
+				itsPanel.add(archBox, g);
+				g.weighty = 0.1;
+				g.gridy++;
+				g.insets = new Insets(5,0,15,0);
+				g.weighty = 1.0;
+				g.fill = GridBagConstraints.HORIZONTAL;
+				itsPanel.add(summary, g);
+			} else if (cmd.endsWith("alarmcriteria")){
+				final JComboBox alarmBox = new JComboBox(alarmOpts);
+				final JTextArea summary = new JTextArea(4, 30);
+				DefaultCaret ct = (DefaultCaret) summary.getCaret();
+				ct.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+				summary.setWrapStyleWord(true);
+				summary.setLineWrap(true);
+				summary.setEditable(false);
+				summary.setOpaque(false);
+				summary.setText(almCritInfo[0]);
+				alarmBox.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e){
+						SwingUtilities.invokeLater(new Runnable(){
+							public void run(){
+								summary.setText(almCritInfo[alarmBox.getSelectedIndex()]);
+							}
+						});
+					}
+				});
+				itsPanel.add(alarmBox, g);
 				g.weighty = 0.1;
 				g.gridy++;
 				g.insets = new Insets(5,0,15,0);
