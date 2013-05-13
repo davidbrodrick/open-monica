@@ -387,6 +387,11 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			SimpleTreeSelector tree = new SimpleTreeSelector();
 			tree.addChangeListener(this);
 			JLabel selectedPointLabel = new JLabel("Selected Point:");
+			if (type == MPEditorSetupComponent.CLONE_POINT){
+				selectedPointLabel.setText("Cloned Point:");
+			} else if (type == MPEditorSetupComponent.EDIT_POINT){
+				selectedPointLabel.setText("Edited Point:");
+			}
 			JLabel selectedPoint = new JLabel("No Point Selected");
 			JButton close = new JButton("X");
 			gbc.gridheight = 4;
@@ -642,10 +647,17 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 	@Override
 	public void export(PrintStream p) {
 		String out = "";
+		int i  = 0;
 		for (MPEditorComponent m : components){
-			PointDescription pd = PointDescription.factory(m.getNames(), m.getLongDesc(), m.getShortDesc(), m.getUnits(), m.getSource(), m.getInTransactions(), m.getOutTransactions(), m.getTranslations(), m.getAlarmCriteria(), m.getArchivePolicies(), m.getNotifications(), m.getPeriod(), m.getArchiveLongevity(), m.getGuidance(), m.getPriority(), m.getEnabled());
+			i++;
+			try {
+			PointDescription pd = m.pointDescriptionFactory();
 			String monPointTxt = pd.getStringEquiv();
 			out += monPointTxt + "\n";
+			} catch (Exception e){
+				System.err.println("Input row is incomplete on row " + i);
+				continue;
+			}
 		}
 		p.print(out);
 	}
@@ -4482,7 +4494,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 						//write all points 
 						Vector<PointDescription> pointsToWrite = new Vector<PointDescription>();
 						for (MPEditorComponent m : components){
-							PointDescription pd = PointDescription.factory(m.getNames(), m.getLongDesc(), m.getShortDesc(), m.getUnits(), m.getSource(), m.getInTransactions(), m.getOutTransactions(), m.getTranslations(), m.getAlarmCriteria(), m.getArchivePolicies(), m.getNotifications(), m.getPeriod(), m.getArchiveLongevity(), m.getGuidance(), m.getPriority(), m.getEnabled());
+							PointDescription pd = m.pointDescriptionFactory();
 							pointsToWrite.add(pd);
 						}
 						allfine = mc.addPoints(pointsToWrite, username, password);
@@ -4501,7 +4513,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 					MoniCAClient mc = MonClientUtil.getServer();
 					boolean succ = false;
 					if (mc != null){
-						PointDescription pd = PointDescription.factory(reference.getNames(), reference.getLongDesc(), reference.getShortDesc(), reference.getUnits(), reference.getSource(), reference.getInTransactions(), reference.getOutTransactions(), reference.getTranslations(), reference.getAlarmCriteria(), reference.getArchivePolicies(), reference.getNotifications(), reference.getPeriod(), reference.getArchiveLongevity(), reference.getGuidance(), reference.getPriority(), reference.getEnabled());
+						PointDescription pd = reference.pointDescriptionFactory();
 						succ = mc.addPoint(pd, username, password);
 					}
 					if (!succ){
@@ -5131,6 +5143,15 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			return priority.getSelectedItem().toString();
 		}
 		/**
+		 * Returns the index of the selected value. Since the indexing system matches with 
+		 * that of the alarm priorities - 0 to 3 are Information to Severe alarms, with non-matching
+		 * selections returning -1
+		 * @return An int representation of the selected alarm priority.
+		 */
+		public int getPriorityInt(){
+			return priority.getSelectedIndex();
+		}
+		/**
 		 * Returns the text in the alarm guidance JTextField
 		 * @return String that is the alarm guidance
 		 */
@@ -5181,6 +5202,16 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			if (guidance.getText().equals(""))guidance.setText("-");
 
 			return res;
+		}
+		/**
+		 * Returns a PointDescription from a MPEditorComponent's fields. Also validates 
+		 * and sets blank fields to placeholder fields to be parsed by the factory method.
+		 * @return A PointDescription that has the data as held by this MPEditorComponent
+		 * @throws Exception thrown when the name field is empty and thus invalid
+		 */
+		public PointDescription pointDescriptionFactory() throws Exception{
+			if (!this.validate()) throw (new Exception());
+			return PointDescription.factory(getNames(), getLongDesc(), getShortDesc(), getUnits(), getSource(), getInTransactions(), getOutTransactions(), getTranslations(), getAlarmCriteria(), getArchivePolicies(), getNotifications(), getPeriod(), getArchiveLongevity(), getGuidance(), Integer.toString(getPriorityInt()), getEnabled());
 		}
 	}
 	// END NESTED CLASS ///////
@@ -5273,6 +5304,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 	@Override
 	public void onAlarmEvent(Collection<AlarmEvent> events) {
 		AlarmMaintainer.removeListener(this);
+		// new thread so we don't lag out the AWT EventQueue
 		new Thread(){
 			@Override
 			public void run(){
