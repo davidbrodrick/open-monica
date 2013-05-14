@@ -137,7 +137,11 @@ public class AlarmPanel extends JPanel {
 			status.setText("Not Alarmed");
 			status.setForeground(AlarmManagerPanel.NOT_ALARMED_COLOUR);
 		} else if (itsAlarm.getAlarmStatus() == Alarm.SHELVED) {
-			status.setText("Shelved");
+			if (itsAlarm.isAlarming()){
+				status.setText("Shelved/Alarming");
+			} else {
+				status.setText("Shelved/Not Alarming");
+			}
 			status.setForeground(AlarmManagerPanel.SHELVED_COLOUR);
 		}
 		ackedBy = new JLabel("Acknowledged by: " + itsAlarm.getAckedBy());
@@ -166,7 +170,6 @@ public class AlarmPanel extends JPanel {
 		alarmStatus.setLayout(new BoxLayout(alarmStatus, BoxLayout.X_AXIS));
 		alarmStatus.add(statusString);
 		alarmStatus.add(status);
-
 		
 		guidance = new JTextArea(2, 10);
 		DefaultCaret caret = (DefaultCaret)guidance.getCaret();
