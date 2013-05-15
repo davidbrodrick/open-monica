@@ -196,6 +196,7 @@ public class ControlPanel extends MonPanel implements ActionListener, KeyListene
 			viewPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 			viewPane.setViewportView(itsMainPanel);
 			this.add(viewPane, BorderLayout.CENTER);
+			numberControls.setValue(1);
 		}
 
 		@Override
