@@ -13,9 +13,11 @@ public class RSA
 {
   private BigInteger n, d, e;
 
-  private int bitlen = 1024;
+  private int itsNumBits = 1024;
+  
+  private static final int theirMinLength = 12; 
 
-  /** Create an instance that can encrypt using someone elses public key. */
+  /** Create an instance that can encrypt using someone else's public key. */
   public RSA(BigInteger newn, BigInteger newe)
   {
     n = newn;
@@ -25,13 +27,12 @@ public class RSA
   /** Create an instance that can both encrypt and decrypt. */
   public RSA(int bits)
   {
-    bitlen = bits;
+    itsNumBits = bits;
     SecureRandom r = new SecureRandom();
-    BigInteger p = new BigInteger(bitlen / 2, 100, r);
-    BigInteger q = new BigInteger(bitlen / 2, 100, r);
+    BigInteger p = new BigInteger(itsNumBits / 2, 100, r);
+    BigInteger q = new BigInteger(itsNumBits / 2, 100, r);
     n = p.multiply(q);
-    BigInteger m = (p.subtract(BigInteger.ONE))
-                   .multiply(q.subtract(BigInteger.ONE));
+    BigInteger m = (p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE));
     e = new BigInteger("3");
     while(m.gcd(e).intValue() > 1) {
       e = e.add(new BigInteger("2"));
@@ -44,15 +45,20 @@ public class RSA
   String
   encrypt(String message)
   {
-    return (new BigInteger(message.getBytes())).modPow(e, n).toString();
-  }
-
-  /** Encrypt the given plaintext message. */
-  public synchronized
-  BigInteger
-  encrypt(BigInteger message)
-  {
-    return message.modPow(e, n);
+    byte[] msgbytes = message.getBytes();
+    if (msgbytes.length<theirMinLength) {
+      byte[] temp = new byte[theirMinLength];
+      for (int i=0; i<msgbytes.length; i++) {
+        // Copy the message
+        temp[i]=msgbytes[i];
+      }
+      for (int i=msgbytes.length; i<theirMinLength; i++) {
+        // Pad the message
+        temp[i] = 0;
+      }
+      msgbytes = temp;
+    }
+    return (new BigInteger(msgbytes)).modPow(e, n).toString();
   }
 
   /** Decrypt the given ciphertext message. */
@@ -60,15 +66,10 @@ public class RSA
   String
   decrypt(String message)
   {
-    return new String((new BigInteger(message)).modPow(d, n).toByteArray());
-  }
-
-  /** Decrypt the given ciphertext message. */
-  public synchronized
-  BigInteger
-  decrypt(BigInteger message)
-  {
-    return message.modPow(d, n);
+    String plaintext = new String((new BigInteger(message)).modPow(d, n).toByteArray());
+    // Strip any padding characters
+    plaintext=plaintext.replaceAll("\0", "");
+    return plaintext;
   }
 
   /** Generate a new public and private key set. */
@@ -77,8 +78,8 @@ public class RSA
   generateKeys()
   {
     SecureRandom r = new SecureRandom();
-    BigInteger p = new BigInteger(bitlen / 2, 100, r);
-    BigInteger q = new BigInteger(bitlen / 2, 100, r);
+    BigInteger p = new BigInteger(itsNumBits / 2, 100, r);
+    BigInteger q = new BigInteger(itsNumBits / 2, 100, r);
     n = p.multiply(q);
     BigInteger m = (p.subtract(BigInteger.ONE))
                    .multiply(q.subtract(BigInteger.ONE));
@@ -110,15 +111,11 @@ public class RSA
   {
     RSA rsa = new RSA(1024);
 
-    String text1 = "Yellow and Black Border Collies";
-    System.out.println("Plaintext: " + text1);
-    BigInteger plaintext = new BigInteger(text1.getBytes());
-
-    BigInteger ciphertext = rsa.encrypt(plaintext);
+    String plaintext = "Yellow and Black Border Collies";
+    System.out.println("Plaintext: " + plaintext);    
+    String ciphertext = rsa.encrypt(plaintext);
     System.out.println("Ciphertext: " + ciphertext);
     plaintext = rsa.decrypt(ciphertext);
-
-    String text2 = new String(plaintext.toByteArray());
-    System.out.println("Plaintext: " + text2);
+    System.out.println("Plaintext: " + plaintext);
   }
 }
