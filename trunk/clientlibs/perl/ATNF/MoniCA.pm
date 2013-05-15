@@ -344,7 +344,9 @@ use vars qw(@ISA @EXPORT);
 	      monbetween monpreceeding monfollowing montill monset dUT
 	      bat2mjd mjd2bat bat2time atca_tied monnames monlist2hash
               mondetails monpoll2 bat2cal bat2unixtime perltime2mjd 
-              monalarms monallalarms monalarmack monalarmshelve);
+              monalarms monallalarms monalarmack monalarmshelve getRSA
+              encryptstring encryptstring_session encryptstring_persistent
+              monset_m );
 
 =item B<monconnect>
 
@@ -363,6 +365,7 @@ sub monconnect($) {
 				  PeerPort => 8051,
 				 )
     || return undef;
+
 
   return $mon;
 }
@@ -464,24 +467,31 @@ sub monpoll2 ($@) {
     }
 }
 
-=item B<monset>
+=item B<monset_m>
 
-    my $setresult = monset($mon, $user, $pass, $monsetpoint);
-    my @setresults = monset($mon, $user, $pass, @monsetpoints);
+    my $setresult = monset_m($mon, $user, $pass, $estate, $monsetpoint);
+    my @setresults = monset_m($mon, $user, $pass, $estate, @monsetpoints);
 
-Calls the "set" function, returning the same set of points with their
-success values filled.
+  Calls the "set" function, returning the same set of points with their
+  success values filled.
 
-		$mon          Monitor server.
-		$monsetpoint  A filled-in MonSetPoint object.
-       	        @monsetpoints An array of filled-in MonSetPoint objects.
+     $mon          Monitor server.
+     $user         The username to use for the set point.
+     $pass         The password to use for the set point.
+     $estate       The state of the user/pass encryption:
+                   0 = do not further encrypt these parameters
+                   1 = encrypt with the session-specific key
+                   2 = encrypt with the persistent key
+     $monsetpoint  A filled-in MonSetPoint object.
+     @monsetpoints An array of filled-in MonSetPoint objects.
 
 =cut
 
-sub monset ($$$@) {
+sub monset_m ($$$$@) {
   my $mon=shift;
   my $user=shift;
   my $pass=shift;
+  my $estate=shift;
   my @monsetpoints=@_;
   my $nset = scalar(@monsetpoints);
 
@@ -498,6 +508,15 @@ sub monset ($$$@) {
 	!defined $monsetpoints[$i]->type) {
       $allok = 0;
     }
+  }
+
+  # Do some encryption if required.
+  if ($estate == 1) {
+      $user = encryptstring_session($mon,$user);
+      $pass = encryptstring_session($mon,$pass);
+  } elsif ($estate == 2) {
+      $user = encryptstring_persistent($mon,$user);
+      $pass = encryptstring_persistent($mon,$pass);
   }
 
   if ($allok == 1) {
@@ -530,6 +549,34 @@ EOF
     return $monsetpoints[0];
   }
 
+}
+
+=item B<monset>
+
+    my $setresult = monset($mon, $user, $pass, $monsetpoint);
+    my @setresults = monset($mon, $user, $pass, @monsetpoints);
+
+  Calls the "set" function, returning the same set of points with their
+  success values filled. This function, being the original implementation
+  of this method, does not support specification of user/pass encryption.
+  You should ensure the proper encryption of the user/pass is done before
+  calling this routine.
+
+     $mon          Monitor server.
+     $user         The username to use for the set point.
+     $pass         The password to use for the set point.
+     $monsetpoint  A filled-in MonSetPoint object.
+     @monsetpoints An array of filled-in MonSetPoint objects.
+
+=cut
+
+sub monset ($$$@) {
+    my $mon=shift;
+    my $user=shift;
+    my $pass=shift;
+    my @monsetpoints=@_;
+
+    return monset_m($mon, $user, $pass, 0, @monsetpoints);
 }
 
 =item B<monsince>
@@ -1398,4 +1445,142 @@ sub dUT ($$$) {
   }
 }
 
+=item B<getRSA>
+
+  my $rsa_key = getRSA($mon, $option);
+
+  Get either the session-specific or persistent RSA key from
+  the MoniCA server.
+     $mon        Monitor server
+     $option     (optional) Get the session-specific key if
+                 omitted or 0, otherwise get the persistent
+                 key.
+     $rsa_key    A hash with two keys: 'exponent' and 'modulus'.
+=cut
+
+
+sub getRSA($;$) {
+    my $mon = shift;
+    my $option = shift;
+
+    my $qstring = "rsa";
+    if ($option) {
+	$qstring = "rsapersist";
+    }
+
+    print $mon $qstring."\n";
+    my @res;
+    while(<$mon>) {
+	chomp;
+	push @res, $_;
+	if ($#res == 1) {
+	    last;
+	}
+    }
+    my $key = { 'exponent' => $res[0], 'modulus' => $res[1] };
+
+    return $key;
+}
+
+=item B<encryptstring>
+
+  my $estring = encryptstring($mon, $ustring, $option);
+
+  Encrypt a string with the server's key.
+     $mon      Monitor server.
+     $ustring  The string to encrypt.
+     $option   (optional) Use the session-specific key if
+               omitted or 0, otherwise use the persistent
+               key.
+     $estring  The encrypted string, expressed as a BigInt.
+=cut
+
+sub encryptstring($$;$) {
+    my $mon = shift;
+    my $ustring = shift;
+    my $option = shift;
+
+    # Get the key.
+    my $rsakey = getRSA($mon, $option);
+    
+    # Make the OpenSSL key elements.
+    my $n = Math::BigInt->new($rsakey->{'modulus'});
+    my $e = Math::BigInt->new($rsakey->{'exponent'});
+
+    # How long is the string?
+    my $slen = length $ustring;
+    # The minimum safe length is 30 characters.
+    my $shlen = 30 - $slen;
+
+    # Turn the string into a number.
+    my $bst = str2dec($ustring);
+    # Add the necessary padding.
+    for (my $i=0; $i<$shlen; $i++) {
+	$bst .= "00000000";
+    }
+    my $bnum = Math::BigInt->from_bin($bst);
+    
+    # Encode the message.
+    my $estring = $bnum->bmodpow($e, $n);
+
+    return $estring;
+}
+
+=item B<encryptstring_session>
+
+  my $estring = encryptstring($mon, $ustring);
+
+  Encrypt a string with the server's session-specific key.
+     $mon      Monitor server.
+     $ustring  The string to encrypt.
+     $estring  The encrypted string.
+=cut
+
+sub encryptstring_session($$) {
+    my $mon = shift;
+    my $ustring = shift;
+
+    my $estring = encryptstring($mon, $ustring);
+    return $estring;
+}
+
+=item B<encryptstring_persistent>
+
+  my $estring = encryptstring($mon, $ustring);
+
+  Encrypt a string with the server's persistent key.
+     $mon      Monitor server.
+     $ustring  The string to encrypt.
+     $estring  The encrypted string.
+=cut
+
+sub encryptstring_persistent($$) {
+    my $mon = shift;
+    my $ustring = shift;
+
+    my $estring = encryptstring($mon, $ustring, "persistent");
+    return $estring;
+}
+
+sub str2dec {
+  # Turn the string into a number.
+  my @els = split(//, shift);
+  my $bst = "";
+  for my $s (@els) {
+    my $ev = ord $s;
+    my $dst = &dec2bin($ev);
+#    print $ev." ".$s." ".$dst."\n";
+    $bst .= $dst;
+  }
+  return $bst;
+}
+
+
+sub dec2bin {
+  my $str = unpack("B32", pack("N", shift));
+  $str =~ s/^.*(........)$/$1/;
+  return $str;
+}
+
 return 1;
+
