@@ -225,3 +225,39 @@ Usage:
 ==== monpreceeding ====
 
 ==== monfollowing ====
+
+==== monset_m ====
+
+Set the values for one or more points on the server.
+
+Usage:
+{{{
+@setresults = monset_m($mon, $user, $pass, $encrypt, @monsetpoints);
+}}}
+
+  * `$mon` is a successfully created MoniCA connection handle
+  * `$user` is a string representing the username required to set the value for the points
+  * `$pass` is a string representing the password required to set the value for the points
+  * `$encrypt` is a number, instructing this function how to deal with the username and password. It can have one of the following values:
+    * `0`: do not encrypt the username and password, either because you wish to transmit them in plain-text (bad idea), or they are already appropriately encrypted
+    * `1`: encrypt the username and password with the session-specific RSA key provided by the server
+    * `2`: encrypt the username and password with the persistent RSA key provided by the server
+  * `@monsetpoints` is list (or scalar) of `MonSetPoint` objects.
+  * `@setresults` is a list (or scalar) or `MonSetPoint` objects, identical to the list sent as `@monsetpoints`, but with the `success` property filled.
+
+A `MonSetPoint` object has the properties:
+  * `point`: the name of the monitoring point
+  * `type`: the type of the point (ie. `'int'` for integer, a full list can be found on the [https://code.google.com/p/open-monica/wiki/ClientASCII ClientASCII page] under the set command)
+  * `val`: the value to set the point to, appropriate for the `type`
+  * `success`: upon return from a setting routine, this value will either be `0` if the setting failed, or `1` if it succeeded
+
+==== monset ====
+
+A legacy routine to enable setting the values for one or more points on the server. It calls the `monset_m` routine internally, but does not support encryption of the username and password. It exists so that old codes that use `monset` before encryption support became available will work without modification.
+
+Usage:
+{{{
+@setresults = monset($mon, $user, $pass, @monsetpoints);
+}}}
+
+See `monset_m` for a description of these arguments.
