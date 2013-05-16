@@ -309,7 +309,7 @@ Usage:
 @ackresults = monalarmack_m($mon, $user, $pass, $encrypt, @alarmnames);
 }}}
 
-  * `mon` is a successfully created MoniCA connection handle
+  * `$mon` is a successfully created MoniCA connection handle
   * `$user` is a string representing the username required to acknowledge the alarms
   * `$pass` is a string representing the password required to acknowledge the alarms
   * `$encrypt` is a number, instructing this function how to deal with the username and password. It can have one of the following values:
@@ -341,7 +341,7 @@ Usage:
 @ackresults = monalarmshelve_m($mon, $user, $pass, $encrypt, @alarmnames);
 }}}
 
-  * `mon` is a successfully created MoniCA connection handle
+  * `$mon` is a successfully created MoniCA connection handle
   * `$user` is a string representing the username required to shelve the alarms
   * `$pass` is a string representing the password required to shelve the alarms
   * `$encrypt` is a number, instructing this function how to deal with the username and password. It can have one of the following values:
@@ -363,3 +363,21 @@ Usage:
 }}}
 
 See `monalarmshelve_m` for a description of these arguments.
+
+==== getRSA ====
+
+This routine will return either of the two RSA public keys that can be used to encrypt the username and password for all point setting or alarm acknowledgement/shelving actions.
+
+Usage:
+{{{
+$rsa_key = getRSA($mon, $option);
+}}}
+
+  * `$mon` is a successfully created MoniCA connection handle
+  * `$option` is an optional integer that indicates which RSA public key to return:
+    * `0` will return the key that is valid only while the `$mon` handle stays open (this is the session-specific key)
+    * `1` will return the key that is valid while the MoniCA server stays up (this is the persistent key)
+    * omitting this argument is equivalent to setting it to `0`
+  * `$rsa_key` is a reference to a hash with the properties:
+    * `exponent`: the RSA key exponent, as a string
+    * `modulus`: the RSA key modulus, as a string
