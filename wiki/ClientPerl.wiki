@@ -261,3 +261,105 @@ Usage:
 }}}
 
 See `monset_m` for a description of these arguments.
+
+==== monalarms ====
+
+Get the state of the currently alarmed points, or those points that have been shelved.
+
+Usage:
+{{{
+@alarmstates = monalarms($mon);
+}}}
+
+  * `$mon` is a successfully created MoniCA connection handle
+  * `@alarmstates` is a list of `MonAlarm` objects describing the currently alarmed points on the MoniCA server.
+
+A `MonAlarm` object has the properties:
+  * `point`: the name of the alarm point
+  * `priority`: the severity of the alarm, as an integer (described on the [https://code.google.com/p/open-monica/wiki/AlarmFunctionality alarm functionality] page)
+  * `alarm`: whether the alarm is active, as a string (true or false)
+  * `acknowledged`: whether the alarm has been acknowledged, as a string (true or false)
+  * `acknowledgedby`: a string, either `null` if the alarm has not been acknowledged, or the name of the user that acknowledged the alarm
+  * `acknowledgedat`: the BAT timestamp when the alarm was acknowledged, or `null` otherwise
+  * `shelved`: whether the alarm has been shelved, as a string (true or false)
+  * `shelvededby`: a string, either `null` if the alarm has not been shelved, or the name of the user that shelved the alarm
+  * `shelvededat`: the BAT timestamp when the alarm was shelved, or `null` otherwise
+  * `guidance`: the guidance text associated with this alarm condition
+
+==== monallalarms ====
+
+Get the state of all the points that are defined as alarms on the server, regardless of their current state.
+
+Usage:
+{{{
+@alarmstates = monallalarms($mon);
+}}}
+
+  * `$mon` is a successfully created MoniCA connection handle
+  * `@alarmstates` is a list of `MonAlarm` objects describing the currently alarmed points on the MoniCA server.
+
+The `MonAlarm` object properties are described in the `monalarms` function description.
+
+==== monalarmack_m ====
+
+Acknowledge or deacknowledge an alarm.
+
+Usage:
+{{{
+@ackresults = monalarmack_m($mon, $user, $pass, $encrypt, @alarmnames);
+}}}
+
+  * `mon` is a successfully created MoniCA connection handle
+  * `$user` is a string representing the username required to acknowledge the alarms
+  * `$pass` is a string representing the password required to acknowledge the alarms
+  * `$encrypt` is a number, instructing this function how to deal with the username and password. It can have one of the following values:
+    * `0`: do not encrypt the username and password, either because you wish to transmit them in plain-text (bad idea), or they are already appropriately encrypted
+    * `1`: encrypt the username and password with the session-specific RSA key provided by the server
+    * `2`: encrypt the username and password with the persistent RSA key provided by the server
+  * `@alarmnames` is a list (or scalar) of hashes that describe the alarm to acknowledge or deacknowledge, with the properties:
+    * `point`: the name of the alarm point
+    * `value`: a string, either `true` to acknowledge the alarm, or `false` to deacknowledge it
+  * `@ackresults` is a list (or scalar) of strings, in the same order as the alarms specified in `@alarmnames`; each string will be `OK` if the acknowledgement succeeded, or `ERROR` if not
+
+==== monalarmack ====
+
+A legacy routine to enable alarm acknowledgement for one or more alarm points on the server. It calls the `monalarmack_m` routine internally, but does not support encryption of the username and password. It exists so that old codes that use `monalarmack` before encryption support became available will work without modification.
+
+Usage:
+{{{
+@ackresults = monalarmack($mon, $user, $pass, @alarmnames);
+}}}
+
+See `monalarmack_m` for a description of these arguments.
+
+==== monalarmshelve_m ====
+
+Shelve or unshelve an alarm.
+
+Usage:
+{{{
+@ackresults = monalarmshelve_m($mon, $user, $pass, $encrypt, @alarmnames);
+}}}
+
+  * `mon` is a successfully created MoniCA connection handle
+  * `$user` is a string representing the username required to shelve the alarms
+  * `$pass` is a string representing the password required to shelve the alarms
+  * `$encrypt` is a number, instructing this function how to deal with the username and password. It can have one of the following values:
+    * `0`: do not encrypt the username and password, either because you wish to transmit them in plain-text (bad idea), or they are already appropriately encrypted
+    * `1`: encrypt the username and password with the session-specific RSA key provided by the server
+    * `2`: encrypt the username and password with the persistent RSA key provided by the server
+  * `@alarmnames` is a list (or scalar) of hashes that describe the alarm to shelve or unshelve, with the properties:
+    * `point`: the name of the alarm point
+    * `value`: a string, either `true` to shelve the alarm, or `false` to unshelve it
+  * `@ackresults` is a list (or scalar) of strings, in the same order as the alarms specified in `@alarmnames`; each string will be `OK` if the shelving succeeded, or `ERROR` if not
+
+==== monalarmshelve ====
+
+A legacy routine to enable alarm shelving for one or more alarm points on the server. It calls the `monalarmshelve_m` routine internally, but does not support encryption of the username and password. It exists so that old codes that use `monalarmshelve` before encryption support became available will work without modification.
+
+Usage:
+{{{
+@ackresults = monalarmshelve($mon, $user, $pass, @alarmnames);
+}}}
+
+See `monalarmshelve_m` for a description of these arguments.
