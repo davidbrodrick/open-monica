@@ -346,7 +346,7 @@ use vars qw(@ISA @EXPORT);
               mondetails monpoll2 bat2cal bat2unixtime perltime2mjd 
               monalarms monallalarms monalarmack monalarmshelve getRSA
               encryptstring encryptstring_session encryptstring_persistent
-              monset_m );
+              monset_m monalarmack_m monalarmshelve_m );
 
 =item B<monconnect>
 
@@ -944,12 +944,80 @@ sub monallalarms ($) {
 
     return @vals;
 }
+
+=item B<monalarmack_m>
+
+    my $ackresult = monalarmack_m($mon, $user, $pass, $estate, $alarmname);
+    my @ackresults = monalarmack_m($mon, $user, $pass, $estate, @alarmnames);
+
+ Acknowledges an alarm on the server.
+    
+    $mon            Monitor server.
+    $user           The username required to perform acknowledgement.
+    $pass           The password required to perform acknowledgement.
+    $estate         The stae of the user/pass encryption:
+                    0 = do not further encrypt these parameters
+                    1 = encrypt with the session-specific key
+                    2 = encrypt with the persistent key
+    $alarmname      A reference to a hash with { point => the alarm name,
+                                                 value => true to acknowledge,
+                                                          false to unacknowledge }
+    @alarmnames     A list of alarm hash references.
+=cut
+
+sub monalarmack_m ($$$$@) {
+    my $mon = shift;
+    my $user = shift;
+    my $pass = shift;
+    my $estate = shift;
+    my @alarmnames = @_;
+    my $nset = scalar(@alarmnames);
+
+    if ($nset == 0) {
+        carp "No alarm points to acknowledge!\n";
+        return;
+    }
+
+    # Do some encryption if required.
+    if ($estate == 1) {
+	$user = encryptstring_session($mon,$user);
+	$pass = encryptstring_session($mon,$pass);
+    } elsif ($estate == 2) {
+	$user = encryptstring_persistent($mon,$user);
+	$pass = encryptstring_persistent($mon,$pass);
+    }
+
+    print $mon "ack\n";
+    print $mon "$user\n";
+    print $mon "$pass\n";
+    print $mon "$nset\n";
+    foreach (@alarmnames) {
+        print $mon $_->{'point'}."\t".$_->{'value'}."\n";
+    }
+
+    my @vals = ();
+    for (my $i=0;$i<$nset;$i++) {
+        chomp(my $line=<$mon>);
+        my @e = split($line,/\t/);
+        push @vals,$e[1];
+    }
+
+    if (wantarray) {
+        return @vals;
+    } else {
+        return $vals[0];
+    }
+}
+
 =item B<monalarmack>
 
     my $ackresult = monalarmack($mon, $user, $pass, $alarmname);
     my @ackresults = monalarmack($mon, $user, $pass, @alarmnames);
 
- Acknowledges an alarm on the server.
+ Calls the "alarm acknowledge" function. This function, being the original
+ implementation of this method, does not support specification of
+ user/pass encryption. You should ensure the proper encryption of the
+ user/pass is done before calling this routine.
     
     $mon            Monitor server.
     $user           The username required to perform acknowledgement.
@@ -965,14 +1033,54 @@ sub monalarmack ($$$@) {
     my $user = shift;
     my $pass = shift;
     my @alarmnames = @_;
+
+    # Simply call the master function.
+    return monalarmack_m($mon, $user, $pass, 2, @alarmnames);
+}
+
+=item B<monalarmshelve_m>
+
+    my $shelveresult = monalarmshelve($mon, $user, $pass, $estate, $alarmname);
+    my @shelveresults = monalarmshelve($mon, $user, $pass, $estate, @alarmnames);
+
+ Shelves an alarm on the server.
+    
+    $mon            Monitor server.
+    $user           The username required to perform shelving.
+    $pass           The password required to perform shelving.
+    $estate         The stae of the user/pass encryption:
+                    0 = do not further encrypt these parameters
+                    1 = encrypt with the session-specific key
+                    2 = encrypt with the persistent key
+    $alarmname      A reference to a hash with { point => the alarm name,
+                                                 value => true to shelve,
+                                                          false to unshelve }
+    @alarmnames     A list of alarm hash references.
+=cut
+
+sub monalarmshelve_m ($$$$@) {
+    my $mon = shift;
+    my $user = shift;
+    my $pass = shift;
+    my $estate = shift;
+    my @alarmnames = @_;
     my $nset = scalar(@alarmnames);
 
     if ($nset == 0) {
-        carp "No alarm points to acknowledge!\n";
+        carp "No alarm points to shelve!\n";
         return;
     }
 
-    print $mon "ack\n";
+    # Do some encryption if required.
+    if ($estate == 1) {
+	$user = encryptstring_session($mon,$user);
+	$pass = encryptstring_session($mon,$pass);
+    } elsif ($estate == 2) {
+	$user = encryptstring_persistent($mon,$user);
+	$pass = encryptstring_persistent($mon,$pass);
+    }
+
+    print $mon "shelve\n";
     print $mon "$user\n";
     print $mon "$pass\n";
     print $mon "$nset\n";
@@ -999,7 +1107,10 @@ sub monalarmack ($$$@) {
     my $shelveresult = monalarmshelve($mon, $user, $pass, $alarmname);
     my @shelveresults = monalarmshelve($mon, $user, $pass, @alarmnames);
 
- Shelves an alarm on the server.
+ Calls the "alarm shelve" function. This function, being the original
+ implementation of this method, does not support specification of
+ user/pass encryption. You should ensure the proper encryption of the
+ user/pass is done before calling this routine.
     
     $mon            Monitor server.
     $user           The username required to perform shelving.
@@ -1015,33 +1126,9 @@ sub monalarmshelve ($$$@) {
     my $user = shift;
     my $pass = shift;
     my @alarmnames = @_;
-    my $nset = scalar(@alarmnames);
 
-    if ($nset == 0) {
-        carp "No alarm points to shelve!\n";
-        return;
-    }
-
-    print $mon "shelve\n";
-    print $mon "$user\n";
-    print $mon "$pass\n";
-    print $mon "$nset\n";
-    foreach (@alarmnames) {
-        print $mon $_->{'point'}."\t".$_->{'value'}."\n";
-    }
-
-    my @vals = ();
-    for (my $i=0;$i<$nset;$i++) {
-        chomp(my $line=<$mon>);
-        my @e = split($line,/\t/);
-        push @vals,$e[1];
-    }
-
-    if (wantarray) {
-        return @vals;
-    } else {
-        return $vals[0];
-    }
+    # Simply call the master function.
+    return monalarmshelve_m($mon, $user, $pass, 2, @alarmnames);
 }
 
 # =item B<monset>
