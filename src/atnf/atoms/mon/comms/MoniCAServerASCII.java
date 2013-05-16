@@ -556,8 +556,8 @@ public class MoniCAServerASCII extends Thread {
         if (thispoint != null) {
           if (authuser != null) {
             boolean ackval = Boolean.parseBoolean(tokens[1]);
-            AlarmManager.setShelved(thispoint, ackval, rawuser, now);
-            theirLogger.debug("Point \"" + tokens[0] + "\" shelved=" + ackval + " by \"" + rawuser + "@" + itsClientName + "\"");
+            AlarmManager.setShelved(thispoint, ackval, authuser, now);
+            theirLogger.debug("Point \"" + tokens[0] + "\" shelved=" + ackval + " by \"" + authuser + "@" + itsClientName + "\"");
             itsWriter.println(thispoint.getFullName() + "\tOK");
           } else {
             itsWriter.println(thispoint.getFullName() + "\tERROR");
