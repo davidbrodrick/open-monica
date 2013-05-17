@@ -178,12 +178,12 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
 
     /**
      * Flag to indicate if we should get the persistent RSA key upon
-     * connection.
+     * connection. By default, this is true.
      * @type {boolean}
      */
     constructor.requireEncryption =
       (typeof constructor.requireEncryption === 'undefined') ?
-      false : constructor.requireEncryption;
+      true : constructor.requireEncryption;
 
     /**
      * The names of all available data points on the MoniCA server.
