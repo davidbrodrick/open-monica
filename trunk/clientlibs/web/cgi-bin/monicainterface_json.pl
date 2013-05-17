@@ -31,7 +31,8 @@ my $mon=monconnect($input{"server"});
 my $action=$input{"action"};
 
 # debugging
-#$action="alarmack";
+#$action="names";
+#$input{"server"}="narrabri.ozforecast.com.au";
 #$input{"acknowledgements"}="site.test.alarm2\$false;joebloggs\$nopass";
 #$input{"points"}="site.environment.weather.BoxTemperature,2011-01-11:23:37:29,14400,200;site.environment.weather.BoxHumidity,-1,60,200".
 #    ";site.environment.weather.DewPoint,2011-01-01:00:01:00,5,200";
@@ -80,7 +81,8 @@ if ($action eq "points"){
 	    print " time: ".(bat2unixtime($point_vals[$i]->bat)*1000).",";
 	}
 	my $estate = (($point_vals[$i]->errorstate ne "true") &&
-								($point_vals[$i]->errorstate ne "false")) ? "false" : $point_vals[$i]->errorstate;
+		      ($point_vals[$i]->errorstate ne "false")) ? 
+		      "false" : $point_vals[$i]->errorstate;
 	print " value: '".$thisvalue."',".
 	    " errorState: ".$estate." }";
 #	print $point_vals[$i]->point." ".bat2cal($point_vals[$i]->bat,0)." ".
@@ -328,337 +330,55 @@ if ($action eq "points"){
     print "]}";
 
 } elsif ($action eq "setpoints") {
-		# Set a number of points.
-		# The calling routine should have sent us a string called "settings".
-		# This string is a semi-colon separated list of the settings to make.
-		# Each setting is a $-separated list of point$value$type.
-		# After the last ; should be the user and password, separated by $.
-		my @setels=split(/\;/,$input{"settings"});
+    # Set a number of points.
+    # The calling routine should have sent us a string called "settings".
+    # This string is a semi-colon separated list of the settings to make.
+    # Each setting is a $-separated list of point$value$type.
+    # After the last ; should be the user and password, separated by $.
+    my @setels=split(/\;/,$input{"settings"});
+    
+    my $userpass=pop @setels;
+    my ($user,$pass)=split(/\$/,$userpass);
+    
+    my @setpoints;
+    for (my $i=0;$i<=$#setels;$i++) {
+	my @pels = split(/\$/,$setels[$i]);
+	my $ns = new MonSetPoint({
+	    point => $pels[0],
+	    val => $pels[1],
+	    type => $pels[2] });
+	push @setpoints,$ns;
+    }
+    
+    my @successes = monset($mon, $user, $pass, @setpoints);
+    
+    # Output some JSON.
+    print "{ setResult: [";
+    for (my $i=0;$i<=$#setpoints;$i++) {
+	if ($i>0){
+	    print ",";
+	}
+	print "{ pointName: '".$setpoints[$i]->point."',".
+	    "setSuccess: ";
+	if ($setpoints[$i]->success==1){
+	    print "true";
+	} else {
+	    print "false";
+	}
+	print "}";
+    }
+    print "]}";
+} elsif ($action eq "rsakey") {
+    # Get the RSA persistent key so the Javascript library
+    # can do its own encryption, so it doesn't need to pass
+    # usernames and passwords in plain text over the internet.
+    my $rsakey = getRSA($mon, 1);
 
-		my $userpass=pop @setels;
-		my ($user,$pass)=split(/\$/,$userpass);
-
-		my @setpoints;
-		for (my $i=0;$i<=$#setels;$i++) {
-				my @pels = split(/\$/,$setels[$i]);
-				my $ns = new MonSetPoint({
-						point => $pels[0],
-						val => $pels[1],
-						type => $pels[2] });
-				push @setpoints,$ns;
-		}
-		
-		my @successes = monset($mon, $user, $pass, @setpoints);
-
-		# Output some JSON.
-		print "{ setResult: [";
-		for (my $i=0;$i<=$#setpoints;$i++) {
-				if ($i>0){
-						print ",";
-				}
-				print "{ pointName: '".$setpoints[$i]->point."',".
-						"setSuccess: ";
-				if ($setpoints[$i]->success==1){
-						print "true";
-				} else {
-						print "false";
-				}
-				print "}";
-		}
-		print "]}";
+    # Output some JSON.
+    print "{ 'rsaKey': { 'modulus': '".$rsakey->{'modulus'}."',".
+	"'exponent': '".$rsakey->{'exponent'}."' }}";
 }
 
 # finished
 exit;
-
-# sub bat2unixtime($;$) {
-#     my $bat=Math::BigInt->new(shift);
-
-#     my $dUT=shift;
-#     $dUT=0 if (!defined $dUT);
-
-#     my $mjd=(Math::BigFloat->new($bat)/1e6-$dUT)/60/60/24;
-    
-#     my ($day,$month,$year,$ut)=mjd2cal($mjd->bstr());
-
-#     $ut*=24.0;
-#     my $hour=floor($ut);
-#     $ut-=$hour;
-#     $ut*=60.0;
-#     my $minute=floor($ut);
-#     $ut-=$minute;
-#     $ut*=60.0;
-#     my $second=floor($ut);
-    
-#     $year-=1900;
-#     $month-=1;
-#     my $utime=timegm($second,$minute,$hour,$day,$month,$year,0,0);
-    
-#     return $utime;
-
-# }
-
-# sub bat2cal($;$) {
-#     my $bat=Math::BigInt->new(shift);
-
-#     my $dUT=shift;
-#     $dUT=0 if (!defined $dUT);
-
-#     my $mjd=(Math::BigFloat->new($bat)/1e6-$dUT)/60/60/24;
-# #    print "bat2cal has MJD = ".$mjd."\n";
-    
-#     my ($day,$month,$year,$ut)=mjd2cal($mjd->bstr());
-# #    print "cal = $day $month $year $ut\n";
-
-#     $ut*=24.0;
-#     my $hour=floor($ut);
-#     $ut-=$hour;
-#     $ut*=60.0;
-#     my $minute=floor($ut);
-#     $ut-=$minute;
-#     $ut*=60.0;
-#     my $second=floor($ut);
-
-#     my $caltime=sprintf "%04d-%02d-%02d_%02d:%02d:%02d",$year,$month,$day,$hour,$minute,$second;
-
-#     return $caltime;
-# }
-
-# sub monnames ($) {
-#     # a function that Chris apparently forgot, this will return all the
-#     # available monitoring points
-#     my ($mon)=@_;
-
-#     print $mon "names\n";
-    
-#     my @names;
-    
-#     my $num_names=<$mon>; # the number of names being returned
-#     for (my $i=0;$i<$num_names;$i++){
-# 	chomp(my $line=<$mon>);
-# 	push @names,$line;
-#     }
-
-#     return @names;
-# }
-
-# sub mondetails ($@) {
-#     my $mon=shift;
-#     my @monpoints=@_;
-#     my $npoll=scalar(@monpoints);
-
-#     if ($npoll==0){
-# 	warn "No monitor points requested!\n";
-# 	return undef;
-#     }
-
-#     print $mon "details\n";
-#     print $mon "$npoll\n";
-#     foreach (@monpoints) {
-# 	print $mon "$_\n";
-#     }
-
-#     my @vals=();
-    
-#     for (my $i=0;$i<$npoll;$i++){
-# 	my $line=<$mon>;
-# 	push @vals,new MonDetail($line);
-#     }
-
-#     if (wantarray){
-# 	return @vals;
-#     } else {
-# 	return $vals[0];
-#     }
-    
-# }
-
-# sub monbetween_new ($$$$;$) {
-# #    my ($mon,$mjd1,$mjd2,$point) = @_;
-#     my $mon=shift;
-#     my $mjd1=shift;
-#     my $mjd2=shift;
-#     my $point=shift;
-#     my $maxnper=shift;
-#     $maxnper=-1 if (!defined $maxnper);
-
-#     my $bat1=mjd2bat($mjd1)->as_hex;
-#     my $bat2=mjd2bat($mjd2)->as_hex;
-
-#     my $nreceived;
-#     my @vals=();
-#     my $maxbat=bat2mjd($bat1);
-#     do {
-# 	print $mon "between\n";
-# #	print "getting between ".mjd2bat($maxbat)->as_hex." $bat2\n";
-# 	print $mon mjd2bat($maxbat)->as_hex." $bat2 $point\n";
-
-# 	my $nreceived=<$mon>;
-# #	print "receiving $nreceived points\n";
-# 	my $acceptfraction=ceil($nreceived/$maxnper);
-# 	my $j=0;
-# 	for (my $i=0;$i<$nreceived;$i++){
-# 	    my $line=<$mon>;
-# 	    $j++;
-# 	    if (($acceptfraction<0)||($j>=$acceptfraction)||
-# 		($i==0)||($i==($nreceived-1))){
-# 		$j=0;
-# 		push @vals,new MonBetweenPoint($line);
-# 		if (bat2mjd($vals[$#vals]->bat)>$maxbat){
-# 		    $maxbat=bat2mjd($vals[$#vals]->bat);
-# 		}
-# 	    }
-# 	}
-# 	# increment the max bat by 1 millisecond
-# 	$maxbat+=(1e-3/60/60/24);
-# 	# check whether we've gone past the last bat
-# 	if ($maxbat>=bat2mjd($bat2)){
-# 	    last;
-# 	}
-#     } while ($nreceived>1);
-
-#     return @vals;
-# }
-
-# sub monsince_new ($$$;$) {
-# #    my ($mon,$mjd,$point) = @_;
-#     my $mon=shift;
-#     my $mjd=shift;
-#     my $point=shift;
-#     my $maxnper=shift;
-#     $maxnper=-1 if (!defined $maxnper);
-    
-#     my $bat = mjd2bat($mjd)->as_hex;
-# #    print "transferred bat = ".$bat."\n";
-    
-#     my $nreceived;
-#     my @vals=();
-#     my $maxbat=bat2mjd($bat);
-#     do {
-# 	print $mon "since\n";
-# #	print "getting from ".mjd2bat($maxbat)->as_hex."\n";
-# 	print $mon mjd2bat($maxbat)->as_hex." $point\n";
-	
-# 	$nreceived=<$mon>;
-# #	print "receiving $nreceived points\n";
-# 	my $acceptfraction=ceil($nreceived/$maxnper);
-# 	my $j=0;
-# 	for (my $i=0;$i<$nreceived;$i++){
-# 	    my $line=<$mon>;
-# 	    $j++;
-# 	    if (($acceptfraction<0)||($j>=$acceptfraction)||
-# 		($i==0)||($i==($nreceived-1))){
-# 		$j=0;
-# 		push @vals,new MonSincePoint($line);
-# 		if (bat2mjd($vals[$#vals]->bat)>$maxbat){
-# 		    $maxbat=bat2mjd($vals[$#vals]->bat);
-# 		}
-# 	    }
-# 	}
-# 	# increment the max bat by 1 millisecond
-# 	$maxbat+=(1e-3/60/60/24);
-#     } while ($nreceived>1);
-
-#     return @vals;
-# }
-
-# sub monpoll2 ($@) {
-#     my $mon=shift;
-#     my @monpoints=@_;
-#     my $npoll=scalar(@monpoints);
-
-#     if ($npoll==0){
-# 	warn "No monitor points requested!\n";
-# 	return undef;
-#     }
-
-#     print $mon "poll2\n";
-#     print $mon "$npoll\n";
-#     foreach (@monpoints) {
-# 	print $mon "$_\n";
-#     }
-
-#     my @vals=();
-
-#     for (my $i=0;$i<$npoll;$i++){
-# 	my $line=<$mon>;
-# 	push @vals,new MonFullPoint($line);
-#     }
-
-#     if (wantarray){
-# 	return @vals;
-#     } else {
-# 	return $vals[0];
-#     }
-# }
-
-# sub monpreceding ($$@) {
-#     my $mon = shift;
-#     my $mjd = shift;
-#     my @monpoints = @_;
-#     my $npoll = scalar(@monpoints);
-    
-#     my $bat = mjd2bat($mjd)->as_hex;
-    
-#     if ($npoll==0){
-# 	warn "No monitor points requested!\n";
-# 	return undef;
-#     }
-
-#     print $mon "preceding\n";
-#     print $mon "$npoll\n";
-#     foreach (@monpoints) {
-# 	print $mon "$bat $_\n";
-#     }
-
-#     my @vals = ();
-    
-#     for (my $i=0; $i<$npoll; $i++) {
-# 	my $line = <$mon>;
-# 	push @vals, new MonPoint($line);
-#     }
-    
-#     if (wantarray) {
-# 	return @vals;
-#     } else {
-# 	return $vals[0];
-#     }
-
-# }
-
-# package MonDetail;
-
-# sub new {
-#     my $proto=shift;
-#     my $class=ref($proto) || $proto;
-
-#     my $monline=shift;
-#     my $self=[$monline=~/^(\S+)\s+(\S+)\s+\"(.*?)\"\s+\"(.*)\"$/];
-
-#     bless ($self,$class);
-# }
-
-# sub point {
-#     my $self=shift;
-#     if (@_) { $self->[0] = shift }
-#     return $self->[0];
-# }
-
-# sub updatetime {
-#     my $self=shift;
-#     if (@_) { $self->[1] = shift }
-#     return $self->[1];
-# }
-
-# sub units {
-#     my $self=shift;
-#     if (@_) { $self->[2] = shift }
-#     return $self->[2];
-# }
-
-# sub description {
-#     my $self=shift;
-#     if (@_) { $self->[3] = shift }
-#     return $self->[3];
-# }
 
