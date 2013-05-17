@@ -16,7 +16,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      */
     // some counters for various functions
     var aPi, hPi, gDi, pPDi, rUi, aTULi, uPi, pPVi, iPi, gPi, pPVj, pPDj, aPj;
-    var hAi, gAli;
+    var hAi, gAli, eSi;
     // an array of point references to return to the add points caller.
     var pointReferences = [];
 
@@ -65,6 +65,15 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
 
     // Variables in updateAlarmAuthData.
     var uAADi, uAADa;
+
+    // Variables in getEncryptionKey.
+    var gEKhandle;
+
+    // Variables in encryptString.
+    var chArr, binString, eSm, eSe, eSb;
+
+    // Variables in setPointValue.
+    var enTmp;
 
     /**
      * The object that we will return to our caller.
@@ -168,6 +177,15 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
     constructor.alarmAuthData.pass = constructor.alarmAuthData.pass || '';
 
     /**
+     * Flag to indicate if we should get the persistent RSA key upon
+     * connection.
+     * @type {boolean}
+     */
+    constructor.requireEncryption =
+      (typeof constructor.requireEncryption === 'undefined') ?
+      false : constructor.requireEncryption;
+
+    /**
      * The names of all available data points on the MoniCA server.
      * @type {array}
      */
@@ -236,6 +254,15 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      * @type {Boolean}
      */
     var needAllAlarms = false;
+
+    /**
+     * The current MoniCA persistent RSA key.
+     * @type {object}
+     */
+    var rsaKey = {
+      'modulus': null,
+      'exponent': null
+    };
 
     // Our methods follow.
 
@@ -771,6 +798,86 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       return undefined;
     };
 
+    /**
+     * Get the encryption key from the server.
+     */
+    var getEncryptionKey = function() {
+      /**
+       * Get a handle to a Dojo Deferred that will retrieve the values for
+       * the MoniCA persistent RSA key.
+       * @type {Deferred}
+       */
+      gEKhandle = comms({ 'content': { 'action': 'rsakey' } });
+
+      // Check we get something back.
+      if (!gEKhandle) {
+        alert('Internal calling error!');
+        return null;
+      }
+
+      gEKhandle.then(function(data, ioargs) {
+	// Turn the returned RSA exponent and modulus into BigIntegers.
+	if (typeof data === 'undefined' ||
+	    typeof data.rsaKey === 'undefined' ||
+	    typeof data.rsaKey.modulus === 'undefined' ||
+	    typeof data.rsaKey.exponent === 'undefined') {
+	  console.log('Error while retrieving server RSA key. Server response' +
+		      ' invalid.');
+	}
+
+	rsaKey.modulus = BigInteger(data.rsaKey.modulus);
+	rsaKey.exponent = BigInteger(data.rsaKey.exponent);
+      });
+
+      return undefined;
+    };
+
+    /**
+     * Encrypt a string using the RSA key.
+     * @param {string} plainText The message to encrypt.
+     */
+    var encryptString = function(plainText) {
+      // Check we were actually passed a string.
+      if (!lang.isString(plainText)) {
+	return undefined;
+      }
+
+      // Check we have information about the encryption key.
+      if (rsaKey.modulus === null ||
+	  rsaKey.exponent === null) {
+	return undefined;
+      }
+
+      // Convert each character in the string to its ASCII number.
+      chArr = [];
+      for (eSi = 0; eSi < plainText.length; eSi++) {
+	chArr.push(plainText.charCodeAt(eSi));
+      }
+
+      // The minimum length is 40 characters.
+      while (chArr.length < 40) {
+	chArr.push(0);
+      }
+
+      // Now make a long binary string.
+      binString = '';
+      for (eSi = 0; eSi < chArr.length; eSi++) {
+	eSb = parseInt(chArr[eSi], 10).toString(2);
+	while (eSb.length < 8) {
+	  eSb = '0' + eSb;
+	}
+	binString += eSb;
+      }
+
+      // And make the BigInteger version of this.
+      eSm = BigInteger.parse(binString, 2);
+
+      // Do the encryption.
+      eSe = eSm.modPow(rsaKey.exponent, rsaKey.modulus);
+
+      return eSe.toString(10);
+    };
+
     // Our public methods.
     /**
      * Connect to the MoniCA server and obtain a list of all the
@@ -794,6 +901,10 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
 
       // Keep the list of point names once we get them.
       handle = handle.then(parsePointNames);
+      // Get the RSA key if required.
+      if (constructor.requireEncryption === true) {
+	handle = handle.then(getEncryptionKey);
+      }
       // And then tell people we've connected.
       handle = handle.then(publishConnection);
 
@@ -1049,18 +1160,32 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       // The error checking is in the point methods, so we just check
       // for the sufficient number of properties here.
       if (typeof setDetails !== 'undefined' &&
-  	typeof setDetails.point !== 'undefined' &&
-  	typeof setDetails.value !== 'undefined' &&
-  	typeof setDetails.user !== 'undefined' &&
-  	typeof setDetails.pass !== 'undefined' &&
-  	typeof setDetails.type !== 'undefined') {
-        var commsObj = {
-  	content: {
-  	  action: 'setpoints',
-  	  settings: setDetails.point + '$' + setDetails.value +
-  	    '$' + setDetails.type + ';' + setDetails.user + '$' +
-  	    setDetails.pass
-  	}
+	  typeof setDetails.point !== 'undefined' &&
+  	  typeof setDetails.value !== 'undefined' &&
+  	  typeof setDetails.user !== 'undefined' &&
+  	  typeof setDetails.pass !== 'undefined' &&
+  	  typeof setDetails.type !== 'undefined') {
+
+	// Encrypt the username and password if required.
+	if (constructor.requireEncryption === true &&
+	    !setDetails.preventEncryption) {
+	  enTmp = encryptString(setDetails.user);
+	  if (enTmp !== undefined) {
+	    setDetails.user = enTmp;
+	  }
+	  enTmp = encryptString(setDetails.pass);
+	  if (enTmp !== undefined) {
+	    setDetails.pass = enTmp;
+	  }
+	}
+
+	var commsObj = {
+	  content: {
+  	    action: 'setpoints',
+  	    settings: setDetails.point + '$' + setDetails.value +
+  	      '$' + setDetails.type + ';' + setDetails.user + '$' +
+  	      setDetails.pass
+  	  }
         };
 
         return comms(commsObj);
@@ -1077,16 +1202,16 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       // Check for the required properties here.
       if (typeof ackDetails !== 'undefined' &&
           typeof ackDetails.point !== 'undefined' &&
-  	typeof ackDetails.value !== 'undefined' &&
-  	typeof ackDetails.user !== 'undefined' &&
-  	typeof ackDetails.pass !== 'undefined') {
+  	  typeof ackDetails.value !== 'undefined' &&
+  	  typeof ackDetails.user !== 'undefined' &&
+  	  typeof ackDetails.pass !== 'undefined') {
         var commsObj = {
-  	content: {
-  	  action: 'alarmack',
-  	  acknowledgements: ackDetails.point + '$' +
-              ackDetails.value + ';' + ackDetails.user + '$' +
+	  content: {
+  	    action: 'alarmack',
+  	    acknowledgements: ackDetails.point + '$' +
+	      ackDetails.value + ';' + ackDetails.user + '$' +
               ackDetails.pass
-  	}
+  	  }
         };
 
         return comms(commsObj);
@@ -1243,7 +1368,8 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
     };
 
     /**
-     * Update the alarm acknowledge/shelve authentication data.
+     * Update authentication data that we use for setting points
+     * and acknowledging/shelving alarms.
      * @param {object} authData The username and password object that
      *                          should be used for authentication with
      *                          the server's alarm system.
@@ -1254,7 +1380,12 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
     that.updateAlarmAuthData = function(authData, updAll) {
       uAADa = false;
       if (typeof authData.user !== 'undefined') {
-        constructor.alarmAuthData.user = authData.user;
+	if (constructor.requireEncryption !== true) {
+	  // Plain text is bad!
+	  constructor.alarmAuthData.user = authData.user;
+	} else {
+
+	}
         uAADa = true;
       }
       if (typeof authData.pass !== 'undefined') {
