@@ -168,8 +168,8 @@ The constructor function takes one argument, which is optional.
   * `alarmPollPeriod`: the time between queries to the MoniCA server to poll which alarm states are active, in milliseconds (default `0`, ie. do not poll).
   * `alarmCallbacks`: an array of function calls to be made whenever an alarm condition is encountered.
   * `allAlarmCallbacks`: an array of function calls to be made at each poll of the alarms; these functions should accept as an argument an array of all the alarms known to the server.
-  * `alarmAuthData`: an object, with the properties `user` and `pass` that should be used to provide the authentication parameters to acknowledge or shelve alarms on the MoniCA server (default: `{ user: '', pass: ''}`).
-
+  * `alarmAuthData`: an object, with the properties `user` and `pass` that should be used to provide the authentication parameters to acknowledge or shelve alarms on the MoniCA server (default: `{ user: '', pass: ''}`). This was a convenience for the old MoniCA that did not support encryption, but should never be used now, since it will usually require the hardcoding of plaintext passwords in the calling Javascript.
+  * `requireEncryption`: a Boolean indication as to whether automatic RSA encryption should be performed when sending usernames and passwords to the MoniCA server. If omitted, this defaults to `true`. When set to `true`, all further communications with the MoniCA server will transparently encrypt the username and passwords that will pass over the network.
 
 ==== Public Methods ====
 
@@ -179,7 +179,9 @@ The constructor function takes one argument, which is optional.
 var connectionDeferred = server.connect();
 }}}
 
-Before you can start obtaining MoniCA data from a server, you must tell the `monicaServer` object to connect with this method. It returns a Dojo `Deferred` object that will be resolved when the connection is established. You should then point the `Deferred` to a function you want to execute once the connection is established, eg:
+Before you can start obtaining MoniCA data from a server, you must tell the `monicaServer` object to connect with this method. This connection gives the Javascript instance information about the points available on the MoniCA server, and its persistent RSA key.
+
+This method returns a Dojo `Deferred` object that will be resolved when the connection is established. You should then point the `Deferred` to a function you want to execute once the connection is established, eg:
 
 {{{
 var connectionEstablished = function(serverObj) {
@@ -480,8 +482,8 @@ This method allows you to set a MoniCA point's value on the server, in order to 
   * `point`: the name of the point to set.
   * `value`: the value to set the point to.
   * `type`: the type of the value, which is one of the types that the `set` method on the ASCII interface supports ([http://code.google.com/p/open-monica/wiki/ClientASCII]).
-  * `user`: the username required to set the point.
-  * `pass`: the password required to set the point.
+  * `user`: the username required to set the point. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
+  * `pass`: the password required to set the point. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
 
 This method returns a Dojo Deferred promise that will resolve when the call to the server has completed.
 
@@ -496,8 +498,8 @@ var acknowledgePromise = server.acknowledgeAlarm(ackDetails);
 This method allows you to acknowledge an alarm on the MoniCA server. It takes a single object `ackDetails` which has the following properties:
   * `point`: the name of the alarm to acknowledge.
   * `value`: one of `'true'` or `'false'` to acknowledge or unacknowledge the alarm respectively.
-  * `user`: the username required to acknowledge the alarm.
-  * `pass`: the password required to acknowledge the alarm.
+  * `user`: the username required to acknowledge the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
+  * `pass`: the password required to acknowledge the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
 
 This method returns a Dojo Deferred promise that will resolve when the call to the server has completed.
 
@@ -512,8 +514,8 @@ var shelvePromise = server.shelveAlarm(shelveDetails);
 This method allows you to shelve an alarm on the MoniCA server. It takes a single object `shelveDetails` which has the following properties:
   * `point`: the name of the alarm to shelve.
   * `value`: one of `'true'` or `'false'` to shelve or unshelve the alarm respectively.
-  * `user`: the username required to shelve the alarm.
-  * `pass`: the password required to shelve the alarm.
+  * `user`: the username required to shelve the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
+  * `pass`: the password required to shelve the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
 
 This method returns a Dojo Deferred promise that will resolve when the call to the server has completed.
 
@@ -666,9 +668,11 @@ server.updateAlarmAuthData(authData, updateAll);
 }}}
 
 This method allows the user to change the authentication username and password that will allow for acknowledgement or shelving of MoniCA alarms. It takes two arguments. The first argument is an object with the properties:
-  * `user`: the username, as a `String`.
-  * `pass`: the password, as a `String`.
+  * `user`: the username, as a plain text `String`.
+  * `pass`: the password, as a plain text `String`.
 The second argument is either `true` or `false`. If `true`, then all alarms that are known about will have their authentication information updated with this new username and password, otherwise only alarms that we find out about later will have this authentication information set.
+
+This is now the preferred way of supplying username and password information to the Javascript library, as it can take these values from user input in a text box at run time. This is far more secure than hard-coding usernames and passwords into the server details object. When the Javascript library has been instructed to do transparent RSA encryption, this authentication data will be automatically encrypted before sending it over the network, with no further actions from the programmer required.
 
 ----
 
@@ -948,8 +952,8 @@ var setPromise = pointReference.setValue(details);
 
 This method is used to set the value of a MoniCA control point. It takes an object as its argument, that must have the following properties:
   * `value`: The value to set the control point to.
-  * `user`: The username required to control the point.
-  * `pass`: The password required to control the point.
+  * `user`: The username required to control the point. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
+  * `pass`: The password required to control the point. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
 Depending on the type of value that the point has, you may also have to set another property:
   * `type`: The type of the value, which is one of the types that the `set` method on the ASCII interface supports ([http://code.google.com/p/open-monica/wiki/ClientASCII]). If the point value is a `String` (str) or `Boolean` (bool) this method will automatically be able to identify the `type`.
 
@@ -1169,8 +1173,8 @@ alarmPoint.acknowledge(authData);
 }}}
 
 This method acknowledges the alarm on MoniCA. It takes one optional argument, which is an object that has the information required to authenticate with MoniCA; it has the properties:
-  * `user`: The username required to acknowledge the alarm.
-  * `pass`: The password required to acknowledge the alarm.
+  * `user`: The username required to acknowledge the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
+  * `pass`: The password required to acknowledge the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
 If this argument is not provided, the user name and password set during the `monicaServer` instantiation, or a later call to its `updateAlarmAuthData` method, or a call to this object's `setAuthData` method. If this argument is provided, it will not overwrite this previously-set authentication information.
 
 There is no feedback from this method. You will need to wait until the server polls again for the alarm states before seeing the acknowledgement.
@@ -1182,8 +1186,8 @@ alarmPoint.unacknowledge(authData);
 }}}
 
 This method unacknowledges the alarm on MoniCA. It takes one optional argument, which is an object that has the information required to authenticate with MoniCA; it has the properties:
-  * `user`: The username required to unacknowledge the alarm.
-  * `pass`: The password required to unacknowledge the alarm.
+  * `user`: The username required to unacknowledge the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
+  * `pass`: The password required to unacknowledge the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
 If this argument is not provided, the user name and password set during the `monicaServer` instantiation, or a later call to its `updateAlarmAuthData` method, or a call to this object's `setAuthData` method. If this argument is provided, it will not overwrite this previously-set authentication information.
 
 There is no feedback from this method. You will need to wait until the server polls again for the alarm states before seeing the unacknowledgement.
@@ -1195,8 +1199,8 @@ alarmPoint.autoAcknowledge(authData);
 }}}
 
 Depending on this point's current acknowledgement state, this method either acknowledges or unacknowledges the alarm on MoniCA. It takes one optional argument, which is an object that has the information required to authenticate with MoniCA; it has the properties:
-  * `user`: The username required to (un)acknowledge the alarm.
-  * `pass`: The password required to (un)acknowledge the alarm.
+  * `user`: The username required to (un)acknowledge the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
+  * `pass`: The password required to (un)acknowledge the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
 If this argument is not provided, the user name and password set during the `monicaServer` instantiation, or a later call to its `updateAlarmAuthData` method, or a call to this object's `setAuthData` method. If this argument is provided, it will not overwrite this previously-set authentication information.
 
 There is no feedback from this method. You will need to wait until the server polls again for the alarm states before seeing the (un)acknowledgement.
@@ -1208,8 +1212,8 @@ alarmPoint.shelve(authData);
 }}}
 
 This method shelves the alarm on MoniCA. It takes one optional argument, which is an object that has the information required to authenticate with MoniCA; it has the properties:
-  * `user`: The username required to shelve the alarm.
-  * `pass`: The password required to shelve the alarm.
+  * `user`: The username required to shelve the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
+  * `pass`: The password required to shelve the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
 If this argument is not provided, the user name and password set during the `monicaServer` instantiation, or a later call to its `updateAlarmAuthData` method, or a call to this object's `setAuthData` method. If this argument is provided, it will not overwrite this previously-set authentication information.
 
 There is no feedback from this method. You will need to wait until the server polls again for the alarm states before seeing the shelve.
@@ -1221,8 +1225,8 @@ alarmPoint.unshelve(authData);
 }}}
 
 This method unshelves the alarm on MoniCA. It takes one optional argument, which is an object that has the information required to authenticate with MoniCA; it has the properties:
-  * `user`: The username required to unshelve the alarm.
-  * `pass`: The password required to unshelve the alarm.
+  * `user`: The username required to unshelve the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
+  * `pass`: The password required to unshelve the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
 If this argument is not provided, the user name and password set during the `monicaServer` instantiation, or a later call to its `updateAlarmAuthData` method, or a call to this object's `setAuthData` method. If this argument is provided, it will not overwrite this previously-set authentication information.
 
 There is no feedback from this method. You will need to wait until the server polls again for the alarm states before seeing the unshelve.
@@ -1234,8 +1238,8 @@ alarmPoint.autoShelve(authData);
 }}}
 
 Depending on this point's current shelve state, this method either shelves or unshelves the alarm on MoniCA. It takes one optional argument, which is an object that has the information required to authenticate with MoniCA; it has the properties:
-  * `user`: The username required to (un)shelve the alarm.
-  * `pass`: The password required to (un)shelve the alarm.
+  * `user`: The username required to (un)shelve the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
+  * `pass`: The password required to (un)shelve the alarm. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
 If this argument is not provided, the user name and password set during the `monicaServer` instantiation, or a later call to its `updateAlarmAuthData` method, or a call to this object's `setAuthData` method. If this argument is provided, it will not overwrite this previously-set authentication information.
 
 There is no feedback from this method. You will need to wait until the server polls again for the alarm states before seeing the (un)shelve.
@@ -1247,8 +1251,8 @@ var alarmRef = alarmPoint.setAuthData(authData);
 }}}
 
 This method sets the authentication data that this alarm requires to acknowledge or shelve itself. It takes one argument, an object with the properties:
-  * `user`: The username required.
-  * `pass`: The password required.
+  * `user`: The username required. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
+  * `pass`: The password required. This should be in plain text, and this routine will transparently encrypt it before sending it over the network.
 
 It returns the alarm point reference so that you can method chain after this call.
 
