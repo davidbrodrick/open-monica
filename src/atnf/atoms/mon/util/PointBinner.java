@@ -63,12 +63,13 @@ public class PointBinner extends Thread{
 	}
 	
 	/**
-	 * Returns all the "children" of a given point pattern, with full point names
+	Returns all the "children" of a given point pattern, with full point names
 	 * @param pattern The pattern that all returned children should match
 	 * @return A Vector&lt;String&gt; containing the full point names of all points that match
 	 * the given pattern 
+	 * @throws NullPointerException if the internal PointHierarchy hasn't been instantiated yet
 	 */
-	public static Vector<String> getAllChildren(String pattern){
+	public static Vector<String> getAllChildren(String pattern) throws NullPointerException{
 		return pointTree.getAllChildren(pattern);
 	}
 	
@@ -78,8 +79,9 @@ public class PointBinner extends Thread{
 	 * @param pattern The pattern that the returned nubs should match
 	 * @return A Vector&lt;String&gt; containing the nub segments of the next set of points that
 	 * match the given pattern.
+	 * @throws NullPointerException if the internal PointHierarchy hasn't been instantiated yet
 	 */
-	public static Vector<String> getDirectChildren(String pattern){
+	public static Vector<String> getDirectChildren(String pattern) throws NullPointerException{
 		return pointTree.getDirectChildren(pattern);
 	}
 
