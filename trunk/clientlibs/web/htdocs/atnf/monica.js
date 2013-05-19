@@ -104,14 +104,15 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      * The web server hosting the MoniCA access scripts.
      * @type {string}
      */
-    constructor.webserverName = constructor.webserverName || 'www.narrabri.atnf.csiro.au';
+    constructor.webserverName = constructor.webserverName ||
+      'www.narrabri.atnf.csiro.au';
 
     /**
      * The full path on the webserver to the JSON MoniCA interface.
      * @type {string}
      */
     constructor.webserverPath = constructor.webserverPath ||
-        'cgi-bin/obstools/web_monica/monicainterface_json.pl';
+      'cgi-bin/obstools/web_monica/monicainterface_json.pl';
 
     /**
      * The time between queries to the MoniCA server for new values.
@@ -351,17 +352,17 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       var retArr = [];
       for (hPi = 0; hPi < points.length; hPi++) {
         if (lang.isString(name) === true) {
-  	if (name === points[hPi].getPointDetails().name) {
-  	  retArr.push(points[hPi]);
-  	}
+	  if (name === points[hPi].getPointDetails().name) {
+  	    retArr.push(points[hPi]);
+  	  }
         } else {
-  	if (name === points[hPi]) {
-  	  // return {
-  	  retArr.push({
-  	    pointRef: points[hPi],
-  	    index: hPi
-  	  });
-  	}
+	  if (name === points[hPi]) {
+  	    // return {
+  	    retArr.push({
+  	      pointRef: points[hPi],
+  	      index: hPi
+  	    });
+  	  }
         }
       }
 
@@ -382,17 +383,17 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       var retArr = [];
       for (hAi = 0; hAi < alarms.length; hAi++) {
         if (lang.isString(name) === true) {
-  	if (name === alarms[hAi].getState().pointName) {
-  	  retArr.push(alarms[hAi]);
-  	}
+	  if (name === alarms[hAi].getState().pointName) {
+  	    retArr.push(alarms[hAi]);
+  	  }
         } else {
-  	if (name === alarms[hAi]) {
-  	  // return {
-  	  retArr.push({
-  	    pointRef: alarms[hAi],
-  	    index: hAi
-  	  });
-  	}
+	  if (name === alarms[hAi]) {
+  	    // return {
+  	    retArr.push({
+  	      pointRef: alarms[hAi],
+  	      index: hAi
+  	    });
+  	  }
         }
       }
 
@@ -425,7 +426,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
         if (rPref[0].pointRef === pointRef) {
           // Do some cleanup before we get rid of it.
           pointRef.stopTimer();
-  	points.splice(rPref[0].index, 1);
+  	  points.splice(rPref[0].index, 1);
         }
       }
     };
@@ -440,12 +441,12 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       // An array of descriptions should come back in the 'data' item.
       if (data.data) {
         for (pPDi = 0; pPDi < data.data.length; pPDi++) {
-  	descrRef = hasPoint(data.data[pPDi].pointName);
-  	if (descrRef !== undefined) {
-  	  for (pPDj = 0; pPDj < descrRef.length; pPDj++) {
-  	    descrRef[pPDj].setPointDetails(data.data[pPDi]);
+	  descrRef = hasPoint(data.data[pPDi].pointName);
+  	  if (descrRef !== undefined) {
+  	    for (pPDj = 0; pPDj < descrRef.length; pPDj++) {
+  	      descrRef[pPDj].setPointDetails(data.data[pPDi]);
+  	    }
   	  }
-  	}
         }
       }
 
@@ -472,8 +473,8 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       pointFound = false;
       for (aTULi = 0; aTULi < requireUpdating.length; aTULi++) {
         if (requireUpdating[aTULi] === uRef) {
-  	pointFound = true;
-  	break;
+	  pointFound = true;
+  	  break;
         }
       }
       if (pointFound === false) {
@@ -543,7 +544,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
     var findAlarm = function(alarmName) {
       for (fAi = 0; fAi < alarms.length; fAi++) {
         if (alarms[fAi].getState().pointName === alarmName) {
-  	return alarms[fAi];
+	  return alarms[fAi];
         }
       }
       return null;
@@ -584,46 +585,46 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       // when the result comes back.
       gAhandle = gAhandle.then(function(data, ioargs) {
 
-	  if (data !== null &&
-	      typeof data.alarmStates !== 'undefined') {
-  	    gAneedDesc = false;
-  	    for (gAi = 0; gAi < data.alarmStates.length; gAi++) {
-  	      // Check for an already existing alarm point.
-  	      gAget = findAlarm(data.alarmStates[gAi].pointName);
-  	      if (gAget === null) {
-  		gAneedDesc = true;
-		gAnewAlarm = rObj.alarm(data.alarmStates[gAi], that);
-  		alarms.push(gAnewAlarm);
-                // Set up the point with any global information.
-                gAnewAlarm.setAuthData(constructor.alarmAuthData);
-                for (gAj = 0; gAj < constructor.alarmCallbacks.length; gAj++) {
-  		  gAnewAlarm.addCallback(constructor.alarmCallbacks[gAj]);
-                }
-                gAnewAlarm.fireCallbacks();
-  	      } else {
-  		gAget.updateState(data.alarmStates[gAi]);
-  	      }
-  	    }
-  	    if (gAneedDesc) {
-  	      that.getDescriptions();
+	if (data !== null &&
+	    typeof data.alarmStates !== 'undefined') {
+  	  gAneedDesc = false;
+  	  for (gAi = 0; gAi < data.alarmStates.length; gAi++) {
+  	    // Check for an already existing alarm point.
+  	    gAget = findAlarm(data.alarmStates[gAi].pointName);
+  	    if (gAget === null) {
+  	      gAneedDesc = true;
+	      gAnewAlarm = rObj.alarm(data.alarmStates[gAi], that);
+  	      alarms.push(gAnewAlarm);
+              // Set up the point with any global information.
+              gAnewAlarm.setAuthData(constructor.alarmAuthData);
+              for (gAj = 0; gAj < constructor.alarmCallbacks.length; gAj++) {
+  		gAnewAlarm.addCallback(constructor.alarmCallbacks[gAj]);
+              }
+              gAnewAlarm.fireCallbacks();
+  	    } else {
+  	      gAget.updateState(data.alarmStates[gAi]);
   	    }
   	  }
-
-  	  // Call each alarm's callbacks.
-  	  for (gAi = 0; gAi < alarms.length; gAi++) {
-	    alarms[gAi].fireCallbacks();
+  	  if (gAneedDesc) {
+  	    that.getDescriptions();
   	  }
+  	}
 
-  	  // Call any callbacks that want all the alarms at once.
-  	  for (gAi = 0; gAi < constructor.allAlarmCallbacks.length; gAi++) {
-	    if (lang.isFunction(constructor.allAlarmCallbacks[gAi])) {
-	      constructor.allAlarmCallbacks[gAi](alarms);
-	    }
-  	  }
+  	// Call each alarm's callbacks.
+  	for (gAi = 0; gAi < alarms.length; gAi++) {
+	  alarms[gAi].fireCallbacks();
+  	}
 
-  	  // Any functions called after us will get a list of all the alarms
-          // that we know about.
-  	  return alarms;
+  	// Call any callbacks that want all the alarms at once.
+  	for (gAi = 0; gAi < constructor.allAlarmCallbacks.length; gAi++) {
+	  if (lang.isFunction(constructor.allAlarmCallbacks[gAi])) {
+	    constructor.allAlarmCallbacks[gAi](alarms);
+	  }
+  	}
+
+	// Any functions called after us will get a list of all the alarms
+	// that we know about.
+  	return alarms;
       });
 
       return gAhandle;
@@ -688,24 +689,24 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       for (uPi = 0; uPi < requireUpdating.length; uPi++) {
         if (requireUpdating[uPi].isTimeSeries() === true &&
   	  requireUpdating[uPi].timeSeriesInitialised() === false) {
-  	// Get first values for time-series that
-  	// haven't yet been initialised.
-  	startTimeSeries(requireUpdating[uPi]);
-  	// We don't get any other points for him.
+  	  // Get first values for time-series that
+  	  // haven't yet been initialised.
+  	  startTimeSeries(requireUpdating[uPi]);
+  	  // We don't get any other points for him.
         } else {
-  	if (pollAdded > 0) {
-  	  pollString += ';';
-  	}
-  	pollString += requireUpdating[uPi].getPointDetails().name;
-  	tR = requireUpdating[uPi].timeRepresentation();
-  	if (tR === 'unixms') {
-  	  // We append the characters required to return the time
-  	  // as Unix time in ms
-  	  pollString += '...TD';
-  	} // We don't append anything for string time, since this is the
-  	  // the default behaviour, and we can save on bandwidth.
-  	pollAdded++;
-  	updatesArriving.push(requireUpdating[uPi]);
+	  if (pollAdded > 0) {
+  	    pollString += ';';
+  	  }
+  	  pollString += requireUpdating[uPi].getPointDetails().name;
+  	  tR = requireUpdating[uPi].timeRepresentation();
+  	  if (tR === 'unixms') {
+  	    // We append the characters required to return the time
+  	    // as Unix time in ms
+  	    pollString += '...TD';
+  	  } // We don't append anything for string time, since this is the
+  	    // the default behaviour, and we can save on bandwidth.
+  	  pollAdded++;
+  	  updatesArriving.push(requireUpdating[uPi]);
         }
       }
 
@@ -750,26 +751,26 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       // An array of values should come back in the 'pointData' item.
       if (typeof data.pointData !== 'undefined') {
         for (pPVi = 0; pPVi < data.pointData.length; pPVi++) {
-  	if (data.pointData[pPVi].pointName !== '') {
-  	  // Give the value to the point.
-  	  valRef = hasPoint(data.pointData[pPVi].pointName);
-  	  if (valRef !== undefined) {
-  	    // Do a logical NOT on the error state to reverse the
-  	    // MoniCA ASCII interface backwards error boolean.
-  	    data.pointData[pPVi].errorState =
-  	      !data.pointData[pPVi].errorState;
-  	    for (pPVj = 0; pPVj < valRef.length; pPVj++) {
-  	      // Check for an array of possible updaters.
-  	      if (valRef.length > 1) {
-  		// Check that the right point gets the update.
-  		if (valRef[pPVj] !== updatesArriving[pPVi]) {
-  		  continue;
+	  if (data.pointData[pPVi].pointName !== '') {
+  	    // Give the value to the point.
+  	    valRef = hasPoint(data.pointData[pPVi].pointName);
+  	    if (valRef !== undefined) {
+  	      // Do a logical NOT on the error state to reverse the
+  	      // MoniCA ASCII interface backwards error boolean.
+  	      data.pointData[pPVi].errorState =
+  		!data.pointData[pPVi].errorState;
+  	      for (pPVj = 0; pPVj < valRef.length; pPVj++) {
+  		// Check for an array of possible updaters.
+  		if (valRef.length > 1) {
+  		  // Check that the right point gets the update.
+  		  if (valRef[pPVj] !== updatesArriving[pPVi]) {
+  		    continue;
+  		  }
   		}
+  		valRef[pPVj].updateValue(data.pointData[pPVi]);
   	      }
-  	      valRef[pPVj].updateValue(data.pointData[pPVi]);
   	    }
   	  }
-  	}
         }
       }
 
@@ -957,25 +958,25 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
         // And make a new point if we don't.
         canAdd = true;
         if (tempAdd !== undefined) {
-  	// There is already a point with this name, but it may
-  	// be a time series.
-  	for (aPj = 0; aPj < tempAdd.length; aPj++) {
-  	  if (tempAdd[aPj].isTimeSeries() === false) {
-  	    // This is a point reference, so we don't need to add
-  	    // this point.
-  	    canAdd = false;
-  	    pointReferences[aPi] = tempAdd[aPj];
+	  // There is already a point with this name, but it may
+  	  // be a time series.
+	  for (aPj = 0; aPj < tempAdd.length; aPj++) {
+  	    if (tempAdd[aPj].isTimeSeries() === false) {
+  	      // This is a point reference, so we don't need to add
+  	      // this point.
+  	      canAdd = false;
+  	      pointReferences[aPi] = tempAdd[aPj];
+  	    }
   	  }
-  	}
         }
         if (canAdd === true) {
-  	pointReferences[aPi] = rObj.point({
-  	    pointName: newPoints[aPi]
-  	}, that);
-  	addPoint(pointReferences[aPi]);
-  	// We immediately add this to the list of points requiring
-  	// an update.
-  	addToUpdateList(pointReferences[aPi]);
+	  pointReferences[aPi] = rObj.point({
+  	      pointName: newPoints[aPi]
+  	  }, that);
+  	  addPoint(pointReferences[aPi]);
+  	  // We immediately add this to the list of points requiring
+  	  // an update.
+  	  addToUpdateList(pointReferences[aPi]);
         }
       }
 
@@ -1007,7 +1008,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       if (lang.isArray(pointNames)) {
         // Get the references for each point name.
         for (gPi = 0; gPi < pointNames.length; gPi++) {
-  	retnArr[gPi] = reduceArray(hasPoint(pointNames[gPi]));
+	  retnArr[gPi] = reduceArray(hasPoint(pointNames[gPi]));
         }
 
         return retnArr;
@@ -1058,13 +1059,13 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       } else {
         // Work out which points we need to get descriptions for.
         for (gDi = 0; gDi < points.length; gDi++) {
-  	if (points[gDi].hasDescription() === false) {
-  	  if (added > 0) {
-  	    requestString += ';';
+	  if (points[gDi].hasDescription() === false) {
+  	    if (added > 0) {
+  	      requestString += ';';
+  	    }
+  	    requestString += points[gDi].getPointDetails().name;
+  	    added++;
   	  }
-  	  requestString += points[gDi].getPointDetails().name;
-  	  added++;
-  	}
         }
       }
 
@@ -1205,6 +1206,20 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
   	  typeof ackDetails.value !== 'undefined' &&
   	  typeof ackDetails.user !== 'undefined' &&
   	  typeof ackDetails.pass !== 'undefined') {
+
+	// Encrypt the username and password if required.
+	if (constructor.requireEncryption === true &&
+	    !ackDetails.preventEncryption) {
+	  enTmp = encryptString(ackDetails.user);
+	  if (enTmp !== undefined) {
+	    ackDetails.user = enTmp;
+	  }
+	  enTmp = encryptString(ackDetails.pass);
+	  if (enTmp !== undefined) {
+	    ackDetails.pass = enTmp;
+	  }
+	}
+
         var commsObj = {
 	  content: {
   	    action: 'alarmack',
@@ -1227,10 +1242,24 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
     that.shelveAlarm = function(shelveDetails) {
       // Check for the required properties here.
       if (typeof shelveDetails !== 'undefined' &&
-          typeof shelveDetails.point !== 'undefined' &&
-  	typeof shelveDetails.value !== 'undefined' &&
-  	typeof shelveDetails.user !== 'undefined' &&
-  	typeof shelveDetails.pass !== 'undefined') {
+	  typeof shelveDetails.point !== 'undefined' &&
+  	  typeof shelveDetails.value !== 'undefined' &&
+  	  typeof shelveDetails.user !== 'undefined' &&
+  	  typeof shelveDetails.pass !== 'undefined') {
+
+	// Encrypt the username and password if required.
+	if (constructor.requireEncryption === true &&
+	    !shelveDetails.preventEncryption) {
+	  enTmp = encryptString(shelveDetails.user);
+	  if (enTmp !== undefined) {
+	    shelveDetails.user = enTmp;
+	  }
+	  enTmp = encryptString(shelveDetails.pass);
+	  if (enTmp !== undefined) {
+	    shelveDetails.pass = enTmp;
+	  }
+	}
+
         var commsObj = {
           content: {
   	  action: 'alarmshelve',
@@ -1334,7 +1363,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       for (aACi = 0; aACi < constructor.alarmCallbacks.length; aACi++) {
         if (nFunc === constructor.alarmCallbacks[aACi]) {
           aACadded = true;
-  	break;
+  	  break;
         }
       }
 
@@ -1358,7 +1387,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       for (aACi = 0; aACi < constructor.allAlarmCallbacks.length; aACi++) {
         if (nFunc === constructor.allAlarmCallbacks[aACi]) {
           aACadded = true;
-  	break;
+  	  break;
         }
       }
 
@@ -1380,12 +1409,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
     that.updateAlarmAuthData = function(authData, updAll) {
       uAADa = false;
       if (typeof authData.user !== 'undefined') {
-	if (constructor.requireEncryption !== true) {
-	  // Plain text is bad!
-	  constructor.alarmAuthData.user = authData.user;
-	} else {
-
-	}
+	constructor.alarmAuthData.user = authData.user;
         uAADa = true;
       }
       if (typeof authData.pass !== 'undefined') {
