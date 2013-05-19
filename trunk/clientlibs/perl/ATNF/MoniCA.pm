@@ -1035,7 +1035,7 @@ sub monalarmack ($$$@) {
     my @alarmnames = @_;
 
     # Simply call the master function.
-    return monalarmack_m($mon, $user, $pass, 2, @alarmnames);
+    return monalarmack_m($mon, $user, $pass, 0, @alarmnames);
 }
 
 =item B<monalarmshelve_m>
@@ -1128,7 +1128,7 @@ sub monalarmshelve ($$$@) {
     my @alarmnames = @_;
 
     # Simply call the master function.
-    return monalarmshelve_m($mon, $user, $pass, 2, @alarmnames);
+    return monalarmshelve_m($mon, $user, $pass, 0, @alarmnames);
 }
 
 # =item B<monset>

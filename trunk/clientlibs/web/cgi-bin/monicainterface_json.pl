@@ -284,7 +284,7 @@ if ($action eq "points"){
             'value' => $aels[1]
         };
     }
-    my @alarmresp = monalarmack($mon, $user, $pass, @alarmhashes);
+    my @alarmresp = monalarmack_m($mon, $user, $pass, 0, @alarmhashes);
 
     # Output some JSON.
     print "{ alarmResponse: [";
@@ -316,7 +316,7 @@ if ($action eq "points"){
             'value' => $aels[1]
         };
     }
-    my @alarmresp = monalarmshelve($mon, $user, $pass, @alarmhashes);
+    my @alarmresp = monalarmshelve_m($mon, $user, $pass, 0, @alarmhashes);
 
     # Output some JSON.
     print "{ alarmResponse: [";
@@ -350,7 +350,7 @@ if ($action eq "points"){
 	push @setpoints,$ns;
     }
     
-    my @successes = monset($mon, $user, $pass, @setpoints);
+    my @successes = monset_m($mon, $user, $pass, 0, @setpoints);
     
     # Output some JSON.
     print "{ setResult: [";
