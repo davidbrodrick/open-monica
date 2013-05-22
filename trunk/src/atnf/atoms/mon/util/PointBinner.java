@@ -27,6 +27,8 @@ import atnf.atoms.mon.PointDescription;
 public class PointBinner extends Thread{
 	/** Array of names of the strings to "bin" in dot-delimited format.*/
 	String[] points;
+	
+	static boolean pointsBinned = false;
 	/** The internal PointHierarchy used to store and retrieve the point names when queried*/
 	static PointHierarchy pointTree;
 
@@ -60,6 +62,7 @@ public class PointBinner extends Thread{
 		for (String point : points){
 			pointTree.addLeaf(point);
 		}
+		pointsBinned = true;
 	}
 	
 	/**
@@ -84,6 +87,14 @@ public class PointBinner extends Thread{
 	public static Vector<String> getDirectChildren(String pattern) throws NullPointerException{
 		return pointTree.getDirectChildren(pattern);
 	}
+	
+	/**
+	 * Returns a boolean indicating whether the PointBinner has finished binning all the points yet.
+	 * @return A boolean indicating whether this has finished binning its points yet
+	 */
+	public static boolean getPointsBinnedStatus(){
+		return pointsBinned;
+	}
 
 	/**
 	 * PointHierarchy is a recursively structured class that stores dot-delimited point names in 
@@ -101,7 +112,7 @@ public class PointBinner extends Thread{
 		HashMap<String, PointHierarchy> branches = new HashMap<String, PointHierarchy>();
 
 		/**
-		 * Constructs a root PointHierarch, with the node value "root"
+		 * Constructs a root PointHierarchy, with the node value "root"
 		 */
 		public PointHierarchy(){
 			node = "root";
@@ -236,7 +247,7 @@ public class PointBinner extends Thread{
 		 * Determines if this PointHierarchy is an ultimate "leaf" node without children
 		 * @return A boolean indicating whether this PointHierarchy links to any others
 		 */
-		private boolean hasChildren(){
+		public boolean hasChildren(){
 			return !branches.isEmpty();
 		}
 
@@ -271,6 +282,13 @@ public class PointBinner extends Thread{
 		Vector<String> res = mt.getDirectChildren("a.b.c");
 		for (String r : res){
 			System.out.println(r);
+		}
+		String[] points = {"a.b.c.d", "a.b.c.e", "a.c.b.d", "ca01.cabb.corr23"};
+		new PointBinner(points).start();
+		while (!PointBinner.getPointsBinnedStatus()){}
+		Vector<String> res1 = PointBinner.getAllChildren("");
+		for (String s : res1){
+			System.out.println(s);
 		}
 	}
 
