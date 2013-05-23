@@ -11,6 +11,8 @@ package atnf.atoms.mon.externalsystem;
 import java.util.*;
 import java.io.*;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.util.*;
 import atnf.atoms.time.*;
@@ -302,7 +304,7 @@ public class ExternalSystem implements Runnable {
               // Split the arguments into an array at each colon
               classArgs = tok.nextToken().split(":");
             }
-            Class newes;
+            Class<?> newes;
             try {
               // Might be fully qualified name
               newes = Class.forName(className);
@@ -310,8 +312,12 @@ public class ExternalSystem implements Runnable {
               // Not fully qualified - so try default package
               newes = Class.forName("atnf.atoms.mon.externalsystem." + className);
             }
-            Constructor con = newes.getConstructor(new Class[] { String[].class });
+            Constructor<?> con = newes.getConstructor(new Class[] { String[].class });
+            try {
             con.newInstance(new Object[] { classArgs });
+            } catch (InvocationTargetException ite){
+            	ite.getCause().printStackTrace();
+            }
           } catch (Exception f) {
             theirLogger.error("Cannot Initialise \"" + lines[i] + "\" defined on line " + (i + 1) + ": " + f);
           }
