@@ -26,45 +26,76 @@ import atnf.atoms.mon.PointDescription;
  */
 public class PointBinner extends Thread{
 	/** Array of names of the strings to "bin" in dot-delimited format.*/
-	String[] points;
-	
+	private String[] points;
+	/** Boolean indicating whether this PointBinner should bin points with the source last, rather thatn first*/
+	private boolean sourceLast;
+	/** Boolean indicating whether all the points in this PointBinner haven been sorted yet*/
 	static boolean pointsBinned = false;
 	/** The internal PointHierarchy used to store and retrieve the point names when queried*/
 	static PointHierarchy pointTree;
 
 	/**
-	 * Creates a new PointBinner with the specified array of Strings.
+	 * Creates a new PointBinner with the specified array of Strings. By default, sets the points
+	 * to be binned with the source names first
 	 * @param pts The array of Strings to use as the data source for this PointBinner
 	 */
 	public PointBinner(String[] pts){
-		points = pts;
+		this(pts, false);
+	}
+
+	/**
+	 * Creates a new PointBinner with the internal array of point names as null. Relies on the
+	 * main Thread method to populate the array using the {@link PointDescription#getAllUniqueNames()}
+	 * method once they have been created. By default, sets the points to be binned with the source
+	 * names first.
+	 */
+	public PointBinner(){
+		this (null, false);
 	}
 	
 	/**
 	 * Creates a new PointBinner with the internal array of point names as null. Relies on the
 	 * main Thread method to populate the array using the {@link PointDescription#getAllUniqueNames()}
-	 * method once they have been created.
+	 * method once they have been created. Sets the points to be binned according to the value
+	 * of srcLast. If true, source names will be appended onto the end of the point names, rather
+	 * than prepended as is usual.
 	 */
-	public PointBinner(){
-		points = null;
+	public PointBinner(boolean srcLast){
+		this(null, srcLast);
+	}
+
+	/**
+	 * Creates a new PointBinner with the internal array of points names to be set to pts. Also sets
+	 * the points to be binned accoring to the value of srcLast. If true, source names will be
+	 * appended onto the end of the points nams, rather than prepended as is usual.
+	 */
+	public PointBinner(String[] pts, boolean srcLast){
+		points = pts;
+		sourceLast = srcLast;
 	}
 
 	public void run(){
 		if (points == null || points.length == 0){
 			while (!PointDescription.getPointsCreated()){
 				try {
-				Thread.sleep(100);
+					Thread.sleep(100);
 				} catch (Exception e){}
 			}
 			points = PointDescription.getAllUniqueNames();
 		}
 		pointTree = new PointHierarchy();
 		for (String point : points){
-			pointTree.addLeaf(point);
+			if (sourceLast){
+				String src = point.substring(0, point.indexOf('.'));
+				String pt = point.substring(point.indexOf('.')+1);
+				pointTree.addLeaf(pt + "." + src);
+			} else {
+				pointTree.addLeaf(point);
+			}
 		}
 		pointsBinned = true;
 	}
-	
+
 	/**
 	Returns all the "children" of a given point pattern, with full point names
 	 * @param pattern The pattern that all returned children should match
@@ -75,7 +106,7 @@ public class PointBinner extends Thread{
 	public static Vector<String> getAllChildren(String pattern) throws NullPointerException{
 		return pointTree.getAllChildren(pattern);
 	}
-	
+
 	/**
 	 * Returns the direct children of the given point pattern. That is, only the "nub" extension of
 	 * that point pattern will be returned.
@@ -87,7 +118,7 @@ public class PointBinner extends Thread{
 	public static Vector<String> getDirectChildren(String pattern) throws NullPointerException{
 		return pointTree.getDirectChildren(pattern);
 	}
-	
+
 	/**
 	 * Returns a boolean indicating whether the PointBinner has finished binning all the points yet.
 	 * @return A boolean indicating whether this has finished binning its points yet
@@ -184,7 +215,7 @@ public class PointBinner extends Thread{
 			}
 			return res;
 		}
-		
+
 		/**
 		 * Returns the direct children of the given point pattern. That is, only the "nub" extension of
 		 * that point pattern will be returned.
@@ -214,7 +245,7 @@ public class PointBinner extends Thread{
 					System.err.println("Point category does not exist");
 				}
 			} else {
-					res.addAll(curr.getBranches().keySet());
+				res.addAll(curr.getBranches().keySet());
 			}
 			return res;			
 		}
@@ -284,7 +315,7 @@ public class PointBinner extends Thread{
 			System.out.println(r);
 		}
 		String[] points = {"a.b.c.d", "a.b.c.e", "a.c.b.d", "ca01.cabb.corr23"};
-		new PointBinner(points).start();
+		new PointBinner(points, true).start();
 		while (!PointBinner.getPointsBinnedStatus()){}
 		Vector<String> res1 = PointBinner.getAllChildren("");
 		for (String s : res1){
