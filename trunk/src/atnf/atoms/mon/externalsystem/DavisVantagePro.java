@@ -158,7 +158,7 @@ public class DavisVantagePro extends DataSocket {
 
     // Battery voltage
     temp = rawbytes[87] + 256 * rawbytes[88];
-    res.put("BATTVOLTS", new Float(((temp * 300) / 512) / 100));
+    res.put("BATTVOLTS", new Float(((temp * 300) / 512.0) / 100));
 
     // Wind readings
     if (rawbytes[14] != 255) {
