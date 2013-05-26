@@ -43,17 +43,17 @@ You have two options for the Javascript style: a "traditional" option based on t
 
 To use the AMD library, I recommend the following procedure:
   * On your webserver, in the top-level HTML directory, create a `jslib` directory.
-  * In this directory, make a `dojo` directory. Into this directory, extract the Dojo 1.7 toolkit (version 1.7.3 can be downloaded [http://download.dojotoolkit.org/release-1.7.3/dojo-release-1.7.3-src.tar.gz here]).
-  * Rename the directory (in this case `dojo-release-1.7.3-src`) to `1.7.3`.
+  * In this directory, make a `dojo` directory. Into this directory, extract the Dojo 1.9 toolkit (version 1.9.0 can be downloaded [http://download.dojotoolkit.org/release-1.9.0/dojo-release-1.9.0.tar.gz here]).
+  * Rename the directory (in this case `dojo-release-1.9.0`) to `1.9.0`.
   * Make a file called `configure.js` in the `jslib/dojo` directory that will be used by your web apps to correctly identify where other libraries are installed. It should look like:
 {{{
 var dojoConfig = {
   baseUrl: "/jslib/",
   tlmSiblingOfDojo: false,
   packages: [
-    { name: "dojo", location: "dojo/1.7.3/dojo" },
-    { name: "dijit", location: "dojo/1.7.3/dijit" },
-    { name: "dojox", location: "dojo/1.7.3/dojox" },
+    { name: "dojo", location: "dojo/1.9.0/dojo" },
+    { name: "dijit", location: "dojo/1.9.0/dijit" },
+    { name: "dojox", location: "dojo/1.9.0/dojox" },
     { name: "atnf", location: "atnf" }
   ]
 };
@@ -62,6 +62,8 @@ var dojoConfig = {
 Now you will need to download the AMD version of the [http://code.google.com/p/atcacode/source/browse/#svn%2Ftrunk%2FatnfLibrary%2Fclient-side%2Fatnf ATNF Javascript library] and install it into the `jslib` directory.
 
 Once you have done this, copy the `clientlibs/web/htdocs/atnf/monica.js` from this code-base into the `jslib/atnf` directory.
+
+If you would like to use the Javascript machinery to control points on the MoniCA server, or interact with the alarm functionality, and you require encrypted communication, you will also need to download the `biginteger` library from [https://github.com/silentmatt/javascript-biginteger here], and put it under `jslib/biginteger`.
 
 ==== Traditional Javascript ====
 
@@ -78,6 +80,8 @@ The included MoniCA frontpage depends on the following tools in addition to thos
 You can download the latest Highcharts plotting library from [http://www.highcharts.com their homepage.] Ideally, create a directory `jslib` in the root HTML directory of your HTTP server, and ensure that it contains a link to, or direct copy of, the `highcharts.js` file, such that the address `http://www.yourserver.com/jslib/highcharts.js` would find the script.
 
 Then copy the files `/clientlibs/web/htdocs/monica_front.*` to your desired location on the webserver. You will then need to do some configuration in the `monica_front.js` file.
+
+As this version of the MoniCA library is no longer actively developed, it does not support encrypted communication. To enable this feature, please migrate to the AMD style library.
 
 ----
 
@@ -98,7 +102,8 @@ In this style, you just need to configure Dojo 1.7 correctly to include both the
     <title>MoniCA test page</title>
     <script src="/jslib/dojo/configure.js"></script>
     <script data-dojo-config="async: true"
-	    src="/jslib/dojo/1.7.3/dojo/dojo.js"></script>
+	    src="/jslib/dojo/1.9.0/dojo/dojo.js"></script>
+    <script src="/jslib/biginteger/biginteger.js"></script>
   </head>
   <body>
 
