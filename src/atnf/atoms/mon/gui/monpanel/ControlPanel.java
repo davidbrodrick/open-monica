@@ -257,7 +257,7 @@ public class ControlPanel extends MonPanel implements ActionListener, KeyListene
 			numControls = Integer.parseInt(itsInitialSetup.get("controls number"));
 			numberControls.setValue(numControls);
 
-			for (int i = 0; i < numControls; i++){
+			for (int i = 0; i < numControls-1; i++){
 				addControlSetup();
 			}
 
