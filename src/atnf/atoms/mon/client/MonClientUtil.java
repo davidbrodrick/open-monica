@@ -915,7 +915,9 @@ public class MonClientUtil {
 		RelTime sleep = RelTime.factory(1000000);
 		try {
 			InputStream in = MonClientUtil.class.getClassLoader().getResourceAsStream(resname);
-			AudioInputStream soundIn = AudioSystem.getAudioInputStream(in);
+			//add buffer for mark/reset support
+			InputStream bufferedIn = new BufferedInputStream(in);
+			AudioInputStream soundIn = AudioSystem.getAudioInputStream(bufferedIn);
 			DataLine.Info info = new DataLine.Info(Clip.class, soundIn.getFormat());
 			Clip clip = (Clip) AudioSystem.getLine(info);
 			clip.open(soundIn);
@@ -930,6 +932,7 @@ public class MonClientUtil {
 			clip.close();
 		} catch (Exception e) {
 			System.err.println("MonClientUtil.playAudio: " + e.getClass());
+			//e.printStackTrace();
 			return false;
 		}
 		return true;
