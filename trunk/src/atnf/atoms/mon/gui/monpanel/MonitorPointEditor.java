@@ -2685,7 +2685,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 				"Outputs a pulse once triggered, but the pulse can be reset to a low state by a listened-to point. Takes two arguments, the mark period in seconds, and the name of the point which can reset the point.",
 				"Basic pulse extender. Timer can be reset. Has one argument, the pulse period, in seconds.",
 				"Round the Number input to the nearest integer value.",
-				"Runs an external programme and persists the return value in the point. Has at least three arguments, firstly, the number of values that are being passed, then the remaining arguments bar two are the names of the points that are being used as arguments. Then is the actual command to be used, and finally is the arguments you're passing on the command line to the external programme. Similar to the Calculation translation, $a substitutes to the first point value you've passed, $b to the second etc. Note the difference though: Dollar ($) sign is required to mark the letter as a variable. Example passing two parameters: test.ExternalCall \"Ext Call\" \"\" \"\" mysrc T - - {RunCmd-\"2\"\"mysrc.param.x\"\"mysrc.param.y\"\"/full/path/runme\"\"--paramx $a --paramy $b\"} - {Change-} 5000000 - In order to retrieve output from an external programme that does not take any input, you still need to feed one parameter in order for updates to trigger, but you can ignore the parameter field.",
+				"Runs an external program and persists the return value in the point. Has at least three arguments, first, the number of values that are being passed, then the remaining arguments bar two are the names of the points being used as arguments. Then is the actual command to be used, and finally are the arguments passed to the external program. Similar to the Calculation translation, $a substitutes to the first point value you've passed, $b to the second etc. However, a \'$\' sign is required on variables. In order to retrieve output from an external program that does not take any input, you still need to feed one parameter in order for updates to trigger.",
 				"Merges two 16 bit integers to reassemble a 32 bit double integer. Has two arguments, first is most significant bits, and second is least significant bits of a 32-bit double.",
 				"Merges two 16 bit integers to reassemble a IEEE754 32 bit float.Has two arguments, first is most significant bits, and second is least significant bits of a 32-bit float.",
 				"Measures the interval since the input was last 'high'. Input must be a Boolean or Number. Output is a RelTime.",
@@ -2919,7 +2919,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 			} else {
 				return cmd;
 			}
-			itsPanel.setPreferredSize(new Dimension(400, 200));
+			itsPanel.setPreferredSize(new Dimension(400, 250));
 			return itsPanel;
 		}
 
