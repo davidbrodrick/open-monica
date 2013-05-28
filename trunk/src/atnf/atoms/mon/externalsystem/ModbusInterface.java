@@ -1,6 +1,8 @@
 package atnf.atoms.mon.externalsystem;
 
 import java.net.*;
+import java.util.*;
+import java.text.*;
 
 import net.wimpi.modbus.msg.*;
 import net.wimpi.modbus.io.*;
@@ -11,7 +13,6 @@ import net.wimpi.modbus.procimg.Register;
 
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.transaction.*;
-//import atnf.atoms.time.RelTime;
 
 import org.apache.log4j.Logger;
 
@@ -489,34 +490,39 @@ public class ModbusInterface extends ExternalSystem {
 			int FCode = Integer.parseInt(transStrArr[1]);
 			int StartAddress = Integer.parseInt(transStrArr[2]);
 			
+            // Print Time
+            Date dNow = new Date( );
+            SimpleDateFormat ft = new SimpleDateFormat ("dd/MM/yyyy HH:mm:ss.SSS zzz");
+            System.out.print(ft.format(dNow));
+
 			try {
 				switch (FCode) {
 				case 1:
 					// Read Coils
 					ReadCoilsResponse rc_response = mbi.readCoils(UnitID, StartAddress, numberToRead);
 					if (useArray) for (int i = 0; i < numberToRead; i++) {
-						System.out.print(new Boolean(rc_response.getCoilStatus(i)).toString()+",");
+						System.out.print(","+new Boolean(rc_response.getCoilStatus(i)).toString());
 					}
 					break;
 				case 2:
 					// Read Discrete Inputs
 					ReadInputDiscretesResponse di_response = mbi.readDiscreteInputs(UnitID, StartAddress, numberToRead);
 					if (useArray) for (int i = 0; i < numberToRead; i++) {
-						System.out.print(new Boolean(di_response.getDiscreteStatus(i)).toString()+",");
+						System.out.print(","+new Boolean(di_response.getDiscreteStatus(i)).toString());
 					}
 					break;
 				case 3:
 					// Read Holding Registers (jamod library terminology uses multiple instead of holding)
 					ReadMultipleRegistersResponse rhr_response = mbi.readHoldingRegisters(UnitID, StartAddress, numberToRead);
 					if (useArray) for (int i = 0; i < numberToRead; i++) {
-						System.out.print(new Integer(rhr_response.getRegisterValue(i)).toString()+",");
+						System.out.print(","+new Integer(rhr_response.getRegisterValue(i)).toString());
 					}
 					break;
 				case 4:
 					// Read Input Registers
 					ReadInputRegistersResponse rir_response = mbi.readInputRegisters(UnitID, StartAddress, numberToRead);
 					if (useArray) for (int i = 0; i < numberToRead; i++) {
-						System.out.print(new Integer(rir_response.getRegisterValue(i)).toString()+",");
+						System.out.print(","+new Integer(rir_response.getRegisterValue(i)).toString());
 					}
 					break;
 				default:
