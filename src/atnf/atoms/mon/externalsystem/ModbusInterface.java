@@ -14,7 +14,7 @@ import net.wimpi.modbus.procimg.Register;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.transaction.*;
 
-import org.apache.log4j.Logger;
+import org.apache.log4j.*;
 
 /**
 * 
@@ -25,7 +25,7 @@ import org.apache.log4j.Logger;
 * 
 * If using main standalone, the required parameters are: <i>hostname port ModbusID ModbusFunction StartAddress</i>
 *
-* In bothcases, the default is to read one point, but another argument is optional. This argument specifies the number of points to read.
+* In both cases, the default is to read one point, but another argument is optional. This argument specifies the number of points to read.
 *
 * @author Ben McKay & Peter Mirtschin
 * @version $Id: $
@@ -467,32 +467,51 @@ public class ModbusInterface extends ExternalSystem {
 
 	}
 
-	private static void DoMainWork(String[] args){
-		ModbusInterface mbi = new ModbusInterface(args);
-		String[] transStrArr = {args[2], args[3], args[4], args[5]};
+	// Print usage.
+	private static void usage()
+	{
+		System.err.println("usage:");
+		System.err.println("  ??? hostname port id type start [count]");
+		System.err.println("where:");
+		System.err.println("  Hostname: Modbus host IP address");
+		System.err.println("  Port: Modbus port (usually 502)");
+		System.err.println("  ID: Modbus ID (1-125)");
+		System.err.println("  Type: 1:ReadCoils, 2:ReadDiscreteInputs, 3:ReadHoldingRegisters, 4:ReadInputRegisters");
+		System.err.println("  Start: Modbus Start Address (0-65535)");
+		System.err.println("  Count: Number of points to read (optional). Default:1 (1-125)");
+		System.exit(1);
+	}
+
+	public static void main(String[] args){
+		// disable logging messages
+		theirLogger.setLevel(Level.OFF); 
 
 		try {
+			
+			// Check for correct number and value of each argument.
+			int numberToRead=0;
+			if (args.length==5) {
+				numberToRead = 1;
+			} else if (args.length==6) {
+				numberToRead = Integer.parseInt(args[5]);
+				if ( numberToRead<1 || numberToRead>125 ) usage();
+			} else {
+				usage();
+			}
+				
+			int UnitID = Integer.parseInt(args[2]);
+			if ( UnitID<1 || UnitID>125 ) usage();
+			int FCode = Integer.parseInt(args[3]);
+			if ( FCode<1 || FCode>4 ) usage();
+			int StartAddress = Integer.parseInt(args[4]);
+			if ( StartAddress<0 || StartAddress>65535 ) usage();
+
+			ModbusInterface mbi = new ModbusInterface(args);
 			mbi.connect();
-
-			int numberToRead = 1;
-			boolean useArray = false;
-
-			// Check we have correct number of arguments
-			if (transStrArr.length != 3 && transStrArr.length != 4) {
-				theirLogger.error("Modbus.getData requires either 3 or 4 arguments");
-				throw new IllegalArgumentException("Modbus.getData: requires 3 or 4 arguments");
-			}
-			if (transStrArr.length == 4) {
-				numberToRead = Integer.parseInt(transStrArr[3]);
-				useArray = true;
-			}
-			int UnitID = Integer.parseInt(transStrArr[0]);
-			int FCode = Integer.parseInt(transStrArr[1]);
-			int StartAddress = Integer.parseInt(transStrArr[2]);
 			
             // Print Time
             Date dNow = new Date( );
-            SimpleDateFormat ft = new SimpleDateFormat ("dd/MM/yyyy HH:mm:ss.SSS zzz");
+            SimpleDateFormat ft = new SimpleDateFormat ("dd/MM/yyyy HH:mm:ss.SSS"); // zzz");
             System.out.print(ft.format(dNow));
 
 			try {
@@ -500,28 +519,28 @@ public class ModbusInterface extends ExternalSystem {
 				case 1:
 					// Read Coils
 					ReadCoilsResponse rc_response = mbi.readCoils(UnitID, StartAddress, numberToRead);
-					if (useArray) for (int i = 0; i < numberToRead; i++) {
+					for (int i = 0; i < numberToRead; i++) {
 						System.out.print(","+new Boolean(rc_response.getCoilStatus(i)).toString());
 					}
 					break;
 				case 2:
 					// Read Discrete Inputs
 					ReadInputDiscretesResponse di_response = mbi.readDiscreteInputs(UnitID, StartAddress, numberToRead);
-					if (useArray) for (int i = 0; i < numberToRead; i++) {
+					for (int i = 0; i < numberToRead; i++) {
 						System.out.print(","+new Boolean(di_response.getDiscreteStatus(i)).toString());
 					}
 					break;
 				case 3:
 					// Read Holding Registers (jamod library terminology uses multiple instead of holding)
 					ReadMultipleRegistersResponse rhr_response = mbi.readHoldingRegisters(UnitID, StartAddress, numberToRead);
-					if (useArray) for (int i = 0; i < numberToRead; i++) {
+					for (int i = 0; i < numberToRead; i++) {
 						System.out.print(","+new Integer(rhr_response.getRegisterValue(i)).toString());
 					}
 					break;
 				case 4:
 					// Read Input Registers
 					ReadInputRegistersResponse rir_response = mbi.readInputRegisters(UnitID, StartAddress, numberToRead);
-					if (useArray) for (int i = 0; i < numberToRead; i++) {
+					for (int i = 0; i < numberToRead; i++) {
 						System.out.print(","+new Integer(rir_response.getRegisterValue(i)).toString());
 					}
 					break;
@@ -539,22 +558,4 @@ public class ModbusInterface extends ExternalSystem {
 			e.printStackTrace();
 		}
 	}
-
-	// Print usage.
-	private static void usage()
-	{
-		System.err.println("usage:");
-		System.err.println("  ??? hostname port id type start count");
-		System.exit(1);
-	}
-
-	public static void main(String[] args){
-		// Check for no arguments.
-		if (args.length !=6) {
-			usage();
-		}
-
-		DoMainWork(args);
-	}
-
 }
