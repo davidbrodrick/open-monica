@@ -112,8 +112,6 @@ public class ControlPanel extends MonPanel implements ActionListener, KeyListene
 	 */
 	private final String[] layoutOptions = {"Horizontal", "Vertical", "H-Readback", "V-Readback"};
 
-	private String username = "";
-	private String passwd = "";
 	private String titleStr = "";
 	private String layoutStr = "";
 
@@ -1460,12 +1458,10 @@ public class ControlPanel extends MonPanel implements ActionListener, KeyListene
 
 			for (ControlPanelDisplayComponent c : panelList){
 				if (source.equals(c.getConfirmButton())){
-					String[] creds = MonClientUtil.showLogin(this, username, passwd);
+					String[] creds = LoginManager.getLoginCredentials(ControlPanel.this);
 					if (creds != null){
-						username = creds[0];
-						passwd = creds[1];
-						if (username.isEmpty() || username == null || passwd.isEmpty() || passwd == null){
-							passwd = ""; 
+						if (creds[0].isEmpty() || creds[0]== null || creds[1].isEmpty() || creds[1]== null){
+							LoginManager.setCredentials(new String[]{creds[0], ""});
 							return;
 						}
 						new DataSender(c).start(); // Start sending thread
@@ -1495,6 +1491,7 @@ public class ControlPanel extends MonPanel implements ActionListener, KeyListene
 
 		@Override
 		public void run(){
+			String[] creds = LoginManager.getLoginCredentials(ControlPanel.this);
 			try{
 				MoniCAClient server = MonClientUtil.getServer();
 				PointData data = null;
@@ -1540,10 +1537,10 @@ public class ControlPanel extends MonPanel implements ActionListener, KeyListene
 						}
 					}
 				}
-				boolean res = server.setData(c.getPoint(), data, username, passwd);
+				boolean res = server.setData(c.getPoint(), data, creds[0], creds[1]);
 				if (!res) throw (new AuthenticationException());
 			} catch (Exception e){
-				passwd = "";
+				LoginManager.setCredentials(new String[]{creds[0], ""});
 				SwingUtilities.invokeLater(new Runnable(){
 					public void run(){
 						JOptionPane.showMessageDialog(ControlPanel.this, "Something went wrong with the sending of data. " +

@@ -125,9 +125,6 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 	private String majorAlmStr = "major";
 	private String sevAlmStr = "severe";
 
-	private String username = "";
-	private String password = "";
-
 	// /////////////////////// NESTED CLASS ///////////////////////////////
 	/** Nested class to provide GUI controls for configuring the AlarmManagerPanel */
 	private class AlarmManagerSetupPanel extends MonPanelSetupPanel implements ItemListener, ActionListener{
@@ -849,12 +846,10 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					});
 				} catch (Exception e1) {}
 			} else if (command.equals("ack")){
+				String[] creds = LoginManager.getLoginCredentials(AlarmManagerPanel.this);
 				try {
-					String[] creds = MonClientUtil.showLogin(this, username, password);
-					username = creds[0];
-					password = creds[1];
-					if (username.isEmpty() || password.isEmpty()){
-						password = ""; 
+					if (creds[0].isEmpty() || creds[1].isEmpty()){
+						LoginManager.setCredentials(new String[]{creds[0], ""});
 						return;
 					}
 					//send the commands along to the server
@@ -874,19 +869,17 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 					this.updateAlarmPanels();
 				} catch (Exception ex){
 					ex.printStackTrace();
-					password = "";
+					LoginManager.setCredentials(new String[]{creds[0], ""});
 					JOptionPane.showMessageDialog(this, "Something went wrong with the sending of data. " +
 							"\nPlease ensure that you're properly connected to the network, you are attempting to write to a valid point" +
 							"\n and your username and password are correct.", "Data Sending Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
 			} else if (command.equals("shelve")){
+				String[] creds = LoginManager.getLoginCredentials(AlarmManagerPanel.this);
 				try {
-					String[] creds = MonClientUtil.showLogin(this, username, password);
-					username = creds[0];
-					password = creds[1];
-					if (username.isEmpty() || password.isEmpty()){
-						password = ""; 
+					if (creds[0].isEmpty() || creds[1].isEmpty()){
+						LoginManager.setCredentials(new String[]{creds[0], ""}); 
 						return;
 					}
 					if (e.getSource() instanceof JButton){
@@ -911,7 +904,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 						shelve.setText("SHELVE");
 					}
 				} catch (Exception ex){
-					password = "";
+					LoginManager.setCredentials(new String[]{creds[0], ""});
 					JOptionPane.showMessageDialog(this, "Something went wrong with the sending of data. " +
 							"\nPlease ensure that you're properly connected to the network, you are attempting to write to a valid point" +
 							"\n and your username and password are correct.", "Data Sending Error", JOptionPane.ERROR_MESSAGE);
@@ -2094,29 +2087,30 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 		@Override
 		public void run(){
 			boolean res = false;
+			String[] creds = LoginManager.getLoginCredentials(AlarmManagerPanel.this);
 			try{
 				if (action.equals("shelve")){
-					res = AlarmMaintainer.setShelved(point, state, username, password);
+					res = AlarmMaintainer.setShelved(point, state, creds[0], creds[1]);
 					updateListModels();
 				} else if (action.equals("ack")){
-					res = AlarmMaintainer.setAcknowledged(point, state, username, password);
+					res = AlarmMaintainer.setAcknowledged(point, state, creds[0], creds[1]);
 					updateListModels();
 				} else {
 					throw (new IllegalArgumentException());
 				}
 				if (!res) throw (new AuthenticationException());
 			} catch (IllegalArgumentException i){
-				password = "";
+				LoginManager.setCredentials(new String[]{creds[0], ""});
 				JOptionPane.showMessageDialog(AlarmManagerPanel.this, "You somehow sent an invalid command to the server - check the source code!", 
 						"Invalid command Error", JOptionPane.ERROR_MESSAGE);
 
 			} catch (AuthenticationException ae){
-				password = "";
+				LoginManager.setCredentials(new String[]{creds[0], ""});
 				JOptionPane.showMessageDialog(AlarmManagerPanel.this, "Data transmission failed.\nPlease check your username and password.", 
 						"Authentication Failure", JOptionPane.ERROR_MESSAGE);
 
 			} catch (Exception e){
-				password = "";
+				LoginManager.setCredentials(new String[]{creds[0], ""});
 				JOptionPane.showMessageDialog(AlarmManagerPanel.this, "Something went wrong with the sending of data. " +
 						"\nPlease ensure that you're properly connected to the network.", 
 						"Data Sending Error", JOptionPane.ERROR_MESSAGE);

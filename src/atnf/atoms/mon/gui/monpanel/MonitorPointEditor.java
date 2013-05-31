@@ -84,8 +84,6 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 	private static final long serialVersionUID = 1030968805100512703L;
 	/** Array holding the layout values "Horizontal" and "Vertical" for use with the layout combo-box */
 	private final String[] layouts = {"Horizontal", "Vertical"};
-	private String username = "";
-	private String password = "";
 
 	static {
 		MonPanel.registerMonPanel("Monitor Point Editor", MonitorPointEditor.class);
@@ -1247,12 +1245,9 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 				JOptionPane.showMessageDialog(this, pan
 						, "Help", JOptionPane.QUESTION_MESSAGE);
 			} else if (source.equals(write)){
-				String[] res = MonClientUtil.showLogin(this, username, password);
+				String[] res = LoginManager.getLoginCredentials(this);
 				if (res != null){
-					username = res[0];
-					password = res[1];
-
-					if (password.isEmpty()) return; //user hit cancel
+					if (res[1].isEmpty()) return; //user hit cancel
 
 					boolean valid = true;
 					for (MPEditorComponent m : components){
@@ -4487,6 +4482,7 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 		@Override
 		public void run(){
 			if (purpose.equals("commitAll")){
+				String[] creds = LoginManager.getLoginCredentials(MonitorPointEditor.this);
 				try{
 					MoniCAClient mc = MonClientUtil.getServer();
 					boolean allfine = true;
@@ -4497,32 +4493,33 @@ public class MonitorPointEditor extends MonPanel implements ActionListener, Alar
 							PointDescription pd = m.pointDescriptionFactory();
 							pointsToWrite.add(pd);
 						}
-						allfine = mc.addPoints(pointsToWrite, username, password);
+						allfine = mc.addPoints(pointsToWrite, creds[0], creds[1]);
 					}
 					if (!allfine){
-						password = "";
+						LoginManager.setCredentials(new String[]{creds[0], ""});
 						JOptionPane.showMessageDialog(MonitorPointEditor.this, "Writing points failed. Please ensure your login details are correct and try writing again.", "Authentication Error", JOptionPane.ERROR_MESSAGE);
 						return;
 					}
 				} catch (Exception e){
-					password = "";
+					LoginManager.setCredentials(new String[]{creds[0], ""});
 					JOptionPane.showMessageDialog(MonitorPointEditor.this, "Writing points failed. Please ensure your login details are correct and try writing again.", "Authentication Error", JOptionPane.ERROR_MESSAGE);
 				}
 			} else if (purpose.equals("commit")){
+				String[] creds = LoginManager.getLoginCredentials(MonitorPointEditor.this);
 				try{
 					MoniCAClient mc = MonClientUtil.getServer();
 					boolean succ = false;
 					if (mc != null){
 						PointDescription pd = reference.pointDescriptionFactory();
-						succ = mc.addPoint(pd, username, password);
+						succ = mc.addPoint(pd, creds[0], creds[1]);
 					}
 					if (!succ){
-						password = "";
+						LoginManager.setCredentials(new String[]{creds[0], ""});
 						JOptionPane.showMessageDialog(MonitorPointEditor.this, "Writing point failed. Please ensure your login details are correct and try writing again.", "Authentication Error", JOptionPane.ERROR_MESSAGE);
 						return;
 					}
 				} catch (Exception e){
-					password = "";
+					LoginManager.setCredentials(new String[]{creds[0], ""});
 					JOptionPane.showMessageDialog(MonitorPointEditor.this, "Writing point failed. Please ensure your login details are correct and try writing again.", "Authentication Error", JOptionPane.ERROR_MESSAGE);
 				}
 			} else if (purpose.equals("update")){
