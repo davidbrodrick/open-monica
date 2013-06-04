@@ -53,7 +53,7 @@ public class TranslationHermiteInterpolator extends Translation {
       float pred = Float.parseFloat(init[1]) * 1000000;
       itsPredictionTime = RelTime.factory((long) pred);
     } catch (Exception e) {
-      System.err.println("TranslationExtrapolator: " + itsParent.getFullName() + ": Error Arguments!!");
+      System.err.println("TranslationHermiteInterpolator: " + itsParent.getFullName() + ": Error Arguments!!");
     }
   }
 
@@ -83,7 +83,7 @@ public class TranslationHermiteInterpolator extends Translation {
     // Add the new data
     if (newdata != null && newdata.getData() != null) {
       if (!(newdata.getData() instanceof Number)) {
-        System.err.println("TranslationExtrapolator: " + itsParent.getFullName() + " Can't Use Non-Numeric Data!");
+        System.err.println("TranslationHermiteInterpolator: " + itsParent.getFullName() + " Can't Use Non-Numeric Data!");
       } else {
         itsBuffer.add(newdata);
       }
