@@ -882,6 +882,7 @@ public class AlarmManagerPanel extends MonPanel implements AlarmEventListener{
 						LoginManager.setCredentials(new String[]{creds[0], ""}); 
 						return;
 					}
+					LoginManager.setCredentials(new String[]{creds[0], creds[1]});
 					if (e.getSource() instanceof JButton){
 						this.listShelve(e);
 					} else if (e.getSource() instanceof JMenuItem){
