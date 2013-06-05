@@ -135,8 +135,25 @@ public class PointBuffer {
    *          The earliest time in the range of interest.
    * @param end_time
    *          The most recent time in the range of interest.
+   * @return Vector containing all data in the specified time range. <tt>null</tt> will be returned if no data were found.
+   */
+  public static Vector<PointData> getPointData(PointDescription pm, AbsTime start_time, AbsTime end_time) {
+    return getPointData(pm, start_time, end_time, 0);
+  }
+
+  /**
+   * Return all data in the specified time range for the given point. This will access the memory buffer and/or the data archive on
+   * disk in order to gather all data between the specified times. A <tt>sample_rate</tt> parameter can be used to undersample the
+   * available data to reduce the amount of data which is returned.
+   * 
+   * @param pm
+   *          The point to get the data for.
+   * @param start_time
+   *          The earliest time in the range of interest.
+   * @param end_time
+   *          The most recent time in the range of interest.
    * @param maxsamples
-   *          The maximum number of samples to be returned.
+   *          The maximum number of samples to be returned. 0 for no limit.
    * @return Vector containing all data in the specified time range. <tt>null</tt> will be returned if no data were found.
    */
   public static Vector<PointData> getPointData(PointDescription pm, AbsTime start_time, AbsTime end_time, int maxsamples) {
@@ -229,7 +246,7 @@ public class PointBuffer {
     // Ensure null result if no data were found.
     if (arcdata.isEmpty()) {
       arcdata = null;
-    }    
+    }
     return arcdata;
   }
 

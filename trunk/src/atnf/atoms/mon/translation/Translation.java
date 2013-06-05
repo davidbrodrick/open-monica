@@ -7,13 +7,15 @@
 
 package atnf.atoms.mon.translation;
 
+import org.apache.log4j.Logger;
+
 import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
 
 /**
- * The <code>Translation</code> class is one of the core classes of the monitor system. Translation sub-classes are responsible
- * for converting raw data into useful information. This might happen any number of ways, for instance extracting a single value
- * from an array or by scaling a raw number into real-world units.
+ * The <code>Translation</code> class is one of the core classes of the monitor system. Translation sub-classes are responsible for
+ * converting raw data into useful information. This might happen any number of ways, for instance extracting a single value from an
+ * array or by scaling a raw number into real-world units.
  * 
  * <P>
  * One of the strengths of this system is that Translations can be chained together, so that multiple steps can be used to convert
@@ -25,8 +27,8 @@ import atnf.atoms.mon.PointDescription;
  * All Translations are constructed by calling the static <code>factory</code> method in this class.
  * 
  * <P>
- * The actual data translation happens in the <code>translate</code> method which much be implemented by each sub-class. This
- * method takes a <code>PointData</code> argument.
+ * The actual data translation happens in the <code>translate</code> method which much be implemented by each sub-class. This method
+ * takes a <code>PointData</code> argument.
  * 
  * <P>
  * If all the information is available to complete the relevant translation then the translate method should return a reference to a
@@ -40,14 +42,14 @@ import atnf.atoms.mon.PointDescription;
  * @author Le Cuong Nguyen
  * @author David Brodrick
  */
-public abstract class Translation
-{
+public abstract class Translation {
   protected String[] itsInit = null;
 
   protected PointDescription itsParent = null;
 
-  protected Translation(PointDescription parent, String[] init)
-  {
+  protected static Logger theirLogger = Logger.getLogger(Translation.class.getName());
+
+  protected Translation(PointDescription parent, String[] init) {
     itsInit = init;
     itsParent = parent;
   }

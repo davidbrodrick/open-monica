@@ -9,95 +9,32 @@
 
 package atnf.atoms.mon.translation;
 
-import java.util.Vector;
-
 import org.apache.commons.math3.analysis.interpolation.*;
 
-import atnf.atoms.mon.PointData;
-import atnf.atoms.mon.PointDescription;
-import atnf.atoms.time.AbsTime;
-import atnf.atoms.time.RelTime;
-import atnf.atoms.time.Time;
+import atnf.atoms.mon.*;
+import atnf.atoms.time.*;
 
 /**
- * Fits a polynomial to a buffer of past values and can interpolate/extrapolate.
+ * Interpolator which uses the Apache Commons Math HermiteInterpolator class.
  * 
  * <P>
- * The first argument specifies the length of the buffer of past values, in seconds. The second value is how far into the future to
- * extrapolate the value for, in seconds.
+ * Instances expect the following arguments:
+ * <ul>
+ * <li><b>Period:</b> The buffer length for past values in seconds.
+ * <li><b>Prediction Time:</b> The time into the future (or past if negative) to extrapolate/interpolate the value for.
+ * <li><b>Preload:</b> Optional argument, if set to "true" the buffer will be pre-seeded from the archive at construction time.
+ * </ul>
  * 
  * @author David Brodrick
  */
-public class TranslationHermiteInterpolator extends Translation {
-  /** Buffer containing data. */
-  protected Vector<PointData> itsBuffer = new Vector<PointData>();
-
-  /** Period to measure the peak over. */
-  protected RelTime itsPeriod = RelTime.factory(-60000000l);
-
-  /** How many seconds into the future to make the prediction for. */
-  protected RelTime itsPredictionTime = RelTime.factory(-60000000l);
-
+public class TranslationHermiteInterpolator extends TranslationInterpolator {
   public TranslationHermiteInterpolator(PointDescription parent, String[] init) {
     super(parent, init);
-
-    // Find amount of time to buffer data for
-    try {
-      float period = Float.parseFloat(init[0]) * 1000000;
-      if (period > 0) {
-        period = -period;
-      }
-      itsPeriod = RelTime.factory((long) period);
-
-      // Find when to make the prediction for
-      float pred = Float.parseFloat(init[1]) * 1000000;
-      itsPredictionTime = RelTime.factory((long) pred);
-    } catch (Exception e) {
-      System.err.println("TranslationHermiteInterpolator: " + itsParent.getFullName() + ": Error Arguments!!");
-    }
   }
 
-  /** Calculate the average and return an averaged value. */
-  public PointData translate(PointData data) {
-    // Add new data to buffer and remove any expired data
-    updateBuffer(data);
-
-    // If insufficient data then can't calculate result
-    if (itsBuffer.size() < 1) {
-      return null;
-    }
-
-    // Build the interpolator based on data in the buffer
-    HermiteInterpolator interpolator = buildInterpolator();
-
-    // Get the value for the requested time offset
-    double reqtime = Time.diff(data.getTimestamp().add(itsPredictionTime), itsBuffer.firstElement().getTimestamp()).getAsSeconds();
-    double predval = interpolator.value(reqtime)[0];
-
-    // Return the peak value
-    return new PointData(itsParent.getFullName(), data.getTimestamp(), predval);
-  }
-
-  /** Add new data to buffer and purge old data. */
-  protected void updateBuffer(PointData newdata) {
-    // Add the new data
-    if (newdata != null && newdata.getData() != null) {
-      if (!(newdata.getData() instanceof Number)) {
-        System.err.println("TranslationHermiteInterpolator: " + itsParent.getFullName() + " Can't Use Non-Numeric Data!");
-      } else {
-        itsBuffer.add(newdata);
-      }
-    }
-
-    // Purge any old data which has now expired
-    AbsTime expiry = (new AbsTime()).add(itsPeriod);
-    while (itsBuffer.size() > 0 && ((PointData) itsBuffer.get(0)).getTimestamp().isBefore(expiry)) {
-      itsBuffer.remove(0);
-    }
-  }
-
-  /** Build the interpolator using the data in the buffer. */
-  protected HermiteInterpolator buildInterpolator() {
+  /** Return the interpolated value for the specified time offset. */
+  protected double interpolate(double reqtime) {
+    // Use the HermiteInterpolator
     HermiteInterpolator interpolator = new HermiteInterpolator();
 
     // Get the timestamp of the first point
@@ -115,6 +52,9 @@ public class TranslationHermiteInterpolator extends Translation {
 
     System.err.println("Fit is: " + interpolator.getPolynomials()[0]);
 
-    return interpolator;
+    // Get the interpolated value for the requested time
+    double res = interpolator.value(reqtime)[0];
+
+    return res;
   }
 }
