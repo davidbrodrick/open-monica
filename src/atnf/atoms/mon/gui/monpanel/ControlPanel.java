@@ -1460,9 +1460,12 @@ public class ControlPanel extends MonPanel implements ActionListener, KeyListene
 				if (source.equals(c.getConfirmButton())){
 					String[] creds = LoginManager.getLoginCredentials(ControlPanel.this);
 					if (creds != null){
-						if (creds[0].isEmpty() || creds[0]== null || creds[1].isEmpty() || creds[1]== null){
+						if (creds[0]== null || creds[0].isEmpty() || creds[1]== null || creds[1].isEmpty()){
 							LoginManager.setCredentials(new String[]{creds[0], ""});
 							return;
+						} else {
+						  // Okay to cache these credentials
+						  LoginManager.setCredentials(new String[]{creds[0], creds[1]});
 						}
 						new DataSender(c).start(); // Start sending thread
 						return;
