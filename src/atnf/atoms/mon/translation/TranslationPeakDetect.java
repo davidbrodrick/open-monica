@@ -25,33 +25,11 @@ import atnf.atoms.time.RelTime;
  */
 public class
 TranslationPeakDetect
-extends Translation
+extends TranslationDataBuffer
 {
-  /** Buffer containing data. */
-  protected Vector<PointData> itsBuffer = new Vector<PointData>();
-
-  /** Period to measure the peak over. */
-  protected RelTime itsPeriod = RelTime.factory(-60000000l);
-
-  protected static String[] itsArgs = new String[]{
-      "Translation Peak Detect", "PeakDetect",
-      "Time Range", "java.lang.String"};
-
   public TranslationPeakDetect(PointDescription parent, String[] init)
   {
     super(parent, init);
-
-    //Find amount of time to buffer data for
-    try {
-      float period = Float.parseFloat(init[0])*1000000;
-      if (period>0) {
-        period=-period;
-      }
-      itsPeriod = RelTime.factory((long)period);
-    } catch (Exception e) {
-      System.err.println("TranslationPeakDetect: " + itsParent.getLongName() +
-                         ": Error Parsing Period Argument!!");
-    }
   }
 
 
@@ -59,9 +37,14 @@ extends Translation
   public
   PointData
   translate(PointData data)
-  {
-    //Add new data to buffer and remove any expired data
-    updateBuffer(data);
+  {  
+    // Check data type and update buffer
+    if (data.getData() == null || !(data.getData() instanceof Number)) {
+      theirLogger.warn(getClass().getCanonicalName() + ": " + itsParent.getFullName() + ": Can't use non-numeric data");
+      updateBuffer(null);
+    } else {
+      updateBuffer(data);
+    }
 
     //If insufficient data then can't calculate result
     if (itsBuffer.size()<1) {
@@ -72,33 +55,8 @@ extends Translation
     Double peak=getPeak();
 
     //Return the peak value
-    return new PointData(itsParent.getFullName(), new AbsTime(), peak);
+    return new PointData(itsParent.getFullName(), data.getTimestamp(), peak);
   }
-
-
-  /** Add new data to buffer and purge old data. */
-  protected
-  void
-  updateBuffer(PointData newdata)
-  {
-    //Add the new data
-    if (newdata!=null && newdata.getData()!=null) {
-      if (!(newdata.getData() instanceof Number)) {
-        System.err.println("TranslationPeakDetect: " + itsParent.getLongName()
-                           + " Can't Use Non-Numeric Data!");
-      } else {
-        itsBuffer.add(newdata);
-      }
-    }
-
-    //Purge any old data which has now expired
-    AbsTime expiry = (new AbsTime()).add(itsPeriod);
-    while (itsBuffer.size()>0 &&
-           ((PointData)itsBuffer.get(0)).getTimestamp().isBefore(expiry)) {
-      itsBuffer.remove(0);
-    }
-  }
-
 
   /** Return the mean of the peak in the buffer. */
   protected
@@ -122,11 +80,5 @@ extends Translation
     } else {
       return new Double(peak);
     }
-  }
-
-
-  public static String[] getArgs()
-  {
-     return itsArgs;
   }
 }

@@ -43,9 +43,10 @@ public abstract class TranslationInterpolator extends TranslationDataBuffer {
     // Check data type
     if (data.getData() == null || !(data.getData() instanceof Number)) {
       theirLogger.warn("TranslationInterpolator: " + itsParent.getFullName() + ": Can't use non-numeric data");
+      updateBuffer(null);
+    } else {
+      updateBuffer(data);
     }
-    // Add new data to buffer and remove any expired data
-    updateBuffer(data);
 
     // If insufficient data then can't calculate result
     if (itsBuffer.size() < 1) {
