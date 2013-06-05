@@ -10,6 +10,8 @@ Please maintain lists in lexigraphic order.
 == Abstract Base Classes ==
 
 || *Class* || *Description* || *Arguments* ||
+|| !DataBuffer || Maintains a buffer of previous values which subclasses can utilise in their translate methods. || *Time:* The length of the buffer in seconds. ||
+|| Interpolator || Base class for interpolating/extrapolating based on previous values. || *Time:* The length of the buffer in seconds. *Offset:* How many seconds into the future to interpolate the value for. *Preseed:* If set to "true" the buffer will be pre-loaded from the archive at construction time. ||
 || Listener || Listen to updates from one or more other points. || *Num:* Number of points to be listened to. *Names:* The N subsequent arguments are the names of the points to listen to. ||
 || !DualListen || Buffer the values of two other monitor points. Subclasses may combine these in arbitrary ways to create the desired output. Must be used together with `TransactionListen`. _deprecated use Listener_ || *Point1:* Name of listened-to point 1. *Point2:* Name of listened-to point 2. ||
 || Synch || Subclass of !DualListen which only processes when the input data has identical timestamps. This is only appropriate for points which are monitored synchronously. || *Point1:* Name of listened-to point 1. *Point2:* Name of listened-to point 2. ||
@@ -39,8 +41,8 @@ Please maintain lists in lexigraphic order.
 || !EnumMap || Map numbers into strings. || *Maps:* As many number to string mappings as required, each having the format `number:string`. *Default:* Any argument without a `:` is treated as the default string to be used when no explicit map exists for the input. ||
 || EQ || Apply an arbitrary equation to numerical input. Uses JEP for expression parsing. || *Equation:* Use x to represent the input number. ||
 || Failover || Assume the value of the highest precedence listened-to point which has valid data. || Each argument must be the name of a point to listen to, in the order of priority. ||
-|| !HexString || Map an integer input to a hex string output. || ||
 || !HermiteInterpolator || Interpolate/extrapolate based on a polynomial fit to a buffer of previous values. || *Buffer:* The length of the buffer of past values, in seconds. *Time:* How far in the future to predict the value for, in seconds (may be negative). ||
+|| !HexString || Map an integer input to a hex string output. || ||
 || !HighTimer || Reports the amount of time (as a !RelTime) the (numeric or boolean) input has been in a high/mark state. Output will be zero while input is in a low/space state. || ||
 || !LimitCheck || Output depends on whether other monitor points are in an alarm state. Used together with `TransactionListen`. || *Okay:* String to output when all points are within limits. *Fail:* String to output when one or more points are in an alarm state. *Points:* All further arguments are the names of points to be checked. ||
 || !LinearCombo || Produces a linear combination of the listened-to points. Used together with `TransactionListen`. _deprecated use Calculation_ || Any number of points can be combined, every point requires the following two arguments, *Coefficient:* The coefficient of this point in the linear combination. *Point:* Name of the point which uses that coefficient. ||
