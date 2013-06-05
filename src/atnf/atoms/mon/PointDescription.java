@@ -868,6 +868,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
             }
           } catch (Throwable e) {
             theirLogger.error("(" + getFullName() + ") Error on Translation " + (i + 1) + "/" + itsTranslations.length + ": " + e);
+            e.printStackTrace();
             data = null;
           }
           // If null was returned then stop translation process
