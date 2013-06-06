@@ -119,7 +119,9 @@ public class LoginManager extends MonPanel {
 	 */
 	public static String[] getLoginCredentials(JComponent parent){
 		if (password.isEmpty()){
-			return MonClientUtil.showLogin(parent, username, password);
+			String[] newcreds = MonClientUtil.showLogin(parent, username, password);
+			setCredentials(newcreds);
+			return newcreds;
 		} else {
 			return new String[]{username, password};
 		}
