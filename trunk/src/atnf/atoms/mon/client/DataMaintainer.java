@@ -278,8 +278,10 @@ public class DataMaintainer implements Runnable
   /** Determine when to next collect the point. */
   public static void updateCollectionTime(PointDescription point, PointData data)
   {
-    // A short interval
-    final long shortinterval = 1000000l;
+    // Interval between update for aperiodic points    
+    final long asyncwaittime = 1000000l;
+    // Interval between tries for unavailable points
+    final long trylatertime = 5000000l;
 
     long nexttime = 0;
     long lasttime = point.getNextEpoch();
@@ -295,13 +297,13 @@ public class DataMaintainer implements Runnable
       // Point is aperiodic. For now all we can do is try again shortly to see
       // if it has updated yet. A proper publish/subscribe to replace this
       // polling will be the ultimate solution.
-      nexttime = now + shortinterval;
+      nexttime = now + asyncwaittime;
     } else if (datatime + period > now) {
       // Schedule for expected next update of the point
       nexttime = datatime + period;
     } else {
-      // Try again shortly
-      nexttime = now + shortinterval;
+      // Point is unavailable, try again shortly
+      nexttime = now + trylatertime;
     }
 
     point.setNextEpoch(nexttime);
