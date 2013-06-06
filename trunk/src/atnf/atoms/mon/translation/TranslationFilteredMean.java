@@ -19,23 +19,25 @@ import atnf.atoms.mon.PointDescription;
  * of the remaining points. This is a good filter to use on slowly changing values which have an occasional bad value.
  * 
  * <P>
- * The first argument specifies the length of the buffer of past values, in seconds. The second value is the threshold used to
- * identify outliers which should be discarded, it is specified in standard deviations.
+ * The first argument specifies the length of the buffer of past values, in seconds. The optional second value is the threshold used
+ * to identify outliers which should be discarded, it is specified in standard deviations (default is 1.0).
  * 
  * @author David Brodrick
  */
 public class TranslationFilteredMean extends TranslationDataBuffer {
   /** The outlier threshold in standard deviations. */
-  protected double itsThreshold = 0.0;
+  protected double itsThreshold = 1.0;
 
   public TranslationFilteredMean(PointDescription parent, String[] init) {
     super(parent, init);
 
     // Get the threshold to be used
-    try {
-      itsThreshold = Double.parseDouble(init[1]);
-    } catch (Exception e) {
-      throw new IllegalArgumentException("TranslationFilteredMean: " + itsParent.getFullName() + ": Error parsing threshold argument");
+    if (init.length > 1) {
+      try {
+        itsThreshold = Double.parseDouble(init[1]);
+      } catch (Exception e) {
+        throw new IllegalArgumentException("TranslationFilteredMean: " + itsParent.getFullName() + ": Error parsing threshold argument");
+      }
     }
   }
 
