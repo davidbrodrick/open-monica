@@ -62,6 +62,12 @@ public class TranslationStringToNumber extends Translation {
     } else {
       d = d.toString().trim();
     }
+    
+    if (((String)d).startsWith("+")) {
+      //Some JVM's didn't handle the leading +
+      d=((String)d).substring(1);
+      System.err.println(d);
+    }
 
     try {
       if (itsNumericTypeName.equalsIgnoreCase("Float")) {
