@@ -154,7 +154,7 @@ public class PointArchiverASCII extends PointArchiver {
             if (!myDir.isDirectory()) {
               myDir.mkdirs();
             }
-            filedate = new Date();
+            filedate = itsData.firstElement().getTimestamp().getAsDate();
             fileName = path + FSEP + getDateTime(filedate);
             file = new File(fileName);
             file.createNewFile();
@@ -233,7 +233,8 @@ public class PointArchiverASCII extends PointArchiver {
           }
 
           // Create a new file, now, and archive to it instead.
-          fileName = path + FSEP + getDateTimeNow();
+          filedate = itsData.firstElement().getTimestamp().getAsDate();
+          fileName = path + FSEP + getDateTime(filedate);
           file = new File(fileName);
           file.createNewFile();
         }
@@ -244,9 +245,16 @@ public class PointArchiverASCII extends PointArchiver {
         FileWriter f = new FileWriter(fileName, true);
         PrintWriter outfile = new PrintWriter(new BufferedWriter(f));
         synchronized (itsData) {
+          boolean loggedwarning = false;
           for (int i = 0; i < itsData.size(); i++) {
             try {              
               PointData pd = (PointData) itsData.elementAt(i);
+              //Do a check to look for bugs
+              if (!loggedwarning && pd.getTimestamp().getAsDate().before(filedate)) {
+                theirLogger.warn("Data for " + pd.getName() + " precedes the timestamp of the file name - there is a MoniCA bug");
+                loggedwarning = true;
+              }
+              //Write it out
               outfile.println(getStringForPD(pd));
             } catch (Exception e) {
               itsLogger.warn("In saveNow: " + e.getMessage() + " (for " + ((PointData) itsData.elementAt(i)).getName() + ")");
@@ -266,6 +274,7 @@ public class PointArchiverASCII extends PointArchiver {
         }
       } catch (Exception e) {
         itsLogger.error("While archiving: " + itsPoint.getFullName() + ": " + e);
+        e.printStackTrace();
       }
 
     }
