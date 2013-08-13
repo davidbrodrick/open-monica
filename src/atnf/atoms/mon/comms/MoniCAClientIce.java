@@ -31,7 +31,7 @@ public class MoniCAClientIce extends MoniCAClient {
   /** The port to connect to on the server. */
   protected int itsPort = getDefaultPort();
 
-  /** The underlaying Ice client. */
+  /** The underlying Ice client. */
   protected MoniCAIcePrx itsIceClient;
 
   /** The Ice communicator used to talk with the server. */
@@ -39,6 +39,9 @@ public class MoniCAClientIce extends MoniCAClient {
 
   /** Ice properties used to create the Communicator. */
   protected Ice.Properties itsProperties;
+  
+  /** The Ice encoding version to use. 1.0 for backwards compatibility. */
+  protected final String theirIceEncoding = "1.0";
 
   /**
    * Connect using the specified properties to find the MoniCA server via a locator.
@@ -674,7 +677,8 @@ public class MoniCAClientIce extends MoniCAClient {
     if (itsProperties == null) {
       // Connect directly to the specified server
       itsCommunicator = Ice.Util.initialize();
-      base = itsCommunicator.stringToProxy("MoniCAService: tcp -h " + itsHost + " -p " + itsPort + " -t 30000");
+      //Use encoding 1.0 for backwards compatibility
+      base = itsCommunicator.stringToProxy("MoniCAService -e " + theirIceEncoding + ": tcp -h " + itsHost + " -p " + itsPort + " -t 30000");
     } else {
       // Find the server via a Locator service
       Ice.InitializationData id = new Ice.InitializationData();
