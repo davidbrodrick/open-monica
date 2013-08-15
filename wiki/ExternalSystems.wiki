@@ -1,0 +1,38 @@
+This page lists external systems and any pertinent information about them. Feel free to document your external system here.
+
+= JSONSocket =
+
+This is derived from ASCIISocket and simply reads data in a JSON format and writes data that is being set back in JSON format. Example: A device sends this JSON string:
+{{{
+{ "Control":0,"LED_set":183 }
+}}}
+
+Given you want them stored in your system as follows:
+{{{
+sometree.Control
+sometree.LED_set
+}}}
+
+Define the source in monitor-sources.txt:
+{{{
+JSONSocket 127.0.0.1:9999
+}}}
+
+Define your data source in monitor-points:
+{{{
+# define the data source
+hidden.myJSON "My JSON Data" "" ""  mysource  T Generic-"127.0.0.1:9999" - - - - 100000 -
+
+sometree.Control "Control" "" "" mysource T Listen-"mysource.hidden.JSON" - NV-"Control"  "" Change-  1000000 -
+sometree.LED_set "LED set" "" "" mysource T Listen-"mysource.hidden.JSON" - NV-"LED_set"  "" Change-  1000000 -
+}}}
+
+The control point then needs a separate entry:
+{{{
+sometree.ctrl.Control  "Control" "" "" mysource T - Strings-"127.0.0.1:9999""$V" - -  Change-  - -
+sometree.ctrl.Set      "Set Pt"  "" "" mysource T - Strings-"127.0.0.1:9999""$V" - -  Change-  - -
+}}}
+
+*Limitations:*
+  * This currently assumes all JSON data coming in is of `Float` data type. If anyone cares to fix this so it can cater to any data type that would be nice. I'll get to it in early 2016 otherwise.
+  * All data sent out is sent as a string. This probably does not need fixing, but if you're game, go for it.
