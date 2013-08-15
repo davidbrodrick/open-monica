@@ -1,4 +1,4 @@
-#Documentation for external systems that need it
+#summary Documentation for external systems that need it
 
 This page lists external systems and any pertinent information about them. Feel free to document your external system here.
 
