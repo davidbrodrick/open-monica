@@ -74,16 +74,16 @@ if ($action eq "points"){
 	if ($thisvalue=~/\'/){
 	    $thisvalue=~s/\'/\\'/g;
 	}
-	print "{ pointName: '".$point_vals[$i]->point."',";
+	print "{ pointName: \"".$point_vals[$i]->point."\",";
 	if ($time_format[$i] == 0) {
-	    print " time: '".bat2cal($point_vals[$i]->bat,0)."',";
+	    print " time: \"".bat2cal($point_vals[$i]->bat,0)."\",";
 	} elsif ($time_format[$i] == 1) {
 	    print " time: ".(bat2unixtime($point_vals[$i]->bat)*1000).",";
 	}
 	my $estate = (($point_vals[$i]->errorstate ne "true") &&
 		      ($point_vals[$i]->errorstate ne "false")) ? 
 		      "false" : $point_vals[$i]->errorstate;
-	print " value: '".$thisvalue."',".
+	print " value: \"".$thisvalue."\",".
 	    " errorState: ".$estate." }";
 #	print $point_vals[$i]->point." ".bat2cal($point_vals[$i]->bat,0)." ".
 #	$point_vals[$i]->val.
@@ -100,7 +100,7 @@ if ($action eq "points"){
 	if ($i>0){
 	    print ",\n";
 	}
-	print "'".$monitoring_points[$i]."'";
+	print "\"".$monitoring_points[$i]."\"";
     }
     print "]}";
 
@@ -117,11 +117,11 @@ if ($action eq "points"){
 	if ($i>0){
 	    print ",\n";
 	}
-	print "{ pointName: '".$point_descriptions[$i]->point."',".
+	print "{ pointName: \"".$point_descriptions[$i]->point."\",".
 	    " updateTime: ".(($point_descriptions[$i]->updatetime ne "") ?
 	    $point_descriptions[$i]->updatetime : "10.0").",".
-	    " units: '".$point_descriptions[$i]->units."',".
-	    " description: '".$point_descriptions[$i]->description."' }";
+	    " units: \"".$point_descriptions[$i]->units."\",".
+	    " description: \"".$point_descriptions[$i]->description."\" }";
     }
     print "]}";
 } elsif ($action eq "intervals"){
@@ -162,7 +162,7 @@ if ($action eq "points"){
  	    # get the data
  	    my @point_timevals=monsince($mon,$start_mjd,$pointname,$maxnper);
 	    # print back the data as JSON
-	    print "{ name: '".$pointname."', data: [";
+	    print "{ name: \"".$pointname."\", data: [";
 	    my $d=0;
 	    for (my $j=0;$j<=$#point_timevals;$j++){
 		my $thispointtime=bat2unixtime($point_timevals[$j]->bat)*1000;
@@ -208,7 +208,7 @@ if ($action eq "points"){
 #	    my @point_timevals=monbetween_new($mon,$start_mjd,$end_mjd,$pointname,$maxnper);
 	    my @point_timevals=monbetween($mon,$start_mjd,$end_mjd,$pointname,$maxnper);
 	    # print back the data as JSON
-	    print "{ name: '".$pointname."', data: [";
+	    print "{ name: \"".$pointname."\", data: [";
 	    for (my $j=0;$j<=$#point_timevals;$j++){
 		if ($j>0){
 		    print ",";
@@ -253,15 +253,15 @@ if ($action eq "points"){
         if ($i>0) {
             print ",";
         }
-        print "{ pointName: '".$alarms[$i]->point."',".
+        print "{ pointName: \"".$alarms[$i]->point."\",".
             "priority: ".$alarms[$i]->priority.",".
             "isAlarmed: ".$alarms[$i]->alarm.",".
             "acknowledged: ".$alarms[$i]->acknowledged.",".
-            "acknowledgedBy: '".$alarms[$i]->acknowledgedby."',".
-            "acknowledgedAt: '".bat2cal($alarms[$i]->acknowledgedat)."',".
+            "acknowledgedBy: \"".$alarms[$i]->acknowledgedby."\",".
+            "acknowledgedAt: \"".bat2cal($alarms[$i]->acknowledgedat)."\",".
             "shelved: ".$alarms[$i]->shelved.",".
-            "shelvedBy: '".$alarms[$i]->shelvedby."',".
-            "shelvedAt: '".bat2cal($alarms[$i]->shelvedat)."',".
+            "shelvedBy: \"".$alarms[$i]->shelvedby."\",".
+            "shelvedAt: \"".bat2cal($alarms[$i]->shelvedat)."\",".
             "guidance: \"".$alarms[$i]->guidance."\" }";
     }
     print "]}";
@@ -292,8 +292,8 @@ if ($action eq "points"){
         if ($i>0) {
             print ",";
         }
-        print "{ pointName: '".$alarmhashes[$i]->{'point'}."',".
-            "response: '".$alarmresp[$i]."'}";
+        print "{ pointName: \"".$alarmhashes[$i]->{'point'}."\",".
+            "response: \"".$alarmresp[$i]."\"}";
     }
     print "]}";
 
@@ -324,8 +324,8 @@ if ($action eq "points"){
         if ($i>0) {
             print ",";
         }
-        print "{ pointName: '".$alarmhashes[$i]->{'point'}."',".
-            "response: '".$alarmresp[$i]."'}";
+        print "{ pointName: \"".$alarmhashes[$i]->{'point'}."\",".
+            "response: \"".$alarmresp[$i]."\"}";
     }
     print "]}";
 
@@ -358,7 +358,7 @@ if ($action eq "points"){
 	if ($i>0){
 	    print ",";
 	}
-	print "{ pointName: '".$setpoints[$i]->point."',".
+	print "{ pointName: \"".$setpoints[$i]->point."\",".
 	    "setSuccess: ";
 	if ($setpoints[$i]->success==1){
 	    print "true";
@@ -375,8 +375,8 @@ if ($action eq "points"){
     my $rsakey = getRSA($mon, 1);
 
     # Output some JSON.
-    print "{ 'rsaKey': { 'modulus': '".$rsakey->{'modulus'}."',".
-	"'exponent': '".$rsakey->{'exponent'}."' }}";
+    print "{ \"rsaKey\": { \"modulus\": \"".$rsakey->{'modulus'}."\",".
+	"\"exponent\": \"".$rsakey->{'exponent'}."\" }}";
 }
 
 # finished
