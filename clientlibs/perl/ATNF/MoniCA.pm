@@ -346,7 +346,7 @@ use vars qw(@ISA @EXPORT);
               mondetails monpoll2 bat2cal bat2unixtime perltime2mjd 
               monalarms monallalarms monalarmack monalarmshelve getRSA
               encryptstring encryptstring_session encryptstring_persistent
-              monset_m monalarmack_m monalarmshelve_m );
+              monset_m monalarmack_m monalarmshelve_m monpreceeding);
 
 =item B<monconnect>
 
@@ -837,6 +837,10 @@ sub monpreceding ($$@) {
   } else {
     return $vals[0];
   }
+}
+
+sub monpreceeding {
+  return monpreceding(@_);
 }
 
 =item B<monfollowing>
