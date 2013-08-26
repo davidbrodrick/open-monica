@@ -1,3 +1,6 @@
 0.3 08-May-2009
   Created (and use) MonBetween object type
-  Added monpreceeding and following functions
+  Added monpreceding and following functions
+0.8 26 August 2013
+  Lots of changes which have not been documented
+  Fixed proceding spelling
