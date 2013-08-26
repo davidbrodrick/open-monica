@@ -341,7 +341,7 @@ use vars qw(@ISA @EXPORT);
 
 @ISA    = qw( Exporter );
 @EXPORT = qw( monconnect monpoll monsince parse_tickphase current_bat 
-	      monbetween monpreceeding monfollowing montill monset dUT
+	      monbetween monpreceding monfollowing montill monset dUT
 	      bat2mjd mjd2bat bat2time atca_tied monnames monlist2hash
               mondetails monpoll2 bat2cal bat2unixtime perltime2mjd 
               monalarms monallalarms monalarmack monalarmshelve getRSA
@@ -787,12 +787,12 @@ sub montill($$$$) {
   return pop @vals;
 }
 
-=item B<monpreceeding>
+=item B<monpreceding>
 
-  my $pointval = monpreceeding($mon, $mjd, $pointname);
-  my @pointvals = monpreceeding($mon, $mjd, @pointnames);
+  my $pointval = monpreceding($mon, $mjd, $pointname);
+  my @pointvals = monpreceding($mon, $mjd, @pointnames);
 
- Calls the "monpreceeding" function, returning the last record <= a specifed time
+ Calls the "monpreceding" function, returning the last record <= a specifed time
  for one or more monitor points. Note calling in scalar mode only the first
  monitor point is returned.
 
@@ -806,7 +806,7 @@ sub montill($$$$) {
 
 =cut
 
-sub monpreceeding ($$@) {
+sub monpreceding ($$@) {
   my $mon = shift;
   my $mjd = shift;
   my @monpoints = @_;
@@ -819,7 +819,7 @@ sub monpreceeding ($$@) {
     return undef;
   }
 
-  print $mon "preceeding\n";
+  print $mon "preceding\n";
   print $mon "$npoll\n";
   foreach (@monpoints) {
     print $mon "$bat $_\n";
@@ -1528,7 +1528,7 @@ sub dUT ($$$) {
   } elsif ($mjd<552100) { # 2010, archiving started mid 2009
     return 34;
   } else {
-    return monpreceeding($mon, $mjd, "$point.misc.clock.dUTC");
+    return monpreceding($mon, $mjd, "$point.misc.clock.dUTC");
   }
 }
 
