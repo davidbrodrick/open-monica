@@ -2,7 +2,9 @@
 
 = Introduction =
 
-This document describes the file format for the monitor-points.txt file, which specifies the statically defined points you want created on your server. The meaning of some of the fields may make more sense after reading the IntroServerCode page.
+This document describes the file format for the point definitions files, which specifies the statically defined points you want created on your server. The meaning of some of the fields may make more sense after reading the IntroServerCode page.
+
+Point definitions can be defined in the config/monitor-points.txt configuration resource. This gets built into the jar file. They may also be defined in discrete files in a points/ subdirectory of the !ConfDir configuration directory defined in the monitor-config.txt configuration resource.
 
 = Comments =
 
