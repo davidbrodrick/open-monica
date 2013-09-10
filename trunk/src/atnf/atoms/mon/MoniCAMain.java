@@ -59,7 +59,7 @@ public class MoniCAMain {
   private static boolean createExternalSystems() {
     boolean foundsystems = false;
     // The conf.d subdirectory name for where the external system definitions are found
-    final String SYSSUBDIR = "/systems/";
+    final String SYSSUBDIR = "/systems.d/";
     // The fixed name of the point definitions resource
     final String SYSRESNAME = "monitor-sources.txt";
 
@@ -125,7 +125,7 @@ public class MoniCAMain {
   private static boolean createPoints() {
     boolean foundpoints = false;
     // The conf.d subdirectory name for where point definitions are found
-    final String POINTSSUBDIR = "/points/";
+    final String POINTSSUBDIR = "/points.d/";
     // The fixed name of the point definitions resource
     final String POINTSRESNAME = "monitor-points.txt";
 
@@ -214,7 +214,7 @@ public class MoniCAMain {
   private static boolean createSetups() {
     boolean foundsetups = false;
     // The conf.d subdirectory name for where point definitions are found
-    final String SETUPSUBDIR = "/setups/";
+    final String SETUPSUBDIR = "/setups.d/";
     // The fixed name of the point definitions resource
     final String SETUPRESNAME = "monitor-setups.txt";
 

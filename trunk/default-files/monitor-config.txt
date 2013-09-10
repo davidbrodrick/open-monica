@@ -1,9 +1,9 @@
 ##############################
 # LOCATION OF EXTRA CONFIGURATION FILES:
 # This directory can include the following sub-directories:
-# points/ - Point definitions, ala monitor-points.txt
-# systems/ - External systems, ala monitor-sources.txt
-# setups/ - Saved display setups, ala monitor-setups.txt
+# points.d/ - Point definitions, ala monitor-points.txt
+# systems.d/ - External systems, ala monitor-sources.txt
+# setups.d/ - Saved display setups, ala monitor-setups.txt
 #ConfDir /tmp/monica-conf/
 
 ##############################
