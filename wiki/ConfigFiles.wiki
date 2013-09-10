@@ -9,7 +9,7 @@ This page is intended to give a very brief introduction to these.
 = File Locations =
 
 == Bundled Resources ==
-Most configuration files live in the config/ subdirectory of the open-monica project directory. These get built into the jar file when you build MoniCA (therefore you need to rebuild the jar file if you change the files).
+Most configuration files live in the `config/` subdirectory of the open-monica project directory. These get built into the jar file when you build MoniCA (therefore you need to rebuild the jar file if you change the files).
 
 An enumeration of these files includes the following:
  
@@ -37,7 +37,7 @@ ConfDir /home/user/my-monica-conf/
 
 As suggested above, this configuration directory has up to three subdirectories. Any configuration files must reside in the appropriate subdirectory (ie. no files will be read from the !ConfDir directory itself.
 
-Each subdirectory is treated as a "conf.d" configuration directory where the files are parsed in lexicographic order, so 01-mypoints.conf would be loaded before 99-mypoints.conf.
+Each subdirectory is treated as a "conf.d" configuration directory where the files are parsed in lexicographic order, so `points/01-mypoints.conf` would be loaded before `points/99-mypoints.conf`.
 
 = Template Files =
 
