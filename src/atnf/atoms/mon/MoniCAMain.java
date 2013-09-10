@@ -72,7 +72,10 @@ public class MoniCAMain {
     }
 
     // Check for definition files in the configuration directory
-    String confdir = MonitorConfig.getProperty("ConfDir");
+    String confdir = System.getProperty("MoniCA.ConfDir");
+    if (confdir == null) {
+      confdir = MonitorConfig.getProperty("ConfDir");
+    }
     if (confdir != null) {
       confdir = confdir + SYSSUBDIR;
       File confdirf = new File(confdir);
@@ -154,7 +157,10 @@ public class MoniCAMain {
     }
 
     // Check for definition files in the configuration directory
-    String confdir = MonitorConfig.getProperty("ConfDir");
+    String confdir = System.getProperty("MoniCA.ConfDir");
+    if (confdir == null) {
+      confdir = MonitorConfig.getProperty("ConfDir");
+    }
     if (confdir != null) {
       confdir = confdir + POINTSSUBDIR;
       File confdirf = new File(confdir);
@@ -243,7 +249,10 @@ public class MoniCAMain {
     }
 
     // Check for definition files in the configuration directory
-    String confdir = MonitorConfig.getProperty("ConfDir");
+    String confdir = System.getProperty("MoniCA.ConfDir");
+    if (confdir == null) {
+      confdir = MonitorConfig.getProperty("ConfDir");
+    }
     if (confdir != null) {
       confdir = confdir + SETUPSUBDIR;
       File confdirf = new File(confdir);
