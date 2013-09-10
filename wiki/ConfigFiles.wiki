@@ -29,15 +29,15 @@ In addition to being able to use configuration resources bundled into the jar fi
 ##############################
 # LOCATION OF EXTRA CONFIGURATION FILES:
 # This directory can include the following sub-directories:
-# points/ - Point definitions, ala monitor-points.txt
-# systems/ - External systems, ala monitor-sources.txt
-# setups/ - Saved display setups, ala monitor-setups.txt
+# points.d/ - Point definitions, ala monitor-points.txt
+# systems.d/ - External systems, ala monitor-sources.txt
+# setups.d/ - Saved display setups, ala monitor-setups.txt
 ConfDir /home/user/my-monica-conf/
 }}}
 
 As suggested above, this configuration directory has up to three subdirectories. Any configuration files must reside in the appropriate subdirectory (ie. no files will be read from the !ConfDir directory itself.
 
-Each subdirectory is treated as a "conf.d" configuration directory where the files are parsed in lexicographic order, so `points/01-mypoints.conf` would be loaded before `points/99-mypoints.conf`.
+Each subdirectory is treated as a "conf.d" configuration directory where the files are parsed in lexicographic order, so `points.d/01-mypoints.conf` would be loaded before `points.d/99-mypoints.conf`.
 
 = Template Files =
 
