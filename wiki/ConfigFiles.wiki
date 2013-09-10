@@ -23,7 +23,7 @@ An enumeration of these files includes the following:
 
 = Conf.d Configuration Directories ==
 
-In addition to being able to use configuration resources bundled into the jar file, MoniCA is also able to read configuration files from a directory as specified in the monitor-config.txt file:
+In addition to being able to use configuration resources bundled into the jar file, MoniCA is also able to read configuration files from a directory as specified in the monitor-config.txt file, or by setting the `MoniCA.ConfDir` system property:
 
 {{{
 ##############################
