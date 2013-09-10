@@ -21,7 +21,7 @@ An enumeration of these files includes the following:
  * *monitor-servers.txt* This is used by the client to define the selection of possible servers to present as options to the user when the client first starts up.
  * *monitor-preloads.txt* A largely static file used by the client, which only needs updating if you develop new classes for the Java GUI client.
 
-= Configuration Directory ==
+= Conf.d Configuration Directories ==
 
 In addition to being able to use configuration resources bundled into the jar file, MoniCA is also able to read configuration files from a directory as specified in the monitor-config.txt file:
 
