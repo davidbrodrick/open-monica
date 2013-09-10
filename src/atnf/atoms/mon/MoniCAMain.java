@@ -52,6 +52,247 @@ public class MoniCAMain {
   }
 
   /**
+   * Create all of the ExternalSystems from whichever configuration resources are available.
+   * 
+   * @return True if successful, False if there was a fatal error.
+   */
+  private static boolean createExternalSystems() {
+    boolean foundsystems = false;
+    // The conf.d subdirectory name for where the external system definitions are found
+    final String SYSSUBDIR = "/systems/";
+    // The fixed name of the point definitions resource
+    final String SYSRESNAME = "monitor-sources.txt";
+
+    // Load the configuration built into the jar/classpath file, if found
+    InputStream exsystemsfile = MoniCAMain.class.getClassLoader().getResourceAsStream(SYSRESNAME);
+    if (exsystemsfile != null) {
+      theirLogger.info("Loading external systems definitions from \"" + SYSRESNAME + "\" resource");
+      ExternalSystem.init(new InputStreamReader(exsystemsfile));
+      foundsystems = true;
+    }
+
+    // Check for definition files in the configuration directory
+    String confdir = MonitorConfig.getProperty("ConfDir");
+    if (confdir != null) {
+      confdir = confdir + SYSSUBDIR;
+      File confdirf = new File(confdir);
+      if (confdirf.exists() && confdirf.isDirectory()) {
+        // Directory looks valid, list the contents
+        File[] flist = confdirf.listFiles();
+        if (flist != null) {
+          // Sort the file list lexicographically to enabled expected conf.d behaviour
+          Arrays.sort(flist);
+          for (File f : flist) {
+            if (!f.isFile()) {
+              theirLogger.warn("External systems definition file \"" + f + "\" is not a file");
+            } else {
+              // Looks like it should be a valid points definition file, so parse it
+              theirLogger.info("Loading external systems definitions from \"" + f + "\"");
+              FileReader fr = null;
+              try {
+                fr = new FileReader(f);
+                ExternalSystem.init(fr);
+                foundsystems = true;
+              } catch (Exception e) {
+                theirLogger.error("While parsing file: " + e);
+              } finally {
+                if (fr != null) {
+                  try {
+                    fr.close();
+                  } catch (IOException e) {
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (!foundsystems) {
+      // Might be intentional, so log, but as info not error
+      theirLogger.info("No external system definitions were found");
+    }
+
+    return true;
+  }
+
+  /**
+   * Create all of the PointDescriptions from whichever configuration resources are available.
+   * 
+   * @return True if successful, False if there was a fatal error.
+   */
+  private static boolean createPoints() {
+    boolean foundpoints = false;
+    // The conf.d subdirectory name for where point definitions are found
+    final String POINTSSUBDIR = "/points/";
+    // The fixed name of the point definitions resource
+    final String POINTSRESNAME = "monitor-points.txt";
+
+    // Load the configuration built into the jar/classpath file, if found
+    InputStream pointsfile = MoniCAMain.class.getClassLoader().getResourceAsStream(POINTSRESNAME);
+    if (pointsfile != null) {
+      InputStreamReader isr = null;
+      try {
+        theirLogger.info("Loading point definitions from \"" + POINTSRESNAME + "\" resource");
+        isr = new InputStreamReader(pointsfile);
+        ArrayList<PointDescription> points = PointDescription.parseFile(isr);
+        for (int i = 0; i < points.size(); i++) {
+          // Populate the appropriate fields for server use
+          points.get(i).populateServerFields();
+        }
+        foundpoints = true;
+      } catch (Exception e) {
+      } finally {
+        if (isr != null) {
+          try {
+            isr.close();
+          } catch (Exception f) {
+          }
+        }
+      }
+    }
+
+    // Check for definition files in the configuration directory
+    String confdir = MonitorConfig.getProperty("ConfDir");
+    if (confdir != null) {
+      confdir = confdir + POINTSSUBDIR;
+      File confdirf = new File(confdir);
+      if (confdirf.exists() && confdirf.isDirectory()) {
+        // Directory looks valid, list the contents
+        File[] flist = confdirf.listFiles();
+        if (flist != null) {
+          // Sort the file list lexicographically to enabled expected conf.d behaviour
+          Arrays.sort(flist);
+          for (File f : flist) {
+            if (!f.isFile()) {
+              theirLogger.warn("Points definition file \"" + f + "\" is not a file");
+            } else {
+              // Looks like it should be a valid points definition file, so parse it
+              theirLogger.info("Loading point definitions from \"" + f + "\"");
+              FileReader fr = null;
+              try {
+                fr = new FileReader(f);
+                ArrayList<PointDescription> points = PointDescription.parseFile(fr);
+                for (PointDescription point : points) {
+                  // Populate the appropriate fields for server use
+                  point.populateServerFields();
+                }
+                foundpoints = true;
+              } catch (Exception e) {
+                theirLogger.error("While parsing file: " + e);
+              } finally {
+                if (fr != null) {
+                  try {
+                    fr.close();
+                  } catch (IOException e) {
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Points have all been created now
+    PointDescription.setPointsCreated();
+
+    if (!foundpoints) {
+      // Might be intentional, so log, but as info not error
+      theirLogger.info("No point definitions were found");
+    }
+
+    return true;
+  }
+
+  /**
+   * Create all of the SavedSetups from whichever configuration resources are available.
+   * 
+   * @return True if successful, False if there was a fatal error.
+   */
+  private static boolean createSetups() {
+    boolean foundsetups = false;
+    // The conf.d subdirectory name for where point definitions are found
+    final String SETUPSUBDIR = "/setups/";
+    // The fixed name of the point definitions resource
+    final String SETUPRESNAME = "monitor-setups.txt";
+
+    InputStream setupfile = MoniCAMain.class.getClassLoader().getResourceAsStream(SETUPRESNAME);
+    if (setupfile != null) {
+      InputStreamReader isr = null;
+      try {
+        isr = new InputStreamReader(setupfile);
+        Vector<SavedSetup> setups = SavedSetup.parseFile(isr);
+        theirLogger.debug("Recovered " + setups.size() + " SavedSetups from resource \"" + SETUPRESNAME + "\"");
+        for (int i = 0; i < setups.size(); i++) {
+          SavedSetup.addSetup((SavedSetup) setups.get(i));
+        }
+        foundsetups = true;
+      } catch (Exception e) {
+        theirLogger.fatal("Can't parse saved setup file: " + SETUPRESNAME);
+        return false;
+      } finally {
+        if (isr != null) {
+          try {
+            isr.close();
+          } catch (Exception f) {
+          }
+        }
+      }
+    }
+
+    // Check for definition files in the configuration directory
+    String confdir = MonitorConfig.getProperty("ConfDir");
+    if (confdir != null) {
+      confdir = confdir + SETUPSUBDIR;
+      File confdirf = new File(confdir);
+      if (confdirf.exists() && confdirf.isDirectory()) {
+        // Directory looks valid, list the contents
+        File[] flist = confdirf.listFiles();
+        if (flist != null) {
+          // Sort the file list lexicographically to enabled expected conf.d behaviour
+          Arrays.sort(flist);
+          for (File f : flist) {
+            if (!f.isFile()) {
+              theirLogger.warn("Saved setups definition file \"" + f + "\" is not a file");
+            } else {
+              // Looks like it should be a valid points definition file, so parse it
+              theirLogger.info("Loading al systems definitions from \"" + f + "\"");
+              FileReader fr = null;
+              try {
+                fr = new FileReader(f);
+                Vector<SavedSetup> setups = SavedSetup.parseFile(fr);
+                theirLogger.debug("Recovered " + setups.size() + " SavedSetups from file \"" + f + "\"");
+                for (int i = 0; i < setups.size(); i++) {
+                  SavedSetup.addSetup((SavedSetup) setups.get(i));
+                }
+                foundsetups = true;
+              } catch (Exception e) {
+                theirLogger.error("While parsing file: " + e);
+              } finally {
+                if (fr != null) {
+                  try {
+                    fr.close();
+                  } catch (IOException e) {
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (!foundsetups) {
+      // Might be intentional, so log, but as info not error
+      theirLogger.info("No saved setup definitions were found");
+    }
+
+    return true;
+  }
+
+  /**
    * Start MoniCA.
    * 
    * @return True if successfully stopped, False if a problem was encountered.
@@ -74,53 +315,44 @@ public class MoniCAMain {
     ((Thread) pa).start();
     theirLogger.debug("PointArchiver created");
 
+    String confdir = MonitorConfig.getProperty("ConfDir");
+    if (confdir != null) {
+      File confdirf = new File(confdir);
+      if (!confdirf.exists()) {
+        theirLogger.warn("Configuration directory \"" + confdir + "\" was specified, but doesn't exist");
+        confdir = null;
+      } else if (!confdirf.isDirectory()) {
+        theirLogger.warn("Configuration directory \"" + confdir + "\" was specified, but is not a directory!");
+        confdir = null;
+      }
+    }
+
     // Initialise all the ExternalSystems
     theirLogger.debug("Creating ExternalSystems");
-    InputStream exsystemsfile = MoniCAMain.class.getClassLoader().getResourceAsStream("monitor-sources.txt");
-    if (exsystemsfile == null) {
-      theirLogger.fatal("Failed to find monitor-sources.txt configuration resource");
+    if (!createExternalSystems()) {
       return false;
     }
-    ExternalSystem.init(new InputStreamReader(exsystemsfile));
     theirLogger.debug("ExternalSystems created");
 
     // Create all the points
     theirLogger.debug("Creating PointDescriptions");
-    InputStream pointsfile = MoniCAMain.class.getClassLoader().getResourceAsStream("monitor-points.txt");
-    if (pointsfile == null) {
-      theirLogger.fatal("Failed to find monitor-points.txt configuration resource");
+    if (!createPoints()) {
       return false;
     }
-    ArrayList<PointDescription> points = PointDescription.parseFile(new InputStreamReader(pointsfile));
-    for (int i = 0; i < points.size(); i++) {
-      // Populate the appropriate fields for server use
-      points.get(i).populateServerFields();
-    }
-    PointDescription.setPointsCreated();
     theirLogger.debug("PointDescriptions created");
+
+    // Recover all the SavedSetups
+    theirLogger.debug("Creating SavedSetups");
+    if (!createSetups()) {
+      return false;
+    }
+    theirLogger.debug("SavedSetups created");
 
     // If no RADIUS server is defined then approve all auth requests (for backwards compatibility)
     RADIUSAuthenticator.setDefaultAuthMode(true);
 
     // Set the encryption keys
     KeyKeeper.getExponent();
-
-    // Recover all the SavedSetups from the file
-    InputStream setupfile = MoniCAMain.class.getClassLoader().getResourceAsStream("monitor-setups.txt");
-    if (setupfile == null) {
-      theirLogger.warn("Failed to find monitor-setups.txt configuration resource");
-    } else {
-      try {
-        Vector setups = SavedSetup.parseFile(new InputStreamReader(setupfile));
-        theirLogger.debug("Recovered " + setups.size() + " SavedSetups from " + setupfile);
-        for (int i = 0; i < setups.size(); i++) {
-          SavedSetup.addSetup((SavedSetup) setups.get(i));
-        }
-      } catch (Exception e) {
-        theirLogger.fatal("Can't parse saved setup file: " + setupfile);
-        return false;
-      }
-    }
 
     // Add shutdown listener to flush archive
     Runtime.getRuntime().addShutdownHook(new Thread() {

@@ -738,7 +738,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
         try {
           al = parseLine(lines[i]);
         } catch (Exception e) {
-          theirLogger.error("Exception \"" + e + "\" while parsing point definition line " + i + ": " + lines[i]);
+          theirLogger.error("Exception \"" + e + "\" while parsing point definition line " + (i+1) + ": " + lines[i]);
         }
         if (al != null) {
           result.addAll(al);
