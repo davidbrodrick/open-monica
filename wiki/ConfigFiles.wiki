@@ -39,6 +39,8 @@ As suggested above, this configuration directory has up to three subdirectories.
 
 Each subdirectory is treated as a "conf.d" configuration directory where the files are parsed in lexicographic order, so `points.d/01-mypoints.conf` would be loaded before `points.d/99-mypoints.txt`. Files do not need to start with a number, nor end in any particular suffix - all files in the directory will be loaded.
 
+The configuration directory can be used together with the configuration resources bundled in the jar file. In this case the bundled resources are loaded first.
+
 = Template Files =
 
 Templates for the above files can be found in the default-files/ subdirectory of the open-monica project directory. You can copy these files into your config/ directory to get started. An example can be found on the [Installation] page.
