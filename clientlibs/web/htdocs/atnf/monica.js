@@ -41,6 +41,9 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
     // Variables in addTimeSeries.
     var timeSeriesReference;
 
+    // Variables in addHistoryTable.
+    var historyTableReference;
+
     // Variables in startTimeSeries.
     var seriesString, optionsObj, sTShandle;
 
@@ -483,7 +486,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
     };
 
     /**
-     * Start a time-series.
+     * Start a time-series or history table.
      * @param {object} tRef A monicaPoint reference.
      */
     var startTimeSeries = function(tRef) {
@@ -687,27 +690,29 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       pollAdded = 0;
       updatesArriving = [];
       for (uPi = 0; uPi < requireUpdating.length; uPi++) {
-        if (requireUpdating[uPi].isTimeSeries() === true &&
-  	  requireUpdating[uPi].timeSeriesInitialised() === false) {
-  	  // Get first values for time-series that
-  	  // haven't yet been initialised.
-  	  startTimeSeries(requireUpdating[uPi]);
-  	  // We don't get any other points for him.
-        } else {
-	  if (pollAdded > 0) {
-  	    pollString += ';';
-  	  }
-  	  pollString += requireUpdating[uPi].getPointDetails().name;
-  	  tR = requireUpdating[uPi].timeRepresentation();
-  	  if (tR === 'unixms') {
-  	    // We append the characters required to return the time
-  	    // as Unix time in ms
-  	    pollString += '...TD';
-  	  } // We don't append anything for string time, since this is the
-  	    // the default behaviour, and we can save on bandwidth.
-  	  pollAdded++;
-  	  updatesArriving.push(requireUpdating[uPi]);
-        }
+          if ((requireUpdating[uPi].isTimeSeries() === true &&
+  	       requireUpdating[uPi].timeSeriesInitialised() === false) ||
+	      (requireUpdating[uPi].isHistoryTable() === true &&
+	       requireUpdating[uPi].historyTableInitialised() === false)) {
+  	      // Get first values for time-series that
+  	      // haven't yet been initialised.
+  	      startTimeSeries(requireUpdating[uPi]);
+  	      // We don't get any other points for him.
+          } else {
+	      if (pollAdded > 0) {
+  		  pollString += ';';
+  	      }
+  	      pollString += requireUpdating[uPi].getPointDetails().name;
+  	      tR = requireUpdating[uPi].timeRepresentation();
+  	      if (tR === 'unixms') {
+  		  // We append the characters required to return the time
+  		  // as Unix time in ms
+  		  pollString += '...TD';
+  	      } // We don't append anything for string time, since this is the
+  	      // the default behaviour, and we can save on bandwidth.
+  	      pollAdded++;
+  	      updatesArriving.push(requireUpdating[uPi]);
+          }
       }
 
       // If we don't have any requests, don't do anything.
@@ -1041,6 +1046,30 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
 
       // Return the reference to this point.
       return timeSeriesReference;
+    };
+
+    /**
+     * Add some MoniCA points to get history tables for.
+     * @param {object} htPoint The specification for the history table.
+     */
+    that.addHistoryTable = function(htPoint) {
+      // Add the appropriate flags automatically.
+      htPoint.isHistoryTable = true;
+
+      // We don't check for an existing history table using the same
+      // point, since we support having multiple history table ranges
+      // for the same point.
+      historyTableReference = rObj.point(htPoint, that);
+
+      // Add this point to our list.
+      addPoint(historyTableReference);
+
+      // We immediately add this to the list of points requiring
+      // an update.
+      addToUpdateList(historyTableReference);
+
+      // Return the reference to this point.
+      return historyTableReference;
     };
 
     /**
@@ -1486,7 +1515,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
     constructor.isTimeSeries = constructor.isTimeSeries || false;
 
     /**
-     * An object with the options for the time-series.
+     * An object with the options for the time-series/history table.
      * @type {object}
      */
     constructor.timeSeriesOptions = constructor.timeSeriesOptions ||
@@ -1495,6 +1524,12 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
         spanTime: 60, // In minutes.
         maxPoints: 500
       };
+
+    /**
+     * Is this point to be queried as a history table?
+     * @type {boolean}
+     */
+    constructor.isHistoryTable = constructor.isHistoryTable || false;
 
     /**
      * The description of this point.
@@ -1531,6 +1566,13 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      * @type {boolean}
      */
     var initTimeSeries = false;
+
+    /**
+     * A status flag to indicate whether we have already got our history
+     * table values.
+     * @type {boolean}
+     */
+    var initHistoryTable = false;
 
     /**
      * A status flag to indicate whether our description has been obtained.
@@ -1749,38 +1791,46 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      *                           point's value and state.
      */
     that.updateValue = function(newValues) {
-      // Check that the newValues object has come along.
-      if (typeof newValues === 'undefined') {
-	return;
-      }
-
-      if (typeof newValues.value !== 'undefined' &&
-	  typeof newValues.time !== 'undefined') {
-	if (constructor.isTimeSeries === false) {
-	  // Just replace the only value.
-	  pointValues[0].setValue(newValues);
-	} else {
-	  // Add this point the end of the array, if the time is different to
-	  // the current last point.
-	  if (newValues.time !==
-	      pointValues[pointValues.length - 1].getValue().time) {
-	    pointValues.push(rObj.pointValue({ initialValue: newValues },
-	      that));
-
-	    // Check we haven't got more than the maximum number of points
-	    // we're allowed to have, and remove some if we do.
-	    while (constructor.timeSeriesOptions.maxPoints > 0 &&
-		   pointValues.length > constructor.timeSeriesOptions.maxPoints) {
-	      pointValues.shift();
-	    }
-	  }
+	// Check that the newValues object has come along.
+	if (typeof newValues === 'undefined') {
+	    return;
 	}
-      }
 
-      // Execute any callbacks we have.
-      for (j = 0; j < callbacks.length; j++) {
-	callbacks[j](that);
-      }
+	if (typeof newValues.value !== 'undefined' &&
+	    typeof newValues.time !== 'undefined') {
+	    if (constructor.isTimeSeries === false &&
+		constructor.isHistoryTable === false) {
+		// Just replace the only value.
+		pointValues[0].setValue(newValues);
+	    } else {
+		// Add this point the end of the array, if the time is different to
+		// the current last point.
+		if (newValues.time !==
+		    pointValues[pointValues.length - 1].getValue().time) {
+		    // If we're a history table, only add it if this new value
+		    // is different to the currently last value.
+		    if ((constructor.isHistoryTable === true &&
+			 pointValues[pointValues.length - 1].getValue().value !==
+			 newValues.value) ||
+			constructor.isHistoryTable === false) {
+			pointValues.push(rObj.pointValue({ initialValue: newValues },
+							 that));
+		    }
+
+		    // Check we haven't got more than the maximum number of points
+		    // we're allowed to have, and remove some if we do.
+		    while (constructor.timeSeriesOptions.maxPoints > 0 &&
+			   pointValues.length > constructor.timeSeriesOptions.maxPoints) {
+			pointValues.shift();
+		    }
+		}
+	    }
+	}
+
+	// Execute any callbacks we have.
+	for (j = 0; j < callbacks.length; j++) {
+	    callbacks[j](that);
+	}
     };
 
     /**
@@ -1789,24 +1839,44 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      * @param {object} tValues The values for the time-series.
      */
     that.setTimeSeriesValues = function(tValues) {
-      // Check that we are actually a time-series!
-      if (constructor.isTimeSeries === false) {
+      // Check that we are actually a time-series or history table.
+      if (constructor.isTimeSeries === false &&
+	  constructor.isHistoryTable === false) {
 	return;
       }
       // Check that we have some data coming back.
-      if (typeof tValues.data !== 'undefined') {
-	for (k = 0; k < tValues.data.length; k++) {
-	  if (k >= pointValues.length) {
-	    pointValues.push(rObj.pointValue({ initialValue: tValues.data[k] },
-	      that));
-	  } else {
-	    pointValues[k].setValue(tValues.data[k]);
+      if (typeof tValues.data === 'undefined') {
+	return;
+      }
+      // If we are a history table, remove values that are duplicates
+      // of the ones they succeed.
+      if (constructor.isHistoryTable === true) {
+	for (k = 1; k < tValues.data.length; k++) {
+	  // Do a silly check that may be necessary.
+	  if (k >= tValues.data.length) {
+	    break;
 	  }
+	  if (tValues.data[k][1] === tValues.data[k - 1][1]) {
+	    tValues.data.splice(k, 1);
+	    k--;
+	  }
+	}
+      }
+
+      // Add the values to our list.
+      for (k = 0; k < tValues.data.length; k++) {
+	if (k >= pointValues.length) {
+	  pointValues.push(
+	    rObj.pointValue({ initialValue: tValues.data[k] },
+	      that));
+	} else {
+	  pointValues[k].setValue(tValues.data[k]);
 	}
       }
 
       // We don't need to get this filled anymore.
       initTimeSeries = true;
+      initHistoryTable = true;
 
       // Execute any callbacks we have.
       for (k = 0; k < callbacks.length; k++) {
@@ -1821,8 +1891,9 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      *                          specifying the format to return the points in.
      */
     that.getTimeSeries = function(gOptions) {
-      // Check that we are actually a time-series!
-      if (constructor.isTimeSeries === false) {
+      // Check that we are actually a time-series or history table.
+      if (constructor.isTimeSeries === false &&
+	  constructor.isHistoryTable === false) {
 	return undefined;
       }
 
@@ -1843,7 +1914,6 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
        * @type {array}
        */
       tSArray = [];
-
       for (l = 0; l < pointValues.length; l++) {
 	var tv = pointValues[l].getValue(gOptions);
 	if (typeof gOptions.timeRange !== 'undefined') {
@@ -1870,6 +1940,20 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
 
       // Now just return the whole array of our point values.
       return tSArray;
+    };
+
+    /**
+     * Return the whole series of values from our history table set
+     * to the caller.
+     * @param {object} gOptions The options to be passed to the point value
+     *                          specifying the format to return the points in.
+     */
+    that.getHistoryTable = function(gOptions) {
+      // The data is internally stored the same way for time-series
+      // and history tables, and our setting routine does all the
+      // value pruning, so we can just call our getTimeSeries routine
+      // here.
+      return that.getTimeSeries(gOptions);
     };
 
     /**
@@ -1971,6 +2055,20 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      */
     that.timeSeriesInitialised = function() {
       return initTimeSeries;
+    };
+
+    /**
+     * Return whether we are a history table or not.
+     */
+    that.isHistoryTable = function() {
+      return constructor.isHistoryTable;
+    };
+
+    /**
+     * Return whether we have gotten our first history table values.
+     */
+    that.historyTableInitialised = function() {
+      return initHistoryTable;
     };
 
     /**
@@ -2208,7 +2306,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
 	   (typeof getOptions.timeAsDateObject !== 'undefined' &&
 	    getOptions.timeAsDateObject === true)) {
 	var tels = /^(....)-(..)-(..)_(..):(..):(..)$/.exec(alteredValue.time);
-	if (tels[0] !== '') {
+	if (lang.isArray(tels) && tels[0] !== '') {
 	  // Make the Date object.
 	  var timeObj = new Date();
 	  timeObj.setUTCFullYear(tels[1], tels[2] - 1, tels[3]);
@@ -2217,6 +2315,14 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
 	    alteredValue.time = timeObj;
 	  } else if (getOptions.timeAsSeconds) {
 	    alteredValue.time = (timeObj.valueOf())/1000;
+	  }
+	} else {
+	  // We have milliseconds already.
+	  var timeObj = new Date(alteredValue.time);
+	  if (getOptions.timeAsDateObject) {
+	    alteredValue.time = timeObj;
+	  } else if (getOptions.timeAsSeconds) {
+	    alteredValue.time /= 1000;
 	  }
 	}
       }
