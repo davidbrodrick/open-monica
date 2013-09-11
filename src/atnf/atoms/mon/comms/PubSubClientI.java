@@ -102,6 +102,7 @@ public class PubSubClientI extends _PubSubClientDisp {
             Ice.Properties props = Ice.Util.createProperties();
             String locator = "IceGrid/Locator:tcp -h " + itsHost + " -p " + itsPort;
             props.setProperty("Ice.Default.Locator", locator);
+            props.setProperty("Ice.IPv6", "0");
             Ice.InitializationData id = new Ice.InitializationData();
             id.properties = props;
             itsCommunicator = Ice.Util.initialize(id);

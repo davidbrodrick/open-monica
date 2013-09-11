@@ -205,6 +205,7 @@ public class MonClientUtil {
 				host = host.substring(0, host.indexOf(":"));
 				Ice.Properties props = Ice.Util.createProperties();
 				props.setProperty("Ice.Default.Locator", "IceGrid/Locator:tcp -h " + host + " -p " + port);
+				props.setProperty("Ice.IPv6", "0");
 				if (adaptername != null) {
 					props.setProperty("AdapterName", adaptername);
 				}
