@@ -35,9 +35,9 @@ In addition to being able to use configuration resources bundled into the jar fi
 ConfDir /home/user/my-monica-conf/
 }}}
 
-As suggested above, this configuration directory has up to three subdirectories. Any configuration files must reside in the appropriate subdirectory (ie. no files will be read from the !ConfDir directory itself.
+As suggested above, this configuration directory has up to three subdirectories. Any configuration files must reside in the appropriate subdirectory (ie. no files will be read from the !ConfDir directory itself).
 
-Each subdirectory is treated as a "conf.d" configuration directory where the files are parsed in lexicographic order, so `points.d/01-mypoints.conf` would be loaded before `points.d/99-mypoints.conf`.
+Each subdirectory is treated as a "conf.d" configuration directory where the files are parsed in lexicographic order, so `points.d/01-mypoints.conf` would be loaded before `points.d/99-mypoints.txt`. Files do not need to start with a number, nor end in any particular suffix - all files in the directory will be loaded.
 
 = Template Files =
 
