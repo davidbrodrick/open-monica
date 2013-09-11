@@ -178,7 +178,7 @@ if ($action eq "points"){
 		    $tval=~s/[\'\x{00b0}]/\:/g;
 		    $tval=~s/\"//g;
 		    print "[".(bat2unixtime($point_timevals[$j]->bat)*1000).",";
-		    if ($tval=~/\:/){
+		    if ($tval=~/\:/ || $tval=~/[\p{L}]+/){
 			print "\"".$tval."\"";
 		    } else {
 			print $tval;
