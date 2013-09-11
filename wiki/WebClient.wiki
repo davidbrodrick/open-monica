@@ -380,6 +380,40 @@ var seriesOptions = {
 var seriesReference = server.addTimeSeries(seriesOptions);
 }}}
 
+===== addHistoryTable =====
+
+{{{
+var seriesReference = server.addHistoryTable(seriesOptions);
+}}}
+
+This method makes the server keep track of a number of values for a particular point. The configuration of the history table is passed through the `seriesOptions` object, that has the properties:
+  * `pointName`: the name of the MoniCA point.
+  * `timeSeriesOptions`: an object with the properties:
+    * `startTime`: the time to start the series from, in the format `yyyy-mm-dd:HH:MM:SS`, or `-1` to make the series finish at the current time (the default).
+    * `spanTime`: the time to cover with this series, in minutes (default 60).
+    * `maxPoints`: the maximum number of points to keep from the time range (default 500).
+
+This method returns a `monicaPoint` object that can be used to query the series' details and values.
+
+A history table is different to a time-series only in that the values of two consecutive elements in the array cannot be the same in a history table. The machinery that
+ensures this is in the Javascript library, not on the server.
+
+Example:
+{{{
+// Setup to get the state of CA01 for the last 12 hours.
+// Since temperature varies pretty slowly, we only need 100 points here.
+var seriesOptions = {
+  pointName: 'ca01.servo.State',
+  timeSeriesOptions: {
+    startTime: -1,
+    spanTime: 720,
+    maxPoints: 500
+  }
+}
+
+var seriesReference = server.addHistoryTable(seriesOptions);
+}}}
+
 ===== getDescriptions =====
 
 {{{
@@ -835,6 +869,14 @@ The `options` object can be used to alter the values coming back from this metho
   * `timeRange`: This object can be passed to limit the range of times that will be returned by this method. It has two optional properties:
     * `min`: The minimum time that will be returned. This should be a number, as milliseconds by default, or in seconds if you have set `timeAsSeconds` as `true`.
     * `max`: The maximum time that will be returned. This should be a number, as milliseconds by default, or in seconds if you have set `timeAsSeconds` as `true`.
+
+===== getHistoryTable =====
+
+{{{
+var seriesValues = pointReference.getHistoryTable(options);
+}}}
+
+This routine simply calls the getTimeSeries method internally, so please refer to that method's options for usage.
 
 ===== latestValue =====
 
