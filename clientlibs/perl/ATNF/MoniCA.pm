@@ -840,7 +840,10 @@ sub monpreceding ($$@) {
 }
 
 sub monpreceeding {
-  return monpreceding(@_);
+    my $mon = shift;
+    my $mjd = shift;
+    my @monpoints = @_;
+    return monpreceding($mon, $mjd, @monpoints);
 }
 
 =item B<monfollowing>
