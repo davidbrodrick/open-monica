@@ -469,7 +469,11 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
       Ice.Communicator ic = null;
       try {
         // Need to create a new adapter
-        ic = Ice.Util.initialize();
+        Ice.Properties props = Ice.Util.createProperties();
+        props.setProperty("Ice.IPv6", "0");                
+        Ice.InitializationData id = new Ice.InitializationData();
+        id.properties = props;
+        ic = Ice.Util.initialize(id);
         itsAdapter = ic.createObjectAdapterWithEndpoints("MoniCAIceAdapter", "tcp -p " + itsPort);
         Ice.Object object = new MoniCAIceI();
         itsAdapter.add(object, ic.stringToIdentity(theirServiceName));
