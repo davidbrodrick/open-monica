@@ -82,14 +82,14 @@ public class AlarmCheckStringMatch extends AlarmCheck {
     }
   }
 
-  public void checkAlarm(PointData data) {
+  public boolean checkAlarm(PointData data) {
     // No strings means we shouldn't even bother
     if (itsStringSet == null) {
-      return;
+      return true;
     }
     // No news is good news, right?
     if (data == null || data.getData() == null) {
-      return;
+      return true;
     }
 
     // Get the data in string form
@@ -113,5 +113,6 @@ public class AlarmCheckStringMatch extends AlarmCheck {
     if (itsBoolCount >= itsUpdateAmt) {
       data.setAlarm(true);
     }
+    return true;
   }
 }

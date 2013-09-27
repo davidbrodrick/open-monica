@@ -506,7 +506,10 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     if (itsAlarmChecks != null && itsAlarmChecks.length > 0) {
       for (int i = 0; i < itsAlarmChecks.length && pd.getAlarm() == false; i++) {
         if (itsAlarmChecks[i] != null) {
-          itsAlarmChecks[i].checkAlarm(pd);
+          if (!itsAlarmChecks[i].checkAlarm(pd)) {
+            // This instance has flagged that we should not evaluate any subsequent alarms for this update
+            break;
+          }
         }
       }
     }
@@ -690,12 +693,12 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     makeArchivePolicies();
     makeAlarmChecks();
     makeNotifications();
-    
+
     // Register with the alarm manager
-    if (itsPriority>-1) {
+    if (itsPriority > -1) {
       AlarmManager.setAlarm(this, new PointData(getFullName()));
     }
-    
+
     // Assign to appropriate ExternalSystem(s) for data collection
     for (int i = 0; i < itsInputTransactions.length; i++) {
       Transaction thistrans = itsInputTransactions[i];
@@ -738,7 +741,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
         try {
           al = parseLine(lines[i]);
         } catch (Exception e) {
-          theirLogger.error("Exception \"" + e + "\" while parsing point definition line " + (i+1) + ": " + lines[i]);
+          theirLogger.error("Exception \"" + e + "\" while parsing point definition line " + (i + 1) + ": " + lines[i]);
         }
         if (al != null) {
           result.addAll(al);
