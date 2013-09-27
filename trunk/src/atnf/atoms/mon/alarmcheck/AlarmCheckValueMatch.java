@@ -80,11 +80,12 @@ public class AlarmCheckValueMatch extends AlarmCheck {
    * 
    * @param data
    *          The value to check against our limits.
+   * @return Always True.
    */
-  public void checkAlarm(PointData data) {
+  public boolean checkAlarm(PointData data) {
     // No news is good news, right?
     if (data == null || data.getData() == null) {
-      return;
+      return true;
     }
 
     Object myData = data.getData();
@@ -98,7 +99,7 @@ public class AlarmCheckValueMatch extends AlarmCheck {
     } else {
       Logger logger = Logger.getLogger(Factory.class.getName());
       logger.error("AlarmCheckValueMatch: ERROR: " + data.getName() + " has NON-NUMERIC data!");
-      return;
+      return true;
     }
 
     // If it's inside the range and it's supposed to be, then all is well
@@ -113,5 +114,6 @@ public class AlarmCheckValueMatch extends AlarmCheck {
     if (itsAlarmCount >= itsUpdateAmt) {
       data.setAlarm(true);
     }
+    return true;
   }
 }
