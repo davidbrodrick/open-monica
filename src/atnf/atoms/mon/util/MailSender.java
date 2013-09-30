@@ -20,7 +20,26 @@ import org.apache.log4j.Logger;
  * @author David Brodrick
  */
 public class MailSender {
-  /** The Session. */
+  /** Uncomment the following to set up e.g. gmail mail transport **/
+/*
+  private static Properties properties = new Properties();
+  static {
+    properties.put("mail.smtp.socketFactory.port", "465");
+    properties.put("mail.smtp.socketFactory.class","javax.net.ssl.SSLSocketFactory");
+    properties.put("mail.smtp.starttls.enable", "true");
+    properties.put("mail.smtp.host", "smtp.gmail.com");
+    properties.put("mail.smtp.auth", true);
+  }
+
+  private static Session theirSession = Session.getDefaultInstance(properties,
+      new javax.mail.Authenticator() {
+          protected PasswordAuthentication getPasswordAuthentication() {
+              return new PasswordAuthentication("someuser", "somepassword");
+          }
+      }
+  );
+*/
+  /** To just use the localhost default mail transport, uncomment this: **/
   private static Session theirSession = Session.getDefaultInstance(new Properties(), null);
 
   /** Logger. */
