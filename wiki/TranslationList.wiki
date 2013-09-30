@@ -45,7 +45,7 @@ Please maintain lists in lexigraphic order.
 || !HermiteInterpolator || Interpolate/extrapolate based on a polynomial fit to a buffer of previous values. || *Buffer:* The length of the buffer of past values, in seconds. *Time:* How far in the future to predict the value for, in seconds (may be negative). ||
 || !HexString || Map an integer input to a hex string output. || ||
 || !HighTimer || Reports the amount of time (as a !RelTime) the (numeric or boolean) input has been in a high/mark state. Output will be zero while input is in a low/space state. || ||
-|| !LimitCheck || Output depends on whether other monitor points are in an alarm state. Used together with `TransactionListen`. || *Okay:* String to output when all points are within limits. *Fail:* String to output when one or more points are in an alarm state. *Points:* All further arguments are the names of points to be checked. ||
+|| !LimitCheck || Output depends on whether other monitor points are in an alarm state. Used together with `TransactionListen`. || *Okay:* String to output when all points are within limits. *Fail:* String to output when one or more points are in an alarm state. ||
 || !LinearCombo || Produces a linear combination of the listened-to points. Used together with `TransactionListen`. _deprecated use Calculation_ || Any number of points can be combined, every point requires the following two arguments, *Coefficient:* The coefficient of this point in the linear combination. *Point:* Name of the point which uses that coefficient. ||
 || !LowTimer || Reports the amount of time (as a !RelTime) the (numeric or boolean) input has been in a low/space state. Output will be zero while input is in a high/mark state. || ||
 || Mean || Calculate a moving average of the input value. || *Buffer:* The averaging period, in seconds, eg, to average one minute worth of samples use `60`. *!MinSamples:* An optional argument for the minimum number of samples to have in the buffer before producing output (default 1). ||
@@ -78,7 +78,7 @@ Please maintain lists in lexigraphic order.
 || !StringMap || Map input strings to corresponding output strings. || *Mappings:* Any number of string mappings in the format `input1:output1`||
 || !StringToNumber || Map the string representation of a number to an actual numeric class type. || *Type:* The type of output to be produced, Float, Double, Integer or Long. *Radix:* A radix may be used for integers. If it is omitted base 10 is assumed. ||
 || !StringTrim || Remove leading/trailing whitespace from a string.  || ||
-|| !StuckValue || Flag data with an alarm and empty value when it seems the value has become 'stuck'. || *!NumUpdates:* The number of updates with no value changes before data is flagged. ||
+|| !StuckValue || Flag data with an alarm and empty value when it seems the value has become 'stuck'. || *!NumUpdates:* The number of point update cycles with no value changes before data is flagged. ||
 || Squelch || Apply thresholding function. || *Threshold:* Squelch values below this number. *Output:* Value to output when input is squelched. ||
 || Substring || Return a substring of the input. || *Start:* Start index. *End:* Optional end index. ||
 || !TimedSubstitution || Periodically perform value substitution on the provided template string. The time is taken from the parent points given update interval. || *Template:* The template string. See the [Substitutions] page for available substitution macros. ||
