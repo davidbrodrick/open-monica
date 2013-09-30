@@ -53,3 +53,23 @@ PubSubEnabled false
 PubSubLocatorHost localhost
 PubSubLocatorPort 4061
 PubSubTopic MoniCA.PubSubControl
+
+#############################
+# SMTP Server options for Emails
+
+# Example config for gmail:
+#SMTPPort 465
+#TLS true
+#SMTPHost smtp.gmail.com
+#SMTPAuth true
+#SMTPUser your@user.id 
+#SMTPPassword yourpassword 
+
+# Example config for localhost
+SMTPPort 25 
+TLS false 
+SMTPHost localhost 
+SMTPAuth false 
+SMTPUser any 
+SMTPPassword any 
+

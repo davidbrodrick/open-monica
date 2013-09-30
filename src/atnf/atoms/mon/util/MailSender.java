@@ -20,27 +20,25 @@ import org.apache.log4j.Logger;
  * @author David Brodrick
  */
 public class MailSender {
-  /** Uncomment the following to set up e.g. gmail mail transport **/
-/*
+
+  /** read all the mail settings from monitor-config.txt **/  
+
   private static Properties properties = new Properties();
   static {
-    properties.put("mail.smtp.socketFactory.port", "465");
+    properties.put("mail.smtp.socketFactory.port", MonitorConfig.getProperty("SMTPPort"));
     properties.put("mail.smtp.socketFactory.class","javax.net.ssl.SSLSocketFactory");
-    properties.put("mail.smtp.starttls.enable", "true");
-    properties.put("mail.smtp.host", "smtp.gmail.com");
-    properties.put("mail.smtp.auth", true);
+    properties.put("mail.smtp.starttls.enable", MonitorConfig.getProperty("TLS"));
+    properties.put("mail.smtp.host", MonitorConfig.getProperty("SMTPHost"));
+    properties.put("mail.smtp.auth", MonitorConfig.getProperty("SMTPAuth"));
   }
 
   private static Session theirSession = Session.getDefaultInstance(properties,
       new javax.mail.Authenticator() {
           protected PasswordAuthentication getPasswordAuthentication() {
-              return new PasswordAuthentication("someuser", "somepassword");
+              return new PasswordAuthentication(MonitorConfig.getProperty("SMTPUser"), MonitorConfig.getProperty("SMTPPassword"));
           }
       }
   );
-*/
-  /** To just use the localhost default mail transport, uncomment this: **/
-  private static Session theirSession = Session.getDefaultInstance(new Properties(), null);
 
   /** Logger. */
   private static Logger theirLogger = Logger.getLogger(MailSender.class);
