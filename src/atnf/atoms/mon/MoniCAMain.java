@@ -139,11 +139,7 @@ public class MoniCAMain {
       try {
         theirLogger.info("Loading point definitions from \"" + POINTSRESNAME + "\" resource");
         isr = new InputStreamReader(pointsfile);
-        ArrayList<PointDescription> points = PointDescription.parseFile(isr);
-        for (int i = 0; i < points.size(); i++) {
-          // Populate the appropriate fields for server use
-          points.get(i).populateServerFields();
-        }
+        PointDescription.parseFile(isr);
         foundpoints = true;
       } catch (Exception e) {
       } finally {
@@ -179,11 +175,7 @@ public class MoniCAMain {
               FileReader fr = null;
               try {
                 fr = new FileReader(f);
-                ArrayList<PointDescription> points = PointDescription.parseFile(fr);
-                for (PointDescription point : points) {
-                  // Populate the appropriate fields for server use
-                  point.populateServerFields();
-                }
+                PointDescription.parseFile(fr);
                 foundpoints = true;
               } catch (Exception e) {
                 theirLogger.error("While parsing file: " + e);
@@ -198,6 +190,16 @@ public class MoniCAMain {
             }
           }
         }
+      }
+    }
+    
+    //Create all of the server-side fields for the points
+    PointDescription[] allpoints = PointDescription.getAllUniquePoints();
+    for (PointDescription point : allpoints) {
+      try {
+        point.populateServerFields();
+      } catch (Exception e) {
+        theirLogger.error("While creating point \"" + point.getFullName() + "\": "+ e);
       }
     }
 

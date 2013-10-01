@@ -287,7 +287,7 @@ public class EPICS extends ExternalSystem {
         // Connect any 'monitor' requests for established channels
         synchronized (itsRequiresMonitor) {
           Vector<String> allconnected = new Vector<String>();
-          Iterator allreqs = itsRequiresMonitor.keySet().iterator();
+          Iterator<String> allreqs = itsRequiresMonitor.keySet().iterator();
           while (allreqs.hasNext()) {
             String thispv = (String) allreqs.next();
             Channel thischan = itsChannelMap.get(thispv);

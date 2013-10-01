@@ -15,14 +15,12 @@ import atnf.atoms.mon.PointDescription;
 import atnf.atoms.time.AbsTime;
 
 /**
- * This Translation checks if a set of points are all within their defined <i>limits</i>.
- * If the values are okay then the output of this translation will be the first <i>init</i>
- * argument (eg which might be "okay"). If one or more of the values it outside it's
- * nominated limits then the second <i>init</i> argument is used as output (eg it might
- * say "alarm"). All the other init arguments are the names of the points to listen to.
+ * This Translation checks if a set of points are all within their defined <i>limits</i>. The points should be used with a
+ * <tt>Listen</tt> input Transaction. If the values are okay then the output of this translation will be the first <i>init</i>
+ * argument (eg which might be "okay"). If one or more of the values it outside it's nominated limits then the second <i>init</i>
+ * argument is used as output (eg it might say "alarm").
  * 
  * @author David Brodrick
- * @version $Id: TranslationLimitCheck.java,v 1.3 2005/10/18 03:37:53 bro764 Exp bro764 $
  */
 public class TranslationLimitCheck extends Translation {
   /** String to use as output when all points are okay. */
@@ -32,11 +30,9 @@ public class TranslationLimitCheck extends Translation {
   protected String itsOutput2 = null;
 
   /**
-   * In-limits indicator for each listened-to point. A <tt>True</tt> value indicates
-   * that the last update from the point had an okay value. A <tt>False</tt> indicates
-   * the last update had an abnormal value. A <tt>null</tt> entry indicates we have no
-   * valid data for that point. The order of this array is the same as the <i>itsPoints</i>
-   * field.
+   * In-limits indicator for each listened-to point. A <tt>True</tt> value indicates that the last update from the point had an okay
+   * value. A <tt>False</tt> indicates the last update had an abnormal value. A <tt>null</tt> entry indicates we have no valid data
+   * for that point.
    */
   HashMap<String, Boolean> itsLastValues = new HashMap<String, Boolean>();
 
@@ -93,7 +89,7 @@ public class TranslationLimitCheck extends Translation {
       for (int i = 0; i < values.length; i++) {
         if (values[i] == null) {
           gotvalues = false;
-        } else if (((Boolean)values[i]).booleanValue()) {
+        } else if (((Boolean) values[i]).booleanValue()) {
           alarm = true;
         }
       }
