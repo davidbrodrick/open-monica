@@ -142,6 +142,7 @@ public class MoniCAMain {
         PointDescription.parseFile(isr);
         foundpoints = true;
       } catch (Exception e) {
+        theirLogger.error("While parsing point definitions: " + e);
       } finally {
         if (isr != null) {
           try {
@@ -178,7 +179,7 @@ public class MoniCAMain {
                 PointDescription.parseFile(fr);
                 foundpoints = true;
               } catch (Exception e) {
-                theirLogger.error("While parsing file: " + e);
+                theirLogger.error("While parsing point definitions: " + e);
               } finally {
                 if (fr != null) {
                   try {
