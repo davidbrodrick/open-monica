@@ -187,15 +187,11 @@ public abstract class MonitorUtils {
 	/** Reads and parses a file */
 	public static String[] parseFile(Reader reader) {
 		ArrayList<String> result = new ArrayList<String>();
-		theirMacros = new Hashtable<String, String>();
-
 		try {
 			LineNumberReader lnr = new LineNumberReader(reader);
 			String line = null;
 			int commentDepth = 0;
-			int lineNum = 0;
 			while ((line = lnr.readLine()) != null) {
-				lineNum++;
 				// Leading and trailing spaces
 				line = line.trim();
 				// Ignore blank lines
