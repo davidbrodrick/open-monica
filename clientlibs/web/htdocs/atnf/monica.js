@@ -2013,7 +2013,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      */
     that.latestValue = function(gOptions) {
       // What we do depends on whether we are a time-series or not.
-      if (constructor.isTimeSeries === false ||
+      if (constructor.isTimeSeries === false &&
 	  constructor.isHistoryTable === false) {
 	// We simply return the only value.
 	rIndex = 0;
