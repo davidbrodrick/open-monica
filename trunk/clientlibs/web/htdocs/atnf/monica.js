@@ -1,6 +1,7 @@
 define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
-         "dojo/_base/connect", "dojo/_base/lang", "./base" ],
-  function(dTime, xhr, Deferred, connect, lang, atnfLibrary) {
+         "dojo/_base/connect", "dojo/_base/lang", "./base",
+	 "dojo/request/script" ],
+  function(dTime, xhr, Deferred, connect, lang, atnfLibrary, script) {
 
   var rObj = {};
 
@@ -116,6 +117,21 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      */
     constructor.webserverPath = constructor.webserverPath ||
       'cgi-bin/obstools/web_monica/monicainterface_json.pl';
+
+    /**
+     * A switch to enable the MoniCA RESTful interface instead of
+     * the default ASCII via Perl interface.
+     * @type {boolean}
+     */
+    if (typeof constructor.useRestful === 'undefined') {
+      constructor.useRestful = false;
+    }
+
+    /**
+     * The port to use for the RESTful interface.
+     * @type {number}
+     */
+    constructor.restfulPort = constructor.restfulPort || 8111;
 
     /**
      * The time between queries to the MoniCA server for new values.
@@ -281,29 +297,58 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
         return undefined;
       }
 
-      // Set our default error handler if not specified.
-      options.errorCall = options.errorCall || constructor.errorCallback;
+      if (typeof options.content === 'undefined') {
+	return undefined;
+      }
+
+      var postDeferred;
+
+      if (!constructor.useRestful) {
+
+	// Set our default error handler if not specified.
+	options.errorCall = options.errorCall || constructor.errorCallback;
 
       // Add the name of the server automatically.
-      if (typeof options.content === 'undefined') {
-        return undefined;
-      }
-      options.content.server = constructor.serverName;
+	options.content.server = constructor.serverName;
 
-      /**
-       * The return value from this function is a Dojo Deferred from the
-       * xhrPost call.
-       * @type {Deferred}
-       */
-      var postDeferred = xhr.post({
-        url: constructor.protocol + '://' + constructor.webserverName + '/' +
-  	  constructor.webserverPath,
-        sync: false,
-        content: options.content,
-        handleAs: 'json',
-        error: options.errorCall,
-        failOK: true
-      });
+	/**
+	 * The return value from this function is a Dojo Deferred from the
+	 * xhrPost call.
+	 * @type {Deferred}
+	 */
+	postDeferred = xhr.post({
+	    url: constructor.protocol + '://' + constructor.webserverName + '/' +
+  		constructor.webserverPath,
+	    sync: false,
+            content: options.content,
+            handleAs: 'json',
+            error: options.errorCall,
+            failOK: true
+	});
+      } else {
+
+	var restContent = {};
+
+	// Craft the server string.
+	restContent.server = constructor.protocol + '://' +
+	  constructor.webserverName;
+
+	// We have to check what the library is querying.
+	if (options.content.action === 'names') {
+	  restContent.queryType = 'get';
+	  restContent.queryContent = {
+	    'names': ''
+	  };
+	}
+
+	// Make the cross-domain request.
+	postDeferred = script[restContent.queryType](
+	  restContent.server, {
+	    'query': restContent.queryContent,
+	    'jsonp': 'callback'
+	  }
+	);
+      }
 
       return postDeferred;
     };
@@ -325,7 +370,11 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      */
     var parsePointNames = function(data, ioargs) {
       // The JSON coming back is already nicely formatted.
-      availablePointNames = data.monitoringPointNames;
+      if (!constructor.useRestful) {
+	availablePointNames = data.monitoringPointNames;
+      } else {
+	availablePointNames = data.names;
+      }
 
       return undefined; // no value comes from this chain
     };
@@ -1848,6 +1897,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       if (typeof tValues.data === 'undefined') {
 	return;
       }
+
       // If we are a history table, remove values that are duplicates
       // of the ones they succeed.
       if (constructor.isHistoryTable === true) {
@@ -1963,7 +2013,8 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      */
     that.latestValue = function(gOptions) {
       // What we do depends on whether we are a time-series or not.
-      if (constructor.isTimeSeries === false) {
+      if (constructor.isTimeSeries === false ||
+	  constructor.isHistoryTable === false) {
 	// We simply return the only value.
 	rIndex = 0;
       } else {
