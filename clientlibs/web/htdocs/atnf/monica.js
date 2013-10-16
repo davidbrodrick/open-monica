@@ -1521,7 +1521,7 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
     var i, callbackAdded;
 
     // Variables in updateValue.
-    var j, nPointVal, nPointObj;
+    var j, nPointVal, nPointObj, htHasChanged;
 
     // Variables in latestValue.
     var rIndex;
@@ -1840,46 +1840,52 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      *                           point's value and state.
      */
     that.updateValue = function(newValues) {
-	// Check that the newValues object has come along.
-	if (typeof newValues === 'undefined') {
-	    return;
-	}
+      // Check that the newValues object has come along.
+      if (typeof newValues === 'undefined') {
+	return;
+      }
 
-	if (typeof newValues.value !== 'undefined' &&
-	    typeof newValues.time !== 'undefined') {
-	    if (constructor.isTimeSeries === false &&
-		constructor.isHistoryTable === false) {
-		// Just replace the only value.
-		pointValues[0].setValue(newValues);
-	    } else {
-		// Add this point the end of the array, if the time is different to
-		// the current last point.
-		if (newValues.time !==
-		    pointValues[pointValues.length - 1].getValue().time) {
-		    // If we're a history table, only add it if this new value
-		    // is different to the currently last value.
-		    if ((constructor.isHistoryTable === true &&
-			 pointValues[pointValues.length - 1].getValue().value !==
-			 newValues.value) ||
-			constructor.isHistoryTable === false) {
-			pointValues.push(rObj.pointValue({ initialValue: newValues },
-							 that));
-		    }
+      htHasChanged = false;
 
-		    // Check we haven't got more than the maximum number of points
-		    // we're allowed to have, and remove some if we do.
-		    while (constructor.timeSeriesOptions.maxPoints > 0 &&
-			   pointValues.length > constructor.timeSeriesOptions.maxPoints) {
-			pointValues.shift();
-		    }
-		}
+      if (typeof newValues.value !== 'undefined' &&
+	  typeof newValues.time !== 'undefined') {
+	if (constructor.isTimeSeries === false &&
+	    constructor.isHistoryTable === false) {
+	  // Just replace the only value.
+	  pointValues[0].setValue(newValues);
+	} else {
+	  // Add this point the end of the array, if the time is different to
+	  // the current last point.
+	  if (newValues.time !==
+	      pointValues[pointValues.length - 1].getValue().time) {
+	    // If we're a history table, only add it if this new value
+	    // is different to the currently last value.
+	    if ((constructor.isHistoryTable === true &&
+		 pointValues[pointValues.length - 1].getValue().value !==
+		 newValues.value) ||
+		 constructor.isHistoryTable === false) {
+	      pointValues.push(rObj.pointValue({ initialValue: newValues },
+		that));
+	      htHasChanged = true;
 	    }
-	}
 
-	// Execute any callbacks we have.
-	for (j = 0; j < callbacks.length; j++) {
-	    callbacks[j](that);
+	    // Check we haven't got more than the maximum number of points
+	    // we're allowed to have, and remove some if we do.
+	    while (constructor.timeSeriesOptions.maxPoints > 0 &&
+		   pointValues.length > constructor.timeSeriesOptions.maxPoints) {
+	      pointValues.shift();
+	    }
+	  }
 	}
+      }
+
+      // Execute any callbacks we have.
+      for (j = 0; j < callbacks.length; j++) {
+	if (constructor.isHistoryTable === false ||
+	    htHasChanged === true) {
+	  callbacks[j](that);
+	}
+      }
     };
 
     /**
