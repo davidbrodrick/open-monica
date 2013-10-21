@@ -183,6 +183,7 @@ if ($action eq "points"){
 		    } else {
 			print $tval;
 		    }
+		    print ",".$point_timevals[$j]->errorstate;
 		    print "]";
 		}
 	    }
@@ -223,6 +224,7 @@ if ($action eq "points"){
 		    } else {
 			print $tval;
 		    }
+		    print ",".$point_timevals[$j]->errorstate;
 		    print "]";
 		}
 	    }
