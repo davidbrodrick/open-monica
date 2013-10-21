@@ -72,7 +72,7 @@ sub new {
   my $class = ref($proto) || $proto;
 
   my $monline = shift;
-  my $self = [$monline =~ /^(\S+)\t+\s*(\S.*)$/];
+  my $self = [$monline =~ /^(\S+)\t+\s*(\S.*)\t+\s*(\S+)$/];
 
   bless ($self, $class);
 }
@@ -87,6 +87,12 @@ sub val {
   my $self = shift;
   if (@_) { $self->[1] = shift }
   return $self->[1];
+}
+
+sub errorstate {
+    my $self = shift;
+    if (@_) { $self->[2] = shift }
+    return $self->[2];
 }
 
 package MonFullPoint;
@@ -296,8 +302,9 @@ A single monitor point.
  
 A single monitor point value returned by monbetween or monsince.
 
-  ->bat      BAT time corresponding to the point sample
-  ->val      Actual value of the monitor point
+  ->bat         BAT time corresponding to the point sample
+  ->val         Actual value of the monitor point
+  ->errorstate  Flag to indicate error state, true = error
 
 =item B<MonFullPoint>
 
@@ -609,7 +616,7 @@ sub monsince ($$$;$) {
     my $maxbat=bat2mjd($bat);
     do {
 	print $mon "since\n";
-	print $mon mjd2bat($maxbat)->as_hex." $point\n";
+	print $mon mjd2bat($maxbat)->as_hex." $point alarms\n";
 	
 	$nreceived=<$mon>;
 	my $acceptfraction=ceil($nreceived/$maxnper);
@@ -666,7 +673,7 @@ sub monbetween ($$$$;$) {
     my $maxbat=bat2mjd($bat1);
     do {
 	print $mon "between\n";
-	print $mon mjd2bat($maxbat)->as_hex." $bat2 $point\n";
+	print $mon mjd2bat($maxbat)->as_hex." $bat2 $point alarms\n";
 
 	$nreceived=<$mon>;
 	return undef if (! defined $nreceived);
