@@ -219,9 +219,9 @@ public class MoniCAServerASCII extends Thread {
   protected void between() {
     try {
       String tempstr = itsReader.readLine().trim();
-      // Line should say <TIMESTAMP> <TIMESTAMP> <POINTNAME>
+      // Line should say <TIMESTAMP> <TIMESTAMP> <POINTNAME> [alarms]
       StringTokenizer st = new StringTokenizer(tempstr);
-      if (st.countTokens() != 3) {
+      if (st.countTokens() < 3) {
         itsWriter.println("? Need two BAT timestamps and a point name argument");
         itsWriter.flush();
         return;
@@ -263,19 +263,33 @@ public class MoniCAServerASCII extends Thread {
         return;
       }
 
-      // Get data between the specified times
-      Vector data = PointBuffer.getPointData(mpname, starttime, endtime, 0);
-      if (data == null) {
-        data = new Vector();
+      // Check if alarm information was requested
+      boolean withalarms = false;
+      if (st.hasMoreTokens()) {
+        if (st.nextToken().toLowerCase().equals("alarms")) {
+          withalarms = true;
+        }
       }
 
-      // Tell the client how many samples we are going to send
-      int numdata = data.size();
-      itsWriter.println(numdata);
-      // Send each sample
-      for (int i = 0; i < numdata; i++) {
-        PointData pd = (PointData) data.get(i);
-        itsWriter.println(pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t" + pd.getData());
+      // Get data between the specified times
+      Vector<PointData> data = PointBuffer.getPointData(mpname, starttime, endtime, 0);
+      if (data == null) {
+        // We have no data to send
+        itsWriter.println("0");
+      } else {
+        // Tell the client how many samples we are going to send
+        int numdata = data.size();
+        itsWriter.println(numdata);
+        // Send each sample
+        for (int i = 0; i < numdata; i++) {
+          PointData pd = (PointData) data.get(i);
+          itsWriter.print(pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t" + pd.getData());
+          if (withalarms) {
+            itsWriter.println("\t" + pd.getAlarm());
+          } else {
+            itsWriter.println();
+          }
+        }
       }
 
       itsWriter.flush();
@@ -289,9 +303,9 @@ public class MoniCAServerASCII extends Thread {
   protected void since() {
     try {
       String tempstr = itsReader.readLine().trim();
-      // Line should say <TIMESTAMP> <POINTNAME>
+      // Line should say <TIMESTAMP> <POINTNAME> [alarms]
       StringTokenizer st = new StringTokenizer(tempstr);
-      if (st.countTokens() != 2) {
+      if (st.countTokens() < 2) {
         itsWriter.println("? Need BAT timestamp and point name arguments");
         itsWriter.flush();
         return;
@@ -316,20 +330,33 @@ public class MoniCAServerASCII extends Thread {
         return;
       }
 
-      // Get data between specified time and now
-      AbsTime now = new AbsTime();
-      Vector data = PointBuffer.getPointData(mpname, sincetime, now, 0);
-      if (data == null) {
-        data = new Vector();
+      // Check if alarm information was requested
+      boolean withalarms = false;
+      if (st.hasMoreTokens()) {
+        if (st.nextToken().toLowerCase().equals("alarms")) {
+          withalarms = true;
+        }
       }
 
-      // Tell the client how many samples we are going to send
-      int numdata = data.size();
-      itsWriter.println(numdata);
-      // Send each sample
-      for (int i = 0; i < numdata; i++) {
-        PointData pd = (PointData) data.get(i);
-        itsWriter.println(pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t" + pd.getData());
+      // Get data between specified time and now
+      AbsTime now = new AbsTime();
+      Vector<PointData> data = PointBuffer.getPointData(mpname, sincetime, now, 0);
+      if (data == null) {
+        itsWriter.println("0");
+      } else {
+        // Tell the client how many samples we are going to send
+        int numdata = data.size();
+        itsWriter.println(numdata);
+        // Send each sample
+        for (int i = 0; i < numdata; i++) {
+          PointData pd = (PointData) data.get(i);
+          itsWriter.print(pd.getTimestamp().toString(AbsTime.Format.HEX_BAT) + "\t" + pd.getData());
+          if (withalarms) {
+            itsWriter.println("\t" + pd.getAlarm());
+          } else {
+            itsWriter.println();
+          }
+        }
       }
 
       itsWriter.flush();
@@ -744,7 +771,7 @@ public class MoniCAServerASCII extends Thread {
   /** Check the clients credentials. Return verified user name or null if can't be verified. */
   protected String checkAuth(String rawuser, String rawpass, String host) {
     // Socket session keys
-		if (itsRSA != null) {
+    if (itsRSA != null) {
       try {
         String username = itsRSA.decrypt(rawuser);
         String password = itsRSA.decrypt(rawpass);
@@ -753,7 +780,7 @@ public class MoniCAServerASCII extends Thread {
         }
       } catch (NumberFormatException f) {
       }
-		}
+    }
 
     // Server persistent keys
     try {
