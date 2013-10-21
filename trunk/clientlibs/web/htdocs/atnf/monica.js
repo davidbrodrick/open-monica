@@ -1912,7 +1912,8 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
 	  if (k >= tValues.data.length) {
 	    break;
 	  }
-	  if (tValues.data[k][1] === tValues.data[k - 1][1]) {
+	  if (tValues.data[k][1] === tValues.data[k - 1][1] &&
+	      tValues.data[k][2] === tValues.data[k - 1][2]) {
 	    tValues.data.splice(k, 1);
 	    k--;
 	  }
