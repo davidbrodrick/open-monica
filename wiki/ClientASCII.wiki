@@ -102,6 +102,8 @@ mpacc.cryo.LS.20K 0x10b32b0a376290 22.0 K true
 
 The since command returns all records, for a single monitor point, between the nominated time and the present. To make the request you first need to send the string "since" and then, on a new line, send the BAT timestamp for when you want the request to start and then the name of the monitor point.
 
+If you also want to retrieve the alarm status for each record you can add the optional argument "alarms" to the query line.
+
 For instance, the following is a valid request:
 {{{
 since
@@ -117,11 +119,30 @@ The server will respond with:
 [timestampN]\t[dataN]
 }}}
 
+An example with alarm information is as follows. Each "alarm" field will either be `true` if the point was in an alarm state of `false` is there was no alarm.
+
+{{{
+since
+0x1065ab64134158 site.environment.weather.Temperature alarms
+}}}
+
+The server will respond with:
+{{{
+[number_of_data_which_follow]
+[timestamp1]\t[data1]\t[alarm1]
+[timestamp2]\t[data2]\t[alarm2]
+...
+[timestampN]\t[dataN]\t[alarmN]
+}}}
+
+
 In order to prevent the server from becoming bogged down by large data requests it may impose a limit on the number of data records returned from a single call to the archive. Therefore you should process calls to 'since' in a loop which advances the request timestamp, until all data has been returned.
 
 ==between==
 
 The between command is similar to the since command except that it returns all records, for a single monitor point, between two nominated times (whereas since returns all data between the specified time and the present).
+
+As with the since call, an optional "alarms" argument may be given, in which case the server will append the boolean alarm status for each returned record.
 
 The following shows a valid request and the reply from the server:
 {{{
