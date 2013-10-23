@@ -13,7 +13,7 @@ Most configuration files live in the `config/` subdirectory of the open-monica p
 
 An enumeration of these files includes the following:
  
- * *monitor-config.txt* Contains many of the run-time definitions for the server, such as archive directory location, number of threads to use, [RADIUSAuth RADIUS server] details, etc.. This file is loaded as a resource from the jar file but the MoniCA.ConfFile system property can also be defined to specify an alternate location for the configuration data.
+ * *monitor-config.txt* Contains many of the run-time definitions for the server, such as archive directory location, number of threads to use, [RADIUSAuth RADIUS server] details, etc.. This file is loaded as a resource from the jar file but the `MoniCA.ConfFile` system property can also be defined to specify an alternate location for the configuration data.
  * *monitor-points.txt* The list of point definitions to be created by the server. This file is described in detail [MonitorPointsFileFormat here].
  * *monitor-sources.txt* This defines which devices we should connect to for monitoring/control. Some of the !ExternalSystem classes are documented [ExternalSystems here], most of the others are documented with Javadoc tags in the [http://code.google.com/p/open-monica/source/browse/#svn%2Ftrunk%2Fsrc%2Fatnf%2Fatoms%2Fmon%2Fexternalsystem source code] files.
  * *monitor-setups.txt* This contains the !SavedSetup definitions which are read by the server and then provided to Java clients when they connect.
