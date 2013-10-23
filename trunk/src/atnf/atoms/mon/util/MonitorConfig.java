@@ -7,56 +7,78 @@
 
 package atnf.atoms.mon.util;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.HashMap;
+import org.apache.log4j.Logger;
 
 /**
  * Simple properties class for configuration settings.
- *
+ * 
  * @author Le Cuong Nguyen
  */
-public class MonitorConfig
-{
-   private static HashMap<String,String> itsData = new HashMap<String,String>();
-   private static boolean itsInit = false;
+public class MonitorConfig {
+  /** Logger. */
+  private static Logger theirLogger = Logger.getLogger(MonitorConfig.class);
 
-   /** Read the config file and cache properties. */
-   public static void init()
-   {
-     InputStream configfile = MonitorConfig.class.getClassLoader().getResourceAsStream("monitor-config.txt");
-     if (configfile==null) {
-       System.err.println("ERROR: Could not find monitor-config.txt configuration file");
-       System.exit(1);
-     }
-     String[] lines = MonitorUtils.parseFile(new InputStreamReader(configfile));
-     if (lines != null) {
-      for (int i = 0; i < lines.length; i++) {
-         int firstSpace = lines[i].indexOf(' ');
-         itsData.put(lines[i].substring(0, firstSpace), lines[i].substring(firstSpace+1, lines[i].length()));
-       }
+  /** Dictionary of property/value pairs. */
+  private static HashMap<String, String> itsData = new HashMap<String, String>();
+
+  /** Records if the confile file has already been parsed. */
+  private static boolean theirIsInitialised = false;
+
+  /** Read the config file and cache properties. */
+  public static void init() {
+    InputStream configfile = null;
+
+    String confname = System.getProperty("MoniCA.ConfFile");
+    if (confname != null) {
+      // Config file name was specified via a property, so use that one
+      theirLogger.info("Configuration file \"" + confname + "\" specified via property");
+      try {
+        configfile = new FileInputStream(confname);
+      } catch (Exception e) {
+        theirLogger.fatal("While trying to open configuration file: " + e);
+        System.exit(1);
+      }
+    } else {
+      // Use config file from the jar
+      final String CONFRESNAME = "monitor-config.txt";
+      configfile = MonitorConfig.class.getClassLoader().getResourceAsStream(CONFRESNAME);
+      if (configfile == null) {
+        theirLogger.fatal("Could not open configuration resource \"" + CONFRESNAME + "\"");
+        System.exit(1);
+      }
     }
-   }
-   
-   /** Return the string value of the named property. */
-   public static String getProperty(String prop)
-   {
-      if (!itsInit) {
-        init();
+
+    // Now load the file contents
+    String[] lines = MonitorUtils.parseFile(new InputStreamReader(configfile));
+    if (lines != null) {
+      for (int i = 0; i < lines.length; i++) {
+        int firstSpace = lines[i].indexOf(' ');
+        itsData.put(lines[i].substring(0, firstSpace), lines[i].substring(firstSpace + 1, lines[i].length()));
       }
-      return (String)itsData.get(prop);
-   }
-   
-   /** Return value of the named property, or <i>null</i> if it wasn't found. */
-   public static String getProperty(String prop, String def)
-   {
-      if (!itsInit) {
-        init();
-      }
-      String res=(String)itsData.get(prop);
-      if (res==null) {
-        res=def;
-      }
-      return res;
-   }
+    }
+    
+    theirIsInitialised = true;
+  }
+
+  /** Return the string value of the named property. */
+  public static String getProperty(String prop) {
+    if (!theirIsInitialised) {
+      init();
+    }
+    return itsData.get(prop);
+  }
+
+  /** Return value of the named property, or <i>null</i> if it wasn't found. */
+  public static String getProperty(String prop, String def) {
+    if (!theirIsInitialised) {
+      init();
+    }
+    String res = itsData.get(prop);
+    if (res == null) {
+      res = def;
+    }
+    return res;
+  }
 }
