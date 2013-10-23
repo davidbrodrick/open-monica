@@ -39,7 +39,7 @@ public class MoniCAClientIce extends MoniCAClient {
 
   /** Ice properties used to create the Communicator. */
   protected Ice.Properties itsProperties;
-  
+
   /** The Ice encoding version to use. 1.0 for backwards compatibility. */
   protected final String theirIceEncoding = "1.0";
 
@@ -48,6 +48,8 @@ public class MoniCAClientIce extends MoniCAClient {
    */
   public MoniCAClientIce(Ice.Properties props) throws Exception {
     itsProperties = props;
+    // Ensure the encoding is set to the appropriate version
+    itsProperties.setProperty("Ice.Default.EncodingVersion", theirIceEncoding);
     connect();
   }
 
@@ -491,22 +493,22 @@ public class MoniCAClientIce extends MoniCAClient {
       AlarmIce[] icealarms = itsIceClient.getAllAlarms();
       if (icealarms != null && icealarms.length > 0) {
         // First check if we need to fetch any new point definitions
-        Vector<String> fetchpoints = null;        
-        for (int i = 0; i < icealarms.length; i++) {       
+        Vector<String> fetchpoints = null;
+        for (int i = 0; i < icealarms.length; i++) {
           String pointname = icealarms[i].pointname;
           if (PointDescription.getPoint(pointname) == null) {
             // We need to fetch the point definition for this point
-            //System.err.println("MoniCAClientIce.getAllAlarms: Fetching PointDescription for " + pointname);
-            if (fetchpoints==null) {
+            // System.err.println("MoniCAClientIce.getAllAlarms: Fetching PointDescription for " + pointname);
+            if (fetchpoints == null) {
               fetchpoints = new Vector<String>(icealarms.length);
             }
             fetchpoints.add(pointname);
           }
         }
-        if (fetchpoints!=null) {
+        if (fetchpoints != null) {
           getPoints(fetchpoints);
         }
-        
+
         res = new Vector<Alarm>(icealarms.length);
         for (int i = 0; i < icealarms.length; i++) {
           Alarm thisalarm = MoniCAIceUtil.getAlarmFromIce(icealarms[i]);
@@ -677,7 +679,7 @@ public class MoniCAClientIce extends MoniCAClient {
     if (itsProperties == null) {
       // Connect directly to the specified server
       itsCommunicator = Ice.Util.initialize();
-      //Use encoding 1.0 for backwards compatibility
+      // Use encoding 1.0 for backwards compatibility
       base = itsCommunicator.stringToProxy("MoniCAService -e " + theirIceEncoding + ": tcp -h " + itsHost + " -p " + itsPort + " -t 30000");
     } else {
       // Find the server via a Locator service
