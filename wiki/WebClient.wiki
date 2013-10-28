@@ -316,7 +316,7 @@ server.connect().then(connectionEstablished);
 var pointReferences = server.addPoints(pointsList);
 }}}
 
-This method is used to tell the server to keep one or more MoniCA points up-to-date. For each point passed to this method that exists on the server, a `monicaPoint` object that can be used to query that point's details and value.
+This method is used to tell the server to keep one or more MoniCA points up-to-date. For each point passed to this method that exists on the server, a `monicaPoint` object that can be used to query that point's details and value. If the point you ask for is not known to the MoniCA server, you will get a `null` reference returned; ensure that you check for such `null` values before trying to use the reference.
 
 Example:
 {{{
@@ -925,10 +925,13 @@ var callbackFn = function(pointReference) {
 var connectionEstablished = function() {
   // Add a point.
   var pointReference = server.addPoints([ 'site.environment.weather.Temperature' ]);
-  pointReference[0].setDetails({
-    'updateTime': 60
-  });
-  pointReference[0].addCallback(callbackFn);
+  // Could be null if the server doesn't recognise the point; check for this.
+  if (pointReference[0]) {
+    pointReference[0].setDetails({
+      'updateTime': 60
+    });
+    pointReference[0].addCallback(callbackFn);
+  }
   server.getDescriptions();
 }
 
