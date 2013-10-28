@@ -74,6 +74,9 @@ if ($action eq "points"){
 	if ($thisvalue=~/\'/){
 	    $thisvalue=~s/\'/\\'/g;
 	}
+	if ($thisvalue=~/\"/) {
+	    $thisvalue =~ s/\"/\\"/g;
+	}
 	print "{ pointName: \"".$point_vals[$i]->point."\",";
 	if ($time_format[$i] == 0) {
 	    print " time: \"".bat2cal($point_vals[$i]->bat,0)."\",";

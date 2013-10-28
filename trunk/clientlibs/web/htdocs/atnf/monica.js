@@ -521,6 +521,10 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
      * @param {object} uRef A monicaPoint reference.
      */
     var addToUpdateList = function(uRef) {
+      // Check that this is a point we know about.
+	if (!that.isPoint(uRef.getPointDetails().name)) {
+	    return;
+	}
       // Check this point isn't already on the list.
       pointFound = false;
       for (aTULi = 0; aTULi < requireUpdating.length; aTULi++) {
@@ -1009,6 +1013,11 @@ define([ "dojox/timing", "dojo/_base/xhr", "dojo/_base/Deferred",
       for (aPi = 0; aPi < newPoints.length; aPi++) {
         // Check if we have this point already.
         tempAdd = hasPoint(newPoints[aPi]);
+	// And that this server knows about it.
+	  if (!that.isPoint(newPoints[aPi])) {
+	      pointReferences[aPi] = null;
+	      continue;
+	  }
         // And make a new point if we don't.
         canAdd = true;
         if (tempAdd !== undefined) {
