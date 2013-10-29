@@ -927,10 +927,34 @@ public class MonFrame extends JFrame implements ActionListener {
     setup.put("title", getTitle());
     setup.put("numpanels", "" + itsPanels.size());
 
-    // Then need to add the current setup of each panel in the window
+    // We need to add the setup for each panel displayed in the window.
+    // The complication here is that, in terms of detecting if the setup has been
+    // modified from the original one (if present) is that they keywords may come
+    // back in a different order to the original. Therefore we compare the values
+    // between the original and readback setup, and if they are the same then we
+    // just recycle the original setup so that subsequent comparison of the strings
+    // shows they are the same.
+    // It would be best to come up with an explicit way of allowing the panels to
+    // flag when setups have been modified and do away with this stuff here.
     for (int i = 0; i < itsPanels.size(); i++) {
-      SavedSetup temp = ((MonPanel) itsPanels.get(i)).getSetup();
-      setup.put("setup" + i, temp.toString());
+      SavedSetup panelsetup = ((MonPanel) itsPanels.get(i)).getSetup();
+      String panelsetupstr = panelsetup.toString();
+      if (itsSetup!=null && itsSetup.get("setup"+i)!=null) {
+        SavedSetup origsetup = null;
+        String origsetupstr = null;
+        try {
+          origsetupstr = itsSetup.get("setup"+i);
+          origsetup = new SavedSetup(origsetupstr);
+        } catch (Exception e) {}
+        if (origsetup!=null) {
+          // Now compare the readback and original setups
+          if (panelsetup.compareKeys(origsetup)) {
+            // Not modified, so use original string
+            panelsetupstr=origsetupstr;
+          }
+        }
+      }
+      setup.put("setup" + i, panelsetupstr);
     }
 
     // Add the layout control information for each panel to the SavedSetup
