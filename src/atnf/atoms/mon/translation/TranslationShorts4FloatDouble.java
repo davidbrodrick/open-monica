@@ -5,14 +5,12 @@
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 
-package atnf.atoms.monicalocal.translation;
+package atnf.atoms.mon.translation;
 
 import atnf.atoms.mon.*;
-import atnf.atoms.mon.translation.*;
-
 
 /**
- * Merge four 16 bit integers to reassemble a 64 bit double float.
+ * Merge four 16 bit integers to reassemble a IEEE754 64 bit double float.
  *
  * <p>
  * 1st field is Most Significant 16 bits, 2nd field is next Most Significant 16 bits, 3rd field is next Most Significant 16 bits, Least Significant 16 bits of 64 bit double float.
