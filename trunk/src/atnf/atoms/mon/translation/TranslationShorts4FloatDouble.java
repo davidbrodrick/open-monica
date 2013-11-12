@@ -10,52 +10,40 @@ package atnf.atoms.mon.translation;
 import atnf.atoms.mon.*;
 
 /**
- * Merge four 16 bit integers to reassemble a IEEE754 64 bit double float.
+ * Merge four 16 bit integers to reassemble a IEEE754 64 bit double precision float.
  *
  * <p>
- * 1st field is Most Significant 16 bits, 2nd field is next Most Significant 16 bits, 3rd field is next Most Significant 16 bits, Least Significant 16 bits of 64 bit double float.
+ * 1st field is array index of first 16 bits, 2nd field is 'B'ig Endian (1st array element is most significant) or 'L'ittle Endian (1st array element is least significant).
  *
  
 @author Peter Mirtschin
  **/
 public class TranslationShorts4FloatDouble extends Translation {  
 
-
-	private int itsIndex3 = 0; //Hi
-	private int itsIndex2 = 0;
-	private int itsIndex1 = 0;
-	private int itsIndex0 = 0; //Lo
+	private int itsIndex = 0;
+	private char itsEndian = 'B'; //Big Endian
 	
-	private int itsIntVal3 = 0; //High
-	private int itsIntVal2 = 0;
-	private int itsIntVal1 = 0;
-	private int itsIntVal0 = 0; //Low
-	
-	private long itsLongValHi = 0;
-	private long itsLongValLo = 0;
+	private int i = 0;
+	private long itsLongVal = 0;
 
-	protected static String[] itsArgs = new String[]{"Translation Shorts4FloatDouble", "Shorts4FloatDouble", "Array index of most significant", "Array index of next most significant", "Array index of most significant", "Array index of least significant" , "java.lang.Integer"};
+	protected static String[] itsArgs = new String[]{"Translation Shorts4FloatDouble", "Shorts4FloatDouble", "Array index of 1st element", "'B'ig or 'L'ittle Endian", "java.lang.Integer"};
    
 	public TranslationShorts4FloatDouble(PointDescription parent, String[] init) {
 		super(parent, init);
 		
-		if (init.length!=4) {
+		if (init.length!=2) {
 			System.err.println("ERROR: TranslationShorts4FloatDouble (for " + itsParent.getName()
-				+ "): Expect 4 Arguments.. got " + init.length);
+				+ "): Expect 2 Arguments.. got " + init.length);
 		} else {
-			itsIndex3 = Integer.parseInt(init[0]);
-			itsIndex2 = Integer.parseInt(init[1]);
-			itsIndex1 = Integer.parseInt(init[2]);
-			itsIndex0 = Integer.parseInt(init[3]);
+			itsIndex = Integer.parseInt(init[0]); // get index of first element
+			itsEndian = init[1].toUpperCase().charAt(0); // get Endianness
 		}
 	}
    
 	public PointData translate(PointData data) {
 	
 		//Precondition
-		if (data==null) {
-		  return null;
-		}
+		if (data==null) return null;
 
 		//Get the full array (of shorts)
 		Object[] array = (Object[])data.getData();
@@ -66,17 +54,20 @@ public class TranslationShorts4FloatDouble extends Translation {
 		//If the data is null we need to throw a null-data result
 		if (array==null) return res;
 		
-		//Get the 4 words
-		itsIntVal3 =  (Integer) array[itsIndex3];
-		itsIntVal2 =  (Integer) array[itsIndex2];
-		itsIntVal1 =  (Integer) array[itsIndex1];
-		itsIntVal0 =  (Integer) array[itsIndex0];
-		
-		itsLongValHi = (itsIntVal3 << 16) + itsIntVal2;
-		itsLongValLo = (itsIntVal1 << 16) + itsIntVal0;
+		//Get the 4 words into a 64 bit long
+		itsLongVal=0;
+		switch (itsEndian) {
+			case 'B': //Big Endian
+				for (i=0; i<4; i++) itsLongVal += (((Integer) array[itsIndex+i]).longValue()) << (16*(3-i));
+				break;
+			case 'L': //Little Endian
+				for (i=0; i<4; i++) itsLongVal += (((Integer) array[itsIndex+i]).longValue()) << (16*i);
+				break;
+			default: // invalid, so leave result as zero
+		}
 		
 		//Convert to double float and set point to return
-		res.setData(Double.longBitsToDouble( (itsLongValHi << 32) + itsLongValLo ));
+		res.setData(Double.longBitsToDouble( itsLongVal ));
 
 		//Keep the time-stamp of the parent point rather than use "now"
 		res.setTimestamp(data.getTimestamp());	
