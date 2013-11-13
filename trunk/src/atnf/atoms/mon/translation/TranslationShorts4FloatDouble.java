@@ -13,21 +13,16 @@ import atnf.atoms.mon.*;
  * Merge four 16 bit integers to reassemble a IEEE754 64 bit double precision float.
  *
  * <p>
- * 1st field is array index of first 16 bits, 2nd field is 'B'ig Endian (1st array element is most significant) or 'L'ittle Endian (1st array element is least significant).
+ * 1st field is array index of first 16 bits, 2nd field is Endian ( B[ig] - 1st array element is most significant or L[ittle] - 1st array element is least significant).
  *
  
 @author Peter Mirtschin
  **/
 public class TranslationShorts4FloatDouble extends Translation {  
 
-	private int itsIndex = 0;
-	private char itsEndian = 'B'; //Big Endian
+	private int itsIndex;
+	private char itsEndian;
 	
-	private int i = 0;
-	private long itsLongVal = 0;
-
-	protected static String[] itsArgs = new String[]{"Translation Shorts4FloatDouble", "Shorts4FloatDouble", "Array index of 1st element", "'B'ig or 'L'ittle Endian", "java.lang.Integer"};
-   
 	public TranslationShorts4FloatDouble(PointDescription parent, String[] init) {
 		super(parent, init);
 		
@@ -55,27 +50,23 @@ public class TranslationShorts4FloatDouble extends Translation {
 		if (array==null) return res;
 		
 		//Get the 4 words into a 64 bit long
-		itsLongVal=0;
+		long LongVal=0;
 		switch (itsEndian) {
-			case 'B': //Big Endian
-				for (i=0; i<4; i++) itsLongVal += (((Integer) array[itsIndex+i]).longValue()) << (16*(3-i));
+			case 'B': //Big Endian (MSB first)
+				for (int i=0; i<4; i++) LongVal += (((Integer) array[itsIndex+i]).longValue()) << (16*(3-i));
 				break;
-			case 'L': //Little Endian
-				for (i=0; i<4; i++) itsLongVal += (((Integer) array[itsIndex+i]).longValue()) << (16*i);
+			case 'L': //Little Endian (LSB first)
+				for (int i=0; i<4; i++) LongVal += (((Integer) array[itsIndex+i]).longValue()) << (16*i);
 				break;
 			default: // invalid, so leave result as zero
 		}
 		
 		//Convert to double float and set point to return
-		res.setData(Double.longBitsToDouble( itsLongVal ));
+		res.setData(Double.longBitsToDouble( LongVal ));
 
 		//Keep the time-stamp of the parent point rather than use "now"
 		res.setTimestamp(data.getTimestamp());	
 
 		return res;		
-	}
-
-	public static String[] getArgs() {
-		return itsArgs;
 	}
 }
