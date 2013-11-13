@@ -14,20 +14,15 @@ import atnf.atoms.mon.*;
  *
  * <p>
  * First field is Most Significant 16 bits, Second field is Least Significant 16 bits of 32 bit float.
+ *
 
 @author Ben McKay
  **/
 public class TranslationShorts2Float extends Translation {  
 
-
-	private int itsHighIndex = 0;
-	private int itsLowIndex = 0;
+	private int itsHighIndex;
+	private int itsLowIndex;
 	
-	private int itsHigh = 0;
-	private int itsLow = 0;
-
-	protected static String[] itsArgs = new String[]{"Translation Shorts2Float", "Shorts2Float", "Array index of most significant", "Array index of least significant" , "java.lang.Integer"};
-   
 	public TranslationShorts2Float(PointDescription parent, String[] init) {
 		super(parent, init);
 		
@@ -38,15 +33,12 @@ public class TranslationShorts2Float extends Translation {
 			itsHighIndex = Integer.parseInt(init[0]);
 			itsLowIndex = Integer.parseInt(init[1]);
 		}
-		
 	}
    
 	public PointData translate(PointData data) {
 	
 		//Precondition
-		if (data==null) {
-		  return null;
-		}
+		if (data==null) return null;
 
 		//Get the full array (of shorts)
 		Object[] array = (Object[])data.getData();
@@ -57,20 +49,12 @@ public class TranslationShorts2Float extends Translation {
 		//If the data is null we need to throw a null-data result
 		if (array==null) return res;
 		
-		//Get high and low word
-		itsHigh =  (Integer) array[itsHighIndex];
-		itsLow =  (Integer) array[itsLowIndex];
-		
 		//Convert to float and set point to return
-		res.setData(Float.intBitsToFloat((itsHigh << 16) + itsLow));
+		res.setData(Float.intBitsToFloat( ( (Integer) array[itsHighIndex] << 16) + (Integer) array[itsLowIndex]) );
 
 		//Keep the time-stamp of the parent point rather than use "now"
 		res.setTimestamp(data.getTimestamp());	
 
 		return res;		
-	}
-
-	public static String[] getArgs() {
-		return itsArgs;
 	}
 }
