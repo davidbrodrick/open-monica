@@ -16,27 +16,19 @@ import atnf.atoms.mon.util.*;
 import atnf.atoms.time.AbsTime;
 
 /**
- * This Transaction checks if a set of points are all within their defined
- * <i>limits</i>. If the values for one or more points are not currently
- * available then no output will be generated unless there is an available point
- * that is outside its limits in which case we should clearly indicate an alarm
- * condition even though some other points are unavailable.
+ * This Transaction checks if a set of points are all within their defined <i>limits</i>. If the values for one or more points are
+ * not currently available then no output will be generated unless there is an available point that is outside its limits in which
+ * case we should clearly indicate an alarm condition even though some other points are unavailable.
  * <P>
- * The behaviour of this translation is controlled by the arguments given to it
- * in the point definition: <br>
- * The check is made at a frequency determined by the first argument, which (for
- * consistency although it is overkill) must be specified in microseconds.
- * <tt>eg, "10000000"</tt>. This should be the same as the overall update period
- * declared for this monitor point. <br>
- * Some times a monitor point might have just one or two spurious readings so
- * the second argument specifies how many update cycles the listened-to points
- * must be outside their limits before we indicate a problem. <tt>eg, "3"</tt>.
- * <br>
- * If the values are okay then the third argument string will be used for the
- * output. <tt>eg, this might be "OK"</tt>. <br>
- * If one or more of the values it outside their nominated limits for a
- * sufficient number of cycles then the fourth argument string will be used as
- * output. <tt>eg, "ALARM"</tt>. <br>
+ * The behaviour of this translation is controlled by the arguments given to it in the point definition: <br>
+ * The check is made at a frequency determined by the first argument, which (for consistency although it is overkill) must be
+ * specified in microseconds. <tt>eg, "10000000"</tt>. This should be the same as the overall update period declared for this
+ * monitor point. <br>
+ * Some times a monitor point might have just one or two spurious readings so the second argument specifies how many update cycles
+ * the listened-to points must be outside their limits before we indicate a problem. <tt>eg, "3"</tt>. <br>
+ * If the values are okay then the third argument string will be used for the output. <tt>eg, this might be "OK"</tt>. <br>
+ * If one or more of the values it outside their nominated limits for a sufficient number of cycles then the fourth argument string
+ * will be used as output. <tt>eg, "ALARM"</tt>. <br>
  * All other arguments are interpreted as the names of the points to be checked.
  * 
  * @author David Brodrick
@@ -49,11 +41,9 @@ public class TransactionLimitCheck extends Transaction {
   protected String itsOutput2 = null;
 
   /**
-   * Holds the last few results of our analysis of the listened-to points. This
-   * is used for when more than one update must indicate an out of limits state
-   * before we use the alternate output string. The size is determined by the
-   * second init argument. An entry of false indicates that there is no reason
-   * for alarm while true indicates an alarm condition.
+   * Holds the last few results of our analysis of the listened-to points. This is used for when more than one update must indicate
+   * an out of limits state before we use the alternate output string. The size is determined by the second init argument. An entry
+   * of false indicates that there is no reason for alarm while true indicates an alarm condition.
    */
   protected Boolean[] itsHistory = null;
 
@@ -62,8 +52,8 @@ public class TransactionLimitCheck extends Transaction {
 
   /** The timer used to trigger the periodic check. */
   /**
-   * Timer used to trigger the periodic check. TODO: Using a single static
-   * instance has limited scaling potential. What would a better scheme be?
+   * Timer used to trigger the periodic check. TODO: Using a single static instance has limited scaling potential. What would a
+   * better scheme be?
    */
   protected static Timer theirTimer = new Timer();
 
@@ -120,13 +110,16 @@ public class TransactionLimitCheck extends Transaction {
 
       // Fire the result
       PointEvent pe = new PointEvent(this, res, true);
-      itsParent.firePointEvent(pe);
+      try {
+        itsParent.firePointEvent(pe);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
 
     /**
-     * Check each monitor point and return <tt>true</tt> if any are outside
-     * their limits, <tt>null</tt> if some points were unavilable, or
-     * <tt>false</tt> if no points are outside their limits.
+     * Check each monitor point and return <tt>true</tt> if any are outside their limits, <tt>null</tt> if some points were
+     * unavilable, or <tt>false</tt> if no points are outside their limits.
      */
     protected Boolean doUpdate() {
       Boolean[] vals = new Boolean[itsPoints.length];
