@@ -21,24 +21,25 @@ import org.apache.log4j.Logger;
  */
 public class MailSender {
 
-  /** read all the mail settings from monitor-config.txt **/  
+  /** read all the mail settings from monitor-config.txt **/
 
   private static Properties properties = new Properties();
   static {
-    properties.put("mail.smtp.socketFactory.port", MonitorConfig.getProperty("SMTPPort"));
-    properties.put("mail.smtp.socketFactory.class","javax.net.ssl.SSLSocketFactory");
-    properties.put("mail.smtp.starttls.enable", MonitorConfig.getProperty("TLS"));
-    properties.put("mail.smtp.host", MonitorConfig.getProperty("SMTPHost"));
-    properties.put("mail.smtp.auth", MonitorConfig.getProperty("SMTPAuth"));
+    try {
+      properties.put("mail.smtp.socketFactory.port", MonitorConfig.getProperty("SMTPPort"));
+      properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+      properties.put("mail.smtp.starttls.enable", MonitorConfig.getProperty("TLS"));
+      properties.put("mail.smtp.host", MonitorConfig.getProperty("SMTPHost"));
+      properties.put("mail.smtp.auth", MonitorConfig.getProperty("SMTPAuth"));
+    } catch (Exception e) {
+    }
   }
 
-  private static Session theirSession = Session.getDefaultInstance(properties,
-      new javax.mail.Authenticator() {
-          protected PasswordAuthentication getPasswordAuthentication() {
-              return new PasswordAuthentication(MonitorConfig.getProperty("SMTPUser"), MonitorConfig.getProperty("SMTPPassword"));
-          }
-      }
-  );
+  private static Session theirSession = Session.getDefaultInstance(properties, new javax.mail.Authenticator() {
+    protected PasswordAuthentication getPasswordAuthentication() {
+      return new PasswordAuthentication(MonitorConfig.getProperty("SMTPUser"), MonitorConfig.getProperty("SMTPPassword"));
+    }
+  });
 
   /** Logger. */
   private static Logger theirLogger = Logger.getLogger(MailSender.class);
@@ -64,11 +65,11 @@ public class MailSender {
     }
 
     try {
-    	String[] strAddresses = to.split("\\s+");
-    	InternetAddress[] iaAddresses = new InternetAddress[strAddresses.length];
-    	for (int i=0; i<strAddresses.length; i++) {
-    		iaAddresses[i] = new InternetAddress(strAddresses[i]);
-    	}
+      String[] strAddresses = to.split("\\s+");
+      InternetAddress[] iaAddresses = new InternetAddress[strAddresses.length];
+      for (int i = 0; i < strAddresses.length; i++) {
+        iaAddresses[i] = new InternetAddress(strAddresses[i]);
+      }
       message.addRecipients(Message.RecipientType.TO, iaAddresses);
       message.setSubject(subject);
       message.setText(body);
