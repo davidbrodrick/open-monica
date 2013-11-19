@@ -12,6 +12,7 @@ import atnf.atoms.mon.gui.*;
 import atnf.atoms.mon.client.*;
 import atnf.atoms.mon.comms.MoniCAClient;
 import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
 import atnf.atoms.mon.SavedSetup;
 import atnf.atoms.time.*;
 import atnf.atoms.util.*;
@@ -1262,7 +1263,7 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
       }
 
       // Convert and add new data points to the new series
-      final Vector newdata = new Vector();
+      final Vector<TimeSeriesDataItem> newdata = new Vector<TimeSeriesDataItem>();
       for (int i = 0; i < data.size(); i++) {
         PointData pd = (PointData) data.get(i);
         TimeSeriesDataItem di = toTimeSeriesDataItem(pd);
@@ -1725,21 +1726,70 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
     return v;
   }
 
+  /** Return a vector containing the time series labels for each point. */
+  private Vector<String> getSeriesLabels(Vector<String> pointnames) {
+    // Figure out where to split the source part from the point name part for each point
+    int numnames = pointnames.size();
+    String[] sources = new String[numnames];
+    String[] names = new String[numnames];
+    for (int i = 0; i < numnames; i++) {
+      int split = pointnames.get(i).indexOf(".");
+      sources[i] = pointnames.get(i).substring(0, split);
+      names[i] = pointnames.get(i).substring(split + 1);
+    }
+
+    Vector<String> res;
+    // We want to find the shortest possible suffix component of the names which have no duplicates
+    int numcomponents = 1;
+    while (true) {
+      res = new Vector<String>(numnames);
+      for (int i = 0; i < numnames; i++) {
+        String thisname = PointDescription.getNameComponentFromEnd(names[i], numcomponents);
+        //System.err.println(thisname);
+        res.add(i, thisname);
+      }
+
+      // See if there are any duplicates, for which the full string is not identical
+      boolean identical = false;
+      for (int i = 0; i < numnames; i++) {
+        for (int j = 0; j < numnames; j++) {
+          if (i == j) {
+            continue;
+          }
+          if (res.get(i).equals(res.get(j)) && !names[i].equals(names[j])) {
+            //System.err.println(res.get(i) + " == " + res.get(j));
+            identical = true;
+            break;
+          }
+        }
+      }
+
+      if (identical) {
+        // Try adding another name component to the labels
+        numcomponents++;
+      } else {
+        // Job done
+        break;
+      }
+    }
+
+    // We got the point name part, now prepend the source name part to each label
+    for (int i = 0; i < numnames; i++) {
+      res.set(i, sources[i] + " " + res.get(i));
+    }
+    return res;
+  }
+
   /** Build container for data and invent sensible names for data series. */
   private void makeSeries() {
     synchronized (theirLock) {
       for (int a = 0; a < itsNumAxis; a++) {
         Vector<String> points = itsPointNames.get(a);
+        Vector<String> labels = getSeriesLabels(points);
         TimeSeriesCollection series = (TimeSeriesCollection) itsData.get(a);
         for (int i = 0; i < points.size(); i++) {
           // Create TimeSeries for this point on this axis
-          String label = points.get(i);
-          int firstdot = label.indexOf(".");
-          int lastdot = label.lastIndexOf(".");
-          if (firstdot != -1 && lastdot != -1 && firstdot != lastdot) {
-            label = label.substring(0, firstdot) + " " + label.substring(lastdot + 1);
-          }
-          TimeSeries ts = new TimeSeries(label);
+          TimeSeries ts = new TimeSeries(labels.get(i));
           ts.setDescription(points.get(i));
           // Turn notify off so the graph doesn't redraw unnecessarily
           ts.setNotify(false);

@@ -402,6 +402,24 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     return res;
   }
 
+  /**
+   * Get the name component from the m'th full stop delimiter from the end, to the end of the name. If the name has less than n
+   * components then the full name will be returned. The source component is not included in this counting.
+   */
+  public static String getNameComponentFromEnd(String name, int n) {
+    String[] components = name.split("\\.");
+    if (components.length <= n) {
+      // Just return the name
+      return name;
+    }
+
+    String res = components[components.length - 1];
+    for (int i = components.length - 2; i >= 0 && i >= (components.length - n); i--) {
+      res = components[i] + "." + res;
+    }
+    return res;
+  }
+
   public int getNumListeners() {
     return itsListenerList.getListenerCount();
   }

@@ -18,7 +18,7 @@ import java.math.*;
  * <ol>
  * <li><b>Pressure:</b> The actual pressure at the site in hPa.
  * <li><b>Temperature:</b> The outside temperature in degrees Celcius.
- * <li><b>Mising Ratio:</b> The observed mixing ratio in g/g.
+ * <li><b>Mixing Ratio:</b> The observed mixing ratio in g/g.
  * </ol>
  * 
  * @author David Brodrick
@@ -37,7 +37,7 @@ public class TranslationWetBulb extends TranslationListener {
     super(parent, init);
   }
 
-  /** Get the mising ratio for the given parameters. */  
+  /** Get the mixing ratio for the given parameters. */  
   private static double getR(double td, double tw, double pres) {
     double rw=0.622/(1.631*pres*Math.exp((-17.67*tw)/(tw+243.5))-1);
     double r=rw-4.0224e-4*(td-tw);
