@@ -337,10 +337,10 @@ public class EPICS extends ExternalSystem {
                 try {
                   thischan.addConnectionListener(listener);
                   if (thistype == null) {
-                    thischan.addMonitor(Monitor.VALUE, listener);
+                    thischan.addMonitor(Monitor.VALUE | Monitor.ALARM, listener);
                   } else {
                     // Needs to be monitored so data arrives as a specific type
-                    thischan.addMonitor(thistype, 1, Monitor.VALUE, listener);
+                    thischan.addMonitor(thistype, 1, Monitor.VALUE | Monitor.ALARM, listener);
                   }
                   itsListenerMap.put(listenername, listener);
                   thesepoints.remove(thisvector);
