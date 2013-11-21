@@ -49,11 +49,14 @@ public class EPICS extends ExternalSystem {
   /** Mapping between PV names and Channels. */
   protected HashMap<String, Channel> itsChannelMap = new HashMap<String, Channel>();
 
-  /** PV names which have nevr been connected. */
+  /** PV names which have never been connected. */
   protected Set<String> itsNeedsConnecting = new HashSet<String>(1000, 1000);
 
   /** Mapping between 'pointname:PVname' strings and EPICSListeners. */
   protected HashMap<String, EPICSListener> itsListenerMap = new HashMap<String, EPICSListener>();
+
+  /** Records the last logged connection state of each channel. */
+  protected HashMap<String, Boolean> itsConnectionLogMap = new HashMap<String, Boolean>();
 
   /**
    * Lists of MoniCA points which require 'monitor' updates for each PV which hasn't been connected yet.
@@ -226,10 +229,10 @@ public class EPICS extends ExternalSystem {
           if (itsNeedsConnecting.size() > theirMaxPending) {
             // Start at a random place in the list
             int startpos = (int) Math.floor((Math.random() * (itsNeedsConnecting.size() - (theirMaxPending + 1))));
-            for (int i=0; i<startpos; i++) { 
+            for (int i = 0; i < startpos; i++) {
               it.next();
             }
-            // Limit number of channels for each attempt            
+            // Limit number of channels for each attempt
             numnewchans = theirMaxPending;
           }
           newchannels = new Vector<Channel>(numnewchans);
@@ -273,7 +276,12 @@ public class EPICS extends ExternalSystem {
               } else {
                 // This channel failed to connect
                 try {
-                  theirLogger.trace("ChannelConnector: Failed to connect to PV " + thispv);
+                  if (!itsConnectionLogMap.containsKey(thispv) || itsConnectionLogMap.get(thispv)) {
+                    // We haven't logged a message about this PV failing to connect yet
+                    theirLogger.warn("ChannelConnector: Failed to connect to PV " + thispv);
+                    // Record that we've logged it
+                    itsConnectionLogMap.put(thispv, new Boolean(false));
+                  }
                   thischan.destroy();
                 } catch (Exception e) {
                   theirLogger.error("ChannelConnector: Destroying channel for " + thispv + ": " + e);
@@ -430,6 +438,17 @@ public class EPICS extends ExternalSystem {
 
     /** Call back for channel state changes. */
     public void connectionChanged(ConnectionEvent ev) {
+      if (!itsConnectionLogMap.containsKey(itsPV) || itsConnectionLogMap.get(itsPV) != ev.isConnected()) {
+        // State has changed, so log a message
+        if (ev.isConnected()) {
+          theirLogger.info("EPICSListener: Connection restored to PV: " + itsPV);
+        } else {
+          theirLogger.warn("EPICSListener: Lost connection to PV: " + itsPV);
+        }
+        // Record the state
+        itsConnectionLogMap.put(itsPV, new Boolean(ev.isConnected()));
+      }
+      
       if (!ev.isConnected()) {
         // Connection just dropped out so fire null-data update
         itsPoint.firePointEvent(new PointEvent(this, new PointData(itsPointName), true));
