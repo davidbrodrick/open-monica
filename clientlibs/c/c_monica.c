@@ -391,12 +391,12 @@ void BAT2human(unsigned long long bat, int dutc, int ofs, struct mon_time * time
 	struct tm *time;
 	time_t clock;
 		
-	if (dutc<30) printf("WARNING: DUTC is less than expected!\n");
+	if (dutc<30) printf("WARNING: dUTC is less than expected!\n");
 	
 	frac = bat % (unsigned long long)1e6; // get frac of second
 	
 	timegm = (double)bat / (double)1e6; // convert to seconds
-	timegm -= dutc; // apply DUTC offset
+	timegm -= dutc; // apply dUTC offset
 	timegm -= (double)40587 * (double) 86400; // convert mjd to seconds since Jan 1, 1970 (do as double to get around integer round off prob)
 
 	clock= timegm + (time_t) ofs * (time_t) 3600; // convert to time_t & add TZ offset as required
@@ -427,12 +427,12 @@ void BAT2human_print(unsigned long long bat, int dutc, int ofs){
 	struct tm *time;
 	time_t clock;
 		
-	if (dutc<30) printf("WARNING: DUTC is less than expected!\n");
+	if (dutc<30) printf("WARNING: dUTC is less than expected!\n");
 	
 	frac = bat % (unsigned long long)1e6; // get frac of second
 
 	timegm = (double)bat / (double)1e6; // convert to seconds
-	timegm -= dutc; // apply DUTC offset
+	timegm -= dutc; // apply dUTC offset
 	timegm -= (double)40587 * (double) 86400; // convert mjd to seconds since Jan 1, 1970 (do as double to get around integer round off prob)
 
 	clock= timegm + (time_t) ofs * (time_t) 3600; // convert to time_t & add TZ offset as required
@@ -458,16 +458,8 @@ unsigned long long human2BAT(char * dateIn, char * timeIn, int dUTC){
 	unsigned long long bat =0, sec;
 	unsigned long long bat_sec;
 	struct tm time_str;
-//	int date_length;
-	char Date_Str[12]; char Time_Str[255];
-//	struct tm * ptm;
 
-
-	//ensure correct strings (null terminated)
-	sprintf(Date_Str, "%s", dateIn);
-	sprintf(Time_Str, "%s", timeIn);
-
-	if(strnlen(Date_Str,12)!=10){
+	if(strnlen(dateIn,12)!=10){
 		//Do not have correct number of characters. FORMAT: XX/XX/XXXX
 		return 0;
 	}
@@ -475,7 +467,7 @@ unsigned long long human2BAT(char * dateIn, char * timeIn, int dUTC){
 	//get date
 	int day = 0, month = 0, year = 0;
 	int hours = 0, mins = 0, secs = 0, usecs = 0;
-	char *day_s = strtok (Date_Str,"/");
+	char *day_s = strtok (dateIn,"/");
 	char *month_s = strtok(NULL, "/");
 	char *year_s = strtok(NULL, "/");
 
@@ -484,22 +476,16 @@ unsigned long long human2BAT(char * dateIn, char * timeIn, int dUTC){
 	month = atoi(month_s);
 	year = atoi(year_s);
 	
-	//make sure time input is correct
-	int dotspan; int colonspan;
-	dotspan = strcspn(Time_Str, ".");
-	colonspan = strcspn(Time_Str, ":");
-	
-//	   strtok (Time_Str,":") (NULL ???????????????
-	if(strcspn(Time_Str,":") >= strnlen(Time_Str)){
-		//we dont have any colons, incorrect format
+	if(strcspn(timeIn,":") >= strlen(timeIn) ){
+		//we don't have any colons, incorrect format
 		return 0;
 	}
-	if(strcspn(Time_Str,".") >= strnlen(Time_Str)){
-		//we dont have any dots, incorrect format
+	if(strcspn(timeIn,".") >= strlen(timeIn) ){
+		//we don't have any dots, incorrect format
 		return 0;
 	}
 	//get time
-	char *hours_s = strtok (Time_Str,":");
+	char *hours_s = strtok (timeIn,":");
 	char *minutes_s = strtok(NULL, ":");
 	char *seconds_s = strtok(NULL, ".");
 	char *useconds_s = strtok(NULL, "\0");
@@ -511,7 +497,7 @@ unsigned long long human2BAT(char * dateIn, char * timeIn, int dUTC){
 	usecs = atoi(useconds_s);
 
     time_str.tm_year = year - 1900; //years since 1900
-    time_str.tm_mon = month - 1; //months since january
+    time_str.tm_mon = month - 1; //months since January
     time_str.tm_mday = day;
     time_str.tm_hour = hours;
     time_str.tm_min = mins;
@@ -524,7 +510,6 @@ unsigned long long human2BAT(char * dateIn, char * timeIn, int dUTC){
 	bat = sec * (unsigned long long)1000000 + (unsigned long long) usecs;
 
 	return bat;
-
 }
 
 /********************************************************************************
@@ -608,16 +593,12 @@ int DecodePoll2(char * msg, struct monica * MonStruct0){
 		
 		//assign OK
 		strcpy((*MonStruct0).OK, OK_string);
-
 	}
 	else{
 		//No BAT found
 		return -1;
 	}
-	
 	return 0;
-	
-
 }
 
 /********************************************************************************	
@@ -697,7 +678,6 @@ int Connect_ToHost(char * host, int port){
 	}
 	
 	return mon_fd;
-
 }
 
 /********************************************************************************
