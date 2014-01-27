@@ -134,6 +134,7 @@ public class EverSolarInverter extends DataSocket {
         disconnect();
         return null;
       }
+
       /*for (int i = 0; i < resp.length; i++) {
         System.out.print(resp[i] + " ");
       }
@@ -150,8 +151,24 @@ public class EverSolarInverter extends DataSocket {
       res.put("VAC", new Float((resp[19] * 256 + resp[20]) / 10.0));
       res.put("FREQ", new Float((resp[21] * 256 + resp[22]) / 100.0));
       res.put("PAC", new Float((resp[23] * 256 + resp[24])));
-      res.put("ETOTAL", new Float((resp[29] * 256 + resp[30]) / 10.0));
-      res.put("HOURS", new Float((resp[33] * 256 + resp[34])));
+      res.put("ETOTAL", new Float((resp[27] * 256*256*256 + resp[28] * 256*256 + resp[29] * 256 + resp[30]) / 10.0));
+      res.put("HOURS", new Float(resp[31] * 256*256*256 + resp[32] * 256*256 + resp[33] * 256 + resp[34]));
+      res.put("STATUS", new Float((resp[35] * 256 + resp[36])));
+	  /* Status Codes: 
+		0-Wait : PV voltage is less than start voltage and there isn't any fault.  In this state, there is no output power transferred to the grid.
+		1-Normal : If PV voltage is larger than start voltage, the state changes to Normal state in Wait state from Wait state.  In the normal state, output power will be transferred to the grid and calculations will be executed.  Bus voltage will also be adjusted.
+		2-Fault : Execute protect steps, isolate from the grid, detect the grid voltage and fault and decide if fault has been removed.  Normal state can be achieved once the fault has been removed.
+		3-PermanentFault : Execute protect steps, auto restart every 20s. Possible conditions leading to this state are:
+				1. Grid current DC offset
+				2. Eeprom can't be read or written to
+				3. Failed communication with CPU
+				4. Bus voltage is too high
+				5. Compare measured values between two CPUs.
+				6. Relay check failure
+				7. GFCI device check failure (Ground Current Check)
+				8. HCT check fail
+	  */
+	  
     } catch (Exception e) {
       disconnect();
       itsLogger.error("In getData method: " + e);
