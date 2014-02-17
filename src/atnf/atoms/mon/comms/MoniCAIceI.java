@@ -50,11 +50,47 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
     return PointDescription.getAllPointNames();
   }
 
+  /** Get the requested range of names of all points on the system (including aliases). */
+  public String[] getAllPointNamesChunk(int start, int num, Ice.Current __current) {
+    String[] allnames = PointDescription.getAllPointNames();
+    String[] res;
+    if (start < 0 || start >= allnames.length) {
+      // Bad request, return zero-length array
+      res = new String[0];
+    } else {
+      int reslen = Math.min(num, allnames.length - start);
+      res = new String[reslen];
+      for (int i = 0; i < reslen; i++) {
+        res[i] = allnames[start + i];
+      }
+    }
+    return res;
+  }
+
   /** Get all unique points on the system. */
   public PointDescriptionIce[] getAllPoints(Ice.Current __current) {
     // Get all unique points
     PointDescription[] points = PointDescription.getAllUniquePoints();
     return MoniCAIceUtil.getPointDescriptionsAsIce(points);
+  }
+
+  /** Get the requested range of all unique points on the system. */
+  public PointDescriptionIce[] getAllPointsChunk(int start, int num, Ice.Current __current) {
+    PointDescriptionIce[] res;
+    PointDescription[] allpoints = PointDescription.getAllUniquePoints();
+
+    if (start < 0 || start >= allpoints.length) {
+      // Bad request, return zero-length array
+      res = new PointDescriptionIce[0];
+    } else {
+      int reslen = Math.min(num, allpoints.length - start);
+      PointDescription[] temppoints = new PointDescription[reslen];
+      for (int i = 0; i < reslen; i++) {
+        temppoints[i] = allpoints[start + i];
+      }
+      res = MoniCAIceUtil.getPointDescriptionsAsIce(temppoints);
+    }
+    return res;
   }
 
   /** Return the definitions for the specified points. */
@@ -470,7 +506,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
       try {
         // Need to create a new adapter
         Ice.Properties props = Ice.Util.createProperties();
-        props.setProperty("Ice.IPv6", "0");                
+        props.setProperty("Ice.IPv6", "0");
         Ice.InitializationData id = new Ice.InitializationData();
         id.properties = props;
         ic = Ice.Util.initialize(id);

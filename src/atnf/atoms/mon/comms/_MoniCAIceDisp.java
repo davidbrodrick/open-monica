@@ -100,9 +100,19 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
         return getAllPointNames(null);
     }
 
+    public final String[] getAllPointNamesChunk(int start, int num)
+    {
+        return getAllPointNamesChunk(start, num, null);
+    }
+
     public final PointDescriptionIce[] getAllPoints()
     {
         return getAllPoints(null);
+    }
+
+    public final PointDescriptionIce[] getAllPointsChunk(int start, int num)
+    {
+        return getAllPointsChunk(start, num, null);
     }
 
     public final String[] getAllSetups()
@@ -166,6 +176,22 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
         return Ice.DispatchStatus.DispatchOK;
     }
 
+    public static Ice.DispatchStatus ___getAllPointNamesChunk(MoniCAIce __obj, IceInternal.Incoming __inS, Ice.Current __current)
+    {
+        __checkMode(Ice.OperationMode.Idempotent, __current.mode);
+        IceInternal.BasicStream __is = __inS.startReadParams();
+        int start;
+        int num;
+        start = __is.readInt();
+        num = __is.readInt();
+        __inS.endReadParams();
+        String[] __ret = __obj.getAllPointNamesChunk(start, num, __current);
+        IceInternal.BasicStream __os = __inS.__startWriteParams(Ice.FormatType.DefaultFormat);
+        stringarrayHelper.write(__os, __ret);
+        __inS.__endWriteParams(true);
+        return Ice.DispatchStatus.DispatchOK;
+    }
+
     public static Ice.DispatchStatus ___getPoints(MoniCAIce __obj, IceInternal.Incoming __inS, Ice.Current __current)
     {
         __checkMode(Ice.OperationMode.Idempotent, __current.mode);
@@ -185,6 +211,22 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
         __checkMode(Ice.OperationMode.Idempotent, __current.mode);
         __inS.readEmptyParams();
         PointDescriptionIce[] __ret = __obj.getAllPoints(__current);
+        IceInternal.BasicStream __os = __inS.__startWriteParams(Ice.FormatType.DefaultFormat);
+        pointarrayHelper.write(__os, __ret);
+        __inS.__endWriteParams(true);
+        return Ice.DispatchStatus.DispatchOK;
+    }
+
+    public static Ice.DispatchStatus ___getAllPointsChunk(MoniCAIce __obj, IceInternal.Incoming __inS, Ice.Current __current)
+    {
+        __checkMode(Ice.OperationMode.Idempotent, __current.mode);
+        IceInternal.BasicStream __is = __inS.startReadParams();
+        int start;
+        int num;
+        start = __is.readInt();
+        num = __is.readInt();
+        __inS.endReadParams();
+        PointDescriptionIce[] __ret = __obj.getAllPointsChunk(start, num, __current);
         IceInternal.BasicStream __os = __inS.__startWriteParams(Ice.FormatType.DefaultFormat);
         pointarrayHelper.write(__os, __ret);
         __inS.__endWriteParams(true);
@@ -423,7 +465,9 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
         "getAfter",
         "getAllAlarms",
         "getAllPointNames",
+        "getAllPointNamesChunk",
         "getAllPoints",
+        "getAllPointsChunk",
         "getAllSetups",
         "getArchiveData",
         "getBefore",
@@ -476,61 +520,69 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
             }
             case 6:
             {
-                return ___getAllPoints(this, in, __current);
+                return ___getAllPointNamesChunk(this, in, __current);
             }
             case 7:
             {
-                return ___getAllSetups(this, in, __current);
+                return ___getAllPoints(this, in, __current);
             }
             case 8:
             {
-                return ___getArchiveData(this, in, __current);
+                return ___getAllPointsChunk(this, in, __current);
             }
             case 9:
             {
-                return ___getBefore(this, in, __current);
+                return ___getAllSetups(this, in, __current);
             }
             case 10:
             {
-                return ___getCurrentAlarms(this, in, __current);
+                return ___getArchiveData(this, in, __current);
             }
             case 11:
             {
-                return ___getCurrentTime(this, in, __current);
+                return ___getBefore(this, in, __current);
             }
             case 12:
             {
-                return ___getData(this, in, __current);
+                return ___getCurrentAlarms(this, in, __current);
             }
             case 13:
             {
-                return ___getEncryptionInfo(this, in, __current);
+                return ___getCurrentTime(this, in, __current);
             }
             case 14:
             {
-                return ___getPoints(this, in, __current);
+                return ___getData(this, in, __current);
             }
             case 15:
             {
-                return ___ice_id(this, in, __current);
+                return ___getEncryptionInfo(this, in, __current);
             }
             case 16:
             {
-                return ___ice_ids(this, in, __current);
+                return ___getPoints(this, in, __current);
             }
             case 17:
             {
-                return ___ice_isA(this, in, __current);
+                return ___ice_id(this, in, __current);
             }
             case 18:
             {
-                return ___ice_ping(this, in, __current);
+                return ___ice_ids(this, in, __current);
             }
             case 19:
             {
-                return ___setData(this, in, __current);
+                return ___ice_isA(this, in, __current);
             }
             case 20:
+            {
+                return ___ice_ping(this, in, __current);
+            }
+            case 21:
+            {
+                return ___setData(this, in, __current);
+            }
+            case 22:
             {
                 return ___shelveAlarms(this, in, __current);
             }

@@ -40,6 +40,24 @@ public interface MoniCAIcePrx extends Ice.ObjectPrx
 
     public String[] end_getAllPointNames(Ice.AsyncResult __result);
 
+    public String[] getAllPointNamesChunk(int start, int num);
+
+    public String[] getAllPointNamesChunk(int start, int num, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_getAllPointNamesChunk(int start, int num);
+
+    public Ice.AsyncResult begin_getAllPointNamesChunk(int start, int num, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_getAllPointNamesChunk(int start, int num, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_getAllPointNamesChunk(int start, int num, java.util.Map<String, String> __ctx, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_getAllPointNamesChunk(int start, int num, Callback_MoniCAIce_getAllPointNamesChunk __cb);
+
+    public Ice.AsyncResult begin_getAllPointNamesChunk(int start, int num, java.util.Map<String, String> __ctx, Callback_MoniCAIce_getAllPointNamesChunk __cb);
+
+    public String[] end_getAllPointNamesChunk(Ice.AsyncResult __result);
+
     public PointDescriptionIce[] getPoints(String[] names);
 
     public PointDescriptionIce[] getPoints(String[] names, java.util.Map<String, String> __ctx);
@@ -75,6 +93,24 @@ public interface MoniCAIcePrx extends Ice.ObjectPrx
     public Ice.AsyncResult begin_getAllPoints(java.util.Map<String, String> __ctx, Callback_MoniCAIce_getAllPoints __cb);
 
     public PointDescriptionIce[] end_getAllPoints(Ice.AsyncResult __result);
+
+    public PointDescriptionIce[] getAllPointsChunk(int start, int num);
+
+    public PointDescriptionIce[] getAllPointsChunk(int start, int num, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_getAllPointsChunk(int start, int num);
+
+    public Ice.AsyncResult begin_getAllPointsChunk(int start, int num, java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_getAllPointsChunk(int start, int num, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_getAllPointsChunk(int start, int num, java.util.Map<String, String> __ctx, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_getAllPointsChunk(int start, int num, Callback_MoniCAIce_getAllPointsChunk __cb);
+
+    public Ice.AsyncResult begin_getAllPointsChunk(int start, int num, java.util.Map<String, String> __ctx, Callback_MoniCAIce_getAllPointsChunk __cb);
+
+    public PointDescriptionIce[] end_getAllPointsChunk(Ice.AsyncResult __result);
 
     public boolean addPoints(PointDescriptionIce[] newpoints, String username, String passwd);
 

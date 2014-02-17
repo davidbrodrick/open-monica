@@ -832,6 +832,141 @@ public final class MoniCAIcePrxHelper extends Ice.ObjectPrxHelperBase implements
         }
     }
 
+    private static final String __getAllPointNamesChunk_name = "getAllPointNamesChunk";
+
+    public String[] getAllPointNamesChunk(int start, int num)
+    {
+        return getAllPointNamesChunk(start, num, null, false);
+    }
+
+    public String[] getAllPointNamesChunk(int start, int num, java.util.Map<String, String> __ctx)
+    {
+        return getAllPointNamesChunk(start, num, __ctx, true);
+    }
+
+    private String[] getAllPointNamesChunk(int start, int num, java.util.Map<String, String> __ctx, boolean __explicitCtx)
+    {
+        if(__explicitCtx && __ctx == null)
+        {
+            __ctx = _emptyContext;
+        }
+        final Ice.Instrumentation.InvocationObserver __observer = IceInternal.ObserverHelper.get(this, "getAllPointNamesChunk", __ctx);
+        int __cnt = 0;
+        try
+        {
+            while(true)
+            {
+                Ice._ObjectDel __delBase = null;
+                try
+                {
+                    __checkTwowayOnly("getAllPointNamesChunk");
+                    __delBase = __getDelegate(false);
+                    _MoniCAIceDel __del = (_MoniCAIceDel)__delBase;
+                    return __del.getAllPointNamesChunk(start, num, __ctx, __observer);
+                }
+                catch(IceInternal.LocalExceptionWrapper __ex)
+                {
+                    __cnt = __handleExceptionWrapperRelaxed(__delBase, __ex, null, __cnt, __observer);
+                }
+                catch(Ice.LocalException __ex)
+                {
+                    __cnt = __handleException(__delBase, __ex, null, __cnt, __observer);
+                }
+            }
+        }
+        finally
+        {
+            if(__observer != null)
+            {
+                __observer.detach();
+            }
+        }
+    }
+
+    public Ice.AsyncResult begin_getAllPointNamesChunk(int start, int num)
+    {
+        return begin_getAllPointNamesChunk(start, num, null, false, null);
+    }
+
+    public Ice.AsyncResult begin_getAllPointNamesChunk(int start, int num, java.util.Map<String, String> __ctx)
+    {
+        return begin_getAllPointNamesChunk(start, num, __ctx, true, null);
+    }
+
+    public Ice.AsyncResult begin_getAllPointNamesChunk(int start, int num, Ice.Callback __cb)
+    {
+        return begin_getAllPointNamesChunk(start, num, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getAllPointNamesChunk(int start, int num, java.util.Map<String, String> __ctx, Ice.Callback __cb)
+    {
+        return begin_getAllPointNamesChunk(start, num, __ctx, true, __cb);
+    }
+
+    public Ice.AsyncResult begin_getAllPointNamesChunk(int start, int num, Callback_MoniCAIce_getAllPointNamesChunk __cb)
+    {
+        return begin_getAllPointNamesChunk(start, num, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getAllPointNamesChunk(int start, int num, java.util.Map<String, String> __ctx, Callback_MoniCAIce_getAllPointNamesChunk __cb)
+    {
+        return begin_getAllPointNamesChunk(start, num, __ctx, true, __cb);
+    }
+
+    private Ice.AsyncResult begin_getAllPointNamesChunk(int start, int num, java.util.Map<String, String> __ctx, boolean __explicitCtx, IceInternal.CallbackBase __cb)
+    {
+        __checkAsyncTwowayOnly(__getAllPointNamesChunk_name);
+        IceInternal.OutgoingAsync __result = new IceInternal.OutgoingAsync(this, __getAllPointNamesChunk_name, __cb);
+        try
+        {
+            __result.__prepare(__getAllPointNamesChunk_name, Ice.OperationMode.Idempotent, __ctx, __explicitCtx);
+            IceInternal.BasicStream __os = __result.__startWriteParams(Ice.FormatType.DefaultFormat);
+            __os.writeInt(start);
+            __os.writeInt(num);
+            __result.__endWriteParams();
+            __result.__send(true);
+        }
+        catch(Ice.LocalException __ex)
+        {
+            __result.__exceptionAsync(__ex);
+        }
+        return __result;
+    }
+
+    public String[] end_getAllPointNamesChunk(Ice.AsyncResult __result)
+    {
+        Ice.AsyncResult.__check(__result, this, __getAllPointNamesChunk_name);
+        boolean __ok = __result.__wait();
+        try
+        {
+            if(!__ok)
+            {
+                try
+                {
+                    __result.__throwUserException();
+                }
+                catch(Ice.UserException __ex)
+                {
+                    throw new Ice.UnknownUserException(__ex.ice_name(), __ex);
+                }
+            }
+            IceInternal.BasicStream __is = __result.__startReadParams();
+            String[] __ret;
+            __ret = stringarrayHelper.read(__is);
+            __result.__endReadParams();
+            return __ret;
+        }
+        catch(Ice.LocalException ex)
+        {
+            Ice.Instrumentation.InvocationObserver __obsv = __result.__getObserver();
+            if(__obsv != null)
+            {
+                __obsv.failed(ex.ice_name());
+            }
+            throw ex;
+        }
+    }
+
     private static final String __getAllPoints_name = "getAllPoints";
 
     public PointDescriptionIce[] getAllPoints()
@@ -933,6 +1068,141 @@ public final class MoniCAIcePrxHelper extends Ice.ObjectPrxHelperBase implements
     public PointDescriptionIce[] end_getAllPoints(Ice.AsyncResult __result)
     {
         Ice.AsyncResult.__check(__result, this, __getAllPoints_name);
+        boolean __ok = __result.__wait();
+        try
+        {
+            if(!__ok)
+            {
+                try
+                {
+                    __result.__throwUserException();
+                }
+                catch(Ice.UserException __ex)
+                {
+                    throw new Ice.UnknownUserException(__ex.ice_name(), __ex);
+                }
+            }
+            IceInternal.BasicStream __is = __result.__startReadParams();
+            PointDescriptionIce[] __ret;
+            __ret = pointarrayHelper.read(__is);
+            __result.__endReadParams();
+            return __ret;
+        }
+        catch(Ice.LocalException ex)
+        {
+            Ice.Instrumentation.InvocationObserver __obsv = __result.__getObserver();
+            if(__obsv != null)
+            {
+                __obsv.failed(ex.ice_name());
+            }
+            throw ex;
+        }
+    }
+
+    private static final String __getAllPointsChunk_name = "getAllPointsChunk";
+
+    public PointDescriptionIce[] getAllPointsChunk(int start, int num)
+    {
+        return getAllPointsChunk(start, num, null, false);
+    }
+
+    public PointDescriptionIce[] getAllPointsChunk(int start, int num, java.util.Map<String, String> __ctx)
+    {
+        return getAllPointsChunk(start, num, __ctx, true);
+    }
+
+    private PointDescriptionIce[] getAllPointsChunk(int start, int num, java.util.Map<String, String> __ctx, boolean __explicitCtx)
+    {
+        if(__explicitCtx && __ctx == null)
+        {
+            __ctx = _emptyContext;
+        }
+        final Ice.Instrumentation.InvocationObserver __observer = IceInternal.ObserverHelper.get(this, "getAllPointsChunk", __ctx);
+        int __cnt = 0;
+        try
+        {
+            while(true)
+            {
+                Ice._ObjectDel __delBase = null;
+                try
+                {
+                    __checkTwowayOnly("getAllPointsChunk");
+                    __delBase = __getDelegate(false);
+                    _MoniCAIceDel __del = (_MoniCAIceDel)__delBase;
+                    return __del.getAllPointsChunk(start, num, __ctx, __observer);
+                }
+                catch(IceInternal.LocalExceptionWrapper __ex)
+                {
+                    __cnt = __handleExceptionWrapperRelaxed(__delBase, __ex, null, __cnt, __observer);
+                }
+                catch(Ice.LocalException __ex)
+                {
+                    __cnt = __handleException(__delBase, __ex, null, __cnt, __observer);
+                }
+            }
+        }
+        finally
+        {
+            if(__observer != null)
+            {
+                __observer.detach();
+            }
+        }
+    }
+
+    public Ice.AsyncResult begin_getAllPointsChunk(int start, int num)
+    {
+        return begin_getAllPointsChunk(start, num, null, false, null);
+    }
+
+    public Ice.AsyncResult begin_getAllPointsChunk(int start, int num, java.util.Map<String, String> __ctx)
+    {
+        return begin_getAllPointsChunk(start, num, __ctx, true, null);
+    }
+
+    public Ice.AsyncResult begin_getAllPointsChunk(int start, int num, Ice.Callback __cb)
+    {
+        return begin_getAllPointsChunk(start, num, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getAllPointsChunk(int start, int num, java.util.Map<String, String> __ctx, Ice.Callback __cb)
+    {
+        return begin_getAllPointsChunk(start, num, __ctx, true, __cb);
+    }
+
+    public Ice.AsyncResult begin_getAllPointsChunk(int start, int num, Callback_MoniCAIce_getAllPointsChunk __cb)
+    {
+        return begin_getAllPointsChunk(start, num, null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getAllPointsChunk(int start, int num, java.util.Map<String, String> __ctx, Callback_MoniCAIce_getAllPointsChunk __cb)
+    {
+        return begin_getAllPointsChunk(start, num, __ctx, true, __cb);
+    }
+
+    private Ice.AsyncResult begin_getAllPointsChunk(int start, int num, java.util.Map<String, String> __ctx, boolean __explicitCtx, IceInternal.CallbackBase __cb)
+    {
+        __checkAsyncTwowayOnly(__getAllPointsChunk_name);
+        IceInternal.OutgoingAsync __result = new IceInternal.OutgoingAsync(this, __getAllPointsChunk_name, __cb);
+        try
+        {
+            __result.__prepare(__getAllPointsChunk_name, Ice.OperationMode.Idempotent, __ctx, __explicitCtx);
+            IceInternal.BasicStream __os = __result.__startWriteParams(Ice.FormatType.DefaultFormat);
+            __os.writeInt(start);
+            __os.writeInt(num);
+            __result.__endWriteParams();
+            __result.__send(true);
+        }
+        catch(Ice.LocalException __ex)
+        {
+            __result.__exceptionAsync(__ex);
+        }
+        return __result;
+    }
+
+    public PointDescriptionIce[] end_getAllPointsChunk(Ice.AsyncResult __result)
+    {
+        Ice.AsyncResult.__check(__result, this, __getAllPointsChunk_name);
         boolean __ok = __result.__wait();
         try
         {

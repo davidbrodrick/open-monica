@@ -24,9 +24,13 @@ public interface _MoniCAIceOperationsNC
 {
     String[] getAllPointNames();
 
+    String[] getAllPointNamesChunk(int start, int num);
+
     PointDescriptionIce[] getPoints(String[] names);
 
     PointDescriptionIce[] getAllPoints();
+
+    PointDescriptionIce[] getAllPointsChunk(int start, int num);
 
     boolean addPoints(PointDescriptionIce[] newpoints, String username, String passwd);
 

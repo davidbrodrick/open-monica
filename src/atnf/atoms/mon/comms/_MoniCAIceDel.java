@@ -25,10 +25,16 @@ public interface _MoniCAIceDel extends Ice._ObjectDel
     String[] getAllPointNames(java.util.Map<String, String> __ctx, Ice.Instrumentation.InvocationObserver __obsv)
         throws IceInternal.LocalExceptionWrapper;
 
+    String[] getAllPointNamesChunk(int start, int num, java.util.Map<String, String> __ctx, Ice.Instrumentation.InvocationObserver __obsv)
+        throws IceInternal.LocalExceptionWrapper;
+
     PointDescriptionIce[] getPoints(String[] names, java.util.Map<String, String> __ctx, Ice.Instrumentation.InvocationObserver __obsv)
         throws IceInternal.LocalExceptionWrapper;
 
     PointDescriptionIce[] getAllPoints(java.util.Map<String, String> __ctx, Ice.Instrumentation.InvocationObserver __obsv)
+        throws IceInternal.LocalExceptionWrapper;
+
+    PointDescriptionIce[] getAllPointsChunk(int start, int num, java.util.Map<String, String> __ctx, Ice.Instrumentation.InvocationObserver __obsv)
         throws IceInternal.LocalExceptionWrapper;
 
     boolean addPoints(PointDescriptionIce[] newpoints, String username, String passwd, java.util.Map<String, String> __ctx, Ice.Instrumentation.InvocationObserver __obsv)

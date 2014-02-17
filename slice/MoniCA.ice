@@ -100,13 +100,27 @@ module atnf {
           ////////////
           //Operations for getting/setting point metadata
           //
-          //Return the names of all points on the system
+          //Return the names of all points on the system.
+          //NB: This may exceed the Ice maximum marshalled message size if
+          //there is a large number of points.
           idempotent stringarray getAllPointNames();
+          //Return the requested chunk of the full set of point names.
+          //The full set of names can be ontained by advancing the start index
+          //until less than 'num' names are returned.
+          idempotent stringarray getAllPointNamesChunk(int start, int num);
           //Return full details for the specified points
-          //Result array may be shorter than the request array if some points were not found
+          //Result array may be shorter than the request array if some points
+          //were not found.
           idempotent pointarray getPoints(stringarray names);
-          //Return full details for all points on the system
+          //Return full details for all points on the system.
+          //NB: This may exceed the Ice maximum marshalled message size if
+          //there is a large number of points.          
           idempotent pointarray getAllPoints();
+          //Return full details for the requested chunk of all points on the system.
+          //The full set of names can be ontained by advancing the start index
+          //until less than 'num' names are returned.
+          idempotent pointarray getAllPointsChunk(int start, int num);
+          
           //Add/update the definitions for the specified points
           bool addPoints(pointarray newpoints, string username, string passwd);
           
