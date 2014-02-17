@@ -43,6 +43,12 @@ public class MoniCAClientIce extends MoniCAClient {
   /** The Ice encoding version to use. 1.0 for backwards compatibility. */
   protected final String theirIceEncoding = "1.0";
 
+  /** Maximum number of point name strings to request in a single fetch. */
+  protected int theirMaxNameReq = Integer.parseInt(System.getProperty("MoniCA.MaxNames", "3000"));
+
+  /** Maximum number of point definitions to request in a single fetch. */
+  protected int theirMaxPointsReq = Integer.parseInt(System.getProperty("MoniCA.MaxPoints", "1000"));
+
   /**
    * Connect using the specified properties to find the MoniCA server via a locator.
    */
@@ -85,16 +91,53 @@ public class MoniCAClientIce extends MoniCAClient {
    * @return Names of all points on the system.
    */
   public String[] getAllPointNames() throws Exception {
+    String[] res = null;
     try {
       if (!isConnected()) {
         connect();
       }
-      return itsIceClient.getAllPointNames();
+      try {
+        int start = 0;
+        while (true) {
+          // Request the next chunk of the point names
+          String[] tempnames = itsIceClient.getAllPointNamesChunk(start, theirMaxNameReq);
+
+          if (res == null) {
+            // First result
+            res = tempnames;
+          } else if (tempnames.length > 0) {
+            // Append the new names to the result
+            String[] newres = new String[res.length + tempnames.length];
+            for (int i = 0; i < res.length; i++) {
+              newres[i] = res[i];
+            }
+            for (int i = 0; i < tempnames.length; i++) {
+              newres[res.length + i] = tempnames[i];
+            }
+            res = newres;
+          }
+          
+          //System.err.println("MoniCAClientIce.getAllPointNames: " + tempnames.length + " " + res.length);
+
+          if (tempnames.length < theirMaxNameReq) {
+            // We have finished retrieving all of the names
+            break;
+          }
+
+          start = start + theirMaxNameReq;
+        }
+      } catch (Ice.OperationNotExistException f) {
+        // Fall back to old method (prone to exceeded max message size if too many points)
+        res = itsIceClient.getAllPointNames();
+      }
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.getAllPointNames:" + e.getClass());
+      // e.printStackTrace();
       disconnect();
       throw e;
     }
+
+    return res;
   }
 
   /**
@@ -126,16 +169,16 @@ public class MoniCAClientIce extends MoniCAClient {
   public Vector<PointDescription> getPoints(Vector<String> pointnames) throws Exception {
     Vector<PointDescription> res = null;
 
-    // Avoid Ice message size limitations by splitting large subscriptions
-    final int MAXQUERYPOINTS = 3000;
-    if (pointnames.size() > MAXQUERYPOINTS) {
+    // Recursively split large requests
+    if (pointnames.size() > theirMaxPointsReq) {
       res = new Vector<PointDescription>(pointnames.size());
       int firstpoint = 0;
       while (firstpoint < pointnames.size()) {
-        Vector<String> thesenames = new Vector<String>(pointnames.subList(firstpoint, Math.min(firstpoint + MAXQUERYPOINTS, pointnames.size())));
-        System.err.println("MoniCAClientIce.getPoints: Retrieving to " + firstpoint + " - " + (firstpoint + thesenames.size()));
+        Vector<String> thesenames = new Vector<String>(pointnames.subList(firstpoint, Math.min(firstpoint + theirMaxPointsReq, pointnames.size())));
+        // System.err.println("MoniCAClientIce.getPoints: Retrieving to " + firstpoint + " - " + (firstpoint +
+        // thesenames.size()-1));
         res.addAll(getPoints(thesenames));
-        firstpoint += MAXQUERYPOINTS;
+        firstpoint += theirMaxPointsReq;
       }
       return res;
     }
@@ -158,8 +201,7 @@ public class MoniCAClientIce extends MoniCAClient {
           icepoints[i] = null;
         }
       } else if (icepoints.length != namesarray.length) {
-        // Some points were not found so pack null elements in those result
-        // locations.
+        // Some points were not found so pack null elements in those result locations.
         PointDescriptionIce[] icepointstemp = new PointDescriptionIce[pointnames.size()];
         int nextpoint = 0;
         for (int i = 0; i < pointnames.size() && nextpoint < icepoints.length; i++) {
@@ -191,18 +233,43 @@ public class MoniCAClientIce extends MoniCAClient {
    * @return Vector containing all point definitions.
    */
   public Vector<PointDescription> getAllPoints() throws Exception {
-    Vector<PointDescription> res = null;
+    Vector<PointDescription> res = new Vector<PointDescription>(theirMaxPointsReq, theirMaxPointsReq);
+
     try {
       if (!isConnected()) {
         connect();
       }
-      PointDescriptionIce[] icepoints = itsIceClient.getAllPoints();
-      res = MoniCAIceUtil.getPointDescriptionsFromIce(icepoints);
+      try {
+        int start = 0;
+        while (true) {
+          // Request the next chunk of the point names
+          PointDescriptionIce[] icepoints = itsIceClient.getAllPointsChunk(start, theirMaxPointsReq);
+
+          // Convert and append
+          Vector<PointDescription> temppoints = MoniCAIceUtil.getPointDescriptionsFromIce(icepoints);
+          res.addAll(temppoints);
+
+          // System.err.println("MonClientIce.getAllPoints " + temppoints.size() + " " + res.size());
+
+          if (temppoints.size() < theirMaxPointsReq) {
+            // We have finished retrieving all of the names
+            break;
+          }
+
+          start = start + theirMaxPointsReq;
+        }
+      } catch (Ice.OperationNotExistException f) {
+        // Fall back to old method (prone to exceeded max message size if too many points)
+        PointDescriptionIce[] icepoints = itsIceClient.getAllPoints();
+        res = MoniCAIceUtil.getPointDescriptionsFromIce(icepoints);
+      }
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.getAllPoints:" + e.getClass());
+      // e.printStackTrace();
       disconnect();
       throw e;
     }
+
     return res;
   }
 

@@ -372,6 +372,7 @@ public class ExternalSystem implements Runnable {
             // Call the sub-class specific method to do the real work
             getData(parray);
           } catch (Exception e) {
+            //e.printStackTrace();
             theirLogger.error("(" + itsName + ") " + e);
             itsConnected = false;
           }
