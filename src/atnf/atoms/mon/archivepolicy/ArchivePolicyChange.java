@@ -103,6 +103,11 @@ public class ArchivePolicyChange extends ArchivePolicy
         itsLastSaveData = newData;
         savenow = true;
       }
+    } else if (newData instanceof RelTime && itsLastSaveData instanceof RelTime) {
+      if (!((RelTime)newData).equiv(itsLastSaveData)) {
+        itsLastSaveData = newData;
+        savenow = true;
+      }      
     } else {
       try {
         Method equalsMethod = newData.getClass().getMethod("equals", new Class[] { Object.class });
