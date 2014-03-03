@@ -46,18 +46,21 @@ public class TranslationRetriggerablePulse extends Translation {
 
   /** Determine output based on input and timing constraints. */
   public PointData translate(PointData data) {
-    Boolean output = false;
-    AbsTime now = data.getTimestamp();
-    // Check for new trigger
-    if (MonitorUtils.parseAsBoolean(data.getData())) {
-      itsLastTrigger = now;
+    try {
+      Boolean output = false;
+      AbsTime now = data.getTimestamp();
+      // Check for new trigger
+      if (MonitorUtils.parseAsBoolean(data.getData())) {
+        itsLastTrigger = now;
+      }
+      // Check if need to output a high value
+      if (itsLastTrigger != null && itsLastTrigger.add(itsPulsePeriod).compare(now) > 0) {
+        output = true;
+      }
+      return new PointData(itsParent.getFullName(), now, output);
+    } catch (Exception e) {
+      return null;
     }
-    // Check if need to output a high value
-    if (itsLastTrigger != null && itsLastTrigger.add(itsPulsePeriod).compare(now) > 0) {
-      output = true;
-    }
-
-    return new PointData(itsParent.getFullName(), now, output);
   }
 
 }
