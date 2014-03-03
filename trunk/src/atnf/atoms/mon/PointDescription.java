@@ -898,8 +898,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
           }
         }
       }
-      // Ensure data has our name on it (eg not name of a listened-to
-      // point)
+      // Ensure data has our name on it (eg not name of a listened-to point)
       if (data != null && !data.getName().equals(getFullName())) {
         data = new PointData(data);
         data.setName(getFullName());
@@ -918,9 +917,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
         for (int i = 0; i < itsOutputTransactions.length; i++) {
           Transaction thistrans = itsOutputTransactions[i];
           if (thistrans != null) {
-            // Find the ExternalSystem responsible for handling this
-            // control
-            // operation
+            // Find the ExternalSystem responsible for handling this control operation
             ExternalSystem ds = ExternalSystem.getExternalSystem(thistrans.getChannel());
             if (ds == null) {
               theirLogger.warn("(" + getFullName() + ") No ExternalSystem for output Transaction channel " + thistrans.getChannel());
@@ -931,6 +928,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
               try {
                 ds.putData(this, data);
               } catch (Exception e) {
+                //e.printStackTrace();
                 theirLogger.warn("(" + getFullName() + ") while writing output data, ExternalSystem " + ds.getName() + " threw exception \"" + e + "\"");
               }
             }
