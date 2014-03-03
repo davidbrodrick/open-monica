@@ -316,6 +316,8 @@ public class ModbusInterface extends ExternalSystem {
     if (points == null || points.length == 0)
       return;
 
+    // theirLogger.info("(" + itsHost + ":" + itsPort + "): Monitoring = " + points.length);
+
     int numberToRead = 1;
     boolean useArray = false;
 
@@ -341,49 +343,69 @@ public class ModbusInterface extends ExternalSystem {
         case 1:
           // Read Coils
           ReadCoilsResponse rc_response = readCoils(UnitID, StartAddress, numberToRead);
-          if (!useArray)
-            pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), new Boolean(rc_response.getCoilStatus(0))), true));
-          else {
-            Boolean[] rc_Array = new Boolean[numberToRead];
-            for (int j = 0; j < (numberToRead); j++)
-              rc_Array[j] = new Boolean(rc_response.getCoilStatus(j));
-            pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), rc_Array), true));
+          if (rc_response != null) {
+            if (!useArray) {
+              pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), new Boolean(rc_response.getCoilStatus(0))), true));
+            } else {
+              Boolean[] rc_Array = new Boolean[numberToRead];
+              for (int j = 0; j < (numberToRead); j++)
+                rc_Array[j] = new Boolean(rc_response.getCoilStatus(j));
+              pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), rc_Array), true));
+            }
+          } else {
+            // No response
+            pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
           }
           break;
         case 2:
           // Read Discrete Inputs
           ReadInputDiscretesResponse di_response = readDiscreteInputs(UnitID, StartAddress, numberToRead);
-          if (!useArray)
-            pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), new Boolean(di_response.getDiscreteStatus(0))), true));
-          else {
-            Boolean[] di_Array = new Boolean[numberToRead];
-            for (int j = 0; j < (numberToRead); j++)
-              di_Array[j] = new Boolean(di_response.getDiscreteStatus(j));
-            pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), di_Array), true));
+          if (di_response != null) {
+            if (!useArray) {
+              pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), new Boolean(di_response.getDiscreteStatus(0))), true));
+            } else {
+              Boolean[] di_Array = new Boolean[numberToRead];
+              for (int j = 0; j < (numberToRead); j++)
+                di_Array[j] = new Boolean(di_response.getDiscreteStatus(j));
+              pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), di_Array), true));
+            }
+          } else {
+            // No response
+            pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
           }
           break;
         case 3:
           // Read Holding Registers (jamod library terminology uses multiple instead of holding)
           ReadMultipleRegistersResponse rhr_response = readHoldingRegisters(UnitID, StartAddress, numberToRead);
-          if (!useArray)
-            pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), new Integer(rhr_response.getRegisterValue(0))), true));
-          else {
-            Integer[] rhr_Array = new Integer[numberToRead];
-            for (int j = 0; j < (numberToRead); j++)
-              rhr_Array[j] = new Integer(rhr_response.getRegisterValue(j));
-            pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), rhr_Array), true));
+          if (rhr_response != null) {
+            if (!useArray) {
+              pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), new Integer(rhr_response.getRegisterValue(0))), true));
+            } else {
+              Integer[] rhr_Array = new Integer[numberToRead];
+              for (int j = 0; j < (numberToRead); j++)
+                rhr_Array[j] = new Integer(rhr_response.getRegisterValue(j));
+              pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), rhr_Array), true));
+            }
+          } else {
+            // No response
+            pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
           }
           break;
         case 4:
           // Read Input Registers
           ReadInputRegistersResponse rir_response = readInputRegisters(UnitID, StartAddress, numberToRead);
-          if (!useArray)
-            pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), new Integer(rir_response.getRegisterValue(0))), true));
-          else {
-            Integer[] rir_Array = new Integer[numberToRead];
-            for (int j = 0; j < (numberToRead); j++)
-              rir_Array[j] = new Integer(rir_response.getRegisterValue(j));
-            pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), rir_Array), true));
+          if (rir_response != null) {
+            if (!useArray) {
+              pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), new Integer(rir_response.getRegisterValue(0))), true));
+            } else {
+              Integer[] rir_Array = new Integer[numberToRead];
+              for (int j = 0; j < (numberToRead); j++)
+                rir_Array[j] = new Integer(rir_response.getRegisterValue(j));
+              pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName(), rir_Array), true));
+            }
+          } else {
+            // No response
+            pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
           }
           break;
         default:
