@@ -4,6 +4,7 @@ import java.net.*;
 import java.util.*;
 import java.text.*;
 
+import net.wimpi.modbus.ModbusIOException;
 import net.wimpi.modbus.msg.*;
 import net.wimpi.modbus.io.*;
 import net.wimpi.modbus.net.*;
@@ -116,6 +117,8 @@ public class ModbusInterface extends ExternalSystem {
     // Execute transaction
     try {
       trans.execute();
+    } catch (ModbusIOException e) {
+      throw e;
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": readCoils: " + e);
     }
@@ -144,6 +147,8 @@ public class ModbusInterface extends ExternalSystem {
     // Execute transaction
     try {
       trans.execute();
+    } catch (ModbusIOException e) {
+      throw e;      
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": readDiscreteInputs: " + e);
     }
@@ -173,6 +178,8 @@ public class ModbusInterface extends ExternalSystem {
     // Execute transaction
     try {
       trans.execute();
+    } catch (ModbusIOException e) {
+      throw e;      
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": readHoldingRegisters: " + e);
     }
@@ -200,6 +207,8 @@ public class ModbusInterface extends ExternalSystem {
     // Execute transaction
     try {
       trans.execute();
+    } catch (ModbusIOException e) {
+      throw e;      
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": readInputRegisters: " + e);
     }
@@ -226,6 +235,8 @@ public class ModbusInterface extends ExternalSystem {
     // execute the transaction
     try {
       trans.execute();
+    } catch (ModbusIOException e) {
+      throw e;      
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": writeSingleCoil: " + e);
     }
@@ -252,6 +263,8 @@ public class ModbusInterface extends ExternalSystem {
     // execute the transaction
     try {
       trans.execute();
+    } catch (ModbusIOException e) {
+      throw e;      
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": writeSingleRegister: " + e);
     }
@@ -280,6 +293,8 @@ public class ModbusInterface extends ExternalSystem {
     // execute the transaction
     try {
       trans.execute();
+    } catch (ModbusIOException e) {
+      throw e;      
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": writeMultipleCoils: " + e);
     }
@@ -305,6 +320,8 @@ public class ModbusInterface extends ExternalSystem {
     // execute the transaction
     try {
       trans.execute();
+    } catch (ModbusIOException e) {
+      throw e;      
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": writeMultipleRegisters: " + e);
     }
@@ -415,7 +432,7 @@ public class ModbusInterface extends ExternalSystem {
         }
       } catch (Exception f) {
         theirLogger.error("(" + itsHost + ":" + itsPort + "): getData for point " + pm.getFullName() + ": " + f);
-        itsConnected = false;
+        disconnect();
         return;
       }
 
@@ -483,8 +500,8 @@ public class ModbusInterface extends ExternalSystem {
         break;
       }
     } catch (Exception f) {
-      theirLogger.error("(" + itsHost + ":" + itsPort + "): getData: " + f);
-      itsConnected = false;
+      theirLogger.error("(" + itsHost + ":" + itsPort + "): putData: " + f);
+      disconnect();
       return;
     }
 
