@@ -1025,10 +1025,16 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
             if (lastrow == null) {
               break;
             }
-            // Only display the row if it is within the time range
-            if (((AbsTime) lastrow.get(0)).isAfterOrEquals(cutoff)) {
-              itsRows.add(lastrow);
-            }
+            itsRows.add(lastrow);
+          }
+          
+          // If there is only one row, based on the last archived data, which is before the requested time
+          // window, then re-timestamp it to the start of the query time as it should represent the state
+          // at that time (depending on the archiving policies of the points, of course). The other option
+          // would be to leave the original timestamp, but force the full date to be shown so that the
+          // user can see that the data has been dragged in from outside the actual requested query range.
+          if (itsRows.size()==1 && ((AbsTime) itsRows.get(0).get(0)).isBefore(cutoff)) {
+            itsRows.firstElement().set(0, cutoff);
           }
 
           // Remove any rows which are too old
@@ -1240,7 +1246,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       }
       res = newres;
     }
-
+    
     return res;
   }
 
@@ -1329,7 +1335,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       Vector<PointData> initialdata = MonClientUtil.getServer().getBefore(itsPoints, start);
       for (int i = 0; i < initialdata.size(); i++) {
         if (initialdata.get(i) != null && initialdata.get(i).getData() != null) {
-          // System.err.println("Got initial data = " + initialdata.get(i));
+          //System.err.println("Got initial data = " + initialdata.get(i));
           alldata.get(i).insertElementAt(initialdata.get(i), 0);
         }
       }
