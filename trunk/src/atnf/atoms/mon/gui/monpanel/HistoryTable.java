@@ -972,7 +972,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       p.print(t.toString(AbsTime.Format.UTC_STRING));
       for (int c = 1; c < row.size(); c++) {
         p.print(", ");
-        PointData o = (PointData)row.get(c);
+        PointData o = (PointData) row.get(c);
         if (o != null) {
           p.print(o.getData());
         }
@@ -1027,19 +1027,20 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
             }
             itsRows.add(lastrow);
           }
-          
+
           // Remove any rows which are too old
-          lastrow=null;
-          while (itsRows.size() > 0 && ((AbsTime) itsRows.get(0).get(0)).isBefore(cutoff)) {
+          lastrow = null;
+          while (itsRows.size() > 0
+              && (!(itsRows.firstElement().firstElement() instanceof AbsTime) || ((AbsTime) itsRows.firstElement().firstElement()).isBefore(cutoff))) {
             lastrow = itsRows.remove(0);
           }
-          
+
           // Retain the row which represents the conditions prior to the start time
-          if (lastrow!=null) {
+          if (lastrow != null) {
             // Give it a special time label
             lastrow.set(0, "Antecedent:");
             itsRows.insertElementAt(lastrow, 0);
-          }          
+          }
 
           // Limit the number of rows, if requested by the user
           if (itsLimitRows) {
@@ -1180,9 +1181,9 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
         }
         int previ = MonitorUtils.getPrevEqualsPointData(v, nexttime);
         if (previ == -1) {
-          if (prevrow != null && prevrow.get(i+1) != null) {
+          if (prevrow != null && prevrow.get(i + 1) != null) {
             // Borrow value from previous row
-            res.add(prevrow.get(i+1));
+            res.add(prevrow.get(i + 1));
           } else {
             // Have no data for this point for this row
             res.add(null);
@@ -1245,7 +1246,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       }
       res = newres;
     }
-    
+
     return res;
   }
 
@@ -1334,7 +1335,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       Vector<PointData> initialdata = MonClientUtil.getServer().getBefore(itsPoints, start);
       for (int i = 0; i < initialdata.size(); i++) {
         if (initialdata.get(i) != null && initialdata.get(i).getData() != null) {
-          //System.err.println("Got initial data = " + initialdata.get(i));
+          // System.err.println("Got initial data = " + initialdata.get(i));
           alldata.get(i).insertElementAt(initialdata.get(i), 0);
         }
       }
