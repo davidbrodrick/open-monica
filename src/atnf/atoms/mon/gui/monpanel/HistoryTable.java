@@ -1028,19 +1028,18 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
             itsRows.add(lastrow);
           }
           
-          // If there is only one row, based on the last archived data, which is before the requested time
-          // window, then re-timestamp it to the start of the query time as it should represent the state
-          // at that time (depending on the archiving policies of the points, of course). The other option
-          // would be to leave the original timestamp, but force the full date to be shown so that the
-          // user can see that the data has been dragged in from outside the actual requested query range.
-          if (itsRows.size()==1 && ((AbsTime) itsRows.get(0).get(0)).isBefore(cutoff)) {
-            itsRows.firstElement().set(0, cutoff);
-          }
-
           // Remove any rows which are too old
+          lastrow=null;
           while (itsRows.size() > 0 && ((AbsTime) itsRows.get(0).get(0)).isBefore(cutoff)) {
-            itsRows.remove(0);
+            lastrow = itsRows.remove(0);
           }
+          
+          // Retain the row which represents the conditions prior to the start time
+          if (lastrow!=null) {
+            // Give it a special time label
+            lastrow.set(0, "Antecedent:");
+            itsRows.insertElementAt(lastrow, 0);
+          }          
 
           // Limit the number of rows, if requested by the user
           if (itsLimitRows) {
@@ -1372,7 +1371,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
       if (data == null) {
         return "";
       }
-      if (column == 0) {
+      if (column == 0 && data instanceof AbsTime) {
         // timestamp, might need manipulation
         Date thisdate = ((AbsTime) data).getAsDate();
         DateFormat outdfm = null;
