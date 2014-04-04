@@ -967,9 +967,14 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
     p.println("#Data dumped at " + (new AbsTime().toString(AbsTime.Format.UTC_STRING)));
     for (int r = 0; r < itsRows.size(); r++) {
       Vector<Object> row = itsRows.get(r);
-      AbsTime t = (AbsTime) row.get(0);
-      p.print(t.toString(AbsTime.Format.HEX_BAT) + ", ");
-      p.print(t.toString(AbsTime.Format.UTC_STRING));
+      if (row.get(0) instanceof AbsTime) {
+        AbsTime t = (AbsTime) row.get(0);
+        p.print(t.toString(AbsTime.Format.HEX_BAT) + ", ");
+        p.print(t.toString(AbsTime.Format.UTC_STRING));
+      } else {
+        p.print("#"+row.get(0) + ",");
+        p.print(row.get(0) + ",");
+      }
       for (int c = 1; c < row.size(); c++) {
         p.print(", ");
         PointData o = (PointData) row.get(c);
