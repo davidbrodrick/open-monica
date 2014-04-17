@@ -27,6 +27,6 @@ public class TranslationHexString extends Translation
         logger.error("(" + itsParent.getFullName() + ") Expect Number as input, got " + data.getData().getClass());
       }
     }
-    return new PointData(itsParent.getFullName(), data.getTimestamp(), result);
+    return new PointData(itsParent.getFullName(), data.getTimestamp(), result, data.getAlarm());
   }
 }

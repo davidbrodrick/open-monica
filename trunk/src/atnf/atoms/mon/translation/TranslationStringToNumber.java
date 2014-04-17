@@ -88,7 +88,7 @@ public class TranslationStringToNumber extends Translation {
       theirLogger.error(itsParent.getFullName() + ": " + e);
     }
 
-    res = new PointData(data.getName(), data.getTimestamp(), num);
+    res = new PointData(data.getName(), data.getTimestamp(), num, data.getAlarm());
 
     return res;
   }

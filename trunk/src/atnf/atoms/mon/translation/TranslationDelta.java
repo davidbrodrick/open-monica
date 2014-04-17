@@ -66,9 +66,9 @@ public class TranslationDelta extends Translation {
         } else if (delta < -Math.PI) {
           delta = 2 * Math.PI + delta;
         }
-        res = new PointData(itsParent.getFullName(), Angle.factory(delta, Angle.Format.RADIANS));
+        res = new PointData(itsParent.getFullName(), data.getTimestamp(), Angle.factory(delta, Angle.Format.RADIANS), data.getAlarm());
       } else {
-        res = new PointData(itsParent.getFullName(), new Double(delta));
+        res = new PointData(itsParent.getFullName(), data.getTimestamp(), new Double(delta), data.getAlarm());
       }
     } else {
       // No previous value so can't calculate delta, so return null data

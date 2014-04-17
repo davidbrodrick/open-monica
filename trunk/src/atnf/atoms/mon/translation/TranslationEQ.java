@@ -83,6 +83,6 @@ public class TranslationEQ extends Translation {
       theirLogger.warn(itsParent.getFullName() + ": " + itsParser.getErrorInfo());
     }
 
-    return new PointData(itsParent.getFullName(), data.getTimestamp(), res);
+    return new PointData(itsParent.getFullName(), data.getTimestamp(), res, data.getAlarm());
   }
 }

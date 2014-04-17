@@ -70,7 +70,7 @@ extends Translation
       val = ((Angle)data.getData()).getValue();
     }
     
-    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), new Double(val));
+    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), new Double(val), data.getAlarm());
 
     return res;
   }

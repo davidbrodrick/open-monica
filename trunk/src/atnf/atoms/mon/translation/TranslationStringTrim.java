@@ -37,7 +37,7 @@ public class TranslationStringTrim extends Translation
     String resstr = val.toString().trim();
 
     // Create return structure with right details
-    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), resstr);
+    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), resstr, data.getAlarm());
 
     return res;
   }

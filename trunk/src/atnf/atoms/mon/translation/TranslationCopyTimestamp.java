@@ -41,6 +41,7 @@ public class TranslationCopyTimestamp extends Translation {
       res = null;
     } else {
       res = new PointData(data);
+      res.setName(itsParent.getFullName());
       res.setTimestamp(latest.getTimestamp());
     }
 

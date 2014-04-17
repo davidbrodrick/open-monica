@@ -158,6 +158,6 @@ public class TranslationDailyIntegrator extends Translation {
     }
 
     // Return the integrated sum
-    return new PointData(itsParent.getFullName(), new AbsTime(), new Double(itsSum));
+    return new PointData(itsParent.getFullName(), new AbsTime(), new Double(itsSum), data.getAlarm());
   }
 }

@@ -51,7 +51,7 @@ public class TranslationStringReplace extends Translation {
     str = str.replace(itsTarget, itsReplacement);
 
     // Create return structure with right details
-    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), str);
+    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), str, data.getAlarm());
 
     return res;
   }
