@@ -60,7 +60,7 @@ public class TranslationAdd16 extends Translation
       // System.err.println("TranslationAdd16: " + s.shortValue() + " = " +
       // ((Number)d).shortValue() + " + " + itsOffset);
       // Translation is now complete
-      return new PointData(itsParent.getFullName(), data.getTimestamp(), s);
+      return new PointData(itsParent.getFullName(), data.getTimestamp(), s, data.getAlarm());
     } else {
       // We can only translate Numbers using this class
       Logger logger = Logger.getLogger(this.getClass().getName());

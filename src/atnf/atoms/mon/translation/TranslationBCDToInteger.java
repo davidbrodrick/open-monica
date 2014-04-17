@@ -32,6 +32,6 @@ public class TranslationBCDToInteger extends Translation
       outp=outp+thisn*(int)Math.pow(10, n);
     }
     
-    return new PointData(itsParent.getFullName(), data.getTimestamp(), new Integer(outp));
+    return new PointData(itsParent.getFullName(), data.getTimestamp(), new Integer(outp), data.getAlarm());
   }
 }

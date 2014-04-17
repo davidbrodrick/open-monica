@@ -54,7 +54,9 @@ public class TranslationMean extends TranslationDataBuffer {
   /** Calculate the average and return an averaged value. */
   public PointData translate(PointData data) {
     // Check data type and update buffer
-    if (data.getData() == null || !(data.getData() instanceof Number)) {
+    if (data.getData() == null) {
+      updateBuffer(null);
+    } else if (!(data.getData() instanceof Number)) {
       theirLogger.warn(getClass().getCanonicalName() + ": " + itsParent.getFullName() + ": Can't use non-numeric data");
       updateBuffer(null);
     } else {
@@ -62,18 +64,17 @@ public class TranslationMean extends TranslationDataBuffer {
     }
 
     // If insufficient data then can't calculate result
-    if (itsBuffer.size() < itsMinSamples) {
-      return null;
+    Double m = null;
+    if (itsBuffer.size() >= itsMinSamples) {
+      // Get the mean
+      m = new Double(getMean());
     }
 
     // Get a timestamp for this data
     AbsTime tstamp = data.getTimestamp();
 
-    // Get the mean
-    double m = getMean();
-
     // Return result
-    return new PointData(itsParent.getFullName(), tstamp, new Double(m));
+    return new PointData(itsParent.getFullName(), tstamp, m);
   }
 
   /** Return the mean of the data in the buffer. */

@@ -62,6 +62,11 @@ extends Translation
   PointData
   translate(PointData data)
   {
+    if (data.getData()==null) {
+      //Can't map a null value
+      return null;
+    }
+    
     String resstr = null;
     // Get the input as a Boolean
     try {
@@ -78,7 +83,7 @@ extends Translation
     }
 
     //Create return structure with right details
-    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), resstr);
+    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), resstr, data.getAlarm());
     return res;
   }
 

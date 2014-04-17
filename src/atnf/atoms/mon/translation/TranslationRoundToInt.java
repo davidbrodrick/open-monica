@@ -37,6 +37,6 @@ public class TranslationRoundToInt extends Translation
         }
         
         Integer intval = new Integer(new Double(Math.round(((Number)val).doubleValue())).intValue());
-        return new PointData(itsParent.getFullName(), intval);
+        return new PointData(itsParent.getFullName(), data.getTimestamp(), intval, data.getAlarm());
     }
 }

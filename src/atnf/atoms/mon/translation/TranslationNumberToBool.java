@@ -28,6 +28,11 @@ public class TranslationNumberToBool extends Translation {
   }
 
   public PointData translate(PointData data) {
+    if (data.getData()==null) {
+      //Can't map a null value
+      return null;
+    }
+    
     Boolean result = null;
     try {
       result = MonitorUtils.parseAsBoolean(data.getData());
@@ -41,6 +46,6 @@ public class TranslationNumberToBool extends Translation {
       result = new Boolean(!result.booleanValue());
     }
 
-    return new PointData(itsParent.getFullName(), data.getTimestamp(), result);
+    return new PointData(itsParent.getFullName(), data.getTimestamp(), result, data.getAlarm());
   }
 }

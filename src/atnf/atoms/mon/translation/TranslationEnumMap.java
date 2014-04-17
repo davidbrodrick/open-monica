@@ -98,7 +98,7 @@ public class TranslationEnumMap extends Translation {
     }
 
     // Create return structure with right details
-    PointData res = new PointData(itsParent.getFullName(), m);
+    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), m, data.getAlarm());
 
     return res;
   }

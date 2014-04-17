@@ -72,7 +72,7 @@ public class TranslationStringMap extends Translation
     }
 
     // Create return structure with right details
-    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), newstr);
+    PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), newstr, data.getAlarm());
 
     return res;
   }

@@ -69,7 +69,7 @@ public class TranslationBitShift extends Translation
       // Shift the correct number of places
       temp = temp >> itsNumShift;
       // Translation is now complete
-      return new PointData(itsParent.getFullName(), data.getTimestamp(), new Integer(temp));
+      return new PointData(itsParent.getFullName(), data.getTimestamp(), new Integer(temp), data.getAlarm());
     } else {
       // We can only translate Numbers using this class
       Logger logger = Logger.getLogger(this.getClass().getName());
