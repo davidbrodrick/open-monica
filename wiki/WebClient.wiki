@@ -269,7 +269,7 @@ This method returns an `Array` containing a `String` for each MoniCA point name 
 
 Example:
 {{{
-var connectionEstablished(serverObj) {
+var connectionEstablished = function(serverObj) {
   // Print out each point name to the web page.
   var pointNames = server.pointsList();
   for (var i = 0; i < pointNames.length; i++) {
@@ -300,7 +300,7 @@ This method returns a `String` representation of the name of the server that is 
 
 Example:
 {{{
-var connectionEstablished() {
+var connectionEstablished = function() {
   // Print out the server name to the web page, which should be 'monhost-nar'
   dojo.place('<span> server = ' +
     server.getServerName() + '</span>', dojo.body());
