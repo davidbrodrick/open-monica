@@ -8,6 +8,7 @@ use ATNF::MoniCA;
 use Time::Local;
 use Astro::Time;
 use POSIX;
+use Scalar::Util qw(looks_like_number);
 
 my $in=CGI->new;
 
@@ -86,8 +87,12 @@ if ($action eq "points"){
 	my $estate = (($point_vals[$i]->errorstate ne "true") &&
 		      ($point_vals[$i]->errorstate ne "false")) ? 
 		      "false" : $point_vals[$i]->errorstate;
-	print " value: \"".$thisvalue."\",".
-	    " errorState: ".$estate." }";
+	if (looks_like_number($thisvalue)) {
+	    print " value: ".$thisvalue.",";
+	} else {
+	    print " value: \"".$thisvalue."\",";
+	}
+	print " errorState: ".$estate." }";
 #	print $point_vals[$i]->point." ".bat2cal($point_vals[$i]->bat,0)." ".
 #	$point_vals[$i]->val.
 #	" ".$point_vals[$i]->errorstate."\n";
@@ -133,7 +138,7 @@ if ($action eq "points"){
     # split the points up
     my @point_infos=split(/\;/,$input{"points"});
 
-    print "{ intervalData: [";
+    print "{ \"intervalData\": [";
     # each point will be "pointname,starttime,interval"
     # starttime is calendar time (yyyy/mm/dd:HH:MM:SS)
     # interval is in minutes
@@ -165,7 +170,7 @@ if ($action eq "points"){
  	    # get the data
  	    my @point_timevals=monsince($mon,$start_mjd,$pointname,$maxnper);
 	    # print back the data as JSON
-	    print "{ name: \"".$pointname."\", data: [";
+	    print "{ \"name\": \"".$pointname."\", \"data\": [";
 	    my $d=0;
 	    for (my $j=0;$j<=$#point_timevals;$j++){
 		my $thispointtime=bat2unixtime($point_timevals[$j]->bat)*1000;
@@ -181,7 +186,8 @@ if ($action eq "points"){
 		    $tval=~s/[\'\x{00b0}]/\:/g;
 		    $tval=~s/\"//g;
 		    print "[".(bat2unixtime($point_timevals[$j]->bat)*1000).",";
-		    if ($tval=~/\:/ || $tval=~/[\p{L}]+/){
+		    if ($tval=~/\:/ || $tval=~/[\p{L}]+/ ||
+			!looks_like_number($tval)){
 			print "\"".$tval."\"";
 		    } else {
 			print $tval;
@@ -212,7 +218,7 @@ if ($action eq "points"){
 #	    my @point_timevals=monbetween_new($mon,$start_mjd,$end_mjd,$pointname,$maxnper);
 	    my @point_timevals=monbetween($mon,$start_mjd,$end_mjd,$pointname,$maxnper);
 	    # print back the data as JSON
-	    print "{ name: \"".$pointname."\", data: [";
+	    print "{ \"name\": \"".$pointname."\", \"data\": [";
 	    for (my $j=0;$j<=$#point_timevals;$j++){
 		if ($j>0){
 		    print ",";
@@ -222,7 +228,8 @@ if ($action eq "points"){
 		    $tval=~s/[\'\x{00b0}]/\:/g;
 		    $tval=~s/\"//g;
 		    print "[".(bat2unixtime($point_timevals[$j]->bat)*1000).",";
-		    if ($tval=~/\:/){
+		    if ($tval=~/\:/ || $tval=~/[\p{L}]+/ ||
+			!looks_like_number($tval)){
 			print "\"".$tval."\"";
 		    } else {
 			print $tval;
@@ -385,5 +392,6 @@ if ($action eq "points"){
 }
 
 # finished
+#monclose($mon);
 exit;
 
