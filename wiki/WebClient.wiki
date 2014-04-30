@@ -779,7 +779,7 @@ This method returns a `Boolean` indication of whether MoniCA has supplied a desc
 ===== setPointDetails =====
 
 {{{
-pointReference.setDetails(pointDetails);
+pointReference.setPointDetails(pointDetails);
 }}}
 
 This method is used to assign a description and units to the point, as well as the time between updates. These details are passed to this method through the `pointDetails` object which has the properties:
@@ -796,7 +796,7 @@ For example, to set only the `updateTime` to 1 minute, and allow MoniCA to fill 
 var connectionEstablished = function() {
   // Add a point.
   var pointReference = server.addPoints([ 'site.environment.weather.Temperature' ]);
-  pointReference[0].setDetails({
+  pointReference[0].setPointDetails({
     'updateTime': 60
   });
   server.getDescriptions();
