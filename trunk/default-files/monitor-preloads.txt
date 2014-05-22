@@ -4,10 +4,13 @@
 atnf.atoms.mon.gui.monpanel.ATTimeSeries
 atnf.atoms.mon.gui.monpanel.ATPointTable
 atnf.atoms.mon.gui.monpanel.HistoryTable
+atnf.atoms.mon.gui.monpanel.ATXYPlot
 atnf.atoms.mon.gui.monpanel.AlarmManagerPanel
 atnf.atoms.mon.gui.monpanel.ControlPanel
-atnf.atoms.mon.gui.monpanel.ATXYPlot
 atnf.atoms.mon.gui.monpanel.Watchdog
 atnf.atoms.mon.gui.monpanel.DialPanel
 atnf.atoms.mon.gui.monpanel.HTMLComment
 atnf.atoms.mon.gui.monpanel.Lightning
+atnf.atoms.mon.gui.monpanel.ConversionDiagram
+atnf.atoms.mon.gui.monpanel.LoginManager
+atnf.atoms.mon.gui.monpanel.MonitorPointEditor
