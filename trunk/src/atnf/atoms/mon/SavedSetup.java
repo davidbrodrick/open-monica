@@ -19,17 +19,13 @@ import atnf.atoms.util.NamedObject;
  * An extended <i>HashMap</i> used for storing the setup for a MonPanel.
  * 
  * <P>
- * In the first MonPanel implementation, each class had a routine for
- * serialising its current setup into a fixed format String. This was okay but
- * it was difficult to extend the fixed String format, eg, if we wanted to add a
- * new field.
+ * In the first MonPanel implementation, each class had a routine for serialising its current setup into a fixed format String. This
+ * was okay but it was difficult to extend the fixed String format, eg, if we wanted to add a new field.
  * 
  * <P>
- * The selected solution is to use a named-value format for storing MonPanel
- * setup information. However because we don't want to be locked-in to a
- * particular JVM/HashMap version we need to manage the serialisation ourselves.
- * This class is basically just a HashMap which has some home-grown methods for
- * serialising/deserialising to/from a String.
+ * The selected solution is to use a named-value format for storing MonPanel setup information. However because we don't want to be
+ * locked-in to a particular JVM/HashMap version we need to manage the serialisation ourselves. This class is basically just a
+ * HashMap which has some home-grown methods for serialising/deserialising to/from a String.
  * 
  * @author David Brodrick
  */
@@ -93,35 +89,33 @@ public class SavedSetup extends HashMap<String, String> implements NamedObject, 
       throw new IllegalArgumentException();
     }
 
-    StringTokenizer st = new StringTokenizer(str, "`");
-    if (st.countTokens() < 3) {
+    String[] tokens = str.split("`");
+
+    if (tokens.length < 3) {
       // Must be a problem with this setup
       throw new IllegalArgumentException();
     }
     // Expect "{class`name`size`key1`value1`}"
-    String cls = st.nextToken().substring(1).trim();
+    String cls = tokens[0].substring(1).trim();
     if (cls.equals("null")) {
       cls = null;
     }
-    String name = st.nextToken().trim();
+    String name = tokens[1].trim();
     if (name.equals("null")) {
       name = "";
     }
-    int size = Integer.parseInt(st.nextToken().trim());
+    int size = Integer.parseInt(tokens[2].trim());
 
     setName(name);
     setClass(cls);
-
-    for (int i = 0; i < size; i++) {
-      if (!st.hasMoreTokens()) {
-        throw new IllegalArgumentException();
-      }
-      String key = unescape(st.nextToken());
-      String value = unescape(st.nextToken());
+    
+    for (int i = 3; i + 1 < tokens.length; i += 2) {
+      String key = unescape(tokens[i]);
+      String value = unescape(tokens[i + 1]);
       put(key, value);
     }
 
-    if (!st.nextToken().equals("}")) {
+    if (!tokens[tokens.length - 1].equals("}")) {
       throw new IllegalArgumentException();
     }
 
@@ -247,8 +241,7 @@ public class SavedSetup extends HashMap<String, String> implements NamedObject, 
   }
 
   /**
-   * Create an instance of the class this setup is for, using the no-arguments
-   * constructor..
+   * Create an instance of the class this setup is for, using the no-arguments constructor..
    */
   public Object getInstance() throws Exception {
     Class theclass = Class.forName(itsClass);
@@ -284,8 +277,7 @@ public class SavedSetup extends HashMap<String, String> implements NamedObject, 
    * 
    * @param test
    *          The object who's class we should check.
-   * @return <tt>true</tt> if the test object matches the class for this
-   *         SavedSetup, <tt>false</tt> if the classes do not match.
+   * @return <tt>true</tt> if the test object matches the class for this SavedSetup, <tt>false</tt> if the classes do not match.
    */
   public boolean checkClass(Object test) {
     if (test == null) {
@@ -302,8 +294,7 @@ public class SavedSetup extends HashMap<String, String> implements NamedObject, 
    * 
    * @param classname
    *          String name of the class we should check against.
-   * @return <tt>true</tt> if the test class matches the class for this
-   *         SavedSetup, <tt>false</tt> if the classes do not match.
+   * @return <tt>true</tt> if the test class matches the class for this SavedSetup, <tt>false</tt> if the classes do not match.
    */
   public boolean checkClass(String classname) {
     if (classname == null) {
@@ -374,8 +365,7 @@ public class SavedSetup extends HashMap<String, String> implements NamedObject, 
         return false;
       }
       if (!get(thiskey).equals(other.get(thiskey))) {
-        System.err.println("SavedSetup.compareKeys: Key \"" + thiskey + "\" was different (\"" + get(thiskey) + "\" vs \""
-            + other.get(thiskey) + "\")");
+        System.err.println("SavedSetup.compareKeys: Key \"" + thiskey + "\" was different (\"" + get(thiskey) + "\" vs \"" + other.get(thiskey) + "\")");
         return false;
       }
     }

@@ -915,6 +915,7 @@ public class ControlPanel extends MonPanel implements ActionListener, KeyListene
 		/**
 		 * Constructor for a Checkbox type Display Component
 		 * @param pt The point this component refers to, as a String
+		 * @param lb Label
 		 * @param jc The JCheckbox reference this component incorporates
 		 * @param dt The data type of this component
 		 * @param conf The button used to confirm the checkbox selection
@@ -1152,7 +1153,7 @@ public class ControlPanel extends MonPanel implements ActionListener, KeyListene
 			titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
 			Map<TextAttribute, Integer> fontAttributes = new HashMap<TextAttribute, Integer>();
 			fontAttributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_TWO_PIXEL);
-			titleLabel.setFont(new Font("Sans Serif", Font.BOLD | Font.ITALIC, 24).deriveFont(fontAttributes));
+			titleLabel.setFont(new Font("Sans Serif", Font.BOLD | Font.ITALIC, 22).deriveFont(fontAttributes));
 			readback = false;
 			if (layout.equals(layoutOptions[2]) || layout.equals(layoutOptions[3])){
 				readback = true;
@@ -1180,7 +1181,7 @@ public class ControlPanel extends MonPanel implements ActionListener, KeyListene
 					String point = st.nextToken();
 					String controlType = st.nextToken();
 					String dataType = st.nextToken();
-					String controlName = st.nextToken();
+					String controlName = st.nextToken().trim();
 					String labelText = st.nextToken();
 					String bValue = st.nextToken();
 					String inputValue = null;
@@ -1235,7 +1236,7 @@ public class ControlPanel extends MonPanel implements ActionListener, KeyListene
 						} else {
 							JButton send = new JButton("Send");
 							send.addActionListener(this);
-							if (!labelText.equals("\t")){
+							if (!labelText.trim().equals("")){
 								send.setText(labelText);
 							}
 							if (gbc.gridy == components.size()-1) gbc.insets = new Insets(11,10,0,0); //odd alignment issue for text field in last component
@@ -1269,7 +1270,7 @@ public class ControlPanel extends MonPanel implements ActionListener, KeyListene
 					String point = st.nextToken();
 					String controlType = st.nextToken();
 					String dataType = st.nextToken();
-					String controlName = st.nextToken();
+					String controlName = st.nextToken().trim();
 					String labelText = st.nextToken();
 					String bValue = st.nextToken();
 					String inputValue = null;
@@ -1323,7 +1324,7 @@ public class ControlPanel extends MonPanel implements ActionListener, KeyListene
 							cpdc = new ControlPanelDisplayComponent(itsName.getText(), point, labelText, jc, dataType, send, readbackValue);
 						} else {
 							JButton send = new JButton("Send");
-							if (!labelText.equals("\t")){
+							if (!labelText.trim().equals("")){
 								send.setText(labelText);
 							}
 							JTextField tf = new JTextField(10);
