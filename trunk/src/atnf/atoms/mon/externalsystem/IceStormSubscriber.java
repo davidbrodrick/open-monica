@@ -10,6 +10,7 @@
 package atnf.atoms.mon.externalsystem;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
@@ -99,11 +100,12 @@ public class IceStormSubscriber extends ExternalSystem
   public synchronized boolean connect() throws Exception
   {
     try {
+      String uuid = UUID.randomUUID().toString();
       Ice.Properties props = Ice.Util.createProperties();
       String locator = "IceGrid/Locator:tcp -h " + itsHost + " -p " + itsPort;
       props.setProperty("Ice.Default.Locator", locator);
       props.setProperty("Ice.IPv6", "0");
-      props.setProperty("MoniCAIceStormAdapter.AdapterId", "MoniCAIceStormAdapter");
+      props.setProperty("MoniCAIceStormAdapter.AdapterId", "MoniCAIceStormAdapter"+uuid);
       props.setProperty("MoniCAIceStormAdapter.Endpoints", "tcp");      
       Ice.InitializationData id = new Ice.InitializationData();
       id.properties = props;
