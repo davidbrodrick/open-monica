@@ -199,6 +199,8 @@ public class SNMP extends ExternalSystem {
       return new OctetString(pd.getData().toString());
     } else if (typecode.equals("Integer32") && pd.getData() instanceof Number) {
       return new Integer32(((Number)pd.getData()).intValue());
+    } else if (typecode.equals("Counter32") && pd.getData() instanceof Number) {
+      return new Counter32(((Number)pd.getData()).intValue());      
     } else {
       theirLogger.warn("Unhandled type code/data value: \"" + typecode + "\" with " + pd);
       return null;
