@@ -19,12 +19,14 @@ import atnf.atoms.time.*;
  * points which will then subsequently have values assigned to them by outside agents, or for assigning values for constants which
  * never change.
  * 
- * Two arguments must be supplied:
+ * Two or more arguments must be supplied:
  * <ol>
  * <li><b>Type code:</b> The type code of the data to be provided as input, one of <tt>int</tt>, <tt>flt</tt>, <tt>dbl</tt>,
  * <tt>str</tt>, <tt>bool</tt>.
  * <li><b>Value:</b> String representation of the value. Will be parsed as the appropriate data type.
  * </ol>
+ * 
+ * If multiple values are provided then they will be parsed into an array.
  * 
  * Here is an example definition for a point which uses a 'false' Boolean as the initial value: <BR>
  * <tt>InitialValue-"bool""false"</tt>
@@ -47,11 +49,14 @@ public class TransactionInitialValue extends Transaction {
     setChannel("NONE"); // Set the channel type
 
     if (args.length < 2) {
-      throw new IllegalArgumentException("Requires two arguments");
+      throw new IllegalArgumentException("Requires two or more arguments");
+    } else if (args.length == 2) {
+      itsValue = MonitorUtils.parseFixedValue(args[0], args[1]);
+    } else {
+      String[] valargs = new String[args.length - 1];
+      System.arraycopy(args, 1, valargs, 0, args.length - 1);
+      itsValue = MonitorUtils.parseFixedValueArray(args[0], valargs);
     }
-
-    // Parse the fixed value to be used as input
-    itsValue = MonitorUtils.parseFixedValue(args[0], args[1]);
 
     // Start timer to wait until server is fully running
     theirProcessTimer.schedule(new WaitingTask(), theirDelay);
