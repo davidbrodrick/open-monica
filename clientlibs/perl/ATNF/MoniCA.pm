@@ -347,7 +347,7 @@ require Exporter;
 use vars qw(@ISA @EXPORT);
 
 @ISA    = qw( Exporter );
-@EXPORT = qw( monconnect monpoll monsince parse_tickphase current_bat 
+@EXPORT = qw( monconnect monclose monpoll monsince parse_tickphase current_bat 
 	      monbetween monpreceding monfollowing montill monset dUT
 	      bat2mjd mjd2bat bat2time atca_tied monnames monlist2hash
               mondetails monpoll2 bat2cal bat2unixtime perltime2mjd 
@@ -375,6 +375,20 @@ sub monconnect($) {
 
 
   return $mon;
+}
+
+=item B<monclose>
+
+    monclose($mon);
+
+ Closes a connection to the MoniCA server
+    $mon Socket to MoniCA server.
+=cut
+
+sub monclose($) {
+    my $mon = shift;
+
+    $mon->close();
 }
 
 =item B<monpoll>
