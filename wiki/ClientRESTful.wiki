@@ -35,11 +35,13 @@ To request data for a single point via the GET/POST method you can query the */d
 {{{
 http://bullawa:8111/description/home.weather.wind_speed
 }}}
+
+To request data for multiple points via the GET/POST (form) method you can query the */description/* URL with semi-colon separated list of point names:
 {{{
-http://bullawa:8111/description?points=home.weather.wind_speed;home.weather.wind_dir
+http://bullawa:8111/descriptions?points=home.weather.wind_speed;home.weather.wind_dir
 }}}
 
-To query multiple point definitions via a POST method you need to submit a JSON object to the */descriptions/* URL with the following format:
+To query multiple point definitions via a POST(JSO interface, you need to pass a json object to the */descriptions/* URL with the following format:
 
 {{{
 {"points": ["home.weather.wind_speed", "home.weather.wind_dir"]}
