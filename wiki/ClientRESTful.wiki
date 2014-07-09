@@ -41,7 +41,7 @@ To request data for multiple points via the GET/POST (form) method you can query
 http://bullawa:8111/descriptions?points=home.weather.wind_speed;home.weather.wind_dir
 }}}
 
-To query multiple point definitions via a POST(JSO interface, you need to pass a json object to the */descriptions/* URL with the following format:
+To query multiple point definitions via a POST(JSON) interface, you need to pass a json object to the */descriptions/* URL with the following format:
 
 {{{
 {"points": ["home.weather.wind_speed", "home.weather.wind_dir"]}
@@ -53,7 +53,7 @@ In all cases the response will take the following format:
 {"status":"ok", "errorMsg":"", "monitoringPointDescriptions": [{"name":"home.weather.wind_speed","desc":"Wind Speed","units":"km/h","period":2.5},{"name":"home.weather.wind_dir","desc":"Wind Direction","units":"deg","period":2.5}]}
 }}}
 
-The _status_ field will be 'ok' unless there was an error in which case it will say 'fail'. The _descriptions_ array contains the actual descriptions, each of which may contain the following fields:
+The _status_ field will be 'ok' unless there was an error in which case it will say 'fail'. If status is 'fail', you might a get a reason why it failed in errorMsg. The _descriptions_ array contains the actual descriptions, each of which may contain the following fields:
 
   * *name:* The name of the point this metadata belongs to.
   * *desc:* If the point has a description defined then this field will exist and contain that description.
@@ -68,21 +68,20 @@ A single datum may contain the following fields:
   * *value:* The data value, if this field is omitted then a data value of _null_ may be assumed.
   * *alarm:* Whether the point was in an alarm state. If this field is omitted then the alarm state can be assumed to be _false_.
 
-== POST Interface ==
+== POST (JSON) Interface ==
 
 This accepts a POST query in JSON format which can query one or multiple points in a single operation. The result is a JSON object containing the requested data.
 
 The query form action URL must be */points/*. eg `http://bullawa:8111/points`
 
-=== Get ===
-
 {{{
 {"type": "get", "points": ["home.weather.wind_speed", "home.weather.wind_dir"]}'
 }}}
 
+
 The result will contain the latest data for each point. If any of the point names were not known then there will be no data for that point. I all of the point names were not known then the status will be "fail".
 {{{
-{"status":"ok", "data":[{"name":"home.weather.wind_speed","ts":"2012-04-13 03:49:51.926","value":17.71,"alarm":true}, {"name":"home.weather.wind_dir","ts":"2012-04-13 03:49:51.926","value":163.0}]}
+{"status":"ok", "pointData":[{"pointName":"home.weather.wind_speed","time":"2012-04-13 03:49:51.926","value":17.71,"errorState":true}, {"pointName":"home.weather.wind_dir","time":"2012-04-13 03:49:51.926","value":163.0}]}
 }}}
 
 === Between ===
@@ -95,7 +94,7 @@ This operation returns data from the archive in between the specified start and 
 
 The response should look like the example below. Please note that in the interests of efficiency the name of the point is excluded from the individual results of this query:
 {{{
-{"status":"ok", "data":[{"ts":"2012-04-13 03:34:31.044","value":203.0}, {"ts":"2012-04-13 03:34:33.622","value":186.0}, {"ts":"2012-04-13 03:34:36.201","value":179.0}, {"ts":"2012-04-13 03:34:38.777","value":194.0}, {"ts":"2012-04-13 03:34:41.353","value":130.0}, {"ts":"2012-04-13 03:34:43.929","value":189.0}, {"ts":"2012-04-13 03:34:46.506","value":183.0}, {"ts":"2012-04-13 03:34:49.087","value":175.0}, {"ts":"2012-04-13 03:34:51.665","value":179.0}, {"ts":"2012-04-13 03:34:54.242","value":187.0}, {"ts":"2012-04-13 03:34:56.818","value":206.0}, {"ts":"2012-04-13 03:34:59.394","value":179.0}]}
+{"status":"ok", "pointData":[{"time":"2012-04-13 03:34:31.044","value":203.0}, {"time":"2012-04-13 03:34:33.622","value":186.0}, {"time":"2012-04-13 03:34:36.201","value":179.0}, {"time":"2012-04-13 03:34:38.777","value":194.0}, {"time":"2012-04-13 03:34:41.353","value":130.0}, {"time":"2012-04-13 03:34:43.929","value":189.0}, {"time":"2012-04-13 03:34:46.506","value":183.0}, {"time":"2012-04-13 03:34:49.087","value":175.0}, {"time":"2012-04-13 03:34:51.665","value":179.0}, {"time":"2012-04-13 03:34:54.242","value":187.0}, {"time":"2012-04-13 03:34:56.818","value":206.0}, {"time":"2012-04-13 03:34:59.394","value":179.0}]}
 }}}
 
 === After ===
@@ -108,14 +107,14 @@ Queries the first values available for a set of points which are after or equals
 
 Example result:
 {{{
-{"status":"ok", "data":[{"name":"home.weather.wind_speed","ts":"2012-04-13 03:59:16.265","value":9.66,"alarm":true}, {"name":"home.weather.wind_dir","ts":"2012-04-13 03:59:16.265","value":135.0}]}
+{"status":"ok", "pointData":[{"pointName":"home.weather.wind_speed","time":"2012-04-13 03:59:16.265","value":9.66,"errorState":true}, {"pointName":"home.weather.wind_dir","time":"2012-04-13 03:59:16.265","value":135.0}]}
 }}}
 
 === Before ===
 
 As with the "after" query above, except the query type must be specified as "before".
 
-== GET interface ==
+== GET and Post (form) interface ==
 
 This accepts GET query parameters for a single point.
 
@@ -127,22 +126,33 @@ To get the latest value for a single point, you can use a query in the following
 http://bullawa:8111/point/home.weather.wind_dir
 }}}
 
+For multiple points:
+{{{
+http://bullawa:8111/points?type=get&points=home.weather.wind_speed;home.weather.wind_dir
+}}}
+
 The server will respond with a JSON result like:
 {{{
-{"status":"ok", "data":[{"name":"home.weather.wind_dir","ts":"2012-04-13 03:31:39.600","value":200.0}]}
+{"status":"ok", "pointData":[{"pointName":"home.weather.wind_dir","time":"2012-04-13 03:31:39.600","value":200.0}]}
 }}}
+
+
 
 === Between ===
 
 To query all of the data for a single point between two nominated times you can use the following:
 
 {{{
-http://bullawa:8111/point/home.weather.wind_dir?start=2012-04-13%2003:34:30&end=2012-04-13%2003:35:00
+http://bullawa:8111/point/home.weather.wind_dir?type=between&start=2012-04-13%2003:34:30&end=2012-04-13%2003:35:00
+}}}
+
+{{{
+http://bullawa:8111/points?points=home.weather.wind_dir;home.weather.wind_speed&type=between&start=2012-04-13%2003:34:30&end=2012-04-13%2003:35:00
 }}}
 
 The response should look like the example below. Please note that in the interests of efficiency the name of the point is excluded from the individual results of this query:
 {{{
-{"status":"ok", "data":[{"ts":"2012-04-13 03:34:31.044","value":203.0}, {"ts":"2012-04-13 03:34:33.622","value":186.0}, {"ts":"2012-04-13 03:34:36.201","value":179.0}, {"ts":"2012-04-13 03:34:38.777","value":194.0}, {"ts":"2012-04-13 03:34:41.353","value":130.0}, {"ts":"2012-04-13 03:34:43.929","value":189.0}, {"ts":"2012-04-13 03:34:46.506","value":183.0}, {"ts":"2012-04-13 03:34:49.087","value":175.0}, {"ts":"2012-04-13 03:34:51.665","value":179.0}, {"ts":"2012-04-13 03:34:54.242","value":187.0}, {"ts":"2012-04-13 03:34:56.818","value":206.0}, {"ts":"2012-04-13 03:34:59.394","value":179.0}]}
+{"status":"ok", "pointData":[{"time":"2012-04-13 03:34:31.044","value":203.0}, {"time":"2012-04-13 03:34:33.622","value":186.0}, {"time":"2012-04-13 03:34:36.201","value":179.0}, {"time":"2012-04-13 03:34:38.777","value":194.0}, {"time":"2012-04-13 03:34:41.353","value":130.0}, {"time":"2012-04-13 03:34:43.929","value":189.0}, {"time":"2012-04-13 03:34:46.506","value":183.0}, {"time":"2012-04-13 03:34:49.087","value":175.0}, {"time":"2012-04-13 03:34:51.665","value":179.0}, {"time":"2012-04-13 03:34:54.242","value":187.0}, {"time":"2012-04-13 03:34:56.818","value":206.0}, {"time":"2012-04-13 03:34:59.394","value":179.0}]}
 }}}
 
 === After ===
@@ -153,9 +163,13 @@ To query the first value in the archive for a particular point which is after or
 http://bullawa:8111/point/home.weather.wind_dir?after=2012-04-13%2003:34:30
 }}}
 
+{{{
+http://bullawa:8111/points?points=home.weather.wind_dir;home.weather.wind_speed&type=after&time=2012-04-13%2003:34:30
+}}}
+
 A single point should be returned:
 {{{
-{"status":"ok", "data":[{"name":"home.weather.wind_dir","ts":"2012-04-13 03:42:27.279","value":172.0}]}
+{"status":"ok", "pointData":[{"pointName":"home.weather.wind_dir","time":"2012-04-13 03:42:27.279","value":172.0}]}
 }}}
 
 === Before ===
