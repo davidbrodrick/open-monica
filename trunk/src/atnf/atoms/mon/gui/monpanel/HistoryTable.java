@@ -972,7 +972,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
         p.print(t.toString(AbsTime.Format.HEX_BAT) + ", ");
         p.print(t.toString(AbsTime.Format.UTC_STRING));
       } else {
-        p.print("#"+row.get(0) + ",");
+        p.print("#" + row.get(0) + ",");
         p.print(row.get(0) + ",");
       }
       for (int c = 1; c < row.size(); c++) {
@@ -1084,17 +1084,52 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
   }
 
   /**
+   * Return the timestamp of the earliest unallocated data element, after the given time, for the current columns.
+   * 
+   * @param lasttime
+   *          Return a time after this.
+   */
+  AbsTime getEarliest(AbsTime lasttime) {
+    AbsTime earliest = null;
+    for (int i = 0; i < itsData.size(); i++) {
+      Vector<PointData> v = itsData.get(i);
+      if (v == null || v.isEmpty()) {
+        continue;
+      }
+      for (int j = 0; j < v.size(); j++) {
+        PointData pd = (PointData) v.get(j);
+        AbsTime thistime = pd.getTimestamp();
+        if ((lasttime == null || thistime.isAfter(lasttime)) && (earliest == null || thistime.isBefore(earliest))) {
+          earliest = thistime;
+        }
+      }
+    }
+    return earliest;
+  }
+
+  /**
+   * Return the timestamp of the earliest unallocated data element for the current columns.
+   * 
+   * @return
+   */
+  AbsTime getEarliest() {
+    return getEarliest(null);
+  }
+
+  /**
    * Return the values for the next row based on time/data of previous row and user options.
    */
   public Vector<Object> getNextRow(Vector<Object> prevrow) {
     Vector<Object> res = null;
     boolean done = false;
 
+    AbsTime now = new AbsTime();
+
     while (!done) {
       res = new Vector<Object>(itsPoints.size() + 1);
 
       AbsTime lasttime = null;
-      if (prevrow != null) {
+      if (prevrow != null && prevrow.get(0) instanceof AbsTime) {
         lasttime = (AbsTime) prevrow.get(0);
       }
 
@@ -1117,49 +1152,30 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
         }
       } else if (itsNewRow) {
         // Next row will correspond to next update of any column
-        AbsTime earliest = null;
-        for (int i = 0; i < itsData.size(); i++) {
-          Vector<PointData> v = itsData.get(i);
-          if (v.isEmpty()) {
-            continue;
-          }
-          for (int j = 0; j < v.size(); j++) {
-            PointData pd = (PointData) v.get(j);
-            AbsTime thistime = pd.getTimestamp();
-            if ((lasttime == null || thistime.isAfter(lasttime)) && (earliest == null || thistime.isBefore(earliest))) {
-              earliest = thistime;
-            }
-          }
-        }
-        if (earliest == null) {
+        nexttime = getEarliest(lasttime);
+        if (nexttime == null) {
           return null; // No data to be displayed!
         }
-        nexttime = earliest;
       } else {
         // Next row is controlled by user-defined time interval
         if (lasttime != null) {
-          nexttime = lasttime.add(itsRowInterval);
-        } else {
-          // Start at first 10 second mark after first data
-          AbsTime earliest = null;
-          for (int i = 0; i < itsData.size(); i++) {
-            Vector<PointData> v = itsData.get(i);
-            if (v == null || v.size() == 0) {
-              continue;
-            }
-            PointData pd = (PointData) v.get(0);
-            AbsTime thistime = pd.getTimestamp();
-            if (earliest == null || thistime.isBefore(earliest)) {
-              earliest = thistime;
-            }
-          }
+          AbsTime earliest = getEarliest();
           if (earliest == null) {
             return null; // No data to be displayed!
           }
-          nexttime = earliest;
+          nexttime = lasttime.add(itsRowInterval);
+          if (nexttime.isBefore(earliest)) {
+            long numintervals = (Time.diff(earliest, nexttime)).getValue() / itsRowInterval.getValue();
+            nexttime = lasttime.add(itsRowInterval.multiply(numintervals + 2));
+          }
+        } else {
+          // Start after first data
+          nexttime = getEarliest();
+          if (nexttime == null) {
+            return null; // No data to be displayed!
+          }
         }
         if (itsRealTime) {
-          AbsTime now = new AbsTime();
           if (now.isBefore(nexttime)) {
             return null;
           }
@@ -1202,7 +1218,7 @@ public class HistoryTable extends MonPanel implements PointListener, Runnable, T
         res = null;
       }
 
-      if (itsHideIncomplete) {
+      if (res != null && itsHideIncomplete) {
         boolean wasincomplete = false;
         for (int i = 1; i < res.size(); i++) {
           if (res.get(i) == null) {
