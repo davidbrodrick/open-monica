@@ -8,7 +8,7 @@ This document describes the RESTlet RESTful interface which allows MoniCA data t
 
 == Point Names ==
 
-The list of all points which exist on the server can be obtained with a GET query to the */names/* URL, eg:
+The list of all points which exist on the server can be obtained with a GET/POST query to the */names/* URL, eg:
 
 {{{
 http://bullawa:8111/names
@@ -17,12 +17,12 @@ http://bullawa:8111/names
 The response takes the following format:
 
 {{{
-{"status":"ok", "names":["home.weather.wind_speed","home.weather.wind_dir"]}
+{"status":"ok", "errorMsg":"", "monitoringPointNames":["home.weather.wind_speed","home.weather.wind_dir"]}
 }}}
 
 == Point Descriptions ==
 
-Point description metadata can be obtained in a number of ways. To obtain the metadata for all points which are defined on the server you can perform a GET request to the */descriptions/* URL.
+Point description metadata can be obtained in a number of ways. To obtain the metadata for all points which are defined on the server you can perform a GET/POST request to the */descriptions/* URL.
 
 {{{
 http://bullawa:8111/descriptions
@@ -30,10 +30,13 @@ http://bullawa:8111/descriptions
 
 This operation may be expensive on a server which has thousands of points defined, in which case selectively obtaining point descriptions as required may be preferable.
 
-To request data for a single point via the GET method you can query the */description/* URL with a single point name argument:
+To request data for a single point via the GET/POST method you can query the */description/* URL with a single point name argument:
 
 {{{
 http://bullawa:8111/description/home.weather.wind_speed
+}}}
+{{{
+http://bullawa:8111/description?points=home.weather.wind_speed;home.weather.wind_dir
 }}}
 
 To query multiple point definitions via a POST method you need to submit a JSON object to the */descriptions/* URL with the following format:
@@ -45,7 +48,7 @@ To query multiple point definitions via a POST method you need to submit a JSON 
 In all cases the response will take the following format:
 
 {{{
-{"status":"ok", "descriptions": [{"name":"home.weather.wind_speed","desc":"Wind Speed","units":"km/h","period":2.5},{"name":"home.weather.wind_dir","desc":"Wind Direction","units":"deg","period":2.5}]}
+{"status":"ok", "errorMsg":"", "monitoringPointDescriptions": [{"name":"home.weather.wind_speed","desc":"Wind Speed","units":"km/h","period":2.5},{"name":"home.weather.wind_dir","desc":"Wind Direction","units":"deg","period":2.5}]}
 }}}
 
 The _status_ field will be 'ok' unless there was an error in which case it will say 'fail'. The _descriptions_ array contains the actual descriptions, each of which may contain the following fields:
