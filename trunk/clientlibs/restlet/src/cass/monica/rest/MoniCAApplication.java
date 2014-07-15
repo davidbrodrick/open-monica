@@ -1,46 +1,97 @@
 package cass.monica.rest;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.restlet.Application;
 import org.restlet.Component;
 import org.restlet.Restlet;
 import org.restlet.data.Protocol;
 import org.restlet.routing.Router;
+
+import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.PointDescription;
+import atnf.atoms.mon.comms.MoniCAClient;
+import atnf.atoms.mon.comms.MoniCAClientIce;
+import atnf.atoms.time.AbsTime;
+import atnf.atoms.util.Angle;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import atnf.atoms.mon.comms.MoniCAClient;
-import atnf.atoms.mon.comms.MoniCAClientIce;
-import atnf.atoms.mon.*;
-import atnf.atoms.time.AbsTime;
-
 public class MoniCAApplication extends Application {
-	private MoniCAClient itsClient;
+	private static Logger logger = Logger.getLogger(MoniCAApplication.class.getName());
+	
+	private MoniCAClient monicaServer;
+	private String serverName;
 
 	private static Gson theirGson;
 
-	public MoniCAApplication(String monicaserver) {
+	public MoniCAApplication() {
 		GsonBuilder gsonbuilder = new GsonBuilder();
+		gsonbuilder.registerTypeAdapter(Angle.class, new AngleSerializer());
 		gsonbuilder.registerTypeAdapter(AbsTime.class, new AbsTimeSerializer(AbsTime.Format.UTC_STRING));
 		gsonbuilder.registerTypeAdapter(PointDescription.class, new PointDescriptionSerializer());
 		gsonbuilder.registerTypeAdapter(PointData.class, new PointDataSerializer());
-		theirGson = gsonbuilder.create();
-
-		try {
-			itsClient = new MoniCAClientIce(monicaserver);
-		} catch (Exception e) {
-			System.err.println(e);
-			System.exit(1);
-		}
+		theirGson = gsonbuilder.setPrettyPrinting().create();
 	}
+
 
 	public static Gson getGson() {
 		return theirGson;
 	}
 
 	public MoniCAClient getClient() {
-		return itsClient;
+		if (monicaServer==null) {
+			Properties parset = new Properties();
+			// get property from property file if not set
+			if (serverName==null || serverName.trim().length()==0) {
+				try {
+					InputStream in = MoniCAClient.class.getClassLoader().getResourceAsStream("monica-restlet.properties");
+					parset.load(in);
+				} catch (IOException e) {
+					logger.log(Level.SEVERE, "Could not load peroperties file: obs.properties", e);
+				}
+
+				serverName = parset.getProperty("monics-server-name", "");
+				parset.remove("monics-server-name");
+			}
+			setMonicaServer(serverName, parset);
+		}
+		
+		return monicaServer;
 	}
 
+	public void setMonicaServer(String serverName, Properties parset) {
+		if (serverName!=null && serverName.trim().length()>0) {
+			try {
+				this.serverName = serverName;
+				
+				if (parset.size() > 0) {
+					 Ice.Properties props = Ice.Util.createProperties();
+					 props.setProperty("Ice.Default.Locator", serverName);
+					 for (Enumeration<Object> iter=parset.keys(); iter.hasMoreElements();) {
+						 String key = (String) iter.nextElement();
+						 String value = parset.getProperty(key);
+						 
+						 props.setProperty(key, value);
+						 
+						monicaServer =  new MoniCAClientIce (props);
+					 }
+				} else {
+					monicaServer =  new MoniCAClientIce (serverName);
+				}
+			} catch (Exception e) {
+				logger.log(Level.SEVERE, "Could not connect to " + serverName, e);
+			}
+		}
+	}
+	
 	public static void main(String[] args) throws Exception {
 		// Create a component
 		Component component = new Component();
@@ -50,7 +101,8 @@ public class MoniCAApplication extends Application {
 			monicaserver = args[0];
 		}
 		// Create an application
-		Application application = new MoniCAApplication(monicaserver);
+		MoniCAApplication application = new MoniCAApplication();
+		application.setMonicaServer(monicaserver, new Properties());
 
 		// Attach the application to the component and start it
 		component.getDefaultHost().attachDefault(application);
@@ -64,11 +116,13 @@ public class MoniCAApplication extends Application {
 
 		// Attach the resources to the router
 		// redundant - use vector version
-		router.attach("/point/{name}", PointResource.class);
-    router.attach("/points", PointResource.class);
-    router.attach("/names", PointNames.class);
-    router.attach("/description/{name}", PointDescriptions.class);
-    router.attach("/descriptions", PointDescriptions.class);    
+		router.attach("/point/{points}", PointResource.class);
+	    router.attach("/points", PointResource.class);
+	    router.attach("/names", PointNameResource.class);
+	    router.attach("/description/{points}", PointDescriptionResource.class);
+	    router.attach("/descriptions", PointDescriptionResource.class);
+	    
+	    logger.log(Level.INFO, "Resource binding finished");
 		// Return the root router
 		return router;
 	}

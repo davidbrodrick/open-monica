@@ -23,20 +23,25 @@ import com.google.gson.*;
  * @author David Brodrick
  */
 public class PointDataSerializer implements JsonSerializer<PointData> {
-  /** Serialise from a PointDescription to JSON, in the appropriate format. */
-  public JsonElement serialize(PointData src, Type typeOfSrc, JsonSerializationContext context) {
-    JsonObject res = new JsonObject();
-    if (src.getName() != null) {
-      res.addProperty("name", src.getName());
-    }
-    // How to use the AbsTime serialiser class from here?
-    res.addProperty("ts", src.getTimestamp().toString(AbsTime.Format.UTC_STRING));
-    if (src.getData() != null) {
-      res.add("value", context.serialize(src.getData()));
-    }
-    if (src.getAlarm()) {
-      res.addProperty("alarm", src.getAlarm());
-    }
-    return res;
-  }
+	/** Serialise from a PointDescription to JSON, in the appropriate format. */
+	public JsonElement serialize(PointData src, Type typeOfSrc,
+			JsonSerializationContext context) {
+		
+		JsonObject res = new JsonObject();
+		if (src.getName() != null) {
+			res.addProperty("pointName", src.getName());
+		}
+		
+		// How to use the AbsTime serialiser class from here?
+		res.addProperty("time",
+				src.getTimestamp().toString(AbsTime.Format.UTC_STRING));
+		
+		if (src.getData() != null) {
+			res.add("value", context.serialize(src.getData()));
+		}
+		
+		res.addProperty("errorState", !src.getAlarm());
+		
+		return res;
+	}
 }
