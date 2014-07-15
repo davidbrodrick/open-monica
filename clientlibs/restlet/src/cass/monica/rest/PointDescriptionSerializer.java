@@ -21,24 +21,29 @@ import com.google.gson.*;
  * 
  * @author David Brodrick
  */
-public class PointDescriptionSerializer implements JsonSerializer<PointDescription> {
+public class PointDescriptionSerializer implements
+		JsonSerializer<PointDescription> {
 	/** Serialise from a PointDescription to JSON, in the appropriate format. */
 	public JsonElement serialize(PointDescription src, Type typeOfSrc,
 			JsonSerializationContext context) {
-	  JsonObject res = new JsonObject();
-    res.addProperty("name", src.getFullName());
-    String desc = src.getLongDesc(); 
-    if (desc!=null && !desc.equals("")) {
-      res.addProperty("desc", desc);
-    }
-    String units = src.getUnits(); 
-    if (units!=null && !units.equals("")) {
-      res.addProperty("units", units);
-    }
-    long period= src.getPeriod();
-    if (period>0) {
-      res.addProperty("period", period/1000000.0);
-    }
+		
+		JsonObject res = new JsonObject();
+		res.addProperty("name", src.getFullName());
+		String desc = src.getLongDesc();
+		
+		if (desc != null && !desc.equals("")) {
+			res.addProperty("desc", desc);
+		}
+		
+		String units = src.getUnits();
+		if (units != null && !units.equals("")) {
+			res.addProperty("units", units);
+		}
+		
+		long period = src.getPeriod();
+		if (period > 0) {
+			res.addProperty("period", period / 1000000.0);
+		}
 		return res;
 	}
 }

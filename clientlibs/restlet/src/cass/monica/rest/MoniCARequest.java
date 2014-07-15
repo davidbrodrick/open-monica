@@ -10,118 +10,138 @@
 
 package cass.monica.rest;
 
-import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
-import org.restlet.representation.Representation;
-import org.restlet.representation.StringRepresentation;
-import org.restlet.data.MediaType;
 import java.util.Arrays;
 import java.util.Vector;
-import atnf.atoms.time.AbsTime;
-import atnf.atoms.mon.comms.MoniCAClient;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.restlet.data.MediaType;
+import org.restlet.representation.Representation;
+import org.restlet.representation.StringRepresentation;
+
 import atnf.atoms.mon.PointData;
+import atnf.atoms.mon.comms.MoniCAClient;
+import atnf.atoms.time.AbsTime;
+
+import cass.monica.rest.json.MonitorPointList;
+
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 
 /**
- * Container class for a MoniCA request, including the logic to talk to server and format the results as JSON.
+ * Container class for a MoniCA request, including the logic to talk to server
+ * and format the results as JSON.
  * 
- * Only some of the fields need be populated, depending on what 'type' of request is made.
+ * Only some of the fields need be populated, depending on what 'type' of
+ * request is made.
  * 
  * @author David Brodrick
  */
 public class MoniCARequest {
-  public static final String GET = "get";
-  public static final String SET = "set";
-  public static final String BETWEEN = "between";
-  public static final String BEFORE = "before";
-  public static final String AFTER = "after";
+	private static Logger logger = Logger.getLogger(MoniCARequest.class.getName());
 
-  @SerializedName("type")
-  public String itsRequestType;
+	
+	public static final String GET = "get";
+	public static final String SET = "set";
+	public static final String BETWEEN = "between";
+	public static final String BEFORE = "before";
+	public static final String AFTER = "after";
 
-  @SerializedName("start")
-  public AbsTime itsStartTime;
+	@SerializedName("type")
+	public String itsRequestType;
 
-  @SerializedName("end")
-  public AbsTime itsEndTime;
+	@SerializedName("start")
+	public AbsTime itsStartTime;
 
-  @SerializedName("time")
-  public AbsTime itsTime;
+	@SerializedName("end")
+	public AbsTime itsEndTime;
 
-  @SerializedName("points")
-  public String[] itsPointNames;
+	@SerializedName("time")
+	public AbsTime itsTime;
 
-  public volatile String itsCallback;
+	@SerializedName("points")
+	public String[] itsPointNames;
 
-  /** Return the JSON representation of this request. */
-  public String toString() {
-    return MoniCAApplication.getGson().toJson(this);
-  }
+	public volatile String itsCallback;
 
-  /** Complete this request on the given server and return the JSON result. */
-  public Representation completeRequest(MoniCAClient client) {
-    Vector<PointData> resdata = null;
-    try {
-      if (itsRequestType.equalsIgnoreCase(GET)) {
-        if (itsPointNames != null && itsPointNames.length > 0) {
-          resdata = client.getData(new Vector<String>(Arrays.asList(itsPointNames)));
-        }
-      } else if (itsRequestType.equalsIgnoreCase(BETWEEN)) {
-        if (itsPointNames != null && itsPointNames.length == 1 && itsStartTime != null && itsEndTime != null) {
-          resdata = client.getArchiveData(itsPointNames[0], itsStartTime, itsEndTime);
-          if (resdata!=null) {
-            for (PointData pd: resdata) {
-              pd.setName(null);
-            }
-          }
-        }
-      } else if (itsRequestType.equalsIgnoreCase(AFTER)) {
-        if (itsPointNames != null && itsPointNames.length > 0 && itsTime != null) {
-          resdata = client.getAfter(new Vector<String>(Arrays.asList(itsPointNames)), itsTime);
-        }
-      } else if (itsRequestType.equalsIgnoreCase(BEFORE)) {
-        if (itsPointNames != null && itsPointNames.length > 0 && itsTime != null) {
-          resdata = client.getBefore(new Vector<String>(Arrays.asList(itsPointNames)), itsTime);
-        }
-      }
-    } catch (Exception e) {
-      System.err.println(e);
-    }
+	/** Return the JSON representation of this request. */
+	public String toString() {
+		return MoniCAApplication.getGson().toJson(this);
+	}
 
-    return new StringRepresentation(asJSON(resdata), MediaType.APPLICATION_JAVASCRIPT);
-  }
+	/** Complete this request on the given server and return the JSON result. */
+	public Representation completeRequest(MoniCAClient client) {
+		Vector<PointData> resdata = null;
+		try {
+			if (itsRequestType.equalsIgnoreCase(GET)) {
+				if (itsPointNames != null && itsPointNames.length > 0) {
+					resdata = client.getData(new Vector<String>(Arrays
+							.asList(itsPointNames)));
+				}
+			} else if (itsRequestType.equalsIgnoreCase(BETWEEN)) {
+				if (itsPointNames != null && itsPointNames.length == 1
+						&& itsStartTime != null && itsEndTime != null) {
+					resdata = client.getArchiveData(itsPointNames[0],
+							itsStartTime, itsEndTime);
+					if (resdata != null) {
+						for (PointData pd : resdata) {
+							pd.setName(null);
+						}
+					}
+				}
+			} else if (itsRequestType.equalsIgnoreCase(AFTER)) {
+				if (itsPointNames != null && itsPointNames.length > 0
+						&& itsTime != null) {
+					resdata = client.getAfter(
+							new Vector<String>(Arrays.asList(itsPointNames)),
+							itsTime);
+				}
+			} else if (itsRequestType.equalsIgnoreCase(BEFORE)) {
+				if (itsPointNames != null && itsPointNames.length > 0
+						&& itsTime != null) {
+					resdata = client.getBefore(
+							new Vector<String>(Arrays.asList(itsPointNames)),
+							itsTime);
+				}
+			}
+		} catch (Exception e) {
+			logger.log(Level.WARNING, "Could not get point value", e);
+		}
 
-  /** Return a JSON representation of the data, including status: ok. */
-  private String asJSON(Vector<PointData> data) {
-    if (data == null) {
-      return "{\"status\":\"fail\"}";
-    }
+		return new StringRepresentation(asJSON(resdata),
+				MediaType.APPLICATION_JAVASCRIPT);
+	}
 
-    Gson gson = MoniCAApplication.getGson();
-    String datastr = "";
-    int numvalid = 0;
-    for (int i = 0; i < data.size(); i++) {
-      PointData pd = data.get(i);
-      if (pd.isValid()) {
-        if (numvalid > 0) {
-          datastr += ", ";
-        }
-        datastr += gson.toJson(pd);
-        numvalid++;
-      }
-    }
+	/** Return a JSON representation of the data, including status: ok. */
+	private String asJSON(Vector<PointData> data) {
+		
+		MonitorPointList pointList = new MonitorPointList();
+		
+		if (data == null) {
+			pointList.setStatus("fail");
+		}
 
-    String temp = "{\"status\":";
-    if (numvalid > 0) {
-      temp += "\"ok\", \"data\":[" + datastr + "]}";
-    } else {
-      temp += "\"fail\"}";
-    }
+		Gson gson = MoniCAApplication.getGson();
+		String datastr = "";
+		int numvalid = 0;
+		for (int i = 0; i < data.size(); i++) {
+			PointData pd = data.get(i);
+			if (pd.isValid()) {
+				if (numvalid > 0) {
+					datastr += ", ";
+				}
+				datastr += gson.toJson(pd);
+				numvalid++;
+			}
+		}
 
-    if (itsCallback != null) {
-      temp = itsCallback + "(" + temp + ")";
-    }
+		if (numvalid > 0) {
+			pointList.setStatus("ok");
+			pointList.setPointData(data);
+		} else {
+			pointList.setStatus("fail");
+		}
 
-    System.err.println("GET RESULT = " + temp);
-    return temp;
-  }
+		return MoniCAApplication.getGson().toJson(pointList);
+	}
 }
