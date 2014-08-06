@@ -161,34 +161,46 @@ public class SNMP extends ExternalSystem {
     for (int i = 0; i < points.length; i++) {
       PointDescription pm = points[i];
       TransactionStrings tds = (TransactionStrings) getMyTransactions(pm.getInputTransactions()).get(0);
+      ResponseEvent response;
 
-      // Check we have correct number of arguments
-      if (tds.getNumStrings() < 1) {
-        theirLogger.error("(" + itsHostName + "): Expect OID argument in Transaction for point \"" + pm.getFullName() + "\"");
-        throw new IllegalArgumentException("Missing OID argument in Transaction");
+      try {
+        // Check we have correct number of arguments
+        if (tds.getNumStrings() < 1) {
+          theirLogger.error("(" + itsHostName + "): Expect OID argument in Transaction for point \"" + pm.getFullName() + "\"");
+          throw new IllegalArgumentException("Missing OID argument in Transaction");
+        }
+        // Create an OID from the string argument
+        OID oid = new OID(tds.getString());
+
+        // Send the SNMP request
+        PDU pdu = DefaultPDUFactory.createPDU(itsTarget, PDU.GET);
+        pdu.add(new VariableBinding(oid));
+        response = itsSNMP.send(pdu, itsTarget); 
+
+        // Process response
+        PDU responsePDU = response.getResponse();
+        PointData newdata;
+      
+        //theirLogger.debug(itsHostName + " PDU error status: " + responsePDU.getErrorStatus());
+
+        if (responsePDU == null || responsePDU.getErrorStatus() != SnmpConstants.SNMP_ERROR_SUCCESS || !responsePDU.get(0).getOid().equals(oid)) {
+          // Response timed out or was in error, so fire event with null data
+          newdata = new PointData(pm.getFullName());
+        } else {
+          // Fire event with new data value (always as a string)
+          newdata = new PointData(pm.getFullName(), responsePDU.get(0).getVariable().toString());
+        }
+        pm.firePointEvent(new PointEvent(this, newdata, true));
+
+        // Increment the transaction counter for this ExternalSystem
+        itsNumTransactions++;
+      } catch (Exception e) {
+        // This is triggered when the SNMP host is unreachable.
+        // need to fire PointEvent with null data, otherwise OutOfMemory error brings down MoniCA.`
+        theirLogger.fatal("Caught error: " + e + " for point " + pm.getFullName());
+        pm.firePointEvent(new PointEvent(this, new PointData(pm.getFullName()), true));
       }
-      // Create an OID from the string argument
-      OID oid = new OID(tds.getString());
 
-      // Send the SNMP request
-      PDU pdu = DefaultPDUFactory.createPDU(itsTarget, PDU.GET);
-      pdu.add(new VariableBinding(oid));
-      ResponseEvent response = itsSNMP.send(pdu, itsTarget);
-
-      // Process response
-      PDU responsePDU = response.getResponse();
-      PointData newdata;
-      if (responsePDU == null || responsePDU.getErrorStatus() != SnmpConstants.SNMP_ERROR_SUCCESS || !responsePDU.get(0).getOid().equals(oid)) {
-        // Response timed out or was in error, so fire event with null data
-        newdata = new PointData(pm.getFullName());
-      } else {
-        // Fire event with new data value (always as a string)
-        newdata = new PointData(pm.getFullName(), responsePDU.get(0).getVariable().toString());
-      }
-      pm.firePointEvent(new PointEvent(this, newdata, true));
-
-      // Increment the transaction counter for this ExternalSystem
-      itsNumTransactions++;
     }
   }
   
