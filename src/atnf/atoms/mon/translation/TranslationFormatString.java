@@ -1,7 +1,5 @@
 package atnf.atoms.mon.translation;
 
-import org.nfunk.jep.JEP;
-
 import org.apache.log4j.Logger;
 
 import atnf.atoms.mon.PointData;
