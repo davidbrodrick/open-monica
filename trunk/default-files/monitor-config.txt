@@ -26,6 +26,11 @@ ArchiveMaxAge 604800
 # Number of threads to write data to disk
 ArchiveNumThreads 1
 
+# Max number of records to accumulate before flushing to disk
+MaxFlushSize 50
+#Maximum age (in seconds) of data points before they get flushed to disk
+MaxFlushAge 240
+
 ##############################
 # OPTIONS FOR DATA MEMORY CACHE:
 # Max number of records to cache per point
