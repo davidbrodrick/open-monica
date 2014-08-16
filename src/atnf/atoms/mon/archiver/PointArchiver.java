@@ -34,13 +34,13 @@ public abstract class PointArchiver extends Thread {
   protected static final int MAXNUMRECORDS = Integer.parseInt(MonitorConfig.getProperty("ArchiveMaxRecords", "5000"));
 
   /** The base number of records for the data to be flushed out/max to be buffered. */
-  protected static final int theirMaxRecordCount = 50;
+  protected static int theirMaxRecordCount = 50;
 
   /** Maximum offset to be added to above based on hash of specific point name. */
   protected static final int theirRecordCountOffset = 15;
 
   /** The maximum amount of time since an update for the point before buffer should be flushed. */
-  protected static final RelTime theirMaxAge = RelTime.factory(-240000000);
+  protected static RelTime theirMaxAge = RelTime.factory(-240000000);
 
   /** Maximum offset to be added to above based on hash of specific point name. */
   protected static final long theirMaxAgeOffset = 60000000;
@@ -50,6 +50,24 @@ public abstract class PointArchiver extends Thread {
 
   /** Flag to indicate the the archive flush on shutdown is now complete. */
   protected boolean itsFlushComplete = false;
+  
+  /** Static block to parse flush parameters. */
+  static {
+    try {
+      theirMaxRecordCount = Integer.parseInt(MonitorConfig.getProperty("MaxFlushSize", "50"));
+    } catch (Exception e) {
+      Logger.getLogger(PointArchiver.class.getName()).warn("Error parsing MaxFlushSize configuration parameter: " + e);
+      theirMaxRecordCount = 50;
+    }
+    int numsecs;
+    try {
+      numsecs = Integer.parseInt(MonitorConfig.getProperty("MaxFlushAge", "240"));
+    } catch (Exception e) {
+      Logger.getLogger(PointArchiver.class.getName()).warn("Error parsing MaxFlushAge configuration parameter: " + e);
+      numsecs = 240;
+    }
+    theirMaxAge = RelTime.factory(numsecs * -1000000);
+  }
 
   /** Specify the archiver to be used for archiving all data. */
   public static synchronized void setPointArchiver(PointArchiver archiver) {
