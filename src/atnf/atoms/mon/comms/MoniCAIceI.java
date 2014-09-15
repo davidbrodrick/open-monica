@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import Ice.Current;
 import atnf.atoms.mon.*;
+import atnf.atoms.mon.util.MonitorConfig;
 import atnf.atoms.mon.util.RADIUSAuthenticator;
 import atnf.atoms.time.*;
 import org.apache.log4j.Logger;
@@ -27,7 +28,20 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   protected static MoniCAIceServerThread theirServer = null;
 
   protected static Logger theirLogger = Logger.getLogger(MoniCAIceI.class.getName());
-
+  
+  /** Port the server will listen on. */
+  protected static int theirPort;
+  
+  static {
+    //Determine which port the server should listen on
+    try {
+      theirPort = Integer.parseInt(MonitorConfig.getProperty("IcePort", ""+MoniCAIceUtil.getDefaultPort()));
+    } catch (Exception e) {
+      theirLogger.fatal("Error parsing IcePort configuration parameter: " + e);
+      System.exit(1);
+    }
+  }
+  
   public MoniCAIceI() {
   }
 
@@ -389,7 +403,7 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
 
   /** Start the server on the default port. */
   public static void startIceServer() {
-    startIceServer(MoniCAIceUtil.getDefaultPort());
+    startIceServer(theirPort);
   }
 
   /** Start the server using the specified adapter. */

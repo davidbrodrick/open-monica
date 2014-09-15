@@ -325,7 +325,7 @@ public class MoniCAClientIce extends MoniCAClient {
       PointDataIce[] icedata = itsIceClient.getData(namesarray);
       res = MoniCAIceUtil.getPointDataFromIce(icedata);
     } catch (Exception e) {
-      System.err.println("MoniCAClientIce.getData:" + e.getClass());
+      System.err.println("MoniCAClientIce.getData:" + e);
       disconnect();
       throw e;
     }

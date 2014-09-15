@@ -52,6 +52,8 @@ MaxBufferAge 90
 # NETWORK INTERFACE OPTIONS
 # Port the ASCII text Server will use
 ASCIIPort 8051
+#Port for the Ice server
+IcePort 8052
 
 #Settings for IceStorm pub/sub service
 PubSubEnabled false
