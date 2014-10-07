@@ -65,17 +65,19 @@ PubSubTopic MoniCA.PubSubControl
 # SMTP Server options for Emails
 
 # Example config for gmail:
-#SMTPPort 465
-#TLS true
 #SMTPHost smtp.gmail.com
+#SMTPPort 465
+#SMTPSTARTTLS true
+#SMTPSSLSocket true
 #SMTPAuth true
 #SMTPUser your@user.id 
 #SMTPPassword yourpassword 
 
 # Example config for localhost
-SMTPPort 25 
-TLS false 
 SMTPHost localhost 
+SMTPPort 25 
+SMTPSTARTTLS false 
+SMTPSSLSocket false
 SMTPAuth false 
 SMTPUser any 
 SMTPPassword any 
