@@ -14,6 +14,8 @@ import javax.mail.internet.*;
 import javax.mail.internet.InternetAddress.*;
 import org.apache.log4j.Logger;
 
+import com.sun.mail.util.MailSSLSocketFactory;
+
 /**
  * Trivial wrapper class for JavaMail. This uses the host for mail transport and sends mail as the current user.
  * 
@@ -26,11 +28,19 @@ public class MailSender {
   private static Properties properties = new Properties();
   static {
     try {
-      properties.put("mail.smtp.socketFactory.port", MonitorConfig.getProperty("SMTPPort"));
-      properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-      properties.put("mail.smtp.starttls.enable", MonitorConfig.getProperty("TLS"));
-      properties.put("mail.smtp.host", MonitorConfig.getProperty("SMTPHost"));
-      properties.put("mail.smtp.auth", MonitorConfig.getProperty("SMTPAuth"));
+      properties.put("mail.smtp.socketFactory.port", MonitorConfig.getProperty("SMTPPort", "25"));
+      properties.put("mail.smtp.host", MonitorConfig.getProperty("SMTPHost", "localhost"));
+      properties.put("mail.smtp.auth", MonitorConfig.getProperty("SMTPAuth", "false"));
+      if (MonitorConfig.getProperty("SMTPSTARTTLS") == null) {
+        // Backwards compatibility
+        properties.put("mail.smtp.starttls.enable", MonitorConfig.getProperty("TLS", "false"));
+      } else {
+        properties.put("mail.smtp.starttls.enable", MonitorConfig.getProperty("SMTPSTARTTLS"));
+      }
+      String temp = MonitorConfig.getProperty("SMTPSSLSocket");
+      if (temp != null && temp.toLowerCase().equals("true")) {
+        properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+      }
     } catch (Exception e) {
     }
   }
