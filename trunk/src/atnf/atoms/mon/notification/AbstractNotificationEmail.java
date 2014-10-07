@@ -47,8 +47,8 @@ public abstract class AbstractNotificationEmail extends Notification {
 
   public AbstractNotificationEmail(PointDescription parent, String[] init) {
     super(parent, init);
-    if (init.length < 3) {
-      throw new IllegalArgumentException("Requires at least three arguments");
+    if (init.length < 3 || init.length>4) {
+      throw new IllegalArgumentException("Requires three or four arguments, got " + init.length);
     }
     if (init.length == 3) {
       itsRecipient = init[0];
