@@ -354,7 +354,7 @@ public class PointArchiverASCII extends PointArchiver {
     String dir = getDir(pm);
 
     // Get all the archive files relevant to the period of interest
-    Vector files = getFiles(dir, start, end);
+    Vector<String> files = getFiles(dir, start, end);
 
     // Try to load data from each of the files
     for (int j = 0; j < files.size(); j++) {
@@ -919,6 +919,7 @@ public class PointArchiverASCII extends PointArchiver {
 
       compressed.close();
       uncompressed.close();
+      zip.close();
     } catch (Exception e) {
       // if (compressed!=null) compressed.close();
       // if (uncompressed!=null) uncompressed.close();
@@ -960,6 +961,7 @@ public class PointArchiverASCII extends PointArchiver {
       }
 
       compressed.close();
+      uncompressed.close();
       // System.err.println("PointArchiverASCII:compress: Compressed " +
       // filename);
     } catch (Exception e) {
