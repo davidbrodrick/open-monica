@@ -50,7 +50,7 @@ public class EPICS extends ExternalSystem {
   protected HashMap<String, Channel> itsChannelMap = new HashMap<String, Channel>();
 
   /** PV names which have never been connected. */
-  protected Set<String> itsNeedsConnecting = new HashSet<String>(1000, 1000);
+  protected Set<String> itsNeedsConnecting = new HashSet<String>();
 
   /** Mapping between 'pointname:PVname' strings and EPICSListeners. */
   protected HashMap<String, EPICSListener> itsListenerMap = new HashMap<String, EPICSListener>();
