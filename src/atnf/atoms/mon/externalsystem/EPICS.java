@@ -210,7 +210,7 @@ public class EPICS extends ExternalSystem {
     }
 
     public void run() {
-      while (true) {
+      while (itsKeepRunning) {
         // If there's no new channels then just wait
         if (itsNeedsConnecting.size() == 0) {
           RelTime sleeptime = RelTime.factory(10000000);
@@ -257,9 +257,8 @@ public class EPICS extends ExternalSystem {
         // Try to connect to the channels
         try {
           theirLogger.debug("ChannelConnector: Attempting to connect " + newchannels.size() + "/" + itsNeedsConnecting.size() + " pending channels");
-          itsContext.pendIO(10.0);
+          itsContext.pendIO(30.0);
         } catch (Exception e) {
-          // Failed to connect: IOC probably isn't running yet
           theirLogger.debug("ChannelConnector: pendIO: " + e);
         }
 
