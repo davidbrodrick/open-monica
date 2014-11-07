@@ -116,8 +116,8 @@ public class MoniCAClientIce extends MoniCAClient {
             }
             res = newres;
           }
-          
-          //System.err.println("MoniCAClientIce.getAllPointNames: " + tempnames.length + " " + res.length);
+
+          // System.err.println("MoniCAClientIce.getAllPointNames: " + tempnames.length + " " + res.length);
 
           if (tempnames.length < theirMaxNameReq) {
             // We have finished retrieving all of the names
@@ -741,28 +741,33 @@ public class MoniCAClientIce extends MoniCAClient {
   }
 
   protected boolean connect() throws Exception {
-    itsCommunicator = null;
-    Ice.ObjectPrx base = null;
-    if (itsProperties == null) {
-      // Connect directly to the specified server
-      itsCommunicator = Ice.Util.initialize();
-      // Use encoding 1.0 for backwards compatibility
-      base = itsCommunicator.stringToProxy("MoniCAService -e " + theirIceEncoding + ": tcp -h " + itsHost + " -p " + itsPort + " -t 30000");
-    } else {
-      // Find the server via a Locator service
-      Ice.InitializationData id = new Ice.InitializationData();
-      id.properties = itsProperties;
-      itsCommunicator = Ice.Util.initialize(id);
-      String adaptername = itsProperties.getProperty("AdapterName");
-      if (adaptername == null) {
-        base = itsCommunicator.stringToProxy("MoniCAService");
+    try {
+      itsCommunicator = null;
+      Ice.ObjectPrx base = null;
+      if (itsProperties == null) {
+        // Connect directly to the specified server
+        itsCommunicator = Ice.Util.initialize();
+        // Use encoding 1.0 for backwards compatibility
+        base = itsCommunicator.stringToProxy("MoniCAService -e " + theirIceEncoding + ": tcp -h " + itsHost + " -p " + itsPort + " -t 30000");
       } else {
-        base = itsCommunicator.stringToProxy("MoniCAService@" + adaptername);
+        // Find the server via a Locator service
+        Ice.InitializationData id = new Ice.InitializationData();
+        id.properties = itsProperties;
+        itsCommunicator = Ice.Util.initialize(id);
+        String adaptername = itsProperties.getProperty("AdapterName");
+        if (adaptername == null) {
+          base = itsCommunicator.stringToProxy("MoniCAService");
+        } else {
+          base = itsCommunicator.stringToProxy("MoniCAService@" + adaptername);
+        }
       }
-    }
-    itsIceClient = MoniCAIcePrxHelper.checkedCast(base);
-    if (itsIceClient == null) {
-      throw new Error("MoniCAClientIce.connect: Invalid proxy");
+      itsIceClient = MoniCAIcePrxHelper.checkedCast(base);
+      if (itsIceClient == null) {
+        throw new Error("MoniCAClientIce.connect: Invalid proxy");
+      }
+    } catch (Exception e) {
+      disconnect();
+      throw e;
     }
     return true;
   }
