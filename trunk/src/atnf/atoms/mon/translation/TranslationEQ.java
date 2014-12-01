@@ -14,6 +14,8 @@ import atnf.atoms.util.Angle;
  * <P>
  * The "init" argument must be an expression, where x is the current monitor point value and the result of evaluating the expression
  * produces the translated point value.
+ *
+ * An optional default value may be specified after the expression, which will be the value generated if the input if null.
  * 
  * <P>
  * Standard functions like log(), sqrt(), etc are understood. Check out
@@ -33,6 +35,9 @@ public class TranslationEQ extends Translation {
   /** The expression in String form. */
   protected String itsExpression;
 
+  /** Default value, if specified. */
+  protected Double itsDefaultValue;
+
   /** Logger. */
   protected static Logger theirLogger = Logger.getLogger(TranslationEQ.class.getName());
 
@@ -41,26 +46,36 @@ public class TranslationEQ extends Translation {
 
     // precondition
     if (init == null || init.length < 1) {
-      theirLogger.error(itsParent.getFullName() + ": Require Equation Argument!");
-    } else {
-      itsParser.setImplicitMul(false);
-      itsParser.setAllowUndeclared(true);
-      itsParser.addStandardConstants();
-      itsParser.addStandardFunctions();
-      itsExpression = init[0].replaceAll("'", "\"");
-      itsParser.parseExpression(itsExpression);
+      String msg = itsParent.getFullName() + ": Require Equation Argument!";
+      theirLogger.error(msg);
+      throw new IllegalArgumentException(msg);
+    }
+    itsParser.setImplicitMul(false);
+    itsParser.setAllowUndeclared(true);
+    itsParser.addStandardConstants();
+    itsParser.addStandardFunctions();
+    itsExpression = init[0].replaceAll("'", "\"");
+    itsParser.parseExpression(itsExpression);
+    if (init.length>1) {
+      itsDefaultValue = new Double(init[1]);
     }
   }
 
   public PointData translate(PointData data) {
+    PointData pdres = new PointData(itsParent.getFullName());
+    pdres.setTimestamp(data.getTimestamp());
+    pdres.setAlarm(data.getAlarm());
+
     if (data == null) {
       return null;
     }
 
     Object val = data.getData();
     if (val == null) {
-      // Return a null result
-      return new PointData(itsParent.getFullName());
+      if (itsDefaultValue!=null) {     
+        pdres.setData(itsDefaultValue);
+      }
+      return pdres;
     }
 
     if (val instanceof Boolean) {
@@ -77,12 +92,13 @@ public class TranslationEQ extends Translation {
 
     // Parse the expression using new value
     Object res = itsParser.getValueAsObject();
+    pdres.setData(res);
 
     // Check for parse error
     if (itsParser.hasError()) {
       theirLogger.warn(itsParent.getFullName() + ": " + itsParser.getErrorInfo());
     }
 
-    return new PointData(itsParent.getFullName(), data.getTimestamp(), res, data.getAlarm());
+    return pdres;
   }
 }
