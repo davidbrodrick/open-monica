@@ -58,11 +58,7 @@ public class ThytecUPS extends ASCIISocket {
 
   /** UPS version currently used in ATCA antennas. */
   public HashMap<String, Object> parse31V72(String line) {
-    char[] b = line.toCharArray();
-    for (int i=0; i<b.length; i++) {
-      System.err.println(i + "\t" + b[i]);
-    }
-    
+    //Causes parse error when no mains available
     line=line.replaceFirst("DISCHARGING  ", "");
     
     HashMap<String, Object> res = new HashMap<String, Object>();
@@ -85,8 +81,7 @@ public class ThytecUPS extends ASCIISocket {
     res.put("BYPF", new Float(line.substring(264, 268).trim())); // Frequency
     res.put("BYPS", new Boolean(line.substring(270, 291).equals("INVERTER SYNCHRONIZED")));
 
-    // Battery charging
-    System.err.println("###" + line.substring(320, 335).trim());
+    // Battery
     try {
     res.put("CHAV", new Integer(line.substring(326, 329).trim())); // Voltage
     res.put("CHAI", new Float(line.substring(335, 339).trim())); // Current
