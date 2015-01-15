@@ -909,7 +909,7 @@ public class PointDescription implements ActionListener, NamedObject, Comparable
     }
 
     if (data != null && data.isValid()) {
-      // Check alarm criteria
+      // Check alarm criteria    
       evaluateAlarms(data);
 
       // Perform any required output transactions

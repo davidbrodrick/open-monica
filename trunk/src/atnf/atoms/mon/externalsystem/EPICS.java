@@ -8,6 +8,7 @@
 package atnf.atoms.mon.externalsystem;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
@@ -47,21 +48,21 @@ public class EPICS extends ExternalSystem {
   protected Context itsContext = null;
 
   /** Mapping between PV names and Channels. */
-  protected HashMap<String, Channel> itsChannelMap = new HashMap<String, Channel>();
+  protected Map<String, Channel> itsChannelMap = new ConcurrentHashMap<String, Channel>();
 
   /** PV names which have never been connected. */
-  protected Set<String> itsNeedsConnecting = new HashSet<String>();
+  protected Set<String> itsNeedsConnecting = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
   /** Mapping between 'pointname:PVname' strings and EPICSListeners. */
   protected HashMap<String, EPICSListener> itsListenerMap = new HashMap<String, EPICSListener>();
 
   /** Records the last logged connection state of each channel. */
-  protected HashMap<String, Boolean> itsConnectionLogMap = new HashMap<String, Boolean>();
+  protected Map<String, Boolean> itsConnectionLogMap = new ConcurrentHashMap<String, Boolean>();
 
   /**
    * Lists of MoniCA points which require 'monitor' updates for each PV which hasn't been connected yet.
    */
-  protected HashMap<String, Vector<Vector<Object>>> itsRequiresMonitor = new HashMap<String, Vector<Vector<Object>>>();
+  protected HashMap<String, Vector<Object[]>> itsRequiresMonitor = new HashMap<String, Vector<Object[]>>();
 
   public EPICS(String[] args) {
     super("EPICS");
@@ -90,7 +91,7 @@ public class EPICS extends ExternalSystem {
    */
   protected void getData(PointDescription[] points) throws Exception {
     // Process each requesting point in turn
-    for (int i = 0; i < points.length; i++) {
+    for (int i = 0; i < points.length; i++) {     
       // Get the appropriate Transaction(s) and process each PV
       Vector<Transaction> thesetrans = getMyTransactions(points[i].getInputTransactions());
       for (int j = 0; j < thesetrans.size(); j++) {
@@ -99,29 +100,30 @@ public class EPICS extends ExternalSystem {
         String pvname = thistrans.getPVName();
         // Lookup the channel connected to this PV
         Channel thischan = itsChannelMap.get(pvname);
-        if (thischan == null) {
+        if (thischan == null) {         
           // We haven't connected to this channel yet so request its connection.
-          synchronized (itsNeedsConnecting) {
-            if (!itsNeedsConnecting.contains(pvname)) {
-              itsNeedsConnecting.add(pvname);
-            }
-          }
+          itsNeedsConnecting.add(pvname);
           // Fire a null-data update to indicate that data is not yet available.
           points[i].firePointEvent(new PointEvent(this, new PointData(points[i].getFullName()), true));
         } else {
+         
           String listenername = points[i].getFullName() + ":" + pvname;
-          EPICSListener listener = itsListenerMap.get(listenername);
-          if (listener == null) {
-            // This MoniCA point/PV combination hasn't been activated yet
-            listener = new EPICSListener(thischan, points[i]);
-            itsListenerMap.put(listenername, listener);
-            thischan.addConnectionListener(listener);
+          EPICSListener listener;
+          synchronized (itsListenerMap) {
+            // Check if we've already created the listener/callback for this point/PV combo and create if required
+            listener = itsListenerMap.get(listenername);
+            if (listener == null) {
+              listener = new EPICSListener(thischan, points[i]);
+              itsListenerMap.put(listenername, listener);
+              // Ensures point gets notified if connection to PV breaks
+              thischan.addConnectionListener(listener);
+            }
           }
 
-          if (thischan.getConnectionState() == Channel.ConnectionState.CONNECTED) {
+          if (thischan.getConnectionState() == Channel.ConnectionState.CONNECTED) {           
             // Channel is connected, request data via a channel access 'get'
             try {
-              points[i].isCollecting(true);
+              asynchCollecting(points[i]);
               DBRType type = thistrans.getType();
 
               // If the Transaction doesn't specify a particular DBRType, then
@@ -140,7 +142,7 @@ public class EPICS extends ExternalSystem {
             } catch (Exception e) {
               // Maybe the channel just became disconnected
               points[i].firePointEvent(new PointEvent(this, new PointData(points[i].getFullName()), true));
-              points[i].isCollecting(false);
+              asynchReturn(points[i]);
             }
           } else {
             // Channel exists but is currently disconnected. Fire null-data event.
@@ -172,26 +174,28 @@ public class EPICS extends ExternalSystem {
   public void registerMonitor(PointDescription point, String pvname, DBRType type) {
     if (itsChannelMap.get(pvname) == null) {
       // Not connected to this channel yet
-      synchronized (itsNeedsConnecting) {
-        if (!itsNeedsConnecting.contains(pvname)) {
-          itsNeedsConnecting.add(pvname);
-        }
-      }
+      itsNeedsConnecting.add(pvname);
     }
     synchronized (itsRequiresMonitor) {
-      Vector<Vector<Object>> thesepoints = itsRequiresMonitor.get(pvname);
+      Object[] newpoint = new Object[2];
+      newpoint[0] = point;
+      newpoint[1] = type;
+      Vector<Object[]> thesepoints = itsRequiresMonitor.get(pvname);
       if (thesepoints == null) {
-        thesepoints = new Vector<Vector<Object>>(1);
-        Vector<Object> newpoint = new Vector<Object>(2);
-        newpoint.add(point);
-        newpoint.add(type);
+        thesepoints = new Vector<Object[]>(1, 1);
         thesepoints.add(newpoint);
         itsRequiresMonitor.put(pvname, thesepoints);
       } else {
-        if (!thesepoints.contains(point)) {
-          Vector<Object> newpoint = new Vector<Object>(2);
-          newpoint.add(point);
-          newpoint.add(type);
+        // Check if the point is already registered to receive updates from this PV (pathological case?)
+        boolean found = false;
+        Iterator<Object[]> i = thesepoints.iterator();
+        while (i.hasNext()) {
+          if (i.next()[0] == point) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
           thesepoints.add(newpoint);
         }
       }
@@ -212,7 +216,7 @@ public class EPICS extends ExternalSystem {
     public void run() {
       while (itsKeepRunning) {
         // If there's no new channels then just wait
-        if (itsNeedsConnecting.size() == 0) {
+        if (itsNeedsConnecting.isEmpty()) {
           RelTime sleeptime = RelTime.factory(10000000);
           try {
             sleeptime.sleep();
@@ -223,77 +227,76 @@ public class EPICS extends ExternalSystem {
 
         // Create Channel objects for unconnected channels
         Vector<Channel> newchannels;
+        int numnewchans, numneedconnecting;
+        Iterator<String> it;
         synchronized (itsNeedsConnecting) {
-          int numnewchans = itsNeedsConnecting.size();
-          Iterator<String> it = itsNeedsConnecting.iterator();
-          if (itsNeedsConnecting.size() > theirMaxPending) {
-            // Start at a random place in the list
-            int startpos = (int) Math.floor((Math.random() * (itsNeedsConnecting.size() - (theirMaxPending + 1))));
-            for (int i = 0; i < startpos; i++) {
-              it.next();
-            }
-            // Limit number of channels for each attempt
-            numnewchans = theirMaxPending;
+          numneedconnecting = itsNeedsConnecting.size();
+          it = itsNeedsConnecting.iterator();
+        }
+        if (numneedconnecting > theirMaxPending) {
+          // Start at a random place in the list
+          int startpos = (int) Math.floor((Math.random() * (numneedconnecting - (theirMaxPending + 1))));
+          for (int i = 0; i < startpos; i++) {
+            it.next();
           }
-          newchannels = new Vector<Channel>(numnewchans);
-          for (int i = 0; i < numnewchans && it.hasNext(); i++) {
-            String thispv = it.next();
-            if (itsChannelMap.get(thispv) != null) {
-              theirLogger.debug("Requested channel already exists for " + thispv);
-              itsNeedsConnecting.remove(thispv);
-              numnewchans--;
-              continue;
-            }
-            try {
-              // Create the Channel to connect to the PV.
-              Channel thischan = itsContext.createChannel(thispv);
-              newchannels.add(thischan);
-            } catch (Exception e) {
-              theirLogger.warn("ChannelConnector: Connecting Channel " + thispv + ": " + e);
-            }
+          // Limit number of channels for each attempt
+          numnewchans = theirMaxPending;
+        } else {
+          numnewchans = numneedconnecting;
+        }
+        newchannels = new Vector<Channel>(numnewchans);
+        for (int i = 0; i < numnewchans && it.hasNext(); i++) {
+          String thispv = it.next();
+          if (itsChannelMap.get(thispv) != null) {
+            theirLogger.debug("Requested channel already exists for " + thispv);
+            itsNeedsConnecting.remove(thispv);
+            numnewchans--;
+            continue;
+          }
+          try {
+            // Create the Channel to connect to the PV.
+            Channel thischan = itsContext.createChannel(thispv);
+            newchannels.add(thischan);
+          } catch (Exception e) {
+            theirLogger.warn("ChannelConnector: Connecting Channel " + thispv + ": " + e);
           }
         }
 
         // Try to connect to the channels
         try {
-          theirLogger.debug("ChannelConnector: Attempting to connect " + newchannels.size() + "/" + itsNeedsConnecting.size() + " pending channels");
+          theirLogger.debug("ChannelConnector: Attempting to connect " + newchannels.size() + "/" + numneedconnecting + " pending channels");
           itsContext.pendIO(30.0);
         } catch (Exception e) {
           theirLogger.debug("ChannelConnector: pendIO: " + e);
         }
 
         // Check which channels connected successfully
-        synchronized (itsChannelMap) {
-          synchronized (itsNeedsConnecting) {
-            for (int i = 0; i < newchannels.size(); i++) {
-              Channel thischan = newchannels.get(i);
-              String thispv = thischan.getName();
-              if (thischan.getConnectionState() == Channel.ConnectionState.CONNECTED) {
-                // This channel connected okay
-                itsChannelMap.put(thispv, thischan);
-                itsNeedsConnecting.remove(thispv);
-              } else {
-                // This channel failed to connect
-                try {
-                  if (!itsConnectionLogMap.containsKey(thispv) || itsConnectionLogMap.get(thispv)) {
-                    // We haven't logged a message about this PV failing to connect yet
-                    theirLogger.warn("ChannelConnector: Failed to connect to PV " + thispv);
-                    // Record that we've logged it
-                    itsConnectionLogMap.put(thispv, new Boolean(false));
-                  }
-                  thischan.destroy();
-                } catch (Exception e) {
-                  theirLogger.error("ChannelConnector: Destroying channel for " + thispv + ": " + e);
-                }
+        for (int i = 0; i < newchannels.size(); i++) {
+          Channel thischan = newchannels.get(i);
+          String thispv = thischan.getName();
+          if (thischan.getConnectionState() == Channel.ConnectionState.CONNECTED) {
+            // This channel connected okay
+            itsChannelMap.put(thispv, thischan);
+            itsNeedsConnecting.remove(thispv);
+          } else {
+            // This channel failed to connect
+            try {
+              if (itsConnectionLogMap.get(thispv) != Boolean.FALSE) {
+                // We haven't logged a message about this PV failing to connect yet
+                theirLogger.warn("ChannelConnector: Failed to connect to PV " + thispv);
+                // Record that we've logged it
+                itsConnectionLogMap.put(thispv, Boolean.FALSE);
               }
+              thischan.destroy();
+            } catch (Exception e) {
+              theirLogger.error("ChannelConnector: Destroying channel for " + thispv + ": " + e);
             }
           }
         }
 
         // ////////////////////////////////////////////////////////
-        // Connect any 'monitor' requests for established channels
+        // Connect any 'monitor' requests for newly established channels
         synchronized (itsRequiresMonitor) {
-          Vector<String> allconnected = new Vector<String>();
           Iterator<String> allreqs = itsRequiresMonitor.keySet().iterator();
           while (allreqs.hasNext()) {
             String thispv = (String) allreqs.next();
@@ -312,58 +315,63 @@ public class EPICS extends ExternalSystem {
               itsContext.flushIO();
               nativetype = DBRType.forName(tempdbr.getType().getName().replaceAll("DBR_", "DBR_STS_").replaceAll("_ENUM", "_STRING"));
             } catch (Exception e) {
-              theirLogger.warn("ChannelConnector: ERROR determining native DBRType for " + thispv);
+              theirLogger.warn("ChannelConnector: ERROR determining native DBRType for " + thispv + " - bad channel state?");
               try {
                 // This channel is broken. Try to reconnect later.
                 itsChannelMap.put(thispv, null);
                 thischan.destroy();
+                itsNeedsConnecting.add(thispv);
               } catch (Exception f) {
                 theirLogger.error("ChannelConnector: Destroying channel for " + thispv + ": " + e);
               }
               continue;
             }
 
-            Vector<Vector<Object>> thesepoints = itsRequiresMonitor.get(thispv);
-            if (thesepoints == null || thesepoints.size() == 0) {
+            Vector<Object[]> thesepoints = itsRequiresMonitor.get(thispv);
+            if (thesepoints == null || thesepoints.isEmpty()) {
               // Should never happen
               theirLogger.error("ChannelConnector: PV " + thispv + " is queued for monitor connection but no points are waiting!");
               continue;
             } else {
-              for (int i = 0; i < thesepoints.size(); i++) {
+              Iterator<Object[]> points = thesepoints.iterator();
+              while (points.hasNext()) {
                 // Connect each point to 'monitor' updates from this channel
-                Vector<Object> thisvector = thesepoints.get(i);
-                PointDescription thispoint = (PointDescription) thisvector.get(0);
-                DBRType thistype = (DBRType) thesepoints.get(i).get(1);
+                Object[] entry = points.next();
+                PointDescription pointdesc = (PointDescription) entry[0];
+                DBRType thistype = (DBRType) entry[1];
                 // If no DBRType explicitly specified then set native type
                 if (thistype == null) {
                   thistype = nativetype;
                 }
 
-                String listenername = thispoint.getFullName() + ":" + thispv;
-                EPICSListener listener = new EPICSListener(thischan, thispoint);
+                String listenername = pointdesc.getFullName() + ":" + thispv;
+                EPICSListener listener;
                 try {
-                  thischan.addConnectionListener(listener);
+                  synchronized (itsListenerMap) {
+                    listener = itsListenerMap.get(listenername);
+                    if (listener == null) {
+                      listener = new EPICSListener(thischan, pointdesc);
+                      itsListenerMap.put(listenername, listener);
+                      // Ensure point gets notified if connection to PV breaks
+                      thischan.addConnectionListener(listener);
+                    }
+                  }
                   if (thistype == null) {
                     thischan.addMonitor(Monitor.VALUE | Monitor.ALARM, listener);
                   } else {
                     // Needs to be monitored so data arrives as a specific type
                     thischan.addMonitor(thistype, 1, Monitor.VALUE | Monitor.ALARM, listener);
                   }
-                  itsListenerMap.put(listenername, listener);
-                  thesepoints.remove(thisvector);
+                  points.remove();
                 } catch (Exception f) {
-                  theirLogger.error("ChannelConnector: Establising Listener " + thispoint.getFullName() + "/" + thispv + ": " + f);
+                  theirLogger.error("ChannelConnector: Establising Listener " + pointdesc.getFullName() + "/" + thispv + ": " + f);
                 }
               }
-              if (thesepoints.size() == 0) {
-                // We successfully connected all queued points
-                allconnected.add(thispv);
+              if (thesepoints.isEmpty()) {
+                // We successfully connected all queued points for this PV
+                allreqs.remove();
               }
             }
-          }
-          // Now modify the map by removing any PV's which are fully connected
-          for (int i = 0; i < allconnected.size(); i++) {
-            itsRequiresMonitor.remove(allconnected.get(i));
           }
         }
 
@@ -437,7 +445,7 @@ public class EPICS extends ExternalSystem {
 
     /** Call back for channel state changes. */
     public void connectionChanged(ConnectionEvent ev) {
-      if (!itsConnectionLogMap.containsKey(itsPV) || itsConnectionLogMap.get(itsPV) != ev.isConnected()) {
+      if (!itsConnectionLogMap.containsKey(itsPV) || itsConnectionLogMap.get(itsPV).booleanValue() != ev.isConnected()) {
         // State has changed, so log a message
         if (ev.isConnected()) {
           theirLogger.info("EPICSListener: Connection restored to PV: " + itsPV);
@@ -445,9 +453,9 @@ public class EPICS extends ExternalSystem {
           theirLogger.warn("EPICSListener: Lost connection to PV: " + itsPV);
         }
         // Record the state
-        itsConnectionLogMap.put(itsPV, new Boolean(ev.isConnected()));
+        itsConnectionLogMap.put(itsPV, Boolean.valueOf(ev.isConnected()));
       }
-      
+
       if (!ev.isConnected()) {
         // Connection just dropped out so fire null-data update
         itsPoint.firePointEvent(new PointEvent(this, new PointData(itsPointName), true));
