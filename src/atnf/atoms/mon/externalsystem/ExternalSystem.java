@@ -9,6 +9,7 @@
 package atnf.atoms.mon.externalsystem;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -20,9 +21,8 @@ import atnf.atoms.mon.transaction.*;
 import org.apache.log4j.Logger;
 
 /**
- * ExternalSystem is the base class for objects which bring new information into the
- * system and allow control operations to be written out. They are essentially 'drivers'
- * designed to interact with a specific system external to MoniCA. Specific behavior can
+ * ExternalSystem is the base class for objects which bring new information into the system and allow control operations to be
+ * written out. They are essentially 'drivers' designed to interact with a specific system external to MoniCA. Specific behavior can
  * be realised by implementing the <i>getData</i> and <i>putData</i> methods.
  * 
  * @author David Brodrick
@@ -30,8 +30,7 @@ import org.apache.log4j.Logger;
  */
 public class ExternalSystem implements Runnable {
   /**
-   * Comparator to compare PointDescriptions and/or AbsTimes. We need to use this
-   * Comparator with the SortedLinkedList class.
+   * Comparator to compare PointDescriptions and/or AbsTimes. We need to use this Comparator with the SortedLinkedList class.
    */
   private class TimeComp implements Comparator {
     /** Return a timestamp for any known class type. */
@@ -73,10 +72,16 @@ public class ExternalSystem implements Runnable {
   }
 
   /**
-   * List of all the points which need to be collected. A SortedLinkedList is used to keep
-   * the list sorted in order of time of next collection.
+   * List of all the points which need to be collected. A SortedLinkedList is used to keep the list sorted in order of time of next
+   * collection.
    */
   protected SortedLinkedList itsPoints = new SortedLinkedList(new TimeComp());
+
+  /**
+   * Points which are currently being collected asynchronously. We need to keep track of them so we do not schedule them for
+   * recollection until the asynchronous callback has been called.
+   */
+  private Set<PointDescription> itsAsyncPoints = Collections.newSetFromMap(new ConcurrentHashMap<PointDescription, Boolean>());
 
   /** Allows access to the thread running this collector */
   protected Thread itsThread = null;
@@ -88,8 +93,8 @@ public class ExternalSystem implements Runnable {
   protected boolean itsConnected = false;
 
   /**
-   * Keep track of how many transactions we've done. Each ExternalSystem sub-class should
-   * probably zero this field whenever we reconnect to the remote source.
+   * Keep track of how many transactions we've done. Each ExternalSystem sub-class should probably zero this field whenever we
+   * reconnect to the remote source.
    */
   protected long itsNumTransactions = 0;
 
@@ -98,7 +103,7 @@ public class ExternalSystem implements Runnable {
 
   /** Static map of all ExternalSystems. */
   protected static HashMap<String, ExternalSystem> theirExternalSystems = new HashMap<String, ExternalSystem>();
-  
+
   /** Logger. */
   protected static Logger theirLogger = Logger.getLogger(ExternalSystem.class.getName());
 
@@ -111,7 +116,7 @@ public class ExternalSystem implements Runnable {
   public static ExternalSystem getExternalSystem(String name) {
     return theirExternalSystems.get(name);
   }
-  
+
   /** Get a structure containing all ExternalSystem instances. */
   public static Collection<ExternalSystem> getAllExternalSystems() {
     return theirExternalSystems.values();
@@ -153,16 +158,15 @@ public class ExternalSystem implements Runnable {
   }
 
   /**
-   * Stop the data collection thread. This method actually just sets a flag to stop the
-   * collection and doesn't actually wait until collection has been stopped.
+   * Stop the data collection thread. This method actually just sets a flag to stop the collection and doesn't actually wait until
+   * collection has been stopped.
    */
   public void stopCollection() {
     itsKeepRunning = false;
   }
 
   /**
-   * Reconnect to the remote data source. This method should be overridden to achieve the
-   * required functionality.
+   * Reconnect to the remote data source. This method should be overridden to achieve the required functionality.
    */
   public synchronized boolean connect() throws Exception {
     itsConnected = true;
@@ -170,8 +174,7 @@ public class ExternalSystem implements Runnable {
   }
 
   /**
-   * Disconnect from the remote data source. This method should be overridden to achieve
-   * the required functionality.
+   * Disconnect from the remote data source. This method should be overridden to achieve the required functionality.
    */
   public synchronized void disconnect() throws Exception {
     itsConnected = false;
@@ -203,7 +206,9 @@ public class ExternalSystem implements Runnable {
 
   /**
    * Add a point to the list of points to collect.
-   * @param p The point to start monitoring.
+   * 
+   * @param p
+   *          The point to start monitoring.
    */
   public void addPoint(PointDescription p) {
     synchronized (itsPoints) {
@@ -214,7 +219,9 @@ public class ExternalSystem implements Runnable {
 
   /**
    * Add an array of points to the list of points to collect.
-   * @param v The points to start monitoring.
+   * 
+   * @param v
+   *          The points to start monitoring.
    */
   public void addPoints(Object[] v) {
     synchronized (itsPoints) {
@@ -227,7 +234,9 @@ public class ExternalSystem implements Runnable {
 
   /**
    * Add a collection of points to the list of points to collect.
-   * @param v The points to start monitoring.
+   * 
+   * @param v
+   *          The points to start monitoring.
    */
   public void addPoints(Collection v) {
     addPoints(v.toArray());
@@ -235,7 +244,9 @@ public class ExternalSystem implements Runnable {
 
   /**
    * Remove the point to the list of points to collect.
-   * @param p The point to stop monitoring.
+   * 
+   * @param p
+   *          The point to stop monitoring.
    */
   public void removePoint(PointDescription p) {
     synchronized (itsPoints) {
@@ -245,8 +256,21 @@ public class ExternalSystem implements Runnable {
   }
 
   /**
+   * Flag that a polled point is being collected asynchronously and we must await the callback before rescheduling.
+   * 
+   * @param point
+   *          The point to be flagged.
+   */
+  protected void asynchCollecting(PointDescription point) {
+    point.isCollecting(true);
+    itsAsyncPoints.add(point);
+  }
+
+  /**
    * Reschedule a point which was being collected asynchronously but has now updated.
-   * @param point The point to be rescheduled.
+   * 
+   * @param point
+   *          The point to be rescheduled.
    */
   protected void asynchReturn(PointDescription point) {
     point.isCollecting(false);
@@ -258,7 +282,7 @@ public class ExternalSystem implements Runnable {
   protected Vector<Transaction> getMyTransactions(Transaction[] transactions) {
     Vector<Transaction> match = new Vector<Transaction>(transactions.length);
     for (int i = 0; i < transactions.length; i++) {
-      if (transactions[i].getChannel()!=null && transactions[i].getChannel().equals(itsName)) {
+      if (transactions[i].getChannel() != null && transactions[i].getChannel().equals(itsName)) {
         match.add(transactions[i]);
       }
     }
@@ -266,9 +290,11 @@ public class ExternalSystem implements Runnable {
   }
 
   /**
-   * This method does the real work. Sub-classes should implement this method. It needs to
-   * fire PointEvent's for each monitor point once the new data has been collected.
-   * @param points The points that need collecting right now.
+   * This method does the real work. Sub-classes should implement this method. It needs to fire PointEvent's for each monitor point
+   * once the new data has been collected.
+   * 
+   * @param points
+   *          The points that need collecting right now.
    */
   protected void getData(PointDescription[] points) throws Exception {
     theirLogger.warn("(" + itsName + "): Received unsupported monitor requests: stopping collection");
@@ -278,8 +304,10 @@ public class ExternalSystem implements Runnable {
   /**
    * Write a value to the device.
    * 
-   * @param desc The point that requires the write operation.
-   * @param pd The value that needs to be written.
+   * @param desc
+   *          The point that requires the write operation.
+   * @param pd
+   *          The value that needs to be written.
    * @throws Exception
    */
   public void putData(PointDescription desc, PointData pd) throws Exception {
@@ -288,7 +316,9 @@ public class ExternalSystem implements Runnable {
 
   /**
    * Initialise all the ExternalSystems declared in a file.
-   * @param fileName The file to parse for ExternalSystem declarations.
+   * 
+   * @param fileName
+   *          The file to parse for ExternalSystem declarations.
    */
   public static void init(Reader sourcefile) {
     try {
@@ -314,9 +344,9 @@ public class ExternalSystem implements Runnable {
             }
             Constructor<?> con = newes.getConstructor(new Class[] { String[].class });
             try {
-            con.newInstance(new Object[] { classArgs });
-            } catch (InvocationTargetException ite){
-            	ite.getCause().printStackTrace();
+              con.newInstance(new Object[] { classArgs });
+            } catch (InvocationTargetException ite) {
+              ite.getCause().printStackTrace();
             }
           } catch (Exception f) {
             theirLogger.error("Cannot Initialise \"" + lines[i] + "\" defined on line " + (i + 1) + ": " + f);
@@ -331,7 +361,7 @@ public class ExternalSystem implements Runnable {
 
   /** Main loop for the point scheduling/collection thread. */
   public void run() {
-    while (itsKeepRunning) {      
+    while (itsKeepRunning) {
       // /If we're not connected, try to reconnect
       if (!itsConnected) {
         try {
@@ -339,6 +369,10 @@ public class ExternalSystem implements Runnable {
         } catch (Exception e) {
           itsConnected = false;
         }
+      }
+
+      if (itsPoints.size() > 1) {
+        System.err.println("#########################################" + itsPoints.size());
       }
 
       // We're connected, need to determine which points need collecting
@@ -350,7 +384,6 @@ public class ExternalSystem implements Runnable {
             itsPoints.wait();
           }
         } catch (Exception e) {
-          theirLogger.error("(" + itsName + ") " + e);
           continue;
         }
 
@@ -372,7 +405,7 @@ public class ExternalSystem implements Runnable {
             // Call the sub-class specific method to do the real work
             getData(parray);
           } catch (Exception e) {
-            //e.printStackTrace();
+            // e.printStackTrace();
             theirLogger.error("(" + itsName + ") " + e);
             itsConnected = false;
           }
@@ -395,7 +428,7 @@ public class ExternalSystem implements Runnable {
         synchronized (itsPoints) {
           for (int i = 0; i < parray.length; i++) {
             // We can only reschedule points which aren't being collected asynchronously
-            if (!parray[i].isCollecting()) {
+            if (!itsAsyncPoints.remove(parray[i])) {
               addPoint(parray[i]);
             }
           }
