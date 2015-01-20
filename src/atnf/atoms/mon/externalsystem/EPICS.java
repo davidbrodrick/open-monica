@@ -91,7 +91,7 @@ public class EPICS extends ExternalSystem {
    */
   protected void getData(PointDescription[] points) throws Exception {
     // Process each requesting point in turn
-    for (int i = 0; i < points.length; i++) {     
+    for (int i = 0; i < points.length; i++) {
       // Get the appropriate Transaction(s) and process each PV
       Vector<Transaction> thesetrans = getMyTransactions(points[i].getInputTransactions());
       for (int j = 0; j < thesetrans.size(); j++) {
@@ -100,13 +100,13 @@ public class EPICS extends ExternalSystem {
         String pvname = thistrans.getPVName();
         // Lookup the channel connected to this PV
         Channel thischan = itsChannelMap.get(pvname);
-        if (thischan == null) {         
+        if (thischan == null) {
           // We haven't connected to this channel yet so request its connection.
           itsNeedsConnecting.add(pvname);
           // Fire a null-data update to indicate that data is not yet available.
           points[i].firePointEvent(new PointEvent(this, new PointData(points[i].getFullName()), true));
         } else {
-         
+
           String listenername = points[i].getFullName() + ":" + pvname;
           EPICSListener listener;
           synchronized (itsListenerMap) {
@@ -120,7 +120,7 @@ public class EPICS extends ExternalSystem {
             }
           }
 
-          if (thischan.getConnectionState() == Channel.ConnectionState.CONNECTED) {           
+          if (thischan.getConnectionState() == Channel.ConnectionState.CONNECTED) {
             // Channel is connected, request data via a channel access 'get'
             try {
               asynchCollecting(points[i]);
@@ -207,7 +207,7 @@ public class EPICS extends ExternalSystem {
    */
   protected class ChannelConnector extends Thread {
     /** Maximum number of channels to attempt to connect at once. */
-    private final int theirMaxPending = 50000;
+    private final int theirMaxPending = 25000;
 
     public ChannelConnector() {
       super("EPICS ChannelConnector");
@@ -234,8 +234,11 @@ public class EPICS extends ExternalSystem {
           it = itsNeedsConnecting.iterator();
         }
         if (numneedconnecting > theirMaxPending) {
-          // Start at a random place in the list
-          int startpos = (int) Math.floor((Math.random() * (numneedconnecting - (theirMaxPending + 1))));
+          // Choose at a random place in the list of PVs which need connecting
+          int startpos = (int) Math.floor((Math.random() * (numneedconnecting - (theirMaxPending / 2 + 1))));
+          startpos = startpos - theirMaxPending / 2;
+          if (startpos < 0)
+            startpos = 0;
           for (int i = 0; i < startpos; i++) {
             it.next();
           }
