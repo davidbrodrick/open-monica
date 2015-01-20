@@ -371,10 +371,6 @@ public class ExternalSystem implements Runnable {
         }
       }
 
-      if (itsPoints.size() > 1) {
-        System.err.println("#########################################" + itsPoints.size());
-      }
-
       // We're connected, need to determine which points need collecting
       Vector<PointDescription> thesepoints = null;
       synchronized (itsPoints) {
