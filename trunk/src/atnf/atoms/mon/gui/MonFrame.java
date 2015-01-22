@@ -32,9 +32,8 @@ import java.io.*;
  */
 public class MonFrame extends JFrame implements ActionListener {
   /**
-   * Class to keep track of currently open windows, offer a menu-list of those
-   * windows to the user via each window's <i>Windows</i> menu, and raise
-   * windows to the foreground when they are selected.
+   * Class to keep track of currently open windows, offer a menu-list of those windows to the user via each window's <i>Windows</i>
+   * menu, and raise windows to the foreground when they are selected.
    */
   public static class WindowManager implements ActionListener {
     /** Holds reference to all currently open MonFrames. */
@@ -42,10 +41,9 @@ public class MonFrame extends JFrame implements ActionListener {
 
     /** Menus for each of the windows, in same order as <i>itsWindows</i>. */
     Vector<JMenu> itsMenus = new Vector<JMenu>();
-    
+
     /**
-     * Called when a window is selected from the menu. The window which was
-     * selected is raised to the screen foreground (hopefully).
+     * Called when a window is selected from the menu. The window which was selected is raised to the screen foreground (hopefully).
      */
     public synchronized void actionPerformed(ActionEvent e) {
       String action = e.getActionCommand();
@@ -63,8 +61,8 @@ public class MonFrame extends JFrame implements ActionListener {
           } catch (Exception f) {
             // No Joy..
             f.printStackTrace();
-            JOptionPane.showMessageDialog((MonFrame) itsWindows.get(0), "There was an error:\n" + f.getMessage() + "\n",
-                "Error Loading File", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog((MonFrame) itsWindows.get(0), "There was an error:\n" + f.getMessage() + "\n", "Error Loading File",
+                JOptionPane.WARNING_MESSAGE);
           }
         }
       } else if (action.equals("saveArrangement")) {
@@ -78,9 +76,9 @@ public class MonFrame extends JFrame implements ActionListener {
             }
           } catch (Exception f) {
             // No Joy..
-            //f.printStackTrace();
-            JOptionPane.showMessageDialog((MonFrame) itsWindows.get(0), "There was an error:\n" + f.getMessage() + "\n",
-                "Error Saving File", JOptionPane.WARNING_MESSAGE);
+            // f.printStackTrace();
+            JOptionPane.showMessageDialog((MonFrame) itsWindows.get(0), "There was an error:\n" + f.getMessage() + "\n", "Error Saving File",
+                JOptionPane.WARNING_MESSAGE);
           }
         }
       } else if (action.equals("Quit")) {
@@ -131,8 +129,8 @@ public class MonFrame extends JFrame implements ActionListener {
           newframe.loadSetup(reqsetup);
         } else {
           // Setup couldn't be found
-          JOptionPane.showMessageDialog(newframe, "Curiously, the setup called:\n" + "\"" + action + "\"\n" + "for class:\n" + "\""
-              + this.getClass().getName() + "\"\n" + "couldn't be found!\n", "Setup Not Found", JOptionPane.WARNING_MESSAGE);
+          JOptionPane.showMessageDialog(newframe, "Curiously, the setup called:\n" + "\"" + action + "\"\n" + "for class:\n" + "\"" + this.getClass().getName()
+              + "\"\n" + "couldn't be found!\n", "Setup Not Found", JOptionPane.WARNING_MESSAGE);
           newframe.removeAllPanels();
           newframe.setVisible(false);
           remove(newframe);
@@ -164,9 +162,8 @@ public class MonFrame extends JFrame implements ActionListener {
     }
 
     /**
-     * Add a new window to the registry. The <i>Windows</i> menu on all current
-     * windows will be updated to show the new window. A menu for display on the
-     * new window is returned.
+     * Add a new window to the registry. The <i>Windows</i> menu on all current windows will be updated to show the new window. A
+     * menu for display on the new window is returned.
      * 
      * @param frame
      *          The new Window to register.
@@ -184,8 +181,7 @@ public class MonFrame extends JFrame implements ActionListener {
     }
 
     /**
-     * Deregister the specified window. The window will be removed from the
-     * <i>Windows</i> list of all remaining windows.
+     * Deregister the specified window. The window will be removed from the <i>Windows</i> list of all remaining windows.
      * 
      * @param frame
      *          The window to deregister.
@@ -205,8 +201,7 @@ public class MonFrame extends JFrame implements ActionListener {
     }
 
     /**
-     * Update the <i>Windows</i> menu in all windows. The updated menus will
-     * list all currently open windows as options.
+     * Update the <i>Windows</i> menu in all windows. The updated menus will list all currently open windows as options.
      */
     public synchronized void rebuildMenus() {
       // Simply update the menu for each current window
@@ -286,8 +281,7 @@ public class MonFrame extends JFrame implements ActionListener {
   public static WindowManager theirWindowManager = new WindowManager();
 
   /**
-   * Records number of MonFrames which have been created. This is just used for
-   * coming up with default names for the window titles.
+   * Records number of MonFrames which have been created. This is just used for coming up with default names for the window titles.
    */
   private static int theirNumCreated = 1;
 
@@ -330,12 +324,11 @@ public class MonFrame extends JFrame implements ActionListener {
   private static boolean itsLayoutRedrawn = false;
 
   /**
-   * Last loaded setup, might be null if the setup has been modified since it
-   * was initially loaded.
+   * Last loaded setup, might be null if the setup has been modified since it was initially loaded.
    */
   public SavedSetup itsSetup = null;
 
-  private static Dimension theirDefaultDim = new Dimension(600,700);
+  private static Dimension theirDefaultDim = new Dimension(600, 700);
 
   /** C'tor. */
   public MonFrame() {
@@ -426,15 +419,14 @@ public class MonFrame extends JFrame implements ActionListener {
   public int getNumber() {
     return itsNumber;
   }
-  
+
   /** Get the default size for a MonFrame. */
   public static Dimension getDefaultSize() {
     return theirDefaultDim;
   }
 
   /**
-   * Switch to the main display tab OR layout tab depending on Auto/Manual
-   * preference.
+   * Switch to the main display tab OR layout tab depending on Auto/Manual preference.
    */
   public synchronized void showDisplay() {
     // if (itsLayoutPanel.itsAutoControl.isSelected()) {
@@ -481,8 +473,7 @@ public class MonFrame extends JFrame implements ActionListener {
         } catch (Exception f) {
           // No Joy..
           f.printStackTrace();
-          JOptionPane.showMessageDialog(this, "There was an error:\n" + f.getMessage() + "\n", "Export Error",
-              JOptionPane.WARNING_MESSAGE);
+          JOptionPane.showMessageDialog(this, "There was an error:\n" + f.getMessage() + "\n", "Export Error", JOptionPane.WARNING_MESSAGE);
         }
       }
     } else if (action.equals("Export")) {
@@ -499,8 +490,7 @@ public class MonFrame extends JFrame implements ActionListener {
         } catch (Exception f) {
           // No Joy..
           f.printStackTrace();
-          JOptionPane.showMessageDialog(this, "There was an error:\n" + f.getMessage() + "\n", "Export Error",
-              JOptionPane.WARNING_MESSAGE);
+          JOptionPane.showMessageDialog(this, "There was an error:\n" + f.getMessage() + "\n", "Export Error", JOptionPane.WARNING_MESSAGE);
         }
       }
     } else if (action.equals("Help")) {
@@ -513,8 +503,8 @@ public class MonFrame extends JFrame implements ActionListener {
         loadSetup(reqsetup);
       } else {
         // Setup couldn't be found
-        JOptionPane.showMessageDialog(this, "Curiously, the setup called:\n" + "\"" + action + "\"\n" + "for class:\n" + "\""
-            + this.getClass().getName() + "\"\n" + "couldn't be found!\n", "Setup Not Found", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Curiously, the setup called:\n" + "\"" + action + "\"\n" + "for class:\n" + "\"" + this.getClass().getName()
+            + "\"\n" + "couldn't be found!\n", "Setup Not Found", JOptionPane.WARNING_MESSAGE);
       }
     }
   }
@@ -599,8 +589,7 @@ public class MonFrame extends JFrame implements ActionListener {
   }
 
   /**
-   * Redraw the Display using the coordinates set by the user in the Layout
-   * Control panel.
+   * Redraw the Display using the coordinates set by the user in the Layout Control panel.
    */
   protected void redrawPanels(MonPanel panel, int x, int y, int width, int height) {
     // System.out.printf("MonFrame: redrawPanels x %d y %d width %d height %d\n",
@@ -637,8 +626,8 @@ public class MonFrame extends JFrame implements ActionListener {
    * 
    * @param deadpan
    *          The MonPanel to remove from this frame.
-   * @return <tt>true</tt> if removal went OK, <tt>false</tt> if the removal
-   *         failed (eg, maybe that panel doesn't exist within this frame).
+   * @return <tt>true</tt> if removal went OK, <tt>false</tt> if the removal failed (eg, maybe that panel doesn't exist within this
+   *         frame).
    */
   protected void removePanel(MonPanel deadpan) {
     itsSetup = null;
@@ -799,14 +788,12 @@ public class MonFrame extends JFrame implements ActionListener {
   }
 
   /**
-   * Configure this MonFrame to use the specified setup. This method can be used
-   * to restore saved states, eg what MonPanels to show in the window and what
-   * information they should each display.
+   * Configure this MonFrame to use the specified setup. This method can be used to restore saved states, eg what MonPanels to show
+   * in the window and what information they should each display.
    * 
    * @param setup
    *          Window setup information to use.
-   * @return <tt>true</tt> if setup could be parsed or <tt>false</tt> if there
-   *         was a problem and the setup cannot be used.
+   * @return <tt>true</tt> if setup could be parsed or <tt>false</tt> if there was a problem and the setup cannot be used.
    */
   public boolean loadSetup(SavedSetup setup) {
     try {
@@ -840,9 +827,9 @@ public class MonFrame extends JFrame implements ActionListener {
             newpanel.setFrame(this);
             newpanels.add(newpanel);
           } else {
-            JOptionPane.showMessageDialog(this, "An error occurred while creating an\n\"" + panelsetup.getClassName() + "\"\n"
-                + "for the setup called \"" + panelsetup.getName() + "\".\n\n" + "I couldn't instantiate the class.\n\n"
-                + "This is a problem for a programmer...\n", "Error Loading Setup", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "An error occurred while creating an\n\"" + panelsetup.getClassName() + "\"\n" + "for the setup called \""
+                + panelsetup.getName() + "\".\n\n" + "I couldn't instantiate the class.\n\n" + "This is a problem for a programmer...\n",
+                "Error Loading Setup", JOptionPane.WARNING_MESSAGE);
             // Remove the not-yet-displayed panels
             for (int j = 0; j < newpanels.size(); j++) {
               ((MonPanel) newpanels.get(j)).vaporise();
@@ -851,10 +838,9 @@ public class MonFrame extends JFrame implements ActionListener {
             return false;
           }
         } catch (Exception e) {
-          JOptionPane.showMessageDialog(this, "An exception occurred while creating an\n\"" + panelsetup.getClassName() + "\"\n"
-              + "for the setup called \"" + panelsetup.getName() + "\".\n\n" + "The type of the exception is:\n\""
-              + e.getClass().getName() + "\".\n\n" + "This is a problem for a programmer...\n", "Error Loading Setup",
-              JOptionPane.WARNING_MESSAGE);
+          JOptionPane.showMessageDialog(this, "An exception occurred while creating an\n\"" + panelsetup.getClassName() + "\"\n" + "for the setup called \""
+              + panelsetup.getName() + "\".\n\n" + "The type of the exception is:\n\"" + e.getClass().getName() + "\".\n\n"
+              + "This is a problem for a programmer...\n", "Error Loading Setup", JOptionPane.WARNING_MESSAGE);
           // Remove the not-yet-displayed panels
           for (int j = 0; j < newpanels.size(); j++) {
             ((MonPanel) newpanels.get(j)).vaporise();
@@ -903,8 +889,8 @@ public class MonFrame extends JFrame implements ActionListener {
       itsSetup = setup;
     } catch (Exception e) {
       e.printStackTrace();
-      JOptionPane.showMessageDialog(this, "The setup \"" + setup.getName() + "\"\ncould not be parsed.\n\n"
-          + "This Exception was encountered:\n" + e.getClass().getName(), "Error Loading Setup", JOptionPane.WARNING_MESSAGE);
+      JOptionPane.showMessageDialog(this, "The setup \"" + setup.getName() + "\"\ncould not be parsed.\n\n" + "This Exception was encountered:\n"
+          + e.getClass().getName(), "Error Loading Setup", JOptionPane.WARNING_MESSAGE);
       blankSetup();
       return false;
     }
@@ -915,9 +901,8 @@ public class MonFrame extends JFrame implements ActionListener {
   }
 
   /**
-   * Get the current configuration for this MonFrame. This can be used to
-   * capture the current state of the MonFrame so that it can be easily
-   * recovered later.
+   * Get the current configuration for this MonFrame. This can be used to capture the current state of the MonFrame so that it can
+   * be easily recovered later.
    * 
    * @return Current window setup configuration information.
    */
@@ -939,18 +924,19 @@ public class MonFrame extends JFrame implements ActionListener {
     for (int i = 0; i < itsPanels.size(); i++) {
       SavedSetup panelsetup = ((MonPanel) itsPanels.get(i)).getSetup();
       String panelsetupstr = panelsetup.toString();
-      if (itsSetup!=null && itsSetup.get("setup"+i)!=null) {
+      if (itsSetup != null && itsSetup.get("setup" + i) != null) {
         SavedSetup origsetup = null;
         String origsetupstr = null;
         try {
-          origsetupstr = itsSetup.get("setup"+i);
+          origsetupstr = itsSetup.get("setup" + i);
           origsetup = new SavedSetup(origsetupstr);
-        } catch (Exception e) {}
-        if (origsetup!=null) {
+        } catch (Exception e) {
+        }
+        if (origsetup != null) {
           // Now compare the readback and original setups
           if (panelsetup.compareKeys(origsetup)) {
             // Not modified, so use original string
-            panelsetupstr=origsetupstr;
+            panelsetupstr = origsetupstr;
           }
         }
       }
@@ -973,8 +959,7 @@ public class MonFrame extends JFrame implements ActionListener {
   }
 
   /**
-   * Dump the current screen to a .PNG image file. Returns false if the dump
-   * failed.
+   * Dump the current screen to a .PNG image file. Returns false if the dump failed.
    */
   protected boolean dumpPNG(String filename) {
     AbsTime now = new AbsTime();
@@ -1013,8 +998,7 @@ public class MonFrame extends JFrame implements ActionListener {
   }
 
   /**
-   * Read a "saved state" file that describes what windows to create at
-   * application start-up and how to arrange them.
+   * Read a "saved state" file that describes what windows to create at application start-up and how to arrange them.
    */
   public static boolean recoverArrangement(String filename) {
     try {
@@ -1029,13 +1013,29 @@ public class MonFrame extends JFrame implements ActionListener {
           continue;
         }
         StringTokenizer st = new StringTokenizer(line);
-        // Get the requested setup from the database
-        SavedSetup setup = MonClientUtil.getSetup("atnf.atoms.mon.gui.MonFrame", st.nextToken());
+        // Get the requested setup name
+        String setupname = st.nextToken();
+
         // Parse the desired geometry
         int w = Integer.parseInt(st.nextToken());
         int h = Integer.parseInt(st.nextToken());
         int x = Integer.parseInt(st.nextToken());
         int y = Integer.parseInt(st.nextToken());
+
+        SavedSetup setup = null;
+        if (setupname.equals("temp")) {
+          // Setup definition should be saved inline as the next element
+          if (!st.hasMoreTokens()) {
+            System.err.println("ERROR: SavedSetup definition not defined inline");
+          } else {
+            String setupstr = st.nextToken("\n").trim();
+            //System.err.println(setupstr);
+            setup = new SavedSetup(setupstr);
+          }
+        } else {
+          // Recover pre-defined setup
+          setup = MonClientUtil.getSetup("atnf.atoms.mon.gui.MonFrame", setupname);
+        }
         // Make It So!
         if (setup != null) {
           MonFrame frame = new MonFrame();
@@ -1054,16 +1054,16 @@ public class MonFrame extends JFrame implements ActionListener {
         System.err.println("###REMOVED");
       }
     } catch (Exception e) {
-      //System.err.println("ERROR: Couldn't load saved arrangement \"" + filename + "\"");
-      // e.printStackTrace();
+      // System.err.println("ERROR: Couldn't load saved arrangement \"" + filename + "\"");
+      //System.err.println(e);
+      //e.printStackTrace();
       return false;
     }
     return true;
   }
 
   /**
-   * Save a description of what windows are open and how they are arranged to
-   * the specified file name.
+   * Save a description of what windows are open and how they are arranged to the specified file name.
    */
   public static boolean saveArrangement(String filename) {
     try {
@@ -1071,21 +1071,15 @@ public class MonFrame extends JFrame implements ActionListener {
       PrintWriter p = new PrintWriter(fw);
       for (int i = 0; i < theirWindowManager.itsWindows.size(); i++) {
         MonFrame frame = (MonFrame) theirWindowManager.itsWindows.get(i);
-        String thissetup = frame.getSetup().getName();
-        if (thissetup.equals("temp")) {
-          JOptionPane
-              .showMessageDialog(
-                  frame,
-                  "The current window arrangement could not\nbe saved as one of the window setups\nmay have been altered from what was\nloaded from the Navigator menu.",
-                  "Cannot Save Arrangement", JOptionPane.WARNING_MESSAGE);
-          fw.flush();
-          fw.close();
-          new File(filename).delete();
-          return false;
-        }
-        p.print(frame.getSetup().getName() + "\t");
+        SavedSetup thissetup = frame.getSetup();
+        p.print(thissetup.getName() + "\t");
         Rectangle r = frame.getBounds();
-        p.println(r.width + " " + r.height + " " + r.x + " " + r.y);
+        p.print(r.width + " " + r.height + " " + r.x + " " + r.y);
+        if (thissetup.getName().equals("temp")) {
+          p.println("\t" + thissetup.toString());
+        } else {
+          p.println();
+        }
       }
       fw.flush();
       fw.close();
