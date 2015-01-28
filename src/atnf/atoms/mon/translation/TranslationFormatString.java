@@ -39,10 +39,6 @@ public class TranslationFormatString extends Translation {
     //theirLogger.debug("Data: " + val);
     //theirLogger.debug("FormatString: " + itsFormat);
  
-    if (data == null) {
-      return null;
-    }
-
     if (val == null) {
       // Return a null result
       return new PointData(itsParent.getFullName());
