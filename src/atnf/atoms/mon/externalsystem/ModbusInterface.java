@@ -22,15 +22,21 @@ import org.apache.log4j.*;
  * Reads and writes data to and from a Modbus/TCP interface.
  * 
  * <P>
- * The constructor requires <i>hostname:port ModbusID ModbusFunction StartAddress</i> arguments.
+ * The constructor requires <i>hostname:port ModbusID ModbusFunction StartAddress</i> arguments. A timeout (ms) argument may
+ * optionally be specified.
  * 
+ * <P>
+ * NB: If control points are being used, at least one polling point should be defined as this will ensure the socket is reconnected
+ * if required.
+ * 
+ * <P>
  * If using main standalone, the required parameters are: <i>hostname port ModbusID ModbusFunction StartAddress</i>
  * 
+ * <P>
  * In both cases, the default is to read one point, but another argument is optional. This argument specifies the number of points
  * to read.
  * 
  * @author Ben McKay & Peter Mirtschin
- * @version $Id: $
  **/
 public class ModbusInterface extends ExternalSystem {
   /** Logger. */
@@ -45,34 +51,40 @@ public class ModbusInterface extends ExternalSystem {
   /** Handle to the actual connection. */
   private TCPMasterConnection itsConnection = null;
 
+  /** The timeout to use (ms) */
+  private int itsTimeout = 2000;
+
   private boolean itsDebug = false;
 
   public ModbusInterface(String[] args) {
     super(args[0] + ":" + args[1]);
     itsHost = args[0];
     itsPort = Integer.parseInt(args[1]);
+    if (args.length > 2) {
+      itsTimeout = Integer.parseInt(args[2]);
+    }
   }
 
   /**
    * Connect to the slave.
    */
   public synchronized boolean connect() throws Exception {
-    // public boolean connect() throws Exception {
     try {
       InetAddress addr = InetAddress.getByName(itsHost);
       itsConnection = new TCPMasterConnection(addr);
       itsConnection.setPort(itsPort);
+      itsConnection.setTimeout(itsTimeout);
       itsConnection.connect();
       itsConnected = true;
-
+      theirLogger.info("(" + itsHost + ":" + itsPort + "): Connected");
     } catch (Exception e) {
+      e.printStackTrace();
       theirLogger.warn("(" + itsHost + ":" + itsPort + "):" + e);
       itsConnected = false;
       throw e;
     }
 
     itsNumTransactions = 0;
-    theirLogger.info("(" + itsHost + ":" + itsPort + "): Connected = " + itsConnected);
 
     return itsConnected;
   }
@@ -96,6 +108,14 @@ public class ModbusInterface extends ExternalSystem {
     return itsDebug;
   }
 
+  private ModbusTCPTransaction createTransaction(ModbusRequest req) {
+    ModbusTCPTransaction trans = new ModbusTCPTransaction(itsConnection);
+    trans.setRequest(req);
+    trans.setRetries(1);
+    trans.setReconnecting(false);
+    return trans;
+  }
+
   /**
    * Read coils. (Modbus function 0x01) INPUT: uid = unit ID ref = starting reference count = number of coils from starting
    * reference to read
@@ -110,15 +130,15 @@ public class ModbusInterface extends ExternalSystem {
       System.out.println("\tRequest: " + req.getHexMessage());
 
     // Prepare the transaction
-    ModbusTCPTransaction trans = new ModbusTCPTransaction(itsConnection);
-    trans.setRequest(req);
-    trans.setReconnecting(false);
+    ModbusTCPTransaction trans = createTransaction(req);
 
     // Execute transaction
     try {
       trans.execute();
     } catch (ModbusIOException e) {
-      throw e;
+      if (e.isEOF() || !itsConnection.isConnected()) {
+        throw e;
+      }
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": readCoils: " + e);
     }
@@ -140,15 +160,15 @@ public class ModbusInterface extends ExternalSystem {
       System.out.println("\tRequest: " + req.getHexMessage());
 
     // Prepare the transaction
-    ModbusTCPTransaction trans = new ModbusTCPTransaction(itsConnection);
-    trans.setRequest(req);
-    trans.setReconnecting(false);
+    ModbusTCPTransaction trans = createTransaction(req);
 
     // Execute transaction
     try {
       trans.execute();
     } catch (ModbusIOException e) {
-      throw e;      
+      if (e.isEOF() || !itsConnection.isConnected()) {
+        throw e;
+      }
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": readDiscreteInputs: " + e);
     }
@@ -171,15 +191,15 @@ public class ModbusInterface extends ExternalSystem {
       System.out.println("\tRequest: " + req.getHexMessage());
 
     // Prepare the transaction
-    ModbusTCPTransaction trans = new ModbusTCPTransaction(itsConnection);
-    trans.setRequest(req);
-    trans.setReconnecting(false);
+    ModbusTCPTransaction trans = createTransaction(req);
 
     // Execute transaction
     try {
       trans.execute();
     } catch (ModbusIOException e) {
-      throw e;      
+      if (e.isEOF() || !itsConnection.isConnected()) {
+        throw e;
+      }
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": readHoldingRegisters: " + e);
     }
@@ -200,15 +220,15 @@ public class ModbusInterface extends ExternalSystem {
       System.out.println("\tRequest: " + req.getHexMessage());
 
     // Prepare the transaction
-    ModbusTCPTransaction trans = new ModbusTCPTransaction(itsConnection);
-    trans.setRequest(req);
-    trans.setReconnecting(false);
+    ModbusTCPTransaction trans = createTransaction(req);
 
     // Execute transaction
     try {
       trans.execute();
     } catch (ModbusIOException e) {
-      throw e;      
+      if (e.isEOF() || !itsConnection.isConnected()) {
+        throw e;
+      }
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": readInputRegisters: " + e);
     }
@@ -229,14 +249,16 @@ public class ModbusInterface extends ExternalSystem {
       System.out.println("\tRequest: " + req.getHexMessage());
 
     // prepare the transaction
-    ModbusTCPTransaction trans = new ModbusTCPTransaction(itsConnection);
-    trans.setRequest(req);
+    ModbusTCPTransaction trans = createTransaction(req);
 
     // execute the transaction
     try {
       trans.execute();
     } catch (ModbusIOException e) {
-      throw e;      
+      if (e.isEOF() || !itsConnection.isConnected()) {
+        throw e;
+      }
+      return null;
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": writeSingleCoil: " + e);
     }
@@ -257,20 +279,21 @@ public class ModbusInterface extends ExternalSystem {
       System.out.println("\tRequest: " + req.getHexMessage());
 
     // prepare the transaction
-    ModbusTCPTransaction trans = new ModbusTCPTransaction(itsConnection);
-    trans.setRequest(req);
+    ModbusTCPTransaction trans = createTransaction(req);
 
     // execute the transaction
     try {
       trans.execute();
     } catch (ModbusIOException e) {
-      throw e;      
+      if (e.isEOF() || !itsConnection.isConnected()) {
+        throw e;
+      }
+      return null;
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": writeSingleRegister: " + e);
     }
 
     return (WriteSingleRegisterResponse) trans.getResponse();
-
   }
 
   /**
@@ -287,14 +310,16 @@ public class ModbusInterface extends ExternalSystem {
       System.out.println("\tRequest: " + req.getHexMessage());
 
     // prepare the transaction
-    ModbusTCPTransaction trans = new ModbusTCPTransaction(itsConnection);
-    trans.setRequest(req);
+    ModbusTCPTransaction trans = createTransaction(req);
 
     // execute the transaction
     try {
       trans.execute();
     } catch (ModbusIOException e) {
-      throw e;      
+      if (e.isEOF() || !itsConnection.isConnected()) {
+        throw e;
+      }
+      return null;
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": writeMultipleCoils: " + e);
     }
@@ -314,14 +339,16 @@ public class ModbusInterface extends ExternalSystem {
       System.out.println("\tRequest: " + req.getHexMessage());
 
     // prepare the transaction
-    ModbusTCPTransaction trans = new ModbusTCPTransaction(itsConnection);
-    trans.setRequest(req);
+    ModbusTCPTransaction trans = createTransaction(req);
 
     // execute the transaction
     try {
       trans.execute();
     } catch (ModbusIOException e) {
-      throw e;      
+      if (e.isEOF() || !itsConnection.isConnected()) {
+        throw e;
+      }
+      return null;
     } catch (Exception e) {
       theirLogger.warn(itsHost + ":" + itsPort + ": writeMultipleRegisters: " + e);
     }
@@ -462,6 +489,7 @@ public class ModbusInterface extends ExternalSystem {
     int UnitID = Integer.parseInt(tds.getString(0));
     int FCode = Integer.parseInt(tds.getString(1));
     int StartAddress = Integer.parseInt(tds.getString(2));
+    ModbusResponse resp = null;
 
     try {
       switch (FCode) {
@@ -472,7 +500,7 @@ public class ModbusInterface extends ExternalSystem {
           throw new IllegalArgumentException("Modbus.putData: Data must be Boolean for FCode 5");
         }
         boolean BoolOut = ((Boolean) pd.getData()).booleanValue();
-        WriteCoilResponse wc_response = writeSingleCoil(UnitID, StartAddress, BoolOut);
+        resp = writeSingleCoil(UnitID, StartAddress, BoolOut);
         // theirLogger.info("Write coil response: " + wc_response.getHexMessage());
         break;
       case 6: // Write single register
@@ -482,7 +510,7 @@ public class ModbusInterface extends ExternalSystem {
           throw new IllegalArgumentException("Modbus.putData: Data must be Number for FCode 6");
         }
         int NumOut = ((Number) pd.getData()).intValue();
-        WriteSingleRegisterResponse wsr_response1 = writeSingleRegister(UnitID, StartAddress, NumOut);
+        resp = writeSingleRegister(UnitID, StartAddress, NumOut);
         // theirLogger.info("Write single reg response: " + wsr_response1.getHexMessage() );
         break;
       case 15:
@@ -499,6 +527,11 @@ public class ModbusInterface extends ExternalSystem {
         theirLogger.warn("Unknown Modbus write function code: " + FCode);
         break;
       }
+
+      if (resp == null) {
+        theirLogger.warn("(" + itsHost + ":" + itsPort + "): putData for point " + pm.getFullName() + ": No Response");
+      }
+
     } catch (Exception f) {
       theirLogger.error("(" + itsHost + ":" + itsPort + "): putData: " + f);
       disconnect();
