@@ -227,29 +227,17 @@ public class EPICS extends ExternalSystem {
 
         // Create Channel objects for unconnected channels
         Vector<Channel> newchannels;
-        int numnewchans, numneedconnecting;
-        Iterator<String> it;
+        ArrayList<String> asarray = new ArrayList<String>();
         synchronized (itsNeedsConnecting) {
-          numneedconnecting = itsNeedsConnecting.size();
-          it = itsNeedsConnecting.iterator();
+          asarray.addAll(itsNeedsConnecting);
         }
-        if (numneedconnecting > theirMaxPending) {
-          // Choose at a random place in the list of PVs which need connecting
-          int startpos = (int) Math.floor((Math.random() * (numneedconnecting - (theirMaxPending / 2 + 1))));
-          startpos = startpos - theirMaxPending / 2;
-          if (startpos < 0)
-            startpos = 0;
-          for (int i = 0; i < startpos; i++) {
-            it.next();
-          }
-          // Limit number of channels for each attempt
-          numnewchans = theirMaxPending;
-        } else {
-          numnewchans = numneedconnecting;
-        }
+
+        // Use a random start point for connecting channels
+        int numnewchans = Math.min(asarray.size(), theirMaxPending);
+        int startpos = (int) Math.floor((Math.random() * asarray.size()));
         newchannels = new Vector<Channel>(numnewchans);
-        for (int i = 0; i < numnewchans && it.hasNext(); i++) {
-          String thispv = it.next();
+        for (int i = 0; i < numnewchans; i++) {
+          String thispv = asarray.get((i + startpos) % asarray.size());
           if (itsChannelMap.get(thispv) != null) {
             theirLogger.debug("Requested channel already exists for " + thispv);
             itsNeedsConnecting.remove(thispv);
@@ -267,7 +255,7 @@ public class EPICS extends ExternalSystem {
 
         // Try to connect to the channels
         try {
-          theirLogger.debug("ChannelConnector: Attempting to connect " + newchannels.size() + "/" + numneedconnecting + " pending channels");
+          theirLogger.debug("ChannelConnector: Attempting to connect " + newchannels.size() + "/" + asarray.size() + " pending channels");
           itsContext.pendIO(30.0);
         } catch (Exception e) {
           theirLogger.debug("ChannelConnector: pendIO: " + e);
@@ -292,6 +280,7 @@ public class EPICS extends ExternalSystem {
               }
               thischan.destroy();
             } catch (Exception e) {
+              e.printStackTrace();
               theirLogger.error("ChannelConnector: Destroying channel for " + thispv + ": " + e);
             }
           }
