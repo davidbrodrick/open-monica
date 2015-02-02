@@ -15,7 +15,7 @@ This Perl module was written by Chris Phillips, and extended by Jamie Stevens.
 == Requirements & Installation ==
 
 Using this Perl module also requires that you install the `Astro::Time` Perl module from CPAN:
-http://search.cpan.org/~cphil/Astro-0.73/Astro/Time.pm
+http://search.cpan.org/~cphil/Astro
 
 Installing the `MoniCA.pm` module is easy. Simply change into the `clientlibs/perl` directory, and give the following commands:
 {{{
