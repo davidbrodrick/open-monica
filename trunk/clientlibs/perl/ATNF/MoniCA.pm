@@ -252,6 +252,7 @@ use strict;
 
 ATNF::MoniCA - Perl interface to OpenMoniCA
 
+=cut
 
 =head1 SYNOPSIS
 
@@ -299,7 +300,7 @@ A single monitor point.
   ->val      Actual value of the monitor point
 
 =item B<MonBetweenPoint>
- 
+
 A single monitor point value returned by monbetween or monsince.
 
   ->bat         BAT time corresponding to the point sample
@@ -329,8 +330,6 @@ Detail about a single monitor point.
 
 =head1 FUNCTIONS
 
-=over 1
-
 =cut
 
 use IO::Socket;
@@ -344,16 +343,22 @@ use POSIX qw (floor ceil);
 use Carp;
 require Exporter;
 
-use vars qw(@ISA @EXPORT);
+BEGIN {
+use vars qw(@ISA @EXPORT $DUTC);
 
 @ISA    = qw( Exporter );
-@EXPORT = qw( monconnect monclose monpoll monsince parse_tickphase current_bat 
-	      monbetween monpreceding monfollowing montill monset dUT
+@EXPORT = qw( monconnect monclose monpoll monsince parse_tickphase current_bat
+	      monbetween monpreceding monfollowing montill monset dUT setDUTC
 	      bat2mjd mjd2bat bat2time atca_tied monnames monlist2hash
               mondetails monpoll2 bat2cal bat2unixtime perltime2mjd 
               monalarms monallalarms monalarmack monalarmshelve getRSA
               encryptstring encryptstring_session encryptstring_persistent
               monset_m monalarmack_m monalarmshelve_m monpreceeding);
+
+$DUTC = 0;
+}
+
+=over 1
 
 =item B<monconnect>
 
@@ -1159,72 +1164,6 @@ sub monalarmshelve ($$$@) {
     return monalarmshelve_m($mon, $user, $pass, 0, @alarmnames);
 }
 
-# =item B<monset>
-
-#    my $pointval = monpoll($mon, $pointname);
-#    my @pointvals = monpoll($mon, @pointnames);
-
-#   Calls the "poll" function, returnint the most recent values for one
-#   or more monitor points. Note calling in scalar mode only the first
-#   monitor point is returned.
-
-#      $mon           Monitor server
-#      $pointname     Single monitor point
-#      @pointnames  List of monitor points
-#      $pointval      MonPoint object, representing the first returned monitor
-#                     point
-#      @pointvals   List of MonPoint objects
-
-# =cut
-
-# sub monset ($@) {
-#   my $mon = shift;
-#   my @setpoints = @_;
-#   my $nset = scalar(@setpoints);
-
-#   if ($nset==0) {
-#     carp "No monitor points to set!\n";
-#     return undef;
-#   }
-
-#   print $mon <<EOF;
-# set
-# a
-# b
-# $nset
-# EOF
-
-#   foreach (@setpoints) {
-#     print $mon $_->[0], "\t", $_->[1], "\t", $_->[2], "\n";
-#   }
-
-#   my %ret = ();
-
-#   my $ok = 1;
-#   my ($state, $point);
-#   for (my $i=0; $i<$nset; $i++) {
-#     my $line = <$mon>;
-#     chomp $line;
-#     ($point, $state) = $line =~ /(\S+)\s+(\S+)/;
-#     if (!defined $point || !defined $state) {
-#       carp "Did not understand server response \"$line\"";
-#       return undef;
-#     }
-#     $ok = 0 if ($state ne 'OK');
-#     $ret{$point} = $state;
-#   }
-
-#   if (wantarray) {
-#     return %ret;
-#   } else {
-#     if ($ok) {
-#       return 'OK';
-#     } else {
-#       return 'ERROR';
-#     }
-#   }
-# }
-
 =item B<bat2cal>
 
   my $calstring = bat2cal($bat)
@@ -1323,10 +1262,9 @@ sub bat2time($;$$) {
  my $bat = Math::BigInt->new(shift);
 
  my $dUT = shift;
- $dUT = 0 if (!defined $dUT);
  my $np = shift;
 
- my $mjd = (Math::BigFloat->new($bat)->bstr()/1e6-$dUT)/60/60/24;
+ my $mjd = bat2mjd($bat, $dUT);
 
  return mjd2time($mjd, $np);
 }
@@ -1334,36 +1272,43 @@ sub bat2time($;$$) {
 =item B<bat2mjd>
 
   my $mjd = bat2mjd($bat);
+` my $mjd = bat2mjd($bat, $dUT);
 
  Convert a bat into mjd
     $bat           BAT value
     $mjd           MJD (double)
+    $dUT           Offset in seconds between TAI and UTC
 =cut
 
 sub bat2mjd($;$) {
  my $bat = Math::BigInt->new(shift);
  my $dUT = shift;
- $dUT = 0 if (!defined $dUT);
+ $dUT = $DUTC if (!defined $dUT);
  return (Math::BigFloat->new($bat)->bstr()/1e6-$dUT)/60/60/24;
 }
 
 =item B<mjd2bat>
 
   my $bat = mjd2bat($mjd);
+  my $bat = mjd2bat($mjd, $dUT);
 
  Convert a mjd into bat
 
     $mjd           MJD (double)
+    $dUT           Offset in seconds between TAI and UTC
     $bat           BAT value
 =cut
 
-sub mjd2bat($) {
+sub mjd2bat($;$) {
   my $mjd = shift;
+  my $dUT = shift;
+  $dUT = $DUTC if (!defined $dUT);
+
   if (ref $mjd eq 'Math::BigFloat') {
-    my $bat = 60*60*24*1e6*$mjd;
+    my $bat = ($mjd*60*60*24+$dUT)*1e6;
     return $bat->as_number();
   } else {
-    return Math::BigInt->new(60*60*24*1e6*$mjd);
+    return Math::BigInt->new(($mjd*60*60*24+$dUT)*1e6);
   }
 }
 
@@ -1397,10 +1342,8 @@ sub current_bat ($$) {
 }
 
 # Return a list of tied antenna between two MJDs (including the initial state)
-sub atca_tied($$$;$) {
-  my ($mon, $mjd1, $mjd2, $dUT) = @_;
-  $dUT = 0 if (!defined $dUT);
-  $dUT /= 24*60*60;
+sub atca_tied($$$) {
+  my ($mon, $mjd1, $mjd2) = @_;
 
   my %state = ();
   my %currentstate = ();
@@ -1417,7 +1360,7 @@ sub atca_tied($$$;$) {
     # Get the state at the start of the given range
     my $mjd0 = $mjd1-10;
     while (@vals==0) {
-      @vals = monbetween($mon, $mjd0-$dUT, $mjd1-$dUT, $thispoint);
+      @vals = monbetween($mon, $mjd0, $mjd1, $thispoint);
       $mjd0-= 10;
     }
     return undef if (!defined $vals[0]);
@@ -1426,7 +1369,7 @@ sub atca_tied($$$;$) {
     $currentstate{$ant} = $initialstate->val;
 
     # Get the values during the period
-    @vals = monbetween($mon, $mjd1-$dUT, $mjd2-$dUT, $thispoint);
+    @vals = monbetween($mon, $mjd1, $mjd2, $thispoint);
     foreach (@vals) {
       push @antstate, [bat2mjd($_->bat), $_->val];
     }
@@ -1536,27 +1479,39 @@ sub monlist2hash(\@%) {
 
 }
 
+=item B<setDUTC>
+
+  my $dUT = setDUTC($dUT);
+
+ Globally set the dUT value for MJD to BAT conversions
+    $dUT           Offset in seconds between TAI and UTC
+=cut
+
+sub setDUTC ($) {
+  $DUTC = shift;
+}
+
 =item B<dUT>
 
   my $dUT = dUT($mon, $mjd, $clock);
 
- Convert the dUT at a specific mjd
+ Get the dUT at a specific mjd from MoniCA
     $mon           Monitor server
     $mjd           MJD of query
     $pointname     clock monitor name (mpclock/caclock/paclock)
 =cut
 
-sub dUT ($$$) {
+sub dUT($$$) {
   my ($mon, $mjd, $point) = @_;
 
   if ($mjd<53736) { # 2006
     return 32;
   } elsif ($mjd<54832) { # 2009
     return 33;
-  } elsif ($mjd<552100) { # 2010, archiving started mid 2009
+  } elsif ($mjd<56000) { # 14/3/2012, archiving started mid 2009, leap second June 2012
     return 34;
   } else {
-    return monpreceding($mon, $mjd, "$point.misc.clock.dUTC");
+    return monpreceding($mon, $mjd, "$point.misc.clock.dUTC")->val;
   }
 }
 
@@ -1668,6 +1623,8 @@ sub encryptstring_session($$) {
      $ustring  The string to encrypt.
      $estring  The encrypted string.
 =cut
+
+=back
 
 sub encryptstring_persistent($$) {
     my $mon = shift;
