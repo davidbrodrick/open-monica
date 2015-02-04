@@ -116,6 +116,30 @@ $mon = monconnect($monserver_name);
   * `$monserver_name` is the name or address of the MoniCA server to connect to
   * `$mon` is, if a connection is made successfully, the MoniCA connection handle. If no connection is able to be made, `$mon` will be undefined.
 
+==== dUT ====
+
+Return the difference between UTC1 and TAI for the passed time
+
+Usage:
+{{{
+$dUTC = dUT($mon, $mjd);
+}}}
+
+  * `$mon` is a successfully created MoniCA connection handle
+  * `$mjd` is the MJD to begin the query from
+  * `$dUTC` is the difference in seconds between UTC1 and TAI
+
+==== setDUTC ====
+
+Globally set the UTC1-TAI difference. All subsequent BAT to MJD conversions will make this adjustment internally. 
+
+Usage:
+{{{
+setdUTC($dUTC);
+}}}
+
+  * `$dUTC`  the difference in seconds between UTC1 and TAI
+
 ==== monpoll ====
 
 Query the latest values for a list of MoniCA points.
