@@ -769,8 +769,8 @@ public class MoniCAServerASCII extends Thread {
       Iterator<Date> i = leapseconds.keySet().iterator();
       while (i.hasNext()) {
         Date d = i.next();
-        Integer ms = leapseconds.get(d);
-        itsWriter.println(d.getTime() + "\t" + ms);
+        Integer dutc = leapseconds.get(d);
+        itsWriter.println(d.getTime() + "\t" + dutc);
       }
       itsWriter.flush();
     } catch (Exception e) {

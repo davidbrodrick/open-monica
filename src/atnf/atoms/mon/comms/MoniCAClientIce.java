@@ -9,6 +9,10 @@
 package atnf.atoms.mon.comms;
 
 import java.math.BigInteger;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.Vector;
 
 import atnf.atoms.mon.Alarm;
@@ -735,6 +739,28 @@ public class MoniCAClientIce extends MoniCAClient {
 
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.getCurrentTime:" + e.getClass());
+      disconnect();
+      throw e;
+    }
+  }
+
+  /** Get the epoch/leap seconds dictionary from the server. */
+  public SortedMap<Date, Integer> getLeapSeconds() throws Exception {
+    try {
+      if (!isConnected()) {
+        connect();
+      }
+
+      dUTCEntry[] leapseconds = itsIceClient.getLeapSeconds();
+      SortedMap<Date, Integer> res = new TreeMap<Date, Integer>();
+
+      for (int i = 0; i < leapseconds.length; i++) {
+        res.put(new Date(leapseconds[i].epoch), new Integer(leapseconds[i].dUTC));
+      }
+
+      return res;
+    } catch (Exception e) {
+      System.err.println("MoniCAClientIce.getLeapSeconds:" + e.getClass());
       disconnect();
       throw e;
     }

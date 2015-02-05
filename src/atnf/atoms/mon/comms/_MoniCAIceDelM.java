@@ -747,6 +747,45 @@ public final class _MoniCAIceDelM extends Ice._ObjectDelM implements _MoniCAIceD
         }
     }
 
+    public dUTCEntry[]
+    getLeapSeconds(java.util.Map<String, String> __ctx, Ice.Instrumentation.InvocationObserver __observer)
+        throws IceInternal.LocalExceptionWrapper
+    {
+        IceInternal.Outgoing __og = __handler.getOutgoing("getLeapSeconds", Ice.OperationMode.Idempotent, __ctx, __observer);
+        try
+        {
+            __og.writeEmptyParams();
+            boolean __ok = __og.invoke();
+            try
+            {
+                if(!__ok)
+                {
+                    try
+                    {
+                        __og.throwUserException();
+                    }
+                    catch(Ice.UserException __ex)
+                    {
+                        throw new Ice.UnknownUserException(__ex.ice_name(), __ex);
+                    }
+                }
+                IceInternal.BasicStream __is = __og.startReadParams();
+                dUTCEntry[] __ret;
+                __ret = dutcarrayHelper.read(__is);
+                __og.endReadParams();
+                return __ret;
+            }
+            catch(Ice.LocalException __ex)
+            {
+                throw new IceInternal.LocalExceptionWrapper(__ex, false);
+            }
+        }
+        finally
+        {
+            __handler.reclaimOutgoing(__og);
+        }
+    }
+
     public PointDescriptionIce[]
     getPoints(String[] names, java.util.Map<String, String> __ctx, Ice.Instrumentation.InvocationObserver __observer)
         throws IceInternal.LocalExceptionWrapper

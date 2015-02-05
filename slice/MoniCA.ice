@@ -3,6 +3,16 @@ module atnf {
     module mon {
       module comms {
         ////////////
+        //Tuple of long/int pairs used to indicate a millisecond count since
+        //the 1st of January 1970 UTC and the corresponding dUTC which came
+        //into effect at that time.
+        struct dUTCEntry {
+          long epoch;
+          int dUTC;
+        };
+        sequence<dUTCEntry> dutcarray;
+        
+        ////////////
         //Data structure definitions
         sequence<string> stringarray;
         sequence<int>    intarray;
@@ -174,6 +184,10 @@ module atnf {
           idempotent stringarray getEncryptionInfo();
           //Get current time from server
           idempotent long getCurrentTime();
+          //Get dUTC (leap second) dictionary. This information can be used
+          //for calculating Binary Atomic Time (BAT) timestamps from the
+          //system time.
+          idempotent dutcarray getLeapSeconds();
         };
         
         

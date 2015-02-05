@@ -59,4 +59,6 @@ public interface _MoniCAIceOperations
     String[] getEncryptionInfo(Ice.Current __current);
 
     long getCurrentTime(Ice.Current __current);
+
+    dUTCEntry[] getLeapSeconds(Ice.Current __current);
 }

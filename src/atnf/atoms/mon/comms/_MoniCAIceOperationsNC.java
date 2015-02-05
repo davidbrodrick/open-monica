@@ -59,4 +59,6 @@ public interface _MoniCAIceOperationsNC
     String[] getEncryptionInfo();
 
     long getCurrentTime();
+
+    dUTCEntry[] getLeapSeconds();
 }

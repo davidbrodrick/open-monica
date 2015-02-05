@@ -363,4 +363,22 @@ public interface MoniCAIcePrx extends Ice.ObjectPrx
     public Ice.AsyncResult begin_getCurrentTime(java.util.Map<String, String> __ctx, Callback_MoniCAIce_getCurrentTime __cb);
 
     public long end_getCurrentTime(Ice.AsyncResult __result);
+
+    public dUTCEntry[] getLeapSeconds();
+
+    public dUTCEntry[] getLeapSeconds(java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_getLeapSeconds();
+
+    public Ice.AsyncResult begin_getLeapSeconds(java.util.Map<String, String> __ctx);
+
+    public Ice.AsyncResult begin_getLeapSeconds(Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_getLeapSeconds(java.util.Map<String, String> __ctx, Ice.Callback __cb);
+
+    public Ice.AsyncResult begin_getLeapSeconds(Callback_MoniCAIce_getLeapSeconds __cb);
+
+    public Ice.AsyncResult begin_getLeapSeconds(java.util.Map<String, String> __ctx, Callback_MoniCAIce_getLeapSeconds __cb);
+
+    public dUTCEntry[] end_getLeapSeconds(Ice.AsyncResult __result);
 }

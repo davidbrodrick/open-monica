@@ -8,8 +8,11 @@
 
 package atnf.atoms.mon.comms;
 
-import java.net.PasswordAuthentication;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.SortedMap;
 import java.util.Vector;
+import java.util.Date;
 
 import Ice.Current;
 import atnf.atoms.mon.*;
@@ -28,20 +31,20 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   protected static MoniCAIceServerThread theirServer = null;
 
   protected static Logger theirLogger = Logger.getLogger(MoniCAIceI.class.getName());
-  
+
   /** Port the server will listen on. */
   protected static int theirPort;
-  
+
   static {
-    //Determine which port the server should listen on
+    // Determine which port the server should listen on
     try {
-      theirPort = Integer.parseInt(MonitorConfig.getProperty("IcePort", ""+MoniCAIceUtil.getDefaultPort()));
+      theirPort = Integer.parseInt(MonitorConfig.getProperty("IcePort", "" + MoniCAIceUtil.getDefaultPort()));
     } catch (Exception e) {
       theirLogger.fatal("Error parsing IcePort configuration parameter: " + e);
       System.exit(1);
     }
   }
-  
+
   public MoniCAIceI() {
   }
 
@@ -357,6 +360,18 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
   /** Return the current time on the server. */
   public long getCurrentTime(Ice.Current __current) {
     return (new AbsTime()).getValue();
+  }
+
+  public dUTCEntry[] getLeapSeconds(Ice.Current __current) {
+    SortedMap<Date, Integer> leapseconds = DUTC.getLeapSeconds();
+    dUTCEntry[] res = new dUTCEntry[leapseconds.size()];
+    Object[] dates = leapseconds.keySet().toArray();
+    for (int i = 0; i < dates.length; i++) {
+      res[i] = new dUTCEntry();
+      res[i].epoch = ((Date) dates[i]).getTime();
+      res[i].dUTC = leapseconds.get(dates[i]);
+    }
+    return res;
   }
 
   /** Return validated username if credentials are valid or else return null. */
