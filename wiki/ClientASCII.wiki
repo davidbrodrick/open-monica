@@ -29,6 +29,7 @@ The following commands are currently recognised by the server:
   * *shelve:* Shelve or enable a priority alarm.
   * *rsa:* Return RSA encryption exponent and modulus.
   * *rsapersist:* Return persistent RSA encryption exponent and modulus.
+  * *leapseconds:* Return the dictionary of leap seconds required to calculate BAT timestamps.
 
 Each command is outlined in further detail below.
 
@@ -379,3 +380,27 @@ The server will respond with the key information.
 
 ==rsapersist==
 As with the "rsa" call, except the returned keys will persist for longer than the particular ASCII socket session.
+
+==leapseconds==
+This returns a mapping between milliseconds since the 1st of January 1970 and the corresponding dUTC (leap seconds) which come into effect as various times.
+
+The server will respond with the number of rows in the response and then each row will contain the milliseconds that a new dUTC came into effect and the corresponding dUTC, delimited with a tab.
+
+{{{
+numrows
+[epoch 1]\t[dUTC 1]
+[epoch 2]\t[dUTC 2]
+...
+[epoch N]\t[dUTC N]
+}}}
+
+An (artificially truncated) example transaction is:
+
+{{{
+leapseconds
+4
+63072000000	10
+78796800000	11
+94694400000	12
+126230400000	13
+}}}
