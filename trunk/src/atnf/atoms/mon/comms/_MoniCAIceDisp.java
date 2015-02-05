@@ -150,6 +150,11 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
         return getEncryptionInfo(null);
     }
 
+    public final dUTCEntry[] getLeapSeconds()
+    {
+        return getLeapSeconds(null);
+    }
+
     public final PointDescriptionIce[] getPoints(String[] names)
     {
         return getPoints(names, null);
@@ -457,6 +462,17 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
         return Ice.DispatchStatus.DispatchOK;
     }
 
+    public static Ice.DispatchStatus ___getLeapSeconds(MoniCAIce __obj, IceInternal.Incoming __inS, Ice.Current __current)
+    {
+        __checkMode(Ice.OperationMode.Idempotent, __current.mode);
+        __inS.readEmptyParams();
+        dUTCEntry[] __ret = __obj.getLeapSeconds(__current);
+        IceInternal.BasicStream __os = __inS.__startWriteParams(Ice.FormatType.DefaultFormat);
+        dutcarrayHelper.write(__os, __ret);
+        __inS.__endWriteParams(true);
+        return Ice.DispatchStatus.DispatchOK;
+    }
+
     private final static String[] __all =
     {
         "acknowledgeAlarms",
@@ -475,6 +491,7 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
         "getCurrentTime",
         "getData",
         "getEncryptionInfo",
+        "getLeapSeconds",
         "getPoints",
         "ice_id",
         "ice_ids",
@@ -560,29 +577,33 @@ public abstract class _MoniCAIceDisp extends Ice.ObjectImpl implements MoniCAIce
             }
             case 16:
             {
-                return ___getPoints(this, in, __current);
+                return ___getLeapSeconds(this, in, __current);
             }
             case 17:
             {
-                return ___ice_id(this, in, __current);
+                return ___getPoints(this, in, __current);
             }
             case 18:
             {
-                return ___ice_ids(this, in, __current);
+                return ___ice_id(this, in, __current);
             }
             case 19:
             {
-                return ___ice_isA(this, in, __current);
+                return ___ice_ids(this, in, __current);
             }
             case 20:
             {
-                return ___ice_ping(this, in, __current);
+                return ___ice_isA(this, in, __current);
             }
             case 21:
             {
-                return ___setData(this, in, __current);
+                return ___ice_ping(this, in, __current);
             }
             case 22:
+            {
+                return ___setData(this, in, __current);
+            }
+            case 23:
             {
                 return ___shelveAlarms(this, in, __current);
             }

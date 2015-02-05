@@ -2172,6 +2172,138 @@ public final class MoniCAIcePrxHelper extends Ice.ObjectPrxHelperBase implements
         }
     }
 
+    private static final String __getLeapSeconds_name = "getLeapSeconds";
+
+    public dUTCEntry[] getLeapSeconds()
+    {
+        return getLeapSeconds(null, false);
+    }
+
+    public dUTCEntry[] getLeapSeconds(java.util.Map<String, String> __ctx)
+    {
+        return getLeapSeconds(__ctx, true);
+    }
+
+    private dUTCEntry[] getLeapSeconds(java.util.Map<String, String> __ctx, boolean __explicitCtx)
+    {
+        if(__explicitCtx && __ctx == null)
+        {
+            __ctx = _emptyContext;
+        }
+        final Ice.Instrumentation.InvocationObserver __observer = IceInternal.ObserverHelper.get(this, "getLeapSeconds", __ctx);
+        int __cnt = 0;
+        try
+        {
+            while(true)
+            {
+                Ice._ObjectDel __delBase = null;
+                try
+                {
+                    __checkTwowayOnly("getLeapSeconds");
+                    __delBase = __getDelegate(false);
+                    _MoniCAIceDel __del = (_MoniCAIceDel)__delBase;
+                    return __del.getLeapSeconds(__ctx, __observer);
+                }
+                catch(IceInternal.LocalExceptionWrapper __ex)
+                {
+                    __cnt = __handleExceptionWrapperRelaxed(__delBase, __ex, null, __cnt, __observer);
+                }
+                catch(Ice.LocalException __ex)
+                {
+                    __cnt = __handleException(__delBase, __ex, null, __cnt, __observer);
+                }
+            }
+        }
+        finally
+        {
+            if(__observer != null)
+            {
+                __observer.detach();
+            }
+        }
+    }
+
+    public Ice.AsyncResult begin_getLeapSeconds()
+    {
+        return begin_getLeapSeconds(null, false, null);
+    }
+
+    public Ice.AsyncResult begin_getLeapSeconds(java.util.Map<String, String> __ctx)
+    {
+        return begin_getLeapSeconds(__ctx, true, null);
+    }
+
+    public Ice.AsyncResult begin_getLeapSeconds(Ice.Callback __cb)
+    {
+        return begin_getLeapSeconds(null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getLeapSeconds(java.util.Map<String, String> __ctx, Ice.Callback __cb)
+    {
+        return begin_getLeapSeconds(__ctx, true, __cb);
+    }
+
+    public Ice.AsyncResult begin_getLeapSeconds(Callback_MoniCAIce_getLeapSeconds __cb)
+    {
+        return begin_getLeapSeconds(null, false, __cb);
+    }
+
+    public Ice.AsyncResult begin_getLeapSeconds(java.util.Map<String, String> __ctx, Callback_MoniCAIce_getLeapSeconds __cb)
+    {
+        return begin_getLeapSeconds(__ctx, true, __cb);
+    }
+
+    private Ice.AsyncResult begin_getLeapSeconds(java.util.Map<String, String> __ctx, boolean __explicitCtx, IceInternal.CallbackBase __cb)
+    {
+        __checkAsyncTwowayOnly(__getLeapSeconds_name);
+        IceInternal.OutgoingAsync __result = new IceInternal.OutgoingAsync(this, __getLeapSeconds_name, __cb);
+        try
+        {
+            __result.__prepare(__getLeapSeconds_name, Ice.OperationMode.Idempotent, __ctx, __explicitCtx);
+            __result.__writeEmptyParams();
+            __result.__send(true);
+        }
+        catch(Ice.LocalException __ex)
+        {
+            __result.__exceptionAsync(__ex);
+        }
+        return __result;
+    }
+
+    public dUTCEntry[] end_getLeapSeconds(Ice.AsyncResult __result)
+    {
+        Ice.AsyncResult.__check(__result, this, __getLeapSeconds_name);
+        boolean __ok = __result.__wait();
+        try
+        {
+            if(!__ok)
+            {
+                try
+                {
+                    __result.__throwUserException();
+                }
+                catch(Ice.UserException __ex)
+                {
+                    throw new Ice.UnknownUserException(__ex.ice_name(), __ex);
+                }
+            }
+            IceInternal.BasicStream __is = __result.__startReadParams();
+            dUTCEntry[] __ret;
+            __ret = dutcarrayHelper.read(__is);
+            __result.__endReadParams();
+            return __ret;
+        }
+        catch(Ice.LocalException ex)
+        {
+            Ice.Instrumentation.InvocationObserver __obsv = __result.__getObserver();
+            if(__obsv != null)
+            {
+                __obsv.failed(ex.ice_name());
+            }
+            throw ex;
+        }
+    }
+
     private static final String __getPoints_name = "getPoints";
 
     public PointDescriptionIce[] getPoints(String[] names)

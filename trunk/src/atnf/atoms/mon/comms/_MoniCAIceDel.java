@@ -78,4 +78,7 @@ public interface _MoniCAIceDel extends Ice._ObjectDel
 
     long getCurrentTime(java.util.Map<String, String> __ctx, Ice.Instrumentation.InvocationObserver __obsv)
         throws IceInternal.LocalExceptionWrapper;
+
+    dUTCEntry[] getLeapSeconds(java.util.Map<String, String> __ctx, Ice.Instrumentation.InvocationObserver __obsv)
+        throws IceInternal.LocalExceptionWrapper;
 }
