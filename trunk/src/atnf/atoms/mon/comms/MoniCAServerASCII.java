@@ -15,8 +15,10 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Iterator;
+import java.util.SortedMap;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
 
@@ -32,6 +34,7 @@ import atnf.atoms.mon.util.MonitorUtils;
 import atnf.atoms.mon.util.RADIUSAuthenticator;
 import atnf.atoms.mon.util.RSA;
 import atnf.atoms.time.AbsTime;
+import atnf.atoms.time.DUTC;
 import atnf.atoms.time.RelTime;
 
 /**
@@ -173,6 +176,8 @@ public class MoniCAServerASCII extends Thread {
             rsa();
           } else if (line.equalsIgnoreCase("rsapersist")) {
             rsapersist();
+          } else if (line.equalsIgnoreCase("leapseconds")) {
+            leapseconds();
           } else if (line.equalsIgnoreCase("exit")) {
             itsRunning = false;
           }
@@ -752,6 +757,26 @@ public class MoniCAServerASCII extends Thread {
       theirLogger.error("Problem in rsa request from " + itsClientName + ": " + e);
       itsRunning = false;
     }
+  }
+  
+  /**
+   * Print the dictionary of leap seconds.
+   */
+  protected void leapseconds() {
+    try {
+      SortedMap<Date,Integer> leapseconds = DUTC.getLeapSeconds();
+      itsWriter.println(leapseconds.size());
+      Iterator<Date> i = leapseconds.keySet().iterator();
+      while (i.hasNext()) {
+        Date d = i.next();
+        Integer ms = leapseconds.get(d);
+        itsWriter.println(d.getTime() + "\t" + ms);
+      }
+      itsWriter.flush();
+    } catch (Exception e) {
+      theirLogger.error("Problem in leapseconds request from " + itsClientName + ": " + e);
+      itsRunning = false;
+    }    
   }
 
   /**
