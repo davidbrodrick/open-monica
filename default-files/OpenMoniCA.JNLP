@@ -5,6 +5,7 @@
   <information>
     <title>MoniCA</title>
     <vendor>Open-MoniCA Project</vendor>
+    <offline-allowed/>
     <description>Graphical Monitor System Client</description>
     <description kind="short">Graphical Monitor System Client</description>
     <shortcut online="true">
