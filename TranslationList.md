@@ -1,0 +1,102 @@
+# Introduction #
+
+This page provides a description of each `Translation` class currently provided by the MoniCA code base. Translation objects are associated with monitor points and can be used to convert raw input data into a higher-level or more meaningful form. A brief background is available on the IntroServerCode page.
+
+# Translations #
+Please maintain lists in lexigraphic order.
+
+## Abstract Base Classes ##
+
+| **Class** | **Description** | **Arguments** |
+|:----------|:----------------|:--------------|
+| DataBuffer | Maintains a buffer of previous values which subclasses can utilise in their translate methods. | **Time:** The length of the buffer in seconds. |
+| Interpolator | Base class for interpolating/extrapolating based on previous values. | **Time:** The length of the buffer in seconds. **Offset:** How many seconds into the future to interpolate the value for. **Preseed:** If set to "true" the buffer will be pre-loaded from the archive at construction time. |
+| Listener | Listen to updates from one or more other points. | **Num:** Number of points to be listened to. **Names:** The N subsequent arguments are the names of the points to listen to. |
+| DualListen | Buffer the values of two other monitor points. Subclasses may combine these in arbitrary ways to create the desired output. Must be used together with `TransactionListen`. _deprecated use Listener_ | **Point1:** Name of listened-to point 1. **Point2:** Name of listened-to point 2. |
+| Synch | Subclass of DualListen which only processes when the input data has identical timestamps. This is only appropriate for points which are monitored synchronously. | **Point1:** Name of listened-to point 1. **Point2:** Name of listened-to point 2. |
+
+## General Purpose ##
+| **Class** | **Description** | **Arguments** |
+|:----------|:----------------|:--------------|
+| Add16 | Add a constant offset to a 16-bit integer, wrapping at 0 and 65535. | **Offset:** The number to add. |
+| AngleToNumber | Convert an Angle data object to a Double type. | **Format:** "r" to output the angle in radians (default), or "d" for degrees. |
+| Array | Return a single entry from an array input. | **Index:** The array index to be selected. |
+| AvailabilityMask | Block updates if listened-to points are unavailable or in an alarm state. | **Num:** Number of points to be listened to. **Names:** The N subsequent arguments are the names of the points to listen to. |
+| BCDToInteger | Convert BCD nibbles to the equivalent decimal integer value. |  |
+| BitShift | Mask a bit field and then rotate to the right. | **Mask:** The value to AND the input with. This may be hex with an 0x prefix. **Shift:** The number of bits to right shift. |
+| BoolMap | Map a boolean input to one of two string outputs. | **True:** String to output when the input is true. **False:** String to output when the input is false. |
+| BytesToString | Converts an array of integers to a string. | **Byte Order:** Currently unused, set to "0". **Start:** The start index of the string in the input array. **Length:** The number of input array entries which contain character. |
+| Calculation | Arbitrary mathematical function of any number of listened-to points. Uses JEP for expression parsing. | **Num:** Number of points to be listened to. **Names:** The N subsequent arguments are the names of the points to listen to. **Function:** The function to be calculated where _a_ is the first listened to point, _b_ is the second, etc. |
+| CalculationTimed | As for Calculation, but updates regularly at the period of the parent point rather than depending on timing of inputs.  | As for Calculation, however a default value to be assumed if any of the inputs are not available can optionally be specified by suffixing type code and value arguments. |
+| CopyTimestamp | Manipulate the timestamp of the data to be the same as the current timestamp of a specified other point. | **Point:** The name of the point whose timestamp we should assume. |
+| CronPulse | Generates a single "True" pulse at a time specified in cron format. | **Time/Date:** In cron format, but must use x instead of asterisk. Example: 0,30 x/2 x x Mon-Fri will trigger at 0 and 30 minutes past every other hour Mondays through Fridays. The cron format is minutes, hours, day of month, month, day of week. All times as specified in 24 hour format and day of week can be either literal Mon, Tue etc or 1, 2 etc with 0 being Sunday. **TimeZone:** The time zone that the time should be interpreted in, eg "Australia/Sydney".  |
+| DailyIntegrator | Accumulate the input and reset once per day. | **Time:** Time of day to reset the integrator, in "HH:MM" 24-hour format. **TimeZone:** The time zone that the time should be interpreted in, eg "Australia/Sydney". **UseArchive:** Optional argument which may be set to "true" in order to load the previous integral value from the archive when the server first starts. |
+| DailyIntegratorPosOnly | Accumulate only positive increments of the input and reset once per day. | **Time:** Time of day to reset the integrator, in "HH:MM" 24-hour format. **TimeZone:** The time zone that the time should be interpreted in, eg "Australia/Sydney". **UseArchive:** Optional argument which may be set to "true" in order to load the previous integral value from the archive when the server first starts. |
+| DailyPulse | Generates a single "True" pulse at a specified time each day. | **Time:** Time of day to generate the pulse, in "HH:MM" 24-hour format. **TimeZone:** The time zone that the time should be interpreted in, eg "Australia/Sydney". |
+| Delta | Calculate the difference between successive input values, as prev\_val - new\_val. |  |
+| Difference | DualListen implementation which returns the difference between the two values being monitored. _deprecated use Calculation_ | **Point1:** Name of listened-to point 1. **Point2:** Name of listened-to point 2. |
+| DetectChange | Output a single High pulse when the input changes value. |  |
+| EmailOnChange | Sends an email, using the hosts default mail transport, if the input changes. | **Recipient:** Destination address. [Optional: **Sender:** The sender address] **Subject:** The email subject line. **Body:** The email body. The subject and body support macro's which will substitute for the current value, etc., please consult the [Substitutions](Substitutions.md) page for full details. |
+| EmailOnFallingEdge | Sends an email, using the hosts default mail transport, when the input changes from true to false. | **Recipient:** Destination address. [Optional: **Sender:** The sender address] **Subject:** The email subject line. **Body:** The email body. The subject and body support macro's which will substitute for the current value, etc., please consult the [Substitutions](Substitutions.md) page for full details. |
+| EmailOnRisingEdge | Sends an email, using the hosts default mail transport, when the input changes from false to true. | **Recipient:** Destination address. [Optional: **Sender:** The sender address] **Subject:** The email subject line. **Body:** The email body. The subject and body support macro's which will substitute for the current value, etc., please consult the [Substitutions](Substitutions.md) page for full details. |
+| EnumMap | Map numbers into strings. | **Maps:** As many number to string mappings as required, each having the format `number:string`. **Default:** Any argument without a `:` is treated as the default string to be used when no explicit map exists for the input. |
+| EQ | Apply an arbitrary equation to numerical input. Uses JEP for expression parsing. | **Equation:** Use x to represent the input number. |
+| Failover | Assume the value of the highest precedence listened-to point which has valid data. | Each argument must be the name of a point to listen to, in the order of priority. |
+| FilteredMean | Discards any points more than N standard deviations from the median. Returns mean of remaining values. Good for slowly changing quantities which have an occasional bad read. | **Time:** The length of the buffer in seconds. **Threshold:** Discard values more than this many stddev from the median (this an an optional argument, default 1.0). |
+| FormatString | Formats the points data to a string using sprintf syntax or "dhms" format. | **Format:** Provide either a standard sprintf string (e.g. "%02x" to convert the input to a two digit hex number) or pass the string "dhms" which will assume the input number to be number of seconds and will create a string of the form "1d 13:02:10".  |
+| HermiteInterpolator | Interpolate/extrapolate based on a polynomial fit to a buffer of previous values. | **Buffer:** The length of the buffer of past values, in seconds. **Time:** How far in the future to predict the value for, in seconds (may be negative). |
+| HexString | Map an integer input to a hex string output. |  |
+| HighTimer | Reports the amount of time (as a RelTime) the (numeric or boolean) input has been in a high/mark state. Output will be zero while input is in a low/space state. |  |
+| LimitCheck | Output depends on whether other monitor points are in an alarm state. Used together with `TransactionListen`. | **Okay:** String to output when all points are within limits. **Fail:** String to output when one or more points are in an alarm state. |
+| LinearCombo | Produces a linear combination of the listened-to points. Used together with `TransactionListen`. _deprecated use Calculation_ | Any number of points can be combined, every point requires the following two arguments, **Coefficient:** The coefficient of this point in the linear combination. **Point:** Name of the point which uses that coefficient. |
+| LowTimer | Reports the amount of time (as a RelTime) the (numeric or boolean) input has been in a low/space state. Output will be zero while input is in a high/mark state. |  |
+| Mean | Calculate a moving average of the input value. | **Buffer:** The averaging period, in seconds, eg, to average one minute worth of samples use `60`. **MinSamples:** An optional argument for the minimum number of samples to have in the buffer before producing output (default 1). |
+| MonthlyPulse | Generates a single "True" pulse at a specified time on the given day of month. | **Day of month:** The first day is 1. **Time:** Time of day to generate the pulse, in "HH:MM" 24-hour format. **TimeZone:** The time zone that the time should be interpreted in, eg "Australia/Sydney". |
+| NV | Retrieve one named element from a HashMap or NameValueList input object. | **Name:** The key for the value we wish to extract. |
+| None | Just returns the input argument. |  |
+| NumberToAngle | Convert a number to an Angle type. | **Format:** Optional argument set to "d" if the input is in degrees or "r" for radians. Default is radians. |
+| NumberToBool | If Integer cast of input is zero output will be False, otherwise output will be True. | **Invert:** Optional argument can be "true" to invert the normal logic. |
+| NumDecimals | Limit the number of decimals in a floating point number. | **Decimals:** The maximum number of non-zero digits after the decimal place. |
+| PeakDetect | Find the peak of the input over a time period. | **Period:** Period to perform the peak detection over, in seconds. |
+| Polar2X | Listen to two numeric inputs which represent a polar vector, and output the X cartesian component of the vector. | **Magnitude:** Name of the vector magnitude point. **Angle:** Name of the vector angle point. **Format:** Optional argument, set to 'd' to interpret the input angle as degrees (default is radians). |
+| Polar2Y | Listen to two numeric inputs which represent a polar vector, and output the Y cartesian component of the vector. | **Magnitude:** Name of the vector magnitude point. **Angle:** Name of the vector angle point. **Format:** Optional argument, set to 'd' to interpret the input angle as degrees (default is radians). |
+| Polynomial | Apply an arbitrary order polynomial to the input. _deprecated use Calculation_ | **Order:** First argument is the order of the polynomial. **Offset:** Value of the 0th order term. **Coefficients:** Include one additional coefficient argument for every term in the polynomial. |
+| Preceding | Use the timestamp of the input value to find the value of a different point at that time and assume that value/timestamp for ourself. | **Point:** The name of the point whose historical values to look up. |
+| Pulse | Produce a mark/space pulse sequence of specified durations when the numeric/boolean input triggers. | **Mark:** The mark period in seconds. **Space:** Optional space period in seconds (default is zero). |
+| Ratio | DualListen implementation which produces the ratio of two other points. _deprecated use Calculation_ | **Numerator:** Name of the point to be used as numerator. **Divisor:** Name of point to be used as the divisor. |
+| RelTimeToSeconds | Get the value of a RelTime object as it's number of elapsed seconds expressed as a Double. |  |
+| ResettableIntegrator | Integrates the normal input but resets the integral when a specified listened-to point is "True". | **Reset:** The name of the point to listen to which determines when to reset the integral. Integral will be reset when the value of this point is "true". Value must either be a boolean or number, which will be interpreted as a boolean. **UseArchive:** Optional argument which may be set to "true" in order to load the previous integral value from the archive when the server first starts. |
+| ResettablePulse | Outputs a pulse once triggered, but the pulse can be reset to a low state by a listened-to point. | **Mark:** The mark period in seconds. **Reset:** Name of the point to listen to which can reset the pulse. |
+| RetriggerablePulse | Basic pulse extender. Timer can be reset. | **Period:** The pulse period, in seconds. |
+| RoundToInt | Round the Number input to the nearest integer value. |  |
+| RunCmd | Runs an external programme and persists the return value in the point. | **NumVal:** The number of values you are passing **Names:** The N subsequent arguments are the point values you are passing. **Command:** The external command you want to run. Make sure you include full path. **Args:** The arguments you're passing on the command line to the external programme. Similar to the Calculation translation, $a substitutes to the first point value you've passed, $b to the second etc. Note the difference though: Dollar ($) sign is required to mark the letter as a variable. Example passing two parameters: `test.ExternalCall  "Ext Call" "" "" mysrc T - - {RunCmd-"2""mysrc.param.x""mysrc.param.y""/full/path/runme""--paramx $a --paramy $b"}  - {Change-} 5000000 -` In order to retrieve output from an external programme that does not take any input, you still need to feed one parameter in order for updates to trigger, but you can ignore the parameter field. |
+| Shorts2Double | Merge two 16 bit integers to reassemble a 32 bit integer | **MSB** - First field , **LSB** - Second field |
+| Shorts2Float | Merge two 16 bit integers to reassemble a 32 bit IEEE754 float | **MSB** - First field , **LSB** - Second field |
+| Shorts4FloatDouble | Merge four 16 bit integers to reassemble a 64 bit IEEE754 double precision float | **Index** - Array index of 1st array element (subsequent three elements are also read), **Endian** - Order of array elements - 'B'ig (MSB first) or 'L'ittle (LSB first) |
+| SinceHighTimer | Measures the interval since the input was last 'high'. Input must be a Boolean or Number. Output is a RelTime. |  |
+| SourceSelector | Basically works as a multiplexer where it takes a point name without the source part being specified, and then picks up the source to use by looking at the value of another point. It will then subscribe to updates from the point with the resulting source/point name. | **Source:** The name of the point whose string value will be the name of the source to use. **Point:** The base name of the point to listen to, once the source is prepended to this. |
+| StopIfNoChange | Stops the point update process if the input value hasn't changed. |  |
+| StopIfNull | Stops the point update process if the input has a null data value. |  |
+| StringCase | Change a string to upper or lower case. | **Case:** Must be "upper" or "lower". |
+| StringReplace | Replaces any instances of the first string with the text of the second string. | **Target:** The string to be replaced. **Replacement:** The string to replace the target (this is optional, if not specified then all instances of the target string will be replaced with the empty string). |
+| StringToArray | Break the input String into an array of tokens. | **Regexp:** Delimiter for splitting string, as used by the Java String.split method. If no argument is given the space character is used by default. |
+| StringMap | Map input strings to corresponding output strings. | **Mappings:** Any number of string mappings in the format `input1:output1`|
+| StringToNumber | Map the string representation of a number to an actual numeric class type. | **Type:** The type of output to be produced, Float, Double, Integer or Long. **Radix:** A radix may be used for integers. If it is omitted base 10 is assumed. |
+| StringTrim | Remove leading/trailing whitespace from a string.  |  |
+| StuckValue | Flag data with an alarm and empty value when it seems the value has become 'stuck'. | **NumUpdates:** The number of point update cycles with no value changes before data is flagged. |
+| Squelch | Apply thresholding function. | **Threshold:** Squelch values below this number. **Output:** Value to output when input is squelched. |
+| Substring | Return a substring of the input. | **Start:** Start index. **End:** Optional end index. |
+| TimedSubstitution | Periodically perform value substitution on the provided template string. The time is taken from the parent points given update interval. | **Template:** The template string. See the [Substitutions](Substitutions.md) page for available substitution macros. |
+| ThyconAlarm | Return the alarm string corresponding to the alarm number for a Thycon UPS. | **Alarm:** The alarm number. |
+| Variance | Calculate the variance of the input over a specified time range. | **Buffer:** The interval in seconds over which to calculate the variance of the input. |
+| XY2Angle | Listen to two numeric inputs which represent the X and Y cartesian components of a vector and output the vector angle. | **X:** Monitor point representing X component. **Y:** Point representing Y component. **Format:** Optional argument, set to 'd' to output degrees (default is radians). |
+| XY2Mag | Listen to two numeric inputs which represent the X and Y cartesian components of a vector and output the magnitude of the vector. | **X:** Monitor point representing X component. **Y:** Point representing Y component. |
+
+## Weather Specific ##
+| **Class** | **Description** | **Arguments** |
+|:----------|:----------------|:--------------|
+| DewPoint | Calculate dew point in degrees Celcius from water vapour pressure. | **WVP:** The water vapour pressure in hectoPascals. |
+| PrecipitableWater | Estimate the precipitable water from surface temperature and relative humidity. | **Temperature:** Name of the point which contains temperature in degrees Celcius. **Humidity:** Name of the point which contains relative humidity as a percentage. |
+| SpecificHumidity | Calculate specific humidity, in grams of water vapour per kilogram of air, from water vapour pressure in hPa and surface pressure in hPa. | **WVP:** Name of the point which contains water vapour pressure. **Pressure:** Name of the point which contains pressure. |
+| VapourPressure | Calculate water vapour pressure in hPa from temperature and relative humidity. | **Temperature:** Name of the point which contains temperature in degrees Celcius. **Humidity:** Name of the point which contains the relative humidity as a percentage.|
+| WetBulb | Determine the wet bulb temperature given the inputs provided. | **NumPoints:** Must be 3. **Pressure:** Name of the point which holds the actual site barometer reading in hPa. **Temperature:** Name of the point which contains temperature in degrees Celcius. **Mixing Ratio:** Name of the point which contains the observed mixing ratio in g/g. |
