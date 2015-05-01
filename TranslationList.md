@@ -81,7 +81,7 @@ Please maintain lists in lexigraphic order.
 | StringReplace | Replaces any instances of the first string with the text of the second string. | **Target:** The string to be replaced. **Replacement:** The string to replace the target (this is optional, if not specified then all instances of the target string will be replaced with the empty string). |
 | StringToArray | Break the input String into an array of tokens. | **Regexp:** Delimiter for splitting string, as used by the Java String.split method. If no argument is given the space character is used by default. |
 | StringMap | Map input strings to corresponding output strings. | **Mappings:** Any number of string mappings in the format `input1:output1`|
-| StringToNumber | Map the string representation of a number to an actual numeric class type. | **Type:** The type of output to be produced, Float, Double, Integer or Long. **Radix:** A radix may be used for integers. If it is omitted base 10 is assumed. |
+| StringToNumber | Map the string representation of a number to an actual numeric class type. | **Type:** The type of output to be produced, Float, Double, Integer or Long. **Radix:** A radix may be used for integers. If it is omitted base 10 is assumed. **Default:** Optional third argument -  a string to be parsed if the input data generates a !NumberFormatException. |
 | StringTrim | Remove leading/trailing whitespace from a string.  |  |
 | StuckValue | Flag data with an alarm and empty value when it seems the value has become 'stuck'. | **NumUpdates:** The number of point update cycles with no value changes before data is flagged. |
 | Squelch | Apply thresholding function. | **Threshold:** Squelch values below this number. **Output:** Value to output when input is squelched. |
