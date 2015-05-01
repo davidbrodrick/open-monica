@@ -31,19 +31,27 @@ public class TranslationStringToNumber extends Translation {
   protected static Logger theirLogger = Logger.getLogger(TranslationStringToNumber.class.getName());
 
   /**  */
-  protected String itsNumericTypeName = null;
+  protected String itsNumericTypeName;
 
   /**  */
   protected int itsRadix = 0;
 
+  /** Default value in case input cannot be parsed. */
+  protected String itsDefaultValue;
+
   public TranslationStringToNumber(PointDescription parent, String[] init) {
     super(parent, init);
-    if (init.length > 0) {
-      itsNumericTypeName = init[0];
-      if (init.length > 1)
-        itsRadix = Integer.parseInt(init[1]);
-    } else
-      System.err.println("ERROR: TranslationStringToNumber (for " + itsParent.getName() + "): Expect 1 or 2 Arguments.. got " + init.length);
+
+    if (init.length < 1 || init.length > 3) {
+      throw new IllegalArgumentException("TranslationStringToNumber (for " + itsParent.getName() + "): Bad number of arguments: " + init.length);
+    }
+    itsNumericTypeName = init[0];
+    if (init.length > 1) {
+      itsRadix = Integer.parseInt(init[1]);
+      if (init.length > 2) {
+        itsDefaultValue = init[2];
+      }
+    }
   }
 
   /** Perform the actual data translation. */
@@ -62,35 +70,50 @@ public class TranslationStringToNumber extends Translation {
     } else {
       d = d.toString().trim();
     }
-    
-    if (((String)d).startsWith("+")) {
-      //Some JVM's didn't handle the leading +
-      d=((String)d).substring(1);
+
+    if (((String) d).startsWith("+")) {
+      // Some JVM's didn't handle the leading +
+      d = ((String) d).substring(1);
     }
 
     try {
-      if (itsNumericTypeName.equalsIgnoreCase("Float")) {
-        num = Float.valueOf((String) d);
-      } else if (itsNumericTypeName.equalsIgnoreCase("Double")) {
-        num = Double.valueOf((String) d);
-      } else if (itsNumericTypeName.equalsIgnoreCase("Integer")) {
-        if (itsRadix != 0)
-          num = Integer.valueOf((String) d, itsRadix);
-        else
-          num = Integer.valueOf((String) d);
-      } else if (itsNumericTypeName.equalsIgnoreCase("Long")) {
-        if (itsRadix != 0)
-          num = Long.valueOf((String) d, itsRadix);
-        else
-          num = Long.valueOf((String) d);
-      }
+      num=parseString((String)d);
     } catch (NumberFormatException e) {
-      theirLogger.error(itsParent.getFullName() + ": " + e);
+      if (itsDefaultValue!=null) {
+        //Could not parse the dynamic input, but a default value was provided
+        try {
+          num=parseString(itsDefaultValue);
+        } catch (NumberFormatException f) {
+          theirLogger.error("While parsing default value for " + itsParent.getFullName() + ": " + e);
+        }
+      } else {
+        theirLogger.error(itsParent.getFullName() + ": " + e);
+      }
     }
 
     res = new PointData(data.getName(), data.getTimestamp(), num, data.getAlarm());
 
     return res;
+  }
+  
+  private Number parseString(String d) throws NumberFormatException {
+    Number num = null;
+    if (itsNumericTypeName.equalsIgnoreCase("Float")) {
+      num = Float.valueOf((String) d);
+    } else if (itsNumericTypeName.equalsIgnoreCase("Double")) {
+      num = Double.valueOf((String) d);
+    } else if (itsNumericTypeName.equalsIgnoreCase("Integer")) {
+      if (itsRadix != 0)
+        num = Integer.valueOf((String) d, itsRadix);
+      else
+        num = Integer.valueOf((String) d);
+    } else if (itsNumericTypeName.equalsIgnoreCase("Long")) {
+      if (itsRadix != 0)
+        num = Long.valueOf((String) d, itsRadix);
+      else
+        num = Long.valueOf((String) d);
+    }
+    return num;
   }
 
   public static String[] getArgs() {
