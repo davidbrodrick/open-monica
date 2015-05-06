@@ -33,36 +33,4 @@
 		<nature>org.eclipse.wst.common.project.facet.core.nature</nature>
 		<nature>org.eclipse.wst.jsdt.core.jsNature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>WebContent/WEB-INF/lib/Ice.jar</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/3rdParty/Ice.jar</locationURI>
-		</link>
-		<link>
-			<name>WebContent/WEB-INF/lib/gson-2.1.jar</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/3rdParty/gson-2.1.jar</locationURI>
-		</link>
-		<link>
-			<name>WebContent/WEB-INF/lib/log4j-1.2.15.jar</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/3rdParty/log4j-1.2.15.jar</locationURI>
-		</link>
-		<link>
-			<name>WebContent/WEB-INF/lib/open-monica.jar</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/open-monica.jar</locationURI>
-		</link>
-		<link>
-			<name>WebContent/WEB-INF/lib/org.restlet.ext.servlet.jar</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/3rdParty/org.restlet.ext.servlet.jar</locationURI>
-		</link>
-		<link>
-			<name>WebContent/WEB-INF/lib/org.restlet.jar</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/3rdParty/org.restlet.jar</locationURI>
-		</link>
-	</linkedResources>
 </projectDescription>
