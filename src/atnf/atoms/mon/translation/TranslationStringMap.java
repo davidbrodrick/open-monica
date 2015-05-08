@@ -15,30 +15,28 @@ import atnf.atoms.mon.PointData;
 import atnf.atoms.mon.PointDescription;
 
 /**
- * Map between input strings and an output strings. Init arguments must be in
- * form "input1:output1""input2:output2", eg "true:ok""false:DISCONNECTED".
+ * Map between input strings and an output strings. Init arguments must be in form "input1:output1""input2:output2", eg
+ * "true:ok""false:DISCONNECTED".
  * 
  * <P>
- * Any unrecognised input are passed through without alteration.
+ * Any unrecognised input are passed through without alteration, unless a default string (an entry with no colon) is specified.
  * 
  * @author David Brodrick
  */
-public class TranslationStringMap extends Translation
-{
+public class TranslationStringMap extends Translation {
   /** Contains the mapping from inputs to outputs. */
   protected HashMap<String, String> itsMappings = new HashMap<String, String>();
 
-  protected static String[] itsArgs = new String[] { "Translation String Map", "String Map" };
+  protected String itsDefault;
 
-  public TranslationStringMap(PointDescription parent, String[] init)
-  {
+  public TranslationStringMap(PointDescription parent, String[] init) {
     super(parent, init);
 
     for (int i = 0; i < init.length; i++) {
       // Check for the :
       int colonindex = init[i].indexOf(":");
       if (colonindex == -1) {
-        System.err.println("TranslationStringMap: \"" + parent.getName() + "\" Expected \"input_string:output_string\"");
+        itsDefault = init[i];
         continue;
       }
       String inp = init[i].substring(0, colonindex);
@@ -49,8 +47,7 @@ public class TranslationStringMap extends Translation
   }
 
   /** Map the input data to an output string. */
-  public PointData translate(PointData data)
-  {
+  public PointData translate(PointData data) {
     // preconditions
     if (data == null) {
       return null;
@@ -68,17 +65,16 @@ public class TranslationStringMap extends Translation
     String newstr = (String) itsMappings.get(strval);
 
     if (newstr == null) {
-      newstr = strval;
+      if (itsDefault != null) {
+        newstr = itsDefault;
+      } else {
+        newstr = strval;
+      }
     }
 
     // Create return structure with right details
     PointData res = new PointData(itsParent.getFullName(), data.getTimestamp(), newstr, data.getAlarm());
 
     return res;
-  }
-
-  public static String[] getArgs()
-  {
-    return itsArgs;
   }
 }
