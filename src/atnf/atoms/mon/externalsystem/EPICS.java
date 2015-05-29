@@ -216,7 +216,7 @@ public class EPICS extends ExternalSystem {
     public void run() {
       while (itsKeepRunning) {
         // If there's no new channels then just wait
-        if (itsNeedsConnecting.isEmpty()) {
+        if (itsNeedsConnecting.isEmpty() || !PointDescription.getPointsCreated()) {
           RelTime sleeptime = RelTime.factory(10000000);
           try {
             sleeptime.sleep();
