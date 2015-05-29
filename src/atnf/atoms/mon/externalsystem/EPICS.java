@@ -409,6 +409,10 @@ public class EPICS extends ExternalSystem {
 
     /** Call back for 'monitor' updates. */
     public void monitorChanged(MonitorEvent ev) {
+      if (!itsKeepRunning) {
+        //Server shutdown was requested, so just dump this data
+        return;
+      }
       PointData pd = new PointData(itsPointName);
       try {
         if (ev.getStatus() == CAStatus.NORMAL && ev.getDBR() != null) {
