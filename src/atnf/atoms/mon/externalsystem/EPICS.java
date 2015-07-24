@@ -216,7 +216,7 @@ public class EPICS extends ExternalSystem {
     public void run() {
       while (itsKeepRunning) {
         // If there's no new channels then just wait
-        if (itsNeedsConnecting.isEmpty()) {
+        if (itsNeedsConnecting.isEmpty() || !PointDescription.getPointsCreated()) {
           RelTime sleeptime = RelTime.factory(10000000);
           try {
             sleeptime.sleep();
@@ -409,6 +409,10 @@ public class EPICS extends ExternalSystem {
 
     /** Call back for 'monitor' updates. */
     public void monitorChanged(MonitorEvent ev) {
+      if (!itsKeepRunning) {
+        //Server shutdown was requested, so just dump this data
+        return;
+      }
       PointData pd = new PointData(itsPointName);
       try {
         if (ev.getStatus() == CAStatus.NORMAL && ev.getDBR() != null) {
