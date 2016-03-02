@@ -37,7 +37,8 @@ public abstract class MoniCAClient {
    * 
    * @return Names of all points on the system.
    */
-  public abstract String[] getAllPointNames() throws Exception;
+  //public abstract String[] getAllPointNames() throws Exception;
+  public abstract Vector<String> getAllPointNames() throws Exception;
 
   /**
    * Get the point with the specified name.

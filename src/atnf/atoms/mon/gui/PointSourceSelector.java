@@ -10,6 +10,7 @@
 package atnf.atoms.mon.gui;
 
 import javax.swing.JFrame; //For test app launched by main
+import java.util.*;
 import atnf.atoms.mon.client.*;
 import atnf.atoms.mon.util.*;
 
@@ -18,7 +19,7 @@ import atnf.atoms.mon.util.*;
  * in the path. This makes it convienient to pick particular monitor points
  * for particular sources.
  *
- * @author David Brodrick
+ * @author David Brodrick, Simon Hoyle
  * @version $Id: PointSourceSelector.java,v 1.5 2006/09/14 00:35:40 bro764 Exp $
  * @see PointNameSelector
  */
@@ -26,31 +27,13 @@ public
 class PointSourceSelector
 extends TreeItemSelector
 {
-  /** Cache of the full point/source names for each point. */
-  private static String[] theirPointNames = null;
-  /** cache of the node names for each of the points. */
-  private static String[] theirNodeNames = null;
+  /** Cache of point names mapped to their list of sources */
+  private static Hashtable<String, Vector<String>> theirPointSourceMap;
 
   /** C'tor. */
   public PointSourceSelector()
   {
     super();
-  }
-
-  /** Check if there are any other sources for the specified point. */
-  private boolean isUnique(String pname) {
-    int firstdot = pname.indexOf(".");
-    String source = pname.substring(0, firstdot);
-    String point  = pname.substring(firstdot+1);
-    for (int i=0; i<theirPointNames.length; i++) {
-      firstdot = theirPointNames[i].indexOf(".");
-      String thissource = theirPointNames[i].substring(0, firstdot);
-      String thispoint  = theirPointNames[i].substring(firstdot+1);
-      if (thispoint.equals(point) && !thissource.equals(source)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   /** Build <i>itsTreeUtil</i>, containing the names and sources for all
@@ -61,35 +44,30 @@ extends TreeItemSelector
   void
   buildTree()
   {
-    if (theirPointNames == null) {
-      theirPointNames = MonClientUtil.getAllPointNames();
-      theirNodeNames = new String[theirPointNames.length];
-      for (int i = 0; i < theirPointNames.length; i++) {
-        int firstdot = theirPointNames[i].indexOf(".");
-        String source = theirPointNames[i].substring(0, firstdot);
-        String point = theirPointNames[i].substring(firstdot + 1);
-
-        if (isUnique(theirPointNames[i])) {
-          theirNodeNames[i] = point;
-        } else {
-          theirNodeNames[i] = point + "." + source;
-        }
-      }
+    if (theirPointSourceMap == null) {
+      theirPointSourceMap = MonClientUtil.getPointSourceMap();
     }
-
+    String name, source;
     itsTreeUtil = new TreeUtil("Points");
-
-    if (theirPointNames != null) {
-      for (int i = 0; i < theirPointNames.length; i++) {
-        if (!theirNodeNames[i].startsWith("hidden")) {
-          itsTreeUtil.addNode(theirNodeNames[i], theirPointNames[i]);
+    Iterator keyIter = theirPointSourceMap.keySet().iterator();
+    while (keyIter.hasNext()) {
+        name = (String)keyIter.next();
+	Vector<String> v = theirPointSourceMap.get(name);
+	if (v.size() == 1) { // only one source
+	     source = (String)v.get(0);
+             itsTreeUtil.addNode(name, source + "." + name);
+	}
+	else {
+	   for (int i = 0; i < v.size(); ++i) {
+	      source = (String)v.get(i);
+              itsTreeUtil.addNode(name + "." + source, source + "." + name);   
+	    }
         }
-      }
-    }
+    }   
   }
-  
+
   public String[] getAllPointNames(){
-	  return theirPointNames;
+    return MonClientUtil.getAllPointNames();
   }
 
 
