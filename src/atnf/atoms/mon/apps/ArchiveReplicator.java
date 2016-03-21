@@ -68,7 +68,7 @@ class ArchiveReplicator
     }
 
     //DETERMINE WHICH POINTS TO MIGRATE
-    String[] serverpoints = null;
+    Vector <String> serverpoints = null;
     try {
       serverpoints = itsServer.getAllPointNames();
     } catch (Exception e) {
@@ -82,8 +82,10 @@ class ArchiveReplicator
       for (int i=2; i<args.length; i++) {
         //Ensure the user-specified points exist on the server
         boolean found=false;
-        for (int j=0; j<serverpoints.length; j++) {
-          if (serverpoints[j].equals(args[i])) {
+	for (String point: serverpoints) {
+	    //        for (int j=0; j<serverpoints.length; j++) {
+	    //          if (serverpoints[j].equals(args[i])) {
+	    if (point.equals(args[i])) {
             found=true;
             pointnames.add(args[i]);
             break;
@@ -96,9 +98,10 @@ class ArchiveReplicator
       }
     } else {
       //ALL POINTS AVAILABLE FROM SERVER
-      pointnames=new Vector<String>(serverpoints.length);
-      for (int i=0; i<serverpoints.length; i++) {
-        pointnames.add(serverpoints[i]);
+	pointnames=new Vector<String>(serverpoints.size());
+      //      for (int i=0; i<serverpoints.length; i++) {
+      for (String point: serverpoints) {
+      pointnames.add(point);
       }
     }
     System.out.println("#Will replicate " + pointnames.size() + " points to new archive");
