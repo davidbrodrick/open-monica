@@ -86,7 +86,7 @@ public class MoniCAMain {
           // Sort the file list lexicographically to enabled expected conf.d behaviour
           Arrays.sort(flist);
           for (File f : flist) {
-            if (!f.isFile()) {
+	      if (!(f.isFile() && f.getName().endsWith(".txt"))) {
               theirLogger.warn("External systems definition file \"" + f + "\" is not a file");
             } else {
               // Looks like it should be a valid points definition file, so parse it
@@ -266,7 +266,7 @@ public class MoniCAMain {
           // Sort the file list lexicographically to enabled expected conf.d behaviour
           Arrays.sort(flist);
           for (File f : flist) {
-            if (!f.isFile()) {
+	      if (!(f.isFile() && f.getName().endsWith(".txt"))) {
               theirLogger.warn("Saved setups definition file \"" + f + "\" is not a file");
             } else {
               // Looks like it should be a valid points definition file, so parse it
