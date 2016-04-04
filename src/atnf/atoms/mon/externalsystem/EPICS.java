@@ -9,6 +9,7 @@ package atnf.atoms.mon.externalsystem;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.lang.Integer;
 
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
@@ -208,9 +209,20 @@ public class EPICS extends ExternalSystem {
   protected class ChannelConnector extends Thread {
     /** Maximum number of channels to attempt to connect at once. */
     private final int theirMaxPending = 25000;
+    /** Time between channel connection attempts, increases exponentially up to a maximum */
+    private long itsCASearchPeriod = 5000000;       // usecs
+    private long itsMaxCASearchPeriod = 300000000;  // usecs
+    /** Channel connect timeout, decreases exponentially down to a minimum */
+    private float itsCAConnectTimeout = 30;            // secs
+    private float itsMinCAConnectTimeout = (float)0.2; // secs
 
     public ChannelConnector() {
       super("EPICS ChannelConnector");
+      try {
+          String str = System.getenv("EPICS_CA_MAX_SEARCH_PERIOD");
+          if (str != null)
+              itsMaxCASearchPeriod = Integer.parseInt(str) * 1000000;
+      } catch (Exception e) {}
     }
 
     public void run() {
@@ -256,10 +268,12 @@ public class EPICS extends ExternalSystem {
         // Try to connect to the channels
         try {
           theirLogger.debug("ChannelConnector: Attempting to connect " + newchannels.size() + "/" + asarray.size() + " pending channels");
-          itsContext.pendIO(30.0);
+          itsContext.pendIO(itsCAConnectTimeout);   
         } catch (Exception e) {
           theirLogger.debug("ChannelConnector: pendIO: " + e);
         }
+	// Reduce the timeout after each attempt, down to a limit.
+	itsCAConnectTimeout = Math.max(itsMinCAConnectTimeout, itsCAConnectTimeout/2);
 
         // Check which channels connected successfully
         for (int i = 0; i < newchannels.size(); i++) {
@@ -375,10 +389,13 @@ public class EPICS extends ExternalSystem {
         }
         try {
           // Sleep for a while before trying to connect remaining channels
-          final RelTime sleeptime = RelTime.factory(5000000);
+          final RelTime sleeptime = RelTime.factory(itsCASearchPeriod);
           sleeptime.sleep();
+
         } catch (Exception e) {
         }
+	// Increase time between retries for remaining failed connections
+	itsCASearchPeriod = Math.min(itsMaxCASearchPeriod, itsCASearchPeriod * 2);
       }
     }
   };
