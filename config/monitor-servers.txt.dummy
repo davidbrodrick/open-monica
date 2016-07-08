@@ -1,0 +1,33 @@
+#This file defines which servers should be offered as options when
+#the client is started.
+#
+#Each line may be a comment, blank, specify the default server or define
+#a new server. The format for defining servers is:
+#name\tmonitor.server\tsecure.gateway\tinternal.name\talways.tunnel
+#
+#Where:
+#name: Symbolic name of the server/site/instrument.
+#monitor.server: FQDN of the actual machine where the server is running. Or
+#                if the server needs to be located through an IceGrid locator
+#                service the entry can take the following format:
+#                  locator://YourAdapterName@host.name:port
+#secure.gateway: SSH gateway to tunnel the connection through if the
+#                server can't be contacted directly. Optional field.
+#internal.name:  If the client needs to ssh, and a different name/IP must be
+#                used to access the server once inside the private network,
+#                then that name can be entered here. Otherwise this field
+#                can be left empty.
+#always.tunnel:  Set this to "yes" if you want to force always starting a tunnel 
+#                and thus avoid having to wait for connection timeouts before a 
+#                tunnel is established
+#Fields must be TAB delimited as spaces in the name field are legal.
+#
+#A default server can be defined using the syntax:
+#default\tnumber
+#
+#Where number specifies which of the server definitions to use as the default.
+#The first server definition is number 1 (not 0).
+default	0
+
+David's Place	narrabri.ozforecast.com.au
+Localhost	localhost
