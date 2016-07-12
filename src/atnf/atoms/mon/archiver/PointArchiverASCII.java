@@ -552,6 +552,8 @@ public class PointArchiverASCII extends PointArchiver {
       res = "relt\t" + ((RelTime) data).toString(RelTime.Format.DECIMAL_BAT);
     } else if (data instanceof BigInteger) {
       res = "big\t" + ((BigInteger) data).toString() + "\t";
+    } else if (data instanceof EnumItem) {
+      res = "enum\t" + ((EnumItem) data).toString() + "\t";
     } else {
       // Unhandled data type
       throw new IllegalArgumentException("PointarchiverASCII: Unknown Type \"" + data.getClass() + "\"");
@@ -597,6 +599,12 @@ public class PointArchiverASCII extends PointArchiver {
       res = RelTime.factory(foo);
     } else if (type.equals("big")) {
       res = new BigInteger(data);
+    } else if (type.equals("enum")) {
+      try {
+        res = EnumItem.valueOf(data);
+      } catch (Exception e) {
+	System.err.println("PointArchiverASCII: Parse error at \"" + type + "\"");
+      }
     } else if (type.equals("null")) {
       res = null;
     } else {

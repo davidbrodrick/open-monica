@@ -14,6 +14,7 @@ import java.lang.Integer;
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.transaction.*;
+import atnf.atoms.util.EnumItem;
 
 import gov.aps.jca.*;
 import gov.aps.jca.dbr.*;
@@ -365,6 +366,7 @@ public class EPICS extends ExternalSystem {
                   if (thistype == null) {
                     thischan.addMonitor(Monitor.VALUE | Monitor.ALARM, listener);
                   } else {
+		    theirLogger.debug("ChannelConnector: dbr type of PV " + thispv + " is " + thistype.toString());
                     // Needs to be monitored so data arrives as a specific type
                     thischan.addMonitor(thistype, 1, Monitor.VALUE | Monitor.ALARM, listener);
                   }
@@ -508,7 +510,12 @@ public class EPICS extends ExternalSystem {
       } else if (dbr instanceof STRING) {
         newval = ((String[]) rawval)[0];
       } else if (dbr instanceof ENUM) {
-        newval = new Integer(((short[]) rawval)[0]);
+	newval = new Integer(((short[]) rawval)[0]);
+	if (dbr instanceof DBR_LABELS_Enum) {
+	    short idx = ((Integer)newval).shortValue();
+	    String lbl = ((DBR_LABELS_Enum)dbr).getLabels()[idx];
+	    newval = new EnumItem(lbl, idx);
+	}
       } else {
         theirLogger.warn("getPDforDBR: " + pvname + ": Unhandled DBR type: " + dbr.getType());
       }

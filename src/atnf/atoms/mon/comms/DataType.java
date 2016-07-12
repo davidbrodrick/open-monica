@@ -41,7 +41,9 @@ public enum DataType implements java.io.Serializable
     
     DTRelTime(8),
     
-    DTAngle(9);
+    DTAngle(9),
+    
+    DTEnumItem(10);
 
     public int
     value()
@@ -74,6 +76,8 @@ public enum DataType implements java.io.Serializable
             return DTRelTime;
         case 9:
             return DTAngle;
+        case 10:
+            return DTEnumItem;
         }
         return null;
     }
@@ -87,13 +91,13 @@ public enum DataType implements java.io.Serializable
     public void
     __write(IceInternal.BasicStream __os)
     {
-        __os.writeEnum(value(), 9);
+        __os.writeEnum(value(), 10);
     }
 
     public static DataType
     __read(IceInternal.BasicStream __is)
     {
-        int __v = __is.readEnum(9);
+        int __v = __is.readEnum(10);
         return __validate(__v);
     }
 

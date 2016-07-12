@@ -439,6 +439,8 @@ public class PointArchiverMySQL extends PointArchiver {
       res = "'relt', '" + ((RelTime) data).toString(RelTime.Format.DECIMAL_BAT) + "'";
       // } else if (data instanceof BigInteger) {
       // res = "'big', '" + ((BigInteger)data).toString() + "'";
+    } else if (data instanceof EnumItem) {
+      res = "'enum', '" + ((EnumItem) data).toString() + "'";
     } else {
       // Unhandled data type
       throw new IllegalArgumentException("Unsupported Type: " + data.getClass());
@@ -484,6 +486,12 @@ public class PointArchiverMySQL extends PointArchiver {
       res = RelTime.factory(foo);
       // } else if (type.equals("big")) {
       // res = new BigInteger(data);
+    } else if (type.equals("enum")) {
+      try {
+        res = EnumItem.valueOf(data);
+      } catch (Exception e) {
+	System.err.println("PointArchiverMySQL: Parse error at \"" + type + "\"");
+      }
     } else {
       System.err.println("PointArchiverMySQL: Parse error at \"" + type + "\"");
       res = null;
