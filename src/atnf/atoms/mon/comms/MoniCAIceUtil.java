@@ -12,6 +12,7 @@ import java.util.Vector;
 import atnf.atoms.mon.*;
 import atnf.atoms.time.*;
 import atnf.atoms.util.Angle;
+import atnf.atoms.util.EnumItem;
 
 /** Contains various static methods for converting between native MoniCA data types and
  * their Ice representations.
@@ -160,6 +161,9 @@ public class MoniCAIceUtil {
       value=new DataValueRelTime(DataType.DTRelTime, ((RelTime)data).getValue());      
     } else if (data instanceof Angle) {
       value=new DataValueAngle(DataType.DTAngle, ((Angle)data).getValue());      
+    } else if (data instanceof EnumItem) {
+      EnumItemEntry e = new EnumItemEntry(((EnumItem)data).getName(), ((EnumItem)data).getValue());	    
+      value=new DataValueEnumItem(DataType.DTEnumItem, e);   
     } else {
       value=new DataValue(DataType.DTNull);      
     }
@@ -207,6 +211,12 @@ public class MoniCAIceUtil {
       value = RelTime.factory(((DataValueRelTime)icedata.value).value);
     } else if (icedata.value.type==DataType.DTAngle) {
       value = Angle.factory(((DataValueAngle)icedata.value).value);
+    } else if (icedata.value.type==DataType.DTEnumItem) {
+      String str = ((DataValueEnumItem)icedata.value).value.name;
+      int v = ((DataValueEnumItem)icedata.value).value.val;
+      //System.out.println("getPointDataFromIce: DataValueEnumItem: " + str + " " + v);
+      value = EnumItem.factory(((DataValueEnumItem)icedata.value).value.name, ((DataValueEnumItem)icedata.value).value.val);
+      //System.out.println("getPointDataFromIce: EnumItem " + ((EnumItem)value).toString());
     } else {
       value = null;
     }

@@ -9,6 +9,7 @@
 package atnf.atoms.mon.gui;
 
 import javax.swing.JFrame; //For test app launched by main
+import java.util.*;
 import atnf.atoms.mon.client.*;
 import atnf.atoms.mon.util.*;
 
@@ -22,7 +23,8 @@ import atnf.atoms.mon.util.*;
 public class PointNameSelector
 extends TreeItemSelector
 {
-  private static String[] theirPointNames = null;
+  /** Cache of point names mapped to their list of sources */
+  private static Hashtable<String, Vector<String>> theirPointSourceMap;
 
   /** C'tor. */
   public PointNameSelector()
@@ -43,26 +45,16 @@ extends TreeItemSelector
   void
   buildTree()
   {
-    if (theirPointNames==null) {
-      theirPointNames = MonClientUtil.getAllPointNames();
+    if (theirPointSourceMap == null) {
+      theirPointSourceMap = MonClientUtil.getPointSourceMap();
     }
-
     itsTreeUtil = new TreeUtil("Points");
-
-    if (theirPointNames!=null) {
-      for (int i=0; i<theirPointNames.length; i++) {
-        //We are only interested in the name, not source, component
-        int doti = theirPointNames[i].indexOf(".");
-        String name = theirPointNames[i].substring(doti+1);
-        if (!name.startsWith("hidden")) {
-          if (itsTreeUtil.getNode(name)==null) {
-            itsTreeUtil.addNode(name, name);
-          }
-        }
-      }
+    Iterator keyIter = theirPointSourceMap.keySet().iterator();
+    while (keyIter.hasNext()) {
+        String name = (String)keyIter.next();
+        itsTreeUtil.addNode(name, name);
     }
   }
-
 
   /** Simple test application. */
   public static void main(String args[])

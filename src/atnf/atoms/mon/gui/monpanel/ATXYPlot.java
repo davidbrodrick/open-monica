@@ -1026,6 +1026,9 @@ public class ATXYPlot extends MonPanel implements ActionListener, Runnable {
       if (data instanceof RelTime) {
         return new Double(((RelTime) data).getAsSeconds());
       }
+      if (data instanceof EnumItem) {
+        return new Integer(((EnumItem) data).getValue());
+      }
 
       return null;
     }

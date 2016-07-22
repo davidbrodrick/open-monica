@@ -9,10 +9,12 @@ package atnf.atoms.mon.externalsystem;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.lang.Integer;
 
 import atnf.atoms.time.*;
 import atnf.atoms.mon.*;
 import atnf.atoms.mon.transaction.*;
+import atnf.atoms.util.EnumItem;
 
 import gov.aps.jca.*;
 import gov.aps.jca.dbr.*;
@@ -208,9 +210,20 @@ public class EPICS extends ExternalSystem {
   protected class ChannelConnector extends Thread {
     /** Maximum number of channels to attempt to connect at once. */
     private final int theirMaxPending = 25000;
+    /** Time between channel connection attempts, increases exponentially up to a maximum */
+    private long itsCASearchPeriod = 5000000;       // usecs
+    private long itsMaxCASearchPeriod = 300000000;  // usecs
+    /** Channel connect timeout, decreases exponentially down to a minimum */
+    private float itsCAConnectTimeout = 30;            // secs
+    private float itsMinCAConnectTimeout = (float)0.2; // secs
 
     public ChannelConnector() {
       super("EPICS ChannelConnector");
+      try {
+          String str = System.getenv("EPICS_CA_MAX_SEARCH_PERIOD");
+          if (str != null)
+              itsMaxCASearchPeriod = Integer.parseInt(str) * 1000000;
+      } catch (Exception e) {}
     }
 
     public void run() {
@@ -256,10 +269,12 @@ public class EPICS extends ExternalSystem {
         // Try to connect to the channels
         try {
           theirLogger.debug("ChannelConnector: Attempting to connect " + newchannels.size() + "/" + asarray.size() + " pending channels");
-          itsContext.pendIO(30.0);
+          itsContext.pendIO(itsCAConnectTimeout);   
         } catch (Exception e) {
           theirLogger.debug("ChannelConnector: pendIO: " + e);
         }
+	// Reduce the timeout after each attempt, down to a limit.
+	itsCAConnectTimeout = Math.max(itsMinCAConnectTimeout, itsCAConnectTimeout/2);
 
         // Check which channels connected successfully
         for (int i = 0; i < newchannels.size(); i++) {
@@ -351,6 +366,7 @@ public class EPICS extends ExternalSystem {
                   if (thistype == null) {
                     thischan.addMonitor(Monitor.VALUE | Monitor.ALARM, listener);
                   } else {
+		    theirLogger.debug("ChannelConnector: dbr type of PV " + thispv + " is " + thistype.toString());
                     // Needs to be monitored so data arrives as a specific type
                     thischan.addMonitor(thistype, 1, Monitor.VALUE | Monitor.ALARM, listener);
                   }
@@ -375,10 +391,13 @@ public class EPICS extends ExternalSystem {
         }
         try {
           // Sleep for a while before trying to connect remaining channels
-          final RelTime sleeptime = RelTime.factory(5000000);
+          final RelTime sleeptime = RelTime.factory(itsCASearchPeriod);
           sleeptime.sleep();
+
         } catch (Exception e) {
         }
+	// Increase time between retries for remaining failed connections
+	itsCASearchPeriod = Math.min(itsMaxCASearchPeriod, itsCASearchPeriod * 2);
       }
     }
   };
@@ -491,7 +510,12 @@ public class EPICS extends ExternalSystem {
       } else if (dbr instanceof STRING) {
         newval = ((String[]) rawval)[0];
       } else if (dbr instanceof ENUM) {
-        newval = new Integer(((short[]) rawval)[0]);
+	newval = new Integer(((short[]) rawval)[0]);
+	if (dbr instanceof DBR_LABELS_Enum) {
+	    short idx = ((Integer)newval).shortValue();
+	    String lbl = ((DBR_LABELS_Enum)dbr).getLabels()[idx];
+	    newval = new EnumItem(lbl, idx);
+	}
       } else {
         theirLogger.warn("getPDforDBR: " + pvname + ": Unhandled DBR type: " + dbr.getType());
       }

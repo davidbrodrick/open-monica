@@ -1863,6 +1863,9 @@ public class ATTimeSeries extends MonPanel implements ActionListener, Runnable {
         return null;
       }
     }
+    if (data instanceof EnumItem) {
+        return new Integer(((EnumItem) data).getValue());
+    }
 
     return null;
   }

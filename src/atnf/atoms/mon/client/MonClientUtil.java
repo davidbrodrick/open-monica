@@ -36,7 +36,7 @@ import atnf.atoms.time.RelTime;
  * dialog box, however the server name can also be specified as a property called "server", eg
  * <tt>-Dserver=monhost-nar.atnf.csiro.au</tt>.
  * 
- * @author David Brodrick
+ * @author David Brodrick, Simon Hoyle
  * @version $Id: MonClientUtil.java,v 1.9 2008/03/18 00:52:10 bro764 Exp bro764 $
  */
 public class MonClientUtil {
@@ -52,12 +52,17 @@ public class MonClientUtil {
 	private static String theirServerName;
 
 	/** Cached copy of monitor point name list */
-	private static String[] theirPointNameCache;
+	private static Vector<String> theirPointNameCache;
+
+	/** Maps each point name to its list of sources */
+	private static Hashtable<String, Vector<String>> theirPointSourceMap;
 
 	/** Initialise stuff. */
 	static {
 		String host = null;
 		Vector chosenserver = null;
+
+                theirPointSourceMap = new Hashtable<String, Vector<String>>(10007);
 
 		String headless = System.getProperty("java.awt.headless", "false");
 		String targethost = System.getProperty("MoniCA.server", null);
@@ -304,8 +309,31 @@ public class MonClientUtil {
 
 	/** Cache the list of points available from the server. */
 	private static void cachePointNames() {
+		String[] tmp;
+		String source, name;
 		try {
+			// Elapsed time testing
+			//long start = System.nanoTime();
 			theirPointNameCache = theirServer.getAllPointNames();
+			// Populate PointSourceMap  
+                        for (int i = 0; i < theirPointNameCache.size(); ++i) {
+			    tmp = theirPointNameCache.get(i).split("\\.", 2);
+                            if (tmp.length == 2) {
+			        source = tmp[0]; name = tmp[1];
+				if (name.startsWith("hidden")) continue;
+				if (!theirPointSourceMap.containsKey(name)) {
+				    Vector<String> v = new Vector<String>();
+				    v.add(source);
+				    theirPointSourceMap.put(name, v);	    
+				}
+				else {
+                                    Vector<String> v = (Vector<String>)theirPointSourceMap.get(name);
+				    v.add(source);
+				}
+                            }
+			}
+			//long elapsed = System.nanoTime() - start;
+			//System.out.println("MonClientUtil::cachePointNames took " + elapsed/(double)1E9 + " seconds for server " + theirServerName);
 		} catch (Exception e) {
 			System.err.println("MonClientUtil.cachePointNames: " + e.getClass() + ": " + e.getMessage());
 			System.exit(1);
@@ -314,7 +342,13 @@ public class MonClientUtil {
 
 	/** Return the cached list of all point names. */
 	public static String[] getAllPointNames() {
-		return theirPointNameCache;
+		return theirPointNameCache.toArray(new String[theirPointNameCache.size()]);
+	}
+
+
+	/** Return the point names mapped to their list of sources. */
+	public static Hashtable<String,Vector<String>> getPointSourceMap() {
+		return theirPointSourceMap;
 	}
 
 	/**
@@ -329,29 +363,25 @@ public class MonClientUtil {
 		if (points == null || points.size() == 0) {
 			return null;
 		}
-
 		Vector<Vector<String>> res = new Vector<Vector<String>>(points.size());
 		for (int i = 0; i < points.size(); i++) {
-			if (points.get(i) != null && points.get(i) instanceof String) {
-				String searchname = (String) points.get(i);
-				Vector<String> match = new Vector<String>();
-				for (int j = 0; j < theirPointNameCache.length; j++) {
-					String thispoint = theirPointNameCache[j];
-					int doti = thispoint.indexOf(".");
-					String source = thispoint.substring(0, doti);
-					String thisname = thispoint.substring(doti + 1, thispoint.length());
-					if (thisname.equals(searchname)) {
-						match.add(source);
-					}
-				}
-				if (match.size() == 0) {
-					res.add(null);
-				} else {
-					res.add(match);
-				}
-			} else {
-				res.add(null);
+		    if (points.get(i) == null || !(points.get(i) instanceof String)) {
+		        res.add(null);
+			continue;
+		    }
+		    String searchname = (String) points.get(i);
+                    if (theirPointSourceMap.containsKey(searchname)) {
+                        Vector<String> v = (Vector<String>)theirPointSourceMap.get(searchname);
+		        if (v.size() == 0) {
+			    res.add(null);
+		        } 
+			else {
+			    res.add(v);
 			}
+	            } 
+	            else {
+		        res.add(null);
+		    }
 		}
 		return res;
 	}
@@ -596,7 +626,18 @@ public class MonClientUtil {
 		TreeUtil res = getSetupTreeUtil(c);
 		if (res == null) {
 			return;
-		}
+		}                        //Iterator keyIter = theirPointSourceMap.keySet().iterator();
+			//int count = 0;
+			//while (keyIter.hasNext() && (count++ < 10)) {
+			//    name = (String)keyIter.next();
+                        //    System.out.print(name + "\n\t");
+			//    Vector<String> v = theirPointSourceMap.get(name);
+			//    for (int i = 0; i < v.size(); ++i) {
+			//	source = (String)v.get(i);
+			//        System.out.print(source + " ");
+			//    }
+			//    System.out.println();
+		        //}
 		res.addActionListener(listener);
 		res.getMenus(parent);
 	}

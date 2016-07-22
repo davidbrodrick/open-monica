@@ -26,7 +26,7 @@ import atnf.atoms.time.RelTime;
 /**
  * Ice implementation of a MoniCAClient.
  * 
- * @author David Brodrick
+ * @author David Brodrick, Simon Hoyle
  */
 public class MoniCAClientIce extends MoniCAClient {
   /** Host name that we are connected to. */
@@ -89,13 +89,14 @@ public class MoniCAClientIce extends MoniCAClient {
     }
   }
 
-  /**
+   /**
    * Get the names of all points (including aliases) on the system.
    * 
    * @return Names of all points on the system.
    */
-  public String[] getAllPointNames() throws Exception {
-    String[] res = null;
+  public Vector<String> getAllPointNames() throws Exception {
+    String[] tempnames = null;
+    Vector<String> names = new Vector<String>(theirMaxNameReq);
     try {
       if (!isConnected()) {
         connect();
@@ -104,35 +105,26 @@ public class MoniCAClientIce extends MoniCAClient {
         int start = 0;
         while (true) {
           // Request the next chunk of the point names
-          String[] tempnames = itsIceClient.getAllPointNamesChunk(start, theirMaxNameReq);
-
-          if (res == null) {
-            // First result
-            res = tempnames;
-          } else if (tempnames.length > 0) {
-            // Append the new names to the result
-            String[] newres = new String[res.length + tempnames.length];
-            for (int i = 0; i < res.length; i++) {
-              newres[i] = res[i];
-            }
-            for (int i = 0; i < tempnames.length; i++) {
-              newres[res.length + i] = tempnames[i];
-            }
-            res = newres;
+          tempnames = itsIceClient.getAllPointNamesChunk(start, theirMaxNameReq);
+          for (int i = 0; i < tempnames.length; i++) {
+              names.add(tempnames[i]);
           }
-
           // System.err.println("MoniCAClientIce.getAllPointNames: " + tempnames.length + " " + res.length);
-
           if (tempnames.length < theirMaxNameReq) {
             // We have finished retrieving all of the names
             break;
           }
-
           start = start + theirMaxNameReq;
+	  tempnames = null;
         }
       } catch (Ice.OperationNotExistException f) {
         // Fall back to old method (prone to exceeded max message size if too many points)
-        res = itsIceClient.getAllPointNames();
+        System.out.println("MoniCAClientIce::getAllPointNames: " + f.toString());
+        tempnames = itsIceClient.getAllPointNames();
+        for (int i = 0; i < tempnames.length; i++) {
+              names.add(tempnames[i]);
+        }
+	return names;
       }
     } catch (Exception e) {
       System.err.println("MoniCAClientIce.getAllPointNames:" + e.getClass());
@@ -141,7 +133,7 @@ public class MoniCAClientIce extends MoniCAClient {
       throw e;
     }
 
-    return res;
+    return names;
   }
 
   /**
@@ -434,8 +426,7 @@ public class MoniCAClientIce extends MoniCAClient {
               break;
             }
           } else {
-            // System.err.println("MoniCAClientIce.getArchiveData: " +
-            // pointnames.get(thispoint) + ": No New Data");
+            System.err.println("MoniCAClientIce.getArchiveData: " + pointnames.get(thispoint) + ": No New Data");
             // No new data was returned
             break;
           }
