@@ -426,7 +426,7 @@ public class MoniCAClientIce extends MoniCAClient {
               break;
             }
           } else {
-            System.err.println("MoniCAClientIce.getArchiveData: " + pointnames.get(thispoint) + ": No New Data");
+            // System.err.println("MoniCAClientIce.getArchiveData: " + pointnames.get(thispoint) + ": No New Data");
             // No new data was returned
             break;
           }
