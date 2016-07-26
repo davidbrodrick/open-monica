@@ -177,10 +177,10 @@ public final class MoniCAIceI extends _MoniCAIceDisp {
       if (thisdata == null) {
         // Ice doesn't like null, so replace with empty return structure
         thisdata = new Vector<PointData>(0);
-	theirLogger.warn("getArchiveData: No archive data found for point " + names[i]);
+	theirLogger.debug("getArchiveData: No archive data found for point " + names[i]);
       }
       else {
-        theirLogger.info("getArchiveData: Found " + thisdata.size() + " entries for point " + names[i]);
+        theirLogger.debug("getArchiveData: Found " + thisdata.size() + " entries for point " + names[i]);
       }
       // Convert to Ice representation
       res[i] = MoniCAIceUtil.getPointDataAsIce(thisdata);
