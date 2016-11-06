@@ -44,7 +44,9 @@ final public class DUTC {
   /**
    * The UTC dates (in MJD days) and amount of the leap second
    */
-  private static int[][] leap = { { 57204, 36 }, // 2015 JUL 1
+  private static int[][] leap = {
+      { 57754, 37 }, // 2017 JAN 1
+      { 57204, 36 }, // 2015 JUL 1
       { 56109, 35 }, // 2012 JUL 1
       { 54832, 34 }, // 2009 JAN 1
       { 53736, 33 }, // 2006 JAN 1
