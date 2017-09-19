@@ -182,13 +182,13 @@ Get the values for a single MoniCA point between a specified time and the presen
 
 Usage:
 ```
-@pointvals = monsince($mon, $mjd, $pointname, $maxnper);
+@pointvals = monsince($mon, $mjd, $pointname; $maxnper);
 ```
 
   * `$mon` is a successfully created MoniCA connection handle
   * `$mjd` is the MJD to begin the query from
   * `$pointname` is the name of the MoniCA point to query
-  * `$maxnper` is the maximum number of points to return per query to the server. As documented for the ASCII interface, the MoniCA server may not return values covering the full time range in a single response, if a query would take too long to respond to. The Perl routine `monsince` will handle this situation, and will requery the server for values since the time of the last returned point. For each query that `monsince` makes, it will always include the first returned point, the last returned point, and `$maxnper-2` more points spread evenly across the points that were received from the server. If you want all points to be returned, set `$maxnper` to a number <=0.
+  * `$maxnper` is the maximum number of points to return per query to the server. As documented for the ASCII interface, the MoniCA server may not return values covering the full time range in a single response, if a query would take too long to respond to. The Perl routine `monsince` will handle this situation, and will requery the server for values since the time of the last returned point. For each query that `monsince` makes, it will always include the first returned point, the last returned point, and `$maxnper-2` more points spread evenly across the points that were received from the server. All will points to be returned if `$maxnper` is not passed.
   * `@pointvals` is a list of `MonBetweenPoint` objects.
 
 A `MonBetweenPoint` object has the properties:
