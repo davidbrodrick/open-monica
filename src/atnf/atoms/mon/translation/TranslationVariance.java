@@ -21,8 +21,8 @@ import atnf.atoms.util.Angle;
  * Calculate the variance of a monitor point over a specified time range.
  * 
  * <P>
- * Expects one "init" argument, which is the period of time to buffer data for
- * in order to measure the variance.
+ * Expects one "init" argument, which is the period of time (seconds) to buffer data for
+ * in order to measure the variance.  If not specified, 60 secondsis the default period.
  * 
  * @author David Brodrick
  * @version $Id: TranslationVariance.java,v 1.4 2004/10/06 23:20:15 bro764 Exp $
