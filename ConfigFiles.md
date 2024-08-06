@@ -7,7 +7,7 @@ This page is intended to give a very brief introduction to these.
 # File Locations #
 
 ## Bundled Resources ##
-Most configuration files live in the `config/` subdirectory of the open-monica project directory. These get built into the jar file when you build MoniCA (therefore you need to rebuild the jar file if you change the files).
+Most configuration files live in the `config/` subdirectory of the open-monica project directory. These files originally were built into the jar file when MoniCA is built (therefore you need to rebuild the jar file if you change the files).  More recently, MoniCA can be configured to only require a restart to activate new configuration files.
 
 An enumeration of these files includes the following:
 
