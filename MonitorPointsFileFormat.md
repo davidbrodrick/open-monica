@@ -60,7 +60,7 @@ This specifies which 'sources' the point definition should be used to create poi
 If the point is defined for just a single source then you only need to specify the name of the source for this field, or for a point definition with multiple sources you use the compound semantics already described.
 
 ## Enabled State ##
-This may be set to either `T` or `F` to specify whether a point should be actively collected/processed or not respectively. Normally this would be `T` however you may have a point that is no longer supported in your system but for which you would still like to make archival data available, in which case you could maintain the point definition but set it to disabled.
+This may be set to either `T` or `F` to specify whether a point should be actively collected/processed or not respectively. Normally this would be `T` however you may have a point that is no longer supported in your system but for which you would still like to make archival data available, in which case you could maintain the point definition but set it to disabled.  Some experience indicates that the associated `System` entry needs to be removed for this to take effect.
 
 ## Input Transactions ##
 This field specifies which input transactions should be created for the point. Input transactions contain, for instance, hardware addressing information which can be used by an ExternalSystem in order to specify which specific input on the external device should be polled to collect input data for the point. In principle this field may contain a compound expression specifying multiple transactions but in practice this rarely makes sense as the input is normally collected from a single place. This field may be set to `-` if the point doesn't define any input transactions.
