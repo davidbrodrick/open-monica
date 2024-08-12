@@ -20,8 +20,7 @@ import atnf.atoms.util.Angle;
  * e.g. If the init argument specified 3 decimal places and the input number was 3.14159265 then the output number would be 3.141.
  * 
  * <P>
- * Normally the output will be of type Double but if the specified number of decimals is zero then Integers will be generated. This
- * conversion might prove useful in some circumstances. If the input is an Angle then the output will also be an Angle.
+ * The output will be of type Double and the value must be greater than zero. If the input is an Angle then the output will also be an Angle.
  * 
  * @author David Brodrick
  * @version $Id: TranslationNumDecimals.java,v 1.2 2005/08/15 01:50:43 bro764 Exp $
